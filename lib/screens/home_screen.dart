@@ -1,26 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/note.dart';
 import '../services/note_storage.dart';
+import '../services/settings_controller.dart';
 import '../theme.dart';
 import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
+import '../widgets/settings_sheet.dart';
 
 const _kToastDuration = Duration(seconds: 3);
 
-/// Type filter options: All (-1), Normal (0), Link (1) — same convention as
-/// the original app.
-const _typeOptions = [
-  (key: -1, label: 'All'),
-  (key: 0, label: 'Normal'),
-  (key: 1, label: 'Link'),
-];
-
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.storage});
+  const HomeScreen({super.key, required this.storage, required this.settings});
 
   final NoteStorage storage;
+  final SettingsController settings;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -34,10 +30,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _typeFilter = -1;
   bool _sortAscending = false;
   bool _gridView = false;
-  int _wallIndex = 0;
 
   NoteStorage get _storage => widget.storage;
-  WallStyle get _wall => walls[_wallIndex % walls.length];
+  WallStyle get _wall => widget.settings.wall;
+  AppLocalizations get _l10n => AppLocalizations.of(context)!;
 
   @override
   void initState() {
@@ -46,7 +42,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _typeFilter = _storage.typeFilter;
     _sortAscending = _storage.sortAscending;
     _gridView = _storage.gridView;
-    _wallIndex = _storage.wallIndex % walls.length;
     _searchController.addListener(() => setState(() {}));
   }
 
@@ -90,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _addNote() async {
     final result = await showNoteDialog(context, existingNotes: _notes);
-    if (result == null) return;
+    if (result == null || !mounted) return;
 
     setState(() {
       _notes.add(
@@ -98,37 +93,38 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     });
     await _storage.saveNotes(_notes);
-    _toast('Add successfully');
+    if (mounted) _toast(_l10n.addSuccess);
   }
 
   Future<void> _editNote(Note note) async {
     final result =
         await showNoteDialog(context, existingNotes: _notes, note: note);
-    if (result == null) return;
+    if (result == null || !mounted) return;
 
     setState(() {
       note.content = result.content;
       note.url = result.url;
     });
     await _storage.saveNotes(_notes);
-    _toast('Update successfully');
+    if (mounted) _toast(_l10n.updateSuccess);
   }
 
   void _deleteNote(Note note) {
+    final l10n = _l10n;
     ScaffoldMessenger.of(context)
         .showSnackBar(
           SnackBar(
-            content: const Text('Are you sure to delete this note?'),
+            content: Text(l10n.deleteConfirm),
             duration: _kToastDuration,
-            action: SnackBarAction(label: 'Yes', onPressed: () {}),
+            action: SnackBarAction(label: l10n.yes, onPressed: () {}),
           ),
         )
         .closed
         .then((reason) async {
-      if (reason != SnackBarClosedReason.action) return;
+      if (reason != SnackBarClosedReason.action || !mounted) return;
       setState(() => _notes.removeWhere((n) => n.guid == note.guid));
       await _storage.saveNotes(_notes);
-      _toast('Delete successfully');
+      if (mounted) _toast(l10n.deleteSuccess);
     });
   }
 
@@ -140,12 +136,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void _toggleGrid() {
     setState(() => _gridView = !_gridView);
     _storage.setGridView(_gridView);
-  }
-
-  void _nextWall() {
-    setState(() => _wallIndex = (_wallIndex + 1) % walls.length);
-    _storage.setWallIndex(_wallIndex);
-    _toast(_wall.label);
   }
 
   Widget _buildHeader() {
@@ -164,9 +154,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const Spacer(),
           IconButton(
-            tooltip: 'Change wall',
-            icon: Icon(Icons.wallpaper, color: _wall.wallText),
-            onPressed: _nextWall,
+            tooltip: _l10n.customize,
+            icon: Icon(Icons.palette_outlined, color: _wall.wallText),
+            onPressed: () => showSettingsSheet(context, widget.settings),
           ),
         ],
       ),
@@ -174,7 +164,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildToolbar() {
+    final l10n = _l10n;
     final wallText = _wall.wallText;
+
+    final typeOptions = [
+      (key: -1, label: l10n.typeAll),
+      (key: 0, label: l10n.typeNormal),
+      (key: 1, label: l10n.typeLink),
+    ];
 
     return Theme(
       data: wallControlsTheme(context, _wall),
@@ -187,16 +184,18 @@ class _HomeScreenState extends State<HomeScreen> {
               child: DropdownButtonFormField<int>(
                 initialValue: _typeFilter,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Type'),
+                decoration: InputDecoration(labelText: l10n.type),
                 dropdownColor: _wall.dropdownSurface,
-                style: TextStyle(
-                  fontFamily: 'PatrickHand',
-                  fontSize: 17,
-                  color: wallText,
-                ),
+                // Base on the theme style so the selected font family is
+                // kept — a bare TextStyle here would fall back to the
+                // platform default font.
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.copyWith(fontSize: 17, color: wallText),
                 iconEnabledColor: wallText,
                 items: [
-                  for (final option in _typeOptions)
+                  for (final option in typeOptions)
                     DropdownMenuItem(
                       value: option.key,
                       child: Text(option.label),
@@ -213,12 +212,12 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: TextField(
                 controller: _searchController,
-                decoration: const InputDecoration(labelText: 'Search'),
+                decoration: InputDecoration(labelText: l10n.search),
                 style: TextStyle(color: wallText, fontSize: 17),
               ),
             ),
             IconButton(
-              tooltip: 'Sort',
+              tooltip: l10n.sortTooltip,
               icon: Icon(
                 _sortAscending ? Icons.filter_list_off : Icons.filter_list,
                 color: wallText,
@@ -226,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: _toggleSort,
             ),
             IconButton(
-              tooltip: _gridView ? 'List view' : 'Grid view',
+              tooltip: _gridView ? l10n.listView : l10n.gridView,
               icon: Icon(
                 _gridView ? Icons.format_list_bulleted : Icons.apps,
                 color: wallText,
@@ -247,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Transform.rotate(
           angle: -0.03,
           child: Text(
-            'No notes yet.\nTap "Add Note" to stick one on the wall!',
+            _l10n.emptyState,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 22,
@@ -314,7 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
           floatingActionButton: FloatingActionButton.extended(
             onPressed: _addNote,
             icon: const Icon(Icons.push_pin),
-            label: const Text('Add Note', style: TextStyle(fontSize: 17)),
+            label: Text(_l10n.addNote, style: const TextStyle(fontSize: 17)),
           ),
           body: SafeArea(
             child: Column(

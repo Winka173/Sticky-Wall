@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/note.dart';
 
 /// Result returned by [showNoteDialog] when the user saves.
@@ -72,14 +73,15 @@ class _NoteDialogState extends State<_NoteDialog> {
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
+    final l10n = AppLocalizations.of(context)!;
     final content = _contentController.text.trim();
     final url = _type == NoteType.link ? _urlController.text.trim() : '';
 
     if (_isDuplicate(content, url)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Content or Link is already existed'),
-          duration: Duration(seconds: 3),
+        SnackBar(
+          content: Text(l10n.duplicateExists),
+          duration: const Duration(seconds: 3),
         ),
       );
       return;
@@ -90,8 +92,10 @@ class _NoteDialogState extends State<_NoteDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return AlertDialog(
-      title: Text(_isEdit ? 'Edit Note' : 'Create Note'),
+      title: Text(_isEdit ? l10n.editNote : l10n.createNote),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -100,13 +104,16 @@ class _NoteDialogState extends State<_NoteDialog> {
             children: [
               DropdownButtonFormField<NoteType>(
                 initialValue: _type,
-                decoration: const InputDecoration(labelText: 'Type'),
-                items: const [
+                decoration: InputDecoration(labelText: l10n.type),
+                items: [
                   DropdownMenuItem(
                     value: NoteType.normal,
-                    child: Text('Normal'),
+                    child: Text(l10n.typeNormal),
                   ),
-                  DropdownMenuItem(value: NoteType.link, child: Text('Link')),
+                  DropdownMenuItem(
+                    value: NoteType.link,
+                    child: Text(l10n.typeLink),
+                  ),
                 ],
                 onChanged: (type) {
                   if (type == null) return;
@@ -123,24 +130,24 @@ class _NoteDialogState extends State<_NoteDialog> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _contentController,
-                decoration: const InputDecoration(
-                  labelText: 'Content',
-                  hintText: 'Note something...',
+                decoration: InputDecoration(
+                  labelText: l10n.content,
+                  hintText: l10n.contentHint,
                 ),
                 maxLines: _type == NoteType.normal ? 4 : 1,
                 minLines: 1,
                 validator: (value) => (value == null || value.trim().isEmpty)
-                    ? 'Content is required'
+                    ? l10n.contentRequired
                     : null,
               ),
               if (_type == NoteType.link) ...[
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _urlController,
-                  decoration: const InputDecoration(labelText: 'Link'),
+                  decoration: InputDecoration(labelText: l10n.link),
                   keyboardType: TextInputType.url,
                   validator: (value) => (value == null || value.trim().isEmpty)
-                      ? 'Link is required'
+                      ? l10n.linkRequired
                       : null,
                 ),
               ],
@@ -151,11 +158,11 @@ class _NoteDialogState extends State<_NoteDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: _save,
-          child: Text(_isEdit ? 'Update' : 'Add'),
+          child: Text(_isEdit ? l10n.update : l10n.add),
         ),
       ],
     );

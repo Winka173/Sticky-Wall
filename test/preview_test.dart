@@ -5,15 +5,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sticky_wall/main.dart';
 import 'package:sticky_wall/models/note.dart';
 import 'package:sticky_wall/services/note_storage.dart';
+import 'package:sticky_wall/services/settings_controller.dart';
 import 'package:sticky_wall/theme.dart';
 
 Future<void> _loadRealFonts() async {
-  final patrick = FontLoader('PatrickHand')
-    ..addFont(rootBundle.load('assets/fonts/PatrickHand-Regular.ttf'));
-  await patrick.load();
-  final pacifico = FontLoader('Pacifico')
-    ..addFont(rootBundle.load('assets/fonts/Pacifico-Regular.ttf'));
-  await pacifico.load();
+  for (final entry in {
+    'PatrickHand': 'assets/fonts/PatrickHand-Regular.ttf',
+    'Pacifico': 'assets/fonts/Pacifico-Regular.ttf',
+    'Itim': 'assets/fonts/Itim-Regular.ttf',
+    'DancingScript': 'assets/fonts/DancingScript.ttf',
+    'BeVietnamPro': 'assets/fonts/BeVietnamPro-Regular.ttf',
+  }.entries) {
+    final loader = FontLoader(entry.key)..addFont(rootBundle.load(entry.value));
+    await loader.load();
+  }
 }
 
 final _sampleNotes = [
@@ -31,7 +36,8 @@ void main() {
         // Screenshot generator, not a regression test: golden rendering
         // differs between platforms. Run on demand with:
         //   flutter test --update-goldens test/preview_test.dart
-        // then copy the PNGs from test/ into screenshots/.
+        // (remove the skip below first), then copy the PNGs from test/
+        // into screenshots/.
         skip: true, (tester) async {
       await _loadRealFonts();
       SharedPreferences.setMockInitialValues({});
@@ -39,12 +45,15 @@ void main() {
       await storage.saveNotes(_sampleNotes);
       await storage.setGridView(true);
       await storage.setWallIndex(i);
+      await storage.setLanguageCode('vi');
 
       tester.view.physicalSize = const Size(1170, 2280);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
 
-      await tester.pumpWidget(StickyWallApp(storage: storage));
+      await tester.pumpWidget(
+        StickyWallApp(storage: storage, settings: SettingsController(storage)),
+      );
 
       await tester.runAsync(() async {
         final context = tester.element(find.byType(Scaffold));

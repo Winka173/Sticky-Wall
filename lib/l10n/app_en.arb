@@ -1,0 +1,50 @@
+{
+  "@@locale": "en",
+  "appTitle": "Sticky Wall",
+  "addNote": "Add Note",
+  "search": "Search",
+  "type": "Type",
+  "typeAll": "All",
+  "typeNormal": "Normal",
+  "typeLink": "Link",
+  "createNote": "Create Note",
+  "editNote": "Edit Note",
+  "content": "Content",
+  "contentHint": "Note something...",
+  "link": "Link",
+  "cancel": "Cancel",
+  "add": "Add",
+  "update": "Update",
+  "contentRequired": "Content is required",
+  "linkRequired": "Link is required",
+  "duplicateExists": "This content or link already exists",
+  "addSuccess": "Added successfully",
+  "updateSuccess": "Updated successfully",
+  "deleteSuccess": "Deleted successfully",
+  "deleteConfirm": "Delete this note?",
+  "yes": "Yes",
+  "emptyState": "No notes yet.\nTap “Add Note” to stick one on the wall!",
+  "couldNotOpen": "Could not open {url}",
+  "@couldNotOpen": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "customize": "Customize",
+  "wallSection": "Wall",
+  "fontSection": "Font",
+  "languageSection": "Language",
+  "langSystem": "System",
+  "sortTooltip": "Sort",
+  "listView": "List view",
+  "gridView": "Grid view",
+  "wallCork": "Cork board",
+  "wallChalkGreen": "Green chalkboard",
+  "wallChalkBlack": "Black chalkboard",
+  "wallPlaster": "Painted wall",
+  "wallBrick": "Brick wall",
+  "wallWood": "Wood planks",
+  "fontPreview": "Hello! A quick note on the wall."
+}

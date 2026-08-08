@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/note.dart';
 import '../theme.dart';
 
@@ -14,7 +15,7 @@ Future<void> _openUrl(BuildContext context, String url) async {
       !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not open $url')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.couldNotOpen(url))),
       );
     }
   }
@@ -32,13 +33,21 @@ Color notePaperColor(Note note) =>
 double _noteTilt(Note note, {double step = 0.009}) =>
     ((_noteSeed(note) >> 3) % 5 - 2) * step;
 
-const _inkText = TextStyle(color: AppColors.ink, fontSize: 18, height: 1.25);
-const _linkText = TextStyle(
-  color: Color(0xFF1A55A5),
-  fontSize: 18,
-  decoration: TextDecoration.underline,
-  decorationColor: Color(0xFF1A55A5),
-);
+double _fontScale(BuildContext context) =>
+    Theme.of(context).extension<NoteTextScale>()?.scale ?? 1.0;
+
+TextStyle _inkText(BuildContext context) => TextStyle(
+      color: AppColors.ink,
+      fontSize: 18 * _fontScale(context),
+      height: 1.25,
+    );
+
+TextStyle _linkText(BuildContext context) => TextStyle(
+      color: const Color(0xFF1A55A5),
+      fontSize: 18 * _fontScale(context),
+      decoration: TextDecoration.underline,
+      decorationColor: const Color(0xFF1A55A5),
+    );
 
 class _NoteActions extends StatelessWidget {
   const _NoteActions({required this.onEdit, required this.onDelete});
@@ -126,19 +135,19 @@ class NoteListTile extends StatelessWidget {
                         spacing: 10,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Text('${note.content}:', style: _inkText),
+                          Text('${note.content}:', style: _inkText(context)),
                           InkWell(
                             onTap: () => _openUrl(context, note.url),
                             child: Text(
                               note.url,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: _linkText,
+                              style: _linkText(context),
                             ),
                           ),
                         ],
                       )
-                    : Text(note.content, style: _inkText),
+                    : Text(note.content, style: _inkText(context)),
               ),
               _NoteActions(onEdit: onEdit, onDelete: onDelete),
             ],
@@ -184,14 +193,14 @@ class NoteGridCard extends StatelessWidget {
                             note.content,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 4,
-                            style: _linkText,
+                            style: _linkText(context),
                           ),
                         )
                       : Text(
                           note.content,
                           overflow: TextOverflow.ellipsis,
                           maxLines: 5,
-                          style: _inkText,
+                          style: _inkText(context),
                         ),
                 ),
                 Align(

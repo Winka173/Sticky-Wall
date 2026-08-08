@@ -14,6 +14,8 @@ class NoteStorage {
   static const _gridKey = 'grid';
   static const _filterKey = 'filter';
   static const _wallKey = 'wall';
+  static const _fontKey = 'font';
+  static const _languageKey = 'language';
 
   final SharedPreferences _prefs;
 
@@ -54,4 +56,13 @@ class NoteStorage {
   /// Index into the [walls] list in theme.dart.
   int get wallIndex => _prefs.getInt(_wallKey) ?? 0;
   Future<void> setWallIndex(int value) => _prefs.setInt(_wallKey, value);
+
+  /// Id of a [FontChoice] in theme.dart.
+  String get fontId => _prefs.getString(_fontKey) ?? 'patrick';
+  Future<void> setFontId(String value) => _prefs.setString(_fontKey, value);
+
+  /// 'system', or a locale code ('en', 'vi').
+  String get languageCode => _prefs.getString(_languageKey) ?? 'system';
+  Future<void> setLanguageCode(String value) =>
+      _prefs.setString(_languageKey, value);
 }
