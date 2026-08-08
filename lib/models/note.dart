@@ -1,4 +1,6 @@
-enum NoteType { normal, link, checklist }
+import 'draw_stroke.dart';
+
+enum NoteType { normal, link, checklist, drawing }
 
 /// One row of a checklist note.
 class ChecklistItem {
@@ -33,10 +35,14 @@ class Note {
     this.pinned = false,
     this.reminderAt,
     List<ChecklistItem>? checklist,
+    List<DrawStroke>? strokes,
+    this.imagePath = '',
     this.x = 0.5,
     this.y = 0.5,
+    this.scale = 1.0,
   })  : type = type ?? (url.isEmpty ? NoteType.normal : NoteType.link),
-        checklist = checklist ?? [];
+        checklist = checklist ?? [],
+        strokes = strokes ?? [];
 
   final String guid;
   String content;
@@ -54,12 +60,21 @@ class Note {
 
   List<ChecklistItem> checklist;
 
+  /// Freehand strokes for a drawing note.
+  List<DrawStroke> strokes;
+
+  /// Absolute path to an attached photo (empty if none).
+  String imagePath;
+
   DateTime createdAt;
 
   /// Fractional position on the wall (0..1 of the wall area), so a note keeps
   /// its spot across screen sizes. Only used by the free "wall" view.
   double x;
   double y;
+
+  /// Size multiplier on the wall (pinch/handle resize).
+  double scale;
 
   /// Which board this note lives on.
   String boardId;
@@ -94,12 +109,17 @@ class Note {
       checklist: (json['checklist'] as List<dynamic>? ?? [])
           .map((e) => ChecklistItem.fromJson(e as Map<String, dynamic>))
           .toList(),
+      strokes: (json['strokes'] as List<dynamic>? ?? [])
+          .map((e) => DrawStroke.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      imagePath: json['imagePath'] as String? ?? '',
       createdAt: json['createdAt'] == null
           ? DateTime.fromMillisecondsSinceEpoch(0)
           : DateTime.tryParse(json['createdAt'] as String) ??
               DateTime.fromMillisecondsSinceEpoch(0),
       x: (json['x'] as num?)?.toDouble() ?? 0.5,
       y: (json['y'] as num?)?.toDouble() ?? 0.5,
+      scale: (json['scale'] as num?)?.toDouble() ?? 1.0,
       boardId: json['boardId'] as String? ?? 'default',
     );
   }
@@ -114,9 +134,12 @@ class Note {
         'pinned': pinned,
         'reminderAt': reminderAt?.toIso8601String(),
         'checklist': checklist.map((i) => i.toJson()).toList(),
+        'strokes': strokes.map((s) => s.toJson()).toList(),
+        'imagePath': imagePath,
         'createdAt': createdAt.toIso8601String(),
         'x': x,
         'y': y,
+        'scale': scale,
         'boardId': boardId,
       };
 }

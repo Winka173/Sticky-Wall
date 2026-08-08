@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
 import '../models/view_mode.dart';
+import '../services/image_service.dart';
 import '../services/notes_controller.dart';
 import '../services/settings_controller.dart';
 import '../theme.dart';
@@ -28,10 +30,17 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
+  final _imageService = ImageService();
+
+  // Per-note RepaintBoundary keys, so a note can be rasterized to an image.
+  final _captureKeys = <String, GlobalKey>{};
 
   NotesController get _notes => widget.notes;
   WallStyle get _wall => walls[_notes.currentBoard.wallIndex % walls.length];
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
+
+  GlobalKey _keyFor(Note note) =>
+      _captureKeys.putIfAbsent(note.guid, () => GlobalKey());
 
   @override
   void initState() {
@@ -56,7 +65,85 @@ class _HomeScreenState extends State<HomeScreen> {
         onDelete: () => _delete(note),
         onTogglePin: () => _notes.togglePin(note),
         onToggleItem: (i) => _notes.toggleChecklistItem(note, i),
+        onLongPress: () => _showNoteActions(note),
       );
+
+  Future<void> _showNoteActions(Note note) async {
+    final l10n = _l10n;
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.paper,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(note.pinned ? Icons.push_pin : Icons.push_pin_outlined),
+              title: Text(l10n.pin),
+              onTap: () => Navigator.pop(context, 'pin'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.ios_share),
+              title: Text(l10n.shareAsImage),
+              onTap: () => Navigator.pop(context, 'share'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.download),
+              title: Text(l10n.saveImage),
+              onTap: () => Navigator.pop(context, 'save'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: AppColors.deleteIcon),
+              title: Text(l10n.delete,
+                  style: const TextStyle(color: AppColors.deleteIcon)),
+              onTap: () => Navigator.pop(context, 'delete'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted) return;
+    switch (action) {
+      case 'pin':
+        _notes.togglePin(note);
+      case 'share':
+        await _captureAndShare(note);
+      case 'save':
+        await _captureAndSave(note);
+      case 'delete':
+        _delete(note);
+    }
+  }
+
+  RenderRepaintBoundary? _boundaryFor(Note note) {
+    final ctx = _captureKeys[note.guid]?.currentContext;
+    return ctx?.findRenderObject() as RenderRepaintBoundary?;
+  }
+
+  Future<void> _captureAndShare(Note note) async {
+    final boundary = _boundaryFor(note);
+    if (boundary == null) return;
+    try {
+      final bytes = await ImageService.capture(boundary);
+      if (bytes != null) await _imageService.sharePng(bytes);
+    } catch (_) {/* user cancelled / platform unavailable */}
+  }
+
+  Future<void> _captureAndSave(Note note) async {
+    final boundary = _boundaryFor(note);
+    if (boundary == null) return;
+    try {
+      final bytes = await ImageService.capture(boundary);
+      if (bytes == null || !mounted) return;
+      await _imageService.saveToGallery(bytes);
+      _toast(_l10n.imageSaved);
+    } catch (_) {
+      if (mounted) _toast(_l10n.imageSaveFailed);
+    }
+  }
 
   Future<void> _openEditor(Note note, {required bool isNew}) async {
     final result = await showNoteDialog(
@@ -265,15 +352,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildContent(WallStyle wall) {
     // Wall mode: free-drag canvas (all board notes, unfiltered by layout).
+    // Rendered even when empty so tapping the wall still creates a note.
     if (_notes.viewMode == ViewMode.wall) {
       final notes = _notes.boardNotes;
-      if (notes.isEmpty) return _emptyState(wall);
       return WallView(
         notes: notes,
         callbacksFor: _callbacks,
         onMove: _notes.moveNote,
+        onResize: _notes.resizeNote,
         onBringToFront: _notes.bringToFront,
         onCreateAt: (x, y) => _openEditor(_notes.draftAt(x, y), isNew: true),
+        captureKeys: {for (final n in notes) n.guid: _keyFor(n)},
+        resetZoomTooltip: _l10n.resetZoom,
+        emptyHint: _emptyState(wall),
       );
     }
 
@@ -309,6 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
           note: notes[i],
           cb: _callbacks(notes[i]),
           maxContentLines: 8,
+          captureKey: _keyFor(notes[i]),
         ),
       ),
     );
@@ -320,7 +412,11 @@ class _HomeScreenState extends State<HomeScreen> {
       itemCount: notes.length,
       itemBuilder: (context, i) => _Appear(
         key: ValueKey(notes[i].guid),
-        child: NoteListTile(note: notes[i], cb: _callbacks(notes[i])),
+        child: NoteListTile(
+          note: notes[i],
+          cb: _callbacks(notes[i]),
+          captureKey: _keyFor(notes[i]),
+        ),
       ),
     );
   }

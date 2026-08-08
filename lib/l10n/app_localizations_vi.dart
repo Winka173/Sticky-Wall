@@ -153,6 +153,33 @@ class AppLocalizationsVi extends AppLocalizations {
   String get emote => 'Emote';
 
   @override
+  String get typeDrawing => 'Vẽ tay';
+
+  @override
+  String get photo => 'Ảnh';
+
+  @override
+  String get fromGallery => 'Thư viện';
+
+  @override
+  String get takePhoto => 'Máy ảnh';
+
+  @override
+  String get shareAsImage => 'Chia sẻ ảnh';
+
+  @override
+  String get saveImage => 'Lưu ảnh';
+
+  @override
+  String get imageSaved => 'Đã lưu vào thư viện';
+
+  @override
+  String get imageSaveFailed => 'Không lưu được ảnh';
+
+  @override
+  String get resetZoom => 'Đặt lại thu phóng';
+
+  @override
   String get wallDecor => 'Vết bẩn trên tường';
 
   @override

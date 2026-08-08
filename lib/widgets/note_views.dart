@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
 import '../theme.dart';
+import 'drawing_canvas.dart';
 
 Future<void> openNoteUrl(BuildContext context, String url) async {
   var target = url.trim();
@@ -11,13 +14,18 @@ Future<void> openNoteUrl(BuildContext context, String url) async {
     target = 'https://$target';
   }
   final uri = Uri.tryParse(target);
-  if (uri == null ||
-      !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.couldNotOpen(url))),
-      );
+  var ok = false;
+  if (uri != null) {
+    try {
+      ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      ok = false;
     }
+  }
+  if (!ok && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context)!.couldNotOpen(url))),
+    );
   }
 }
 
@@ -35,12 +43,44 @@ class NoteCallbacks {
     required this.onDelete,
     required this.onTogglePin,
     required this.onToggleItem,
+    required this.onLongPress,
   });
 
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onTogglePin;
   final void Function(int index) onToggleItem;
+
+  /// Opens the note's action sheet (share/save image, pin, delete).
+  final VoidCallback onLongPress;
+}
+
+/// An attached photo, rounded and height-capped.
+class _NotePhoto extends StatelessWidget {
+  const _NotePhoto({required this.path});
+
+  final String path;
+  static const double height = 120;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: Image.file(
+          File(path),
+          height: height,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => SizedBox(
+            height: height,
+            child: const Center(child: Icon(Icons.broken_image, size: 28)),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 BoxDecoration paperDecoration(Note note, {bool raised = false}) {
@@ -151,11 +191,16 @@ class _NoteBody extends StatelessWidget {
     required this.note,
     required this.cb,
     required this.maxContentLines,
+    this.showDelete = true,
   });
 
   final Note note;
   final NoteCallbacks cb;
   final int maxContentLines;
+
+  /// On the wall the resize handle sits at the bottom-right, so the inline
+  /// delete button is hidden there (delete is on the long-press menu).
+  final bool showDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +208,8 @@ class _NoteBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(child: _content(context)),
+        if (note.imagePath.isNotEmpty) _NotePhoto(path: note.imagePath),
+        _content(context),
         const SizedBox(height: 6),
         Row(
           children: [
@@ -175,13 +221,15 @@ class _NoteBody extends StatelessWidget {
             if (note.reminderAt != null)
               Flexible(child: _ReminderChip(at: note.reminderAt!)),
             const Spacer(),
-            const SizedBox(width: 4),
-            InkResponse(
-              onTap: cb.onDelete,
-              radius: 18,
-              child: const Icon(Icons.delete_outline,
-                  size: 19, color: Color(0x99C62828)),
-            ),
+            if (showDelete) ...[
+              const SizedBox(width: 4),
+              InkResponse(
+                onTap: cb.onDelete,
+                radius: 18,
+                child: const Icon(Icons.delete_outline,
+                    size: 19, color: Color(0x99C62828)),
+              ),
+            ],
           ],
         ),
       ],
@@ -190,6 +238,34 @@ class _NoteBody extends StatelessWidget {
 
   Widget _content(BuildContext context) {
     switch (note.type) {
+      case NoteType.drawing:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (note.content.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(note.content,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _inkText(context)
+                        .copyWith(fontWeight: FontWeight.bold)),
+              ),
+            SizedBox(
+              height: 110,
+              width: double.infinity,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFDF5),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.black12),
+                ),
+                child: CustomPaint(painter: StrokePainter(note.strokes)),
+              ),
+            ),
+          ],
+        );
       case NoteType.link:
         return InkWell(
           onTap: () => openNoteUrl(context, note.url),
@@ -290,6 +366,8 @@ class StickyNoteCard extends StatelessWidget {
     required this.cb,
     this.raised = false,
     this.maxContentLines = 6,
+    this.captureKey,
+    this.showDelete = true,
   });
 
   final Note note;
@@ -297,25 +375,39 @@ class StickyNoteCard extends StatelessWidget {
   final bool raised;
   final int maxContentLines;
 
+  /// When set, the paper (without the pin) is wrapped in a RepaintBoundary so
+  /// it can be rasterized for share/save-as-image.
+  final GlobalKey? captureKey;
+
+  /// Hidden on the wall, where the resize handle occupies the bottom-right.
+  final bool showDelete;
+
   @override
   Widget build(BuildContext context) {
+    Widget paper = Container(
+      decoration: paperDecoration(note, raised: raised),
+      padding: const EdgeInsets.fromLTRB(12, 18, 10, 8),
+      child: _NoteBody(
+        note: note,
+        cb: cb,
+        maxContentLines: maxContentLines,
+        showDelete: showDelete,
+      ),
+    );
+    if (captureKey != null) {
+      paper = RepaintBoundary(key: captureKey, child: paper);
+    }
+
     return Transform.rotate(
       angle: note.pinned ? 0 : noteTilt(note),
       child: GestureDetector(
         onTap: cb.onEdit,
+        onLongPress: cb.onLongPress,
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.topCenter,
           children: [
-            Container(
-              decoration: paperDecoration(note, raised: raised),
-              padding: const EdgeInsets.fromLTRB(12, 18, 10, 8),
-              child: _NoteBody(
-                note: note,
-                cb: cb,
-                maxContentLines: maxContentLines,
-              ),
-            ),
+            paper,
             Positioned(
               top: -6,
               child: GestureDetector(
@@ -332,21 +424,39 @@ class StickyNoteCard extends StatelessWidget {
 
 /// A compact full-width row for list mode.
 class NoteListTile extends StatelessWidget {
-  const NoteListTile({super.key, required this.note, required this.cb});
+  const NoteListTile({
+    super.key,
+    required this.note,
+    required this.cb,
+    this.captureKey,
+  });
 
   final Note note;
   final NoteCallbacks cb;
+  final GlobalKey? captureKey;
 
   @override
   Widget build(BuildContext context) {
+    Widget row = Container(
+      decoration: paperDecoration(note),
+      padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+      child: _rowContent(context),
+    );
+    if (captureKey != null) {
+      row = RepaintBoundary(key: captureKey, child: row);
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: GestureDetector(
         onTap: cb.onEdit,
-        child: Container(
-          decoration: paperDecoration(note),
-          padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
-          child: Row(
+        onLongPress: cb.onLongPress,
+        child: row,
+      ),
+    );
+  }
+
+  Widget _rowContent(BuildContext context) {
+    return Row(
             children: [
               GestureDetector(
                 onTap: cb.onTogglePin,
@@ -355,6 +465,17 @@ class NoteListTile extends StatelessWidget {
                   child: NotePin(pinned: note.pinned),
                 ),
               ),
+              if (note.imagePath.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: Image.file(File(note.imagePath),
+                        width: 34, height: 34, fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) =>
+                            const Icon(Icons.broken_image, size: 20)),
+                  ),
+                ),
               if (note.emoji.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
@@ -373,14 +494,26 @@ class NoteListTile extends StatelessWidget {
                     size: 20, color: Color(0x99C62828)),
               ),
             ],
-          ),
-        ),
-      ),
     );
   }
 
   Widget _listContent(BuildContext context) {
     switch (note.type) {
+      case NoteType.drawing:
+        return Row(
+          children: [
+            const Icon(Icons.brush, size: 18, color: AppColors.ink),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                note.content.isEmpty ? '✍️' : note.content,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: _inkText(context),
+              ),
+            ),
+          ],
+        );
       case NoteType.link:
         return Wrap(
           spacing: 8,

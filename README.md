@@ -6,7 +6,7 @@ pin, color, and organize across multiple boards. Bilingual (English / Tiếng
 Việt). Modeled after the original "Mia Note" Angular + Electron desktop app,
 then taken well beyond it.
 
-| Wall (drag freely) | Grid | List |
+| Wall (drag, resize, draw, zoom) | Grid | List |
 |---|---|---|
 | ![Wall](screenshots/mode_wall.png) | ![Grid](screenshots/preview_cork.png) | ![List](screenshots/mode_list.png) |
 
@@ -21,20 +21,34 @@ then taken well beyond it.
 ## Features
 
 **Notes**
-- Three types: **Normal** (multi-line text), **Link** (label + URL), and
-  **Checklist** (tickable items with done-count)
-- **Emote** sticker, **paper color** picker (or auto-from-id), **pin to top**,
-  and a **reminder** (date + time) that fires a local notification
+- Four types: **Normal** (multi-line text), **Link** (label + URL),
+  **Checklist** (tickable items with done-count), and **Drawing** (freehand
+  sketch with a color/size pen)
+- Attach a **photo** (gallery or camera), add an **emote** sticker, pick a
+  **paper color** (or auto-from-id), **pin to top**, and set a **reminder**
+  (date + time) that fires a local notification
+- **Share** a note as an image or **save** it to the photo gallery
+  (long-press a note)
 - Add / edit / delete with **undo** (delete shows an Undo snackbar), plus
   duplicate prevention
 - Notes are paper cards with a push-pin, drop shadow and a slight hand-stuck
   tilt; pinned notes straighten and get a gold pin
 
 **Layouts**
-- **Wall** — drag notes anywhere; tap empty space to create one there
+- **Wall** — drag notes anywhere, **resize** each with its corner handle,
+  **pinch to zoom / pan** the whole board (reset-zoom button); tap empty
+  space to create a note there
 - **Grid** — masonry layout (varied heights)
 - **List** — compact rows
 - Live search, filter by type, sort by newest or by name
+
+**Home-screen widget** (Android)
+- A widget showing the current board's pinned notes; tap to open the app.
+  Data is pushed via `home_widget`; the native provider lives in
+  `android/app/src/main/kotlin/.../StickyWidgetProvider.kt`.
+- iOS: the Dart side already pushes data; add a WidgetKit extension target in
+  Xcode (named `StickyWidget`) reading the shared `home_widget` data to enable
+  it on iOS.
 
 **Boards**
 - Multiple named boards ("My Wall", "Work", …); each remembers its own wall
@@ -85,6 +99,9 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/services/settings_controller.dart` | Font / language / stains |
 | `lib/services/reminder_service.dart` | Local notifications (flutter_local_notifications) |
 | `lib/services/backup_service.dart` | Export / import JSON |
+| `lib/services/image_service.dart` | Pick photo, capture note→PNG, share, save to gallery |
+| `lib/services/widget_service.dart` | Push pinned notes to the home-screen widget |
+| `lib/widgets/drawing_canvas.dart` | Freehand drawing editor + stroke painter |
 | `lib/screens/home_screen.dart` | Header, board bar, toolbar, the three views |
 | `lib/widgets/wall_view.dart` | Free drag-and-drop canvas |
 | `lib/widgets/note_dialog.dart` | Create/Edit dialog (type, color, pin, reminder, emote) |

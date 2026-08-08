@@ -153,6 +153,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emote => 'Emote';
 
   @override
+  String get typeDrawing => 'Drawing';
+
+  @override
+  String get photo => 'Photo';
+
+  @override
+  String get fromGallery => 'Gallery';
+
+  @override
+  String get takePhoto => 'Camera';
+
+  @override
+  String get shareAsImage => 'Share as image';
+
+  @override
+  String get saveImage => 'Save image';
+
+  @override
+  String get imageSaved => 'Saved to gallery';
+
+  @override
+  String get imageSaveFailed => 'Could not save image';
+
+  @override
+  String get resetZoom => 'Reset zoom';
+
+  @override
   String get wallDecor => 'Wall stains & marks';
 
   @override

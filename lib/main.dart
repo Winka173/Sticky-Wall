@@ -6,6 +6,7 @@ import 'services/note_storage.dart';
 import 'services/notes_controller.dart';
 import 'services/reminder_service.dart';
 import 'services/settings_controller.dart';
+import 'services/widget_service.dart';
 import 'theme.dart';
 
 Future<void> main() async {
@@ -13,11 +14,22 @@ Future<void> main() async {
   final storage = await NoteStorage.create();
   final reminders = ReminderService();
   await reminders.init();
+
+  final notes = NotesController(storage, reminders);
+
+  // Keep the home-screen widget in sync with the current board's pinned notes.
+  final widgetService = WidgetService();
+  void syncWidget() {
+    final pinned =
+        notes.boardNotes.where((n) => n.pinned).toList(growable: false);
+    widgetService.update(notes.currentBoard.name, pinned);
+  }
+
+  notes.addListener(syncWidget);
+  syncWidget();
+
   runApp(
-    StickyWallApp(
-      settings: SettingsController(storage),
-      notes: NotesController(storage, reminders),
-    ),
+    StickyWallApp(settings: SettingsController(storage), notes: notes),
   );
 }
 

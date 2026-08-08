@@ -285,6 +285,12 @@ class NotesController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void resizeNote(Note note, double scale) {
+    note.scale = scale.clamp(0.5, 3.0);
+    _persistNotes();
+    notifyListeners();
+  }
+
   void _bringToFront(Note note) {
     if (_notes.remove(note)) _notes.add(note);
   }

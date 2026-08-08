@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
+import '../services/image_service.dart';
 import '../theme.dart';
+import 'drawing_canvas.dart';
 
 const _emojiChoices = [
   '😀', '😂', '🥰', '😎', '🤔', '😢', '😡', '😴',
@@ -80,6 +85,7 @@ class _NoteDialogState extends State<_NoteDialog> {
     } else {
       _n.checklist = [];
     }
+    if (_n.type != NoteType.drawing) _n.strokes = [];
 
     if (_n.type != NoteType.checklist && _isDuplicate()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -133,29 +139,27 @@ class _NoteDialogState extends State<_NoteDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Type selector
-                SegmentedButton<NoteType>(
-                  segments: [
-                    ButtonSegment(
-                      value: NoteType.normal,
-                      label: Text(l10n.typeNormal),
-                      icon: const Icon(Icons.notes, size: 18),
-                    ),
-                    ButtonSegment(
-                      value: NoteType.link,
-                      label: Text(l10n.typeLink),
-                      icon: const Icon(Icons.link, size: 18),
-                    ),
-                    ButtonSegment(
-                      value: NoteType.checklist,
-                      label: Text(l10n.typeChecklist),
-                      icon: const Icon(Icons.checklist, size: 18),
-                    ),
+                Wrap(
+                  spacing: 6,
+                  children: [
+                    for (final (t, label, icon) in [
+                      (NoteType.normal, l10n.typeNormal, Icons.notes),
+                      (NoteType.link, l10n.typeLink, Icons.link),
+                      (NoteType.checklist, l10n.typeChecklist, Icons.checklist),
+                      (NoteType.drawing, l10n.typeDrawing, Icons.brush),
+                    ])
+                      ChoiceChip(
+                        label: Text(label),
+                        avatar: Icon(icon,
+                            size: 16,
+                            color: _n.type == t ? primary : AppColors.ink),
+                        selected: _n.type == t,
+                        onSelected: (_) => setState(() => _n.type = t),
+                      ),
                   ],
-                  selected: {_n.type},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (s) => setState(() => _n.type = s.first),
                 ),
                 const SizedBox(height: 16),
+                // Title/content (optional for checklist & drawing).
                 TextFormField(
                   controller: _content,
                   decoration: InputDecoration(
@@ -166,9 +170,13 @@ class _NoteDialogState extends State<_NoteDialog> {
                   ),
                   maxLines: _n.type == NoteType.normal ? 4 : 1,
                   minLines: 1,
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? l10n.contentRequired
-                      : null,
+                  validator: (v) {
+                    final needs = _n.type == NoteType.normal ||
+                        _n.type == NoteType.link;
+                    return (needs && (v == null || v.trim().isEmpty))
+                        ? l10n.contentRequired
+                        : null;
+                  },
                 ),
                 if (_n.type == NoteType.link) ...[
                   const SizedBox(height: 12),
@@ -182,6 +190,17 @@ class _NoteDialogState extends State<_NoteDialog> {
                   ),
                 ],
                 if (_n.type == NoteType.checklist) _buildChecklistEditor(l10n),
+                if (_n.type == NoteType.drawing) ...[
+                  const SizedBox(height: 12),
+                  DrawingEditor(
+                    strokes: _n.strokes,
+                    onChanged: () => setState(() {}),
+                  ),
+                ],
+                const SizedBox(height: 16),
+
+                // Photo attachment
+                _buildPhotoRow(l10n, primary),
                 const SizedBox(height: 16),
 
                 // Emote
@@ -254,6 +273,68 @@ class _NoteDialogState extends State<_NoteDialog> {
         text,
         style: TextStyle(fontSize: 14, color: color),
       );
+
+  Future<void> _attachPhoto(ImageSource source) async {
+    try {
+      final path = await ImageService().pickImage(source);
+      if (path != null && mounted) setState(() => _n.imagePath = path);
+    } catch (_) {
+      // Permission denied, camera error, I/O — leave the note unchanged.
+    }
+  }
+
+  Widget _buildPhotoRow(AppLocalizations l10n, Color primary) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _label(l10n.photo, primary),
+        const SizedBox(height: 6),
+        if (_n.imagePath.isNotEmpty)
+          Stack(
+            alignment: Alignment.topRight,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  File(_n.imagePath),
+                  height: 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const SizedBox(
+                    height: 120,
+                    child: Center(child: Icon(Icons.broken_image)),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const CircleAvatar(
+                  backgroundColor: Colors.black54,
+                  radius: 14,
+                  child: Icon(Icons.close, size: 16, color: Colors.white),
+                ),
+                onPressed: () => setState(() => _n.imagePath = ''),
+              ),
+            ],
+          )
+        else
+          Row(
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => _attachPhoto(ImageSource.gallery),
+                icon: const Icon(Icons.photo_library, size: 18),
+                label: Text(l10n.fromGallery),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => _attachPhoto(ImageSource.camera),
+                icon: const Icon(Icons.photo_camera, size: 18),
+                label: Text(l10n.takePhoto),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
 
   Widget _buildChecklistEditor(AppLocalizations l10n) {
     return Column(
