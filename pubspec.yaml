@@ -40,6 +40,11 @@ dependencies:
   shared_preferences: ^2.5.5
   url_launcher: ^6.3.2
   uuid: ^4.6.0
+  flutter_local_notifications: ^22.3.0
+  timezone: ^0.11.1
+  share_plus: ^13.3.0
+  path_provider: ^2.1.6
+  flutter_staggered_grid_view: ^0.7.0
 
 dev_dependencies:
   flutter_test:
@@ -51,6 +56,25 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
+
+flutter_launcher_icons:
+  image_path: "assets/icon/app_icon.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+    background_color: "#6B5849"
+    theme_color: "#6B5849"
+
+flutter_native_splash:
+  color: "#6B5849"
+  image: assets/icon/splash_logo.png
+  android_12:
+    color: "#6B5849"
+    image: assets/icon/splash_logo.png
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

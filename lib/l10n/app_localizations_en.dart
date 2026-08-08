@@ -30,6 +30,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get typeLink => 'Link';
 
   @override
+  String get typeChecklist => 'Checklist';
+
+  @override
   String get createNote => 'Create Note';
 
   @override
@@ -37,6 +40,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get content => 'Content';
+
+  @override
+  String get title => 'Title';
 
   @override
   String get contentHint => 'Note something...';
@@ -52,6 +58,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get update => 'Update';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get rename => 'Rename';
 
   @override
   String get contentRequired => 'Content is required';
@@ -72,10 +87,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteSuccess => 'Deleted successfully';
 
   @override
-  String get deleteConfirm => 'Delete this note?';
+  String get noteDeleted => 'Note deleted';
 
   @override
-  String get yes => 'Yes';
+  String get undo => 'Undo';
 
   @override
   String get emptyState =>
@@ -105,10 +120,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sortTooltip => 'Sort';
 
   @override
-  String get listView => 'List view';
+  String get viewWall => 'Wall';
 
   @override
-  String get gridView => 'Grid view';
+  String get viewGrid => 'Grid';
+
+  @override
+  String get viewList => 'List';
 
   @override
   String get wallCork => 'Cork board';
@@ -136,4 +154,79 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wallDecor => 'Wall stains & marks';
+
+  @override
+  String get color => 'Paper color';
+
+  @override
+  String get colorAuto => 'Auto';
+
+  @override
+  String get pin => 'Pin to top';
+
+  @override
+  String get reminder => 'Reminder';
+
+  @override
+  String get noReminder => 'No reminder';
+
+  @override
+  String get setReminder => 'Set reminder';
+
+  @override
+  String get clearReminder => 'Clear';
+
+  @override
+  String get checklistItems => 'Items';
+
+  @override
+  String get addItem => 'Add item';
+
+  @override
+  String get sortByCreated => 'Newest first';
+
+  @override
+  String get sortByName => 'By name';
+
+  @override
+  String get boards => 'Boards';
+
+  @override
+  String get newBoard => 'New board';
+
+  @override
+  String get boardName => 'Board name';
+
+  @override
+  String get defaultBoardName => 'My Wall';
+
+  @override
+  String get deleteBoard => 'Delete board';
+
+  @override
+  String deleteBoardConfirm(String name) {
+    return 'Delete “$name” and all its notes?';
+  }
+
+  @override
+  String get dataSection => 'Backup';
+
+  @override
+  String get exportData => 'Export notes';
+
+  @override
+  String get importData => 'Import notes';
+
+  @override
+  String get importHint => 'Paste a backup here';
+
+  @override
+  String get importSuccess => 'Imported successfully';
+
+  @override
+  String get importFailed => 'Could not read that backup';
+
+  @override
+  String get importReplaceWarning =>
+      'Importing replaces all current boards and notes.';
 }

@@ -11,8 +11,7 @@ abstract class AppColors {
   static const pin = Color(0xFFD32F2F);
   static const paper = Color(0xFFFFF9E6);
 
-  /// Pastel sticky-note paper colors. A note picks one deterministically
-  /// from its guid so the color is stable.
+  /// Pastel sticky-note paper colors.
   static const notePapers = [
     Color(0xFFFFF59D), // yellow
     Color(0xFFF8BBD0), // pink
@@ -21,6 +20,16 @@ abstract class AppColors {
     Color(0xFFFFE0B2), // orange
     Color(0xFFE1BEE7), // lilac
   ];
+}
+
+int stableHash(String s) =>
+    s.codeUnits.fold(0, (acc, c) => (acc * 31 + c) & 0x7fffffff);
+
+/// A note's paper color: the explicit [colorIndex] if set, else one derived
+/// deterministically from the [guid] so it stays stable across runs.
+Color noteColor(int? colorIndex, String guid) {
+  final i = colorIndex ?? (stableHash(guid) % AppColors.notePapers.length);
+  return AppColors.notePapers[i % AppColors.notePapers.length];
 }
 
 /// A wall the notes are stuck on: a seamless CC0 texture (ambientCG) plus a

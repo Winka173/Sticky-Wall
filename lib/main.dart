@@ -3,26 +3,33 @@ import 'package:flutter/material.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/home_screen.dart';
 import 'services/note_storage.dart';
+import 'services/notes_controller.dart';
+import 'services/reminder_service.dart';
 import 'services/settings_controller.dart';
 import 'theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final storage = await NoteStorage.create();
+  final reminders = ReminderService();
+  await reminders.init();
   runApp(
-    StickyWallApp(storage: storage, settings: SettingsController(storage)),
+    StickyWallApp(
+      settings: SettingsController(storage),
+      notes: NotesController(storage, reminders),
+    ),
   );
 }
 
 class StickyWallApp extends StatelessWidget {
   const StickyWallApp({
     super.key,
-    required this.storage,
     required this.settings,
+    required this.notes,
   });
 
-  final NoteStorage storage;
   final SettingsController settings;
+  final NotesController notes;
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +42,20 @@ class StickyWallApp extends StatelessWidget {
         locale: settings.localeOverride,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: HomeScreen(storage: storage, settings: settings),
+        // Notes carry their own depth; the platform's injected scrollbar
+        // (desktop/web) clutters the wall, so hide it globally.
+        scrollBehavior: const _NoScrollbarBehavior(),
+        home: HomeScreen(notes: notes, settings: settings),
       ),
     );
   }
+}
+
+class _NoScrollbarBehavior extends MaterialScrollBehavior {
+  const _NoScrollbarBehavior();
+
+  @override
+  Widget buildScrollbar(
+          BuildContext context, Widget child, ScrollableDetails details) =>
+      child;
 }

@@ -30,6 +30,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get typeLink => 'Liên kết';
 
   @override
+  String get typeChecklist => 'Danh sách';
+
+  @override
   String get createNote => 'Tạo ghi chú';
 
   @override
@@ -37,6 +40,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get content => 'Nội dung';
+
+  @override
+  String get title => 'Tiêu đề';
 
   @override
   String get contentHint => 'Ghi gì đó...';
@@ -52,6 +58,15 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get update => 'Cập nhật';
+
+  @override
+  String get save => 'Lưu';
+
+  @override
+  String get delete => 'Xóa';
+
+  @override
+  String get rename => 'Đổi tên';
 
   @override
   String get contentRequired => 'Vui lòng nhập nội dung';
@@ -72,10 +87,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get deleteSuccess => 'Đã xóa thành công';
 
   @override
-  String get deleteConfirm => 'Xóa ghi chú này?';
+  String get noteDeleted => 'Đã xóa ghi chú';
 
   @override
-  String get yes => 'Có';
+  String get undo => 'Hoàn tác';
 
   @override
   String get emptyState =>
@@ -105,10 +120,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get sortTooltip => 'Sắp xếp';
 
   @override
-  String get listView => 'Dạng danh sách';
+  String get viewWall => 'Tường';
 
   @override
-  String get gridView => 'Dạng lưới';
+  String get viewGrid => 'Lưới';
+
+  @override
+  String get viewList => 'Danh sách';
 
   @override
   String get wallCork => 'Bảng gỗ bần';
@@ -136,4 +154,79 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get wallDecor => 'Vết bẩn trên tường';
+
+  @override
+  String get color => 'Màu giấy';
+
+  @override
+  String get colorAuto => 'Tự động';
+
+  @override
+  String get pin => 'Ghim lên đầu';
+
+  @override
+  String get reminder => 'Nhắc nhở';
+
+  @override
+  String get noReminder => 'Không nhắc';
+
+  @override
+  String get setReminder => 'Đặt nhắc nhở';
+
+  @override
+  String get clearReminder => 'Xóa';
+
+  @override
+  String get checklistItems => 'Mục';
+
+  @override
+  String get addItem => 'Thêm mục';
+
+  @override
+  String get sortByCreated => 'Mới nhất trước';
+
+  @override
+  String get sortByName => 'Theo tên';
+
+  @override
+  String get boards => 'Bảng';
+
+  @override
+  String get newBoard => 'Bảng mới';
+
+  @override
+  String get boardName => 'Tên bảng';
+
+  @override
+  String get defaultBoardName => 'Tường của tôi';
+
+  @override
+  String get deleteBoard => 'Xóa bảng';
+
+  @override
+  String deleteBoardConfirm(String name) {
+    return 'Xóa “$name” và toàn bộ ghi chú của nó?';
+  }
+
+  @override
+  String get dataSection => 'Sao lưu';
+
+  @override
+  String get exportData => 'Xuất ghi chú';
+
+  @override
+  String get importData => 'Nhập ghi chú';
+
+  @override
+  String get importHint => 'Dán bản sao lưu vào đây';
+
+  @override
+  String get importSuccess => 'Đã nhập thành công';
+
+  @override
+  String get importFailed => 'Không đọc được bản sao lưu';
+
+  @override
+  String get importReplaceWarning =>
+      'Nhập sẽ thay thế toàn bộ bảng và ghi chú hiện tại.';
 }

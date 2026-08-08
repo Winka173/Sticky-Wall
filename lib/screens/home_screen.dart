@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
-import '../services/note_storage.dart';
+import '../models/view_mode.dart';
+import '../services/notes_controller.dart';
 import '../services/settings_controller.dart';
 import '../theme.dart';
+import '../widgets/board_bar.dart';
 import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
 import '../widgets/settings_sheet.dart';
 import '../widgets/wall_decor.dart';
+import '../widgets/wall_view.dart';
 
-const _kToastDuration = Duration(seconds: 3);
+const _kToast = Duration(seconds: 3);
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.storage, required this.settings});
+  const HomeScreen({super.key, required this.notes, required this.settings});
 
-  final NoteStorage storage;
+  final NotesController notes;
   final SettingsController settings;
 
   @override
@@ -25,25 +28,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
-  final _uuid = const Uuid();
 
-  List<Note> _notes = [];
-  int _typeFilter = -1;
-  bool _sortAscending = false;
-  bool _gridView = false;
-
-  NoteStorage get _storage => widget.storage;
-  WallStyle get _wall => widget.settings.wall;
+  NotesController get _notes => widget.notes;
+  WallStyle get _wall => walls[_notes.currentBoard.wallIndex % walls.length];
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
 
   @override
   void initState() {
     super.initState();
-    _notes = _storage.loadNotes();
-    _typeFilter = _storage.typeFilter;
-    _sortAscending = _storage.sortAscending;
-    _gridView = _storage.gridView;
-    _searchController.addListener(() => setState(() {}));
+    _searchController.addListener(() => _notes.search = _searchController.text);
   }
 
   @override
@@ -52,102 +45,121 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  List<Note> get _visibleNotes {
-    final search = _searchController.text.toLowerCase().trim();
-
-    final filtered = _notes.where((note) {
-      final matchesType = switch (_typeFilter) {
-        0 => note.type == NoteType.normal,
-        1 => note.type == NoteType.link,
-        _ => true,
-      };
-      final matchesSearch = note.content.toLowerCase().contains(search) ||
-          note.url.toLowerCase().contains(search);
-      return matchesType && matchesSearch;
-    }).toList();
-
-    filtered.sort((a, b) {
-      final byUrl =
-          _sortAscending ? a.url.compareTo(b.url) : b.url.compareTo(a.url);
-      if (byUrl != 0) return byUrl;
-      return _sortAscending
-          ? a.content.compareTo(b.content)
-          : b.content.compareTo(a.content);
-    });
-
-    return filtered;
-  }
-
   void _toast(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: _kToastDuration),
+      SnackBar(content: Text(message), duration: _kToast),
     );
   }
 
-  Future<void> _addNote() async {
-    final result = await showNoteDialog(context, existingNotes: _notes);
-    if (result == null || !mounted) return;
+  NoteCallbacks _callbacks(Note note) => NoteCallbacks(
+        onEdit: () => _openEditor(note, isNew: false),
+        onDelete: () => _delete(note),
+        onTogglePin: () => _notes.togglePin(note),
+        onToggleItem: (i) => _notes.toggleChecklistItem(note, i),
+      );
 
-    setState(() {
-      _notes.add(
-        Note(
-          guid: _uuid.v4(),
-          content: result.content,
-          url: result.url,
-          emoji: result.emoji,
+  Future<void> _openEditor(Note note, {required bool isNew}) async {
+    final result = await showNoteDialog(
+      context,
+      note: note,
+      isNew: isNew,
+      existing: _notes.boardNotes,
+    );
+    if (result == null || !mounted) return;
+    if (isNew) {
+      _notes.add(result);
+      _toast(_l10n.addSuccess);
+    } else {
+      _notes.update(result);
+      _toast(_l10n.updateSuccess);
+    }
+  }
+
+  void _delete(Note note) {
+    _notes.delete(note);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(_l10n.noteDeleted),
+          duration: _kToast,
+          action: SnackBarAction(
+            label: _l10n.undo,
+            onPressed: _notes.undoDelete,
+          ),
         ),
       );
-    });
-    await _storage.saveNotes(_notes);
-    if (mounted) _toast(_l10n.addSuccess);
   }
 
-  Future<void> _editNote(Note note) async {
-    final result =
-        await showNoteDialog(context, existingNotes: _notes, note: note);
-    if (result == null || !mounted) return;
-
-    setState(() {
-      note.content = result.content;
-      note.url = result.url;
-      note.emoji = result.emoji;
-    });
-    await _storage.saveNotes(_notes);
-    if (mounted) _toast(_l10n.updateSuccess);
-  }
-
-  void _deleteNote(Note note) {
-    final l10n = _l10n;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-          SnackBar(
-            content: Text(l10n.deleteConfirm),
-            duration: _kToastDuration,
-            action: SnackBarAction(label: l10n.yes, onPressed: () {}),
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([widget.notes, widget.settings]),
+      builder: (context, _) {
+        final wall = _wall;
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF6B5849),
+            image: DecorationImage(
+              image: AssetImage(wall.asset),
+              repeat: ImageRepeat.repeat,
+              scale: 2.2,
+            ),
           ),
-        )
-        .closed
-        .then((reason) async {
-      if (reason != SnackBarClosedReason.action || !mounted) return;
-      setState(() => _notes.removeWhere((n) => n.guid == note.guid));
-      await _storage.saveNotes(_notes);
-      if (mounted) _toast(l10n.deleteSuccess);
-    });
+          child: Container(
+            color: wall.overlay,
+            child: Stack(
+              children: [
+                if (widget.settings.wallDecor)
+                  Positioned.fill(child: WallDecor(wall: wall)),
+                // Soft vignette adds depth so the wall recedes at the edges.
+                const Positioned.fill(
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          radius: 1.15,
+                          colors: [Colors.transparent, Color(0x33000000)],
+                          stops: [0.62, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Scaffold(
+                  backgroundColor: Colors.transparent,
+                  floatingActionButton: FloatingActionButton.extended(
+                    onPressed: () => _openEditor(_notes.draft(), isNew: true),
+                    backgroundColor: const Color(0xFFFFCA28),
+                    foregroundColor: AppColors.ink,
+                    icon: const Icon(Icons.push_pin),
+                    label: Text(_l10n.addNote,
+                        style: const TextStyle(fontSize: 17)),
+                  ),
+                  body: SafeArea(
+                    child: Column(
+                      children: [
+                        _buildHeader(wall),
+                        BoardBar(notes: _notes, textColor: wall.wallText),
+                        const SizedBox(height: 8),
+                        _buildToolbar(wall),
+                        const SizedBox(height: 8),
+                        Expanded(child: _buildContent(wall)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
-  void _toggleSort() {
-    setState(() => _sortAscending = !_sortAscending);
-    _storage.setSortAscending(_sortAscending);
-  }
-
-  void _toggleGrid() {
-    setState(() => _gridView = !_gridView);
-    _storage.setGridView(_gridView);
-  }
-
-  Widget _buildHeader() {
+  Widget _buildHeader(WallStyle wall) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 8, 0),
+      padding: const EdgeInsets.fromLTRB(20, 8, 8, 4),
       child: Row(
         children: [
           Text(
@@ -155,192 +167,212 @@ class _HomeScreenState extends State<HomeScreen> {
             style: TextStyle(
               fontFamily: 'Pacifico',
               fontSize: 30,
-              color: _wall.wallText,
-              shadows: _wall.wallTextShadows,
+              color: wall.wallText,
+              shadows: wall.wallTextShadows,
             ),
           ),
           const Spacer(),
           IconButton(
             tooltip: _l10n.customize,
-            icon: Icon(Icons.palette_outlined, color: _wall.wallText),
-            onPressed: () => showSettingsSheet(context, widget.settings),
+            icon: Icon(Icons.palette_outlined, color: wall.wallText),
+            onPressed: () => showSettingsSheet(
+              context,
+              settings: widget.settings,
+              notes: _notes,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildToolbar() {
+  Widget _buildToolbar(WallStyle wall) {
     final l10n = _l10n;
-    final wallText = _wall.wallText;
+    final text = wall.wallText;
 
     final typeOptions = [
       (key: -1, label: l10n.typeAll),
       (key: 0, label: l10n.typeNormal),
       (key: 1, label: l10n.typeLink),
+      (key: 2, label: l10n.typeChecklist),
     ];
 
     return Theme(
-      data: wallControlsTheme(context, _wall),
+      data: wallControlsTheme(context, wall),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
             SizedBox(
-              width: 110,
+              width: 116,
               child: DropdownButtonFormField<int>(
-                initialValue: _typeFilter,
+                initialValue: _notes.typeFilter,
                 isExpanded: true,
                 decoration: InputDecoration(labelText: l10n.type),
-                dropdownColor: _wall.dropdownSurface,
-                // Base on the theme style so the selected font family is
-                // kept — a bare TextStyle here would fall back to the
-                // platform default font.
+                dropdownColor: wall.dropdownSurface,
                 style: Theme.of(context)
                     .textTheme
                     .bodyLarge
-                    ?.copyWith(fontSize: 17, color: wallText),
-                iconEnabledColor: wallText,
+                    ?.copyWith(fontSize: 16, color: text),
+                iconEnabledColor: text,
                 items: [
-                  for (final option in typeOptions)
-                    DropdownMenuItem(
-                      value: option.key,
-                      child: Text(option.label),
-                    ),
+                  for (final o in typeOptions)
+                    DropdownMenuItem(value: o.key, child: Text(o.label)),
                 ],
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => _typeFilter = value);
-                  _storage.setTypeFilter(value);
+                onChanged: (v) {
+                  if (v != null) _notes.typeFilter = v;
                 },
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(labelText: l10n.search),
-                style: TextStyle(color: wallText, fontSize: 17),
+                style: TextStyle(color: text, fontSize: 16),
               ),
             ),
             IconButton(
               tooltip: l10n.sortTooltip,
               icon: Icon(
-                _sortAscending ? Icons.filter_list_off : Icons.filter_list,
-                color: wallText,
+                _notes.sortAscending
+                    ? Icons.arrow_upward
+                    : Icons.arrow_downward,
+                color: text,
               ),
-              onPressed: _toggleSort,
+              onPressed: _notes.toggleSortDirection,
             ),
-            IconButton(
-              tooltip: _gridView ? l10n.listView : l10n.gridView,
-              icon: Icon(
-                _gridView ? Icons.format_list_bulleted : Icons.apps,
-                color: wallText,
-              ),
-              onPressed: _toggleGrid,
-            ),
+            _viewModeButton(wall),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildNotes() {
-    final notes = _visibleNotes;
+  Widget _viewModeButton(WallStyle wall) {
+    final l10n = _l10n;
+    final (icon, next, tip) = switch (_notes.viewMode) {
+      ViewMode.wall => (Icons.dashboard_customize, ViewMode.grid, l10n.viewGrid),
+      ViewMode.grid => (Icons.grid_view, ViewMode.list, l10n.viewList),
+      ViewMode.list => (Icons.view_agenda, ViewMode.wall, l10n.viewWall),
+    };
+    return IconButton(
+      tooltip: tip,
+      icon: Icon(icon, color: wall.wallText),
+      onPressed: () => _notes.viewMode = next,
+    );
+  }
 
-    if (notes.isEmpty) {
-      return Center(
-        child: Transform.rotate(
-          angle: -0.03,
-          child: Text(
-            _l10n.emptyState,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 22,
-              height: 1.4,
-              color: _wall.wallTextFaded,
-              shadows: _wall.wallTextShadows,
-            ),
+  Widget _buildContent(WallStyle wall) {
+    // Wall mode: free-drag canvas (all board notes, unfiltered by layout).
+    if (_notes.viewMode == ViewMode.wall) {
+      final notes = _notes.boardNotes;
+      if (notes.isEmpty) return _emptyState(wall);
+      return WallView(
+        notes: notes,
+        callbacksFor: _callbacks,
+        onMove: _notes.moveNote,
+        onBringToFront: _notes.bringToFront,
+        onCreateAt: (x, y) => _openEditor(_notes.draftAt(x, y), isNew: true),
+      );
+    }
+
+    final notes = _notes.visibleNotes;
+    if (notes.isEmpty) return _emptyState(wall);
+
+    // Grid/list: swipe horizontally to move between boards.
+    final content =
+        _notes.viewMode == ViewMode.grid ? _grid(notes) : _list(notes);
+    return GestureDetector(
+      onHorizontalDragEnd: (d) {
+        final v = d.primaryVelocity ?? 0;
+        if (v < -250) {
+          _notes.selectBoardAt(_notes.currentBoardIndex + 1);
+        } else if (v > 250) {
+          _notes.selectBoardAt(_notes.currentBoardIndex - 1);
+        }
+      },
+      child: content,
+    );
+  }
+
+  Widget _grid(List<Note> notes) {
+    return MasonryGridView.count(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+      crossAxisCount: 2,
+      mainAxisSpacing: 20,
+      crossAxisSpacing: 16,
+      itemCount: notes.length,
+      itemBuilder: (context, i) => _Appear(
+        key: ValueKey(notes[i].guid),
+        child: StickyNoteCard(
+          note: notes[i],
+          cb: _callbacks(notes[i]),
+          maxContentLines: 8,
+        ),
+      ),
+    );
+  }
+
+  Widget _list(List<Note> notes) {
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 4, bottom: 96),
+      itemCount: notes.length,
+      itemBuilder: (context, i) => _Appear(
+        key: ValueKey(notes[i].guid),
+        child: NoteListTile(note: notes[i], cb: _callbacks(notes[i])),
+      ),
+    );
+  }
+
+  Widget _emptyState(WallStyle wall) {
+    return Center(
+      child: Transform.rotate(
+        angle: -0.03,
+        child: Text(
+          _l10n.emptyState,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 22,
+            height: 1.4,
+            color: wall.wallTextFaded,
+            shadows: wall.wallTextShadows,
           ),
         ),
-      );
-    }
-
-    if (_gridView) {
-      return GridView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 220,
-          mainAxisSpacing: 22,
-          crossAxisSpacing: 18,
-          childAspectRatio: 1.1,
-        ),
-        itemCount: notes.length,
-        itemBuilder: (context, index) {
-          final note = notes[index];
-          return NoteGridCard(
-            note: note,
-            onEdit: () => _editNote(note),
-            onDelete: () => _deleteNote(note),
-          );
-        },
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.only(top: 8, bottom: 90),
-      itemCount: notes.length,
-      itemBuilder: (context, index) {
-        final note = notes[index];
-        return NoteListTile(
-          note: note,
-          onEdit: () => _editNote(note),
-          onDelete: () => _deleteNote(note),
-        );
-      },
+      ),
     );
+  }
+}
+
+/// Plays a small "stick onto the wall" entrance: fade + settle + tiny rotate.
+class _Appear extends StatefulWidget {
+  const _Appear({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<_Appear> createState() => _AppearState();
+}
+
+class _AppearState extends State<_Appear> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 320),
+  )..forward();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF6B5849),
-        image: DecorationImage(
-          image: AssetImage(_wall.asset),
-          repeat: ImageRepeat.repeat,
-          scale: 2.2,
-        ),
-      ),
-      // The scrim quiets the texture so writing keeps its contrast.
-      child: Container(
-        color: _wall.overlay,
-        child: Stack(
-          children: [
-            if (widget.settings.wallDecor)
-              Positioned.fill(child: WallDecor(wall: _wall)),
-            Scaffold(
-              backgroundColor: Colors.transparent,
-              floatingActionButton: FloatingActionButton.extended(
-                onPressed: _addNote,
-                icon: const Icon(Icons.push_pin),
-                label:
-                    Text(_l10n.addNote, style: const TextStyle(fontSize: 17)),
-              ),
-              body: SafeArea(
-                child: Column(
-                  children: [
-                    _buildHeader(),
-                    _buildToolbar(),
-                    const SizedBox(height: 8),
-                    Expanded(child: _buildNotes()),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    final curve = CurvedAnimation(parent: _c, curve: Curves.easeOutBack);
+    return FadeTransition(
+      opacity: _c,
+      child: ScaleTransition(scale: Tween(begin: 0.85, end: 1.0).animate(curve),
+          child: widget.child),
     );
   }
 }

@@ -140,6 +140,12 @@ abstract class AppLocalizations {
   /// **'Link'**
   String get typeLink;
 
+  /// No description provided for @typeChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get typeChecklist;
+
   /// No description provided for @createNote.
   ///
   /// In en, this message translates to:
@@ -157,6 +163,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Content'**
   String get content;
+
+  /// No description provided for @title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get title;
 
   /// No description provided for @contentHint.
   ///
@@ -187,6 +199,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update'**
   String get update;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get rename;
 
   /// No description provided for @contentRequired.
   ///
@@ -224,17 +254,17 @@ abstract class AppLocalizations {
   /// **'Deleted successfully'**
   String get deleteSuccess;
 
-  /// No description provided for @deleteConfirm.
+  /// No description provided for @noteDeleted.
   ///
   /// In en, this message translates to:
-  /// **'Delete this note?'**
-  String get deleteConfirm;
+  /// **'Note deleted'**
+  String get noteDeleted;
 
-  /// No description provided for @yes.
+  /// No description provided for @undo.
   ///
   /// In en, this message translates to:
-  /// **'Yes'**
-  String get yes;
+  /// **'Undo'**
+  String get undo;
 
   /// No description provided for @emptyState.
   ///
@@ -284,17 +314,23 @@ abstract class AppLocalizations {
   /// **'Sort'**
   String get sortTooltip;
 
-  /// No description provided for @listView.
+  /// No description provided for @viewWall.
   ///
   /// In en, this message translates to:
-  /// **'List view'**
-  String get listView;
+  /// **'Wall'**
+  String get viewWall;
 
-  /// No description provided for @gridView.
+  /// No description provided for @viewGrid.
   ///
   /// In en, this message translates to:
-  /// **'Grid view'**
-  String get gridView;
+  /// **'Grid'**
+  String get viewGrid;
+
+  /// No description provided for @viewList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get viewList;
 
   /// No description provided for @wallCork.
   ///
@@ -349,6 +385,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Wall stains & marks'**
   String get wallDecor;
+
+  /// No description provided for @color.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper color'**
+  String get color;
+
+  /// No description provided for @colorAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get colorAuto;
+
+  /// No description provided for @pin.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to top'**
+  String get pin;
+
+  /// No description provided for @reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminder;
+
+  /// No description provided for @noReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminder'**
+  String get noReminder;
+
+  /// No description provided for @setReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Set reminder'**
+  String get setReminder;
+
+  /// No description provided for @clearReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearReminder;
+
+  /// No description provided for @checklistItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get checklistItems;
+
+  /// No description provided for @addItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item'**
+  String get addItem;
+
+  /// No description provided for @sortByCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get sortByCreated;
+
+  /// No description provided for @sortByName.
+  ///
+  /// In en, this message translates to:
+  /// **'By name'**
+  String get sortByName;
+
+  /// No description provided for @boards.
+  ///
+  /// In en, this message translates to:
+  /// **'Boards'**
+  String get boards;
+
+  /// No description provided for @newBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'New board'**
+  String get newBoard;
+
+  /// No description provided for @boardName.
+  ///
+  /// In en, this message translates to:
+  /// **'Board name'**
+  String get boardName;
+
+  /// No description provided for @defaultBoardName.
+  ///
+  /// In en, this message translates to:
+  /// **'My Wall'**
+  String get defaultBoardName;
+
+  /// No description provided for @deleteBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete board'**
+  String get deleteBoard;
+
+  /// No description provided for @deleteBoardConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{name}” and all its notes?'**
+  String deleteBoardConfirm(String name);
+
+  /// No description provided for @dataSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get dataSection;
+
+  /// No description provided for @exportData.
+  ///
+  /// In en, this message translates to:
+  /// **'Export notes'**
+  String get exportData;
+
+  /// No description provided for @importData.
+  ///
+  /// In en, this message translates to:
+  /// **'Import notes'**
+  String get importData;
+
+  /// No description provided for @importHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a backup here'**
+  String get importHint;
+
+  /// No description provided for @importSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported successfully'**
+  String get importSuccess;
+
+  /// No description provided for @importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read that backup'**
+  String get importFailed;
+
+  /// No description provided for @importReplaceWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing replaces all current boards and notes.'**
+  String get importReplaceWarning;
 }
 
 class _AppLocalizationsDelegate

@@ -3,24 +3,19 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import 'note_storage.dart';
 
-/// App-level appearance and language settings. Persists through
-/// [NoteStorage] and notifies listeners so the app rebuilds live.
+/// App-wide appearance and language settings (things that are not per-board).
+/// Persists through [NoteStorage] and notifies listeners so the app rebuilds.
 class SettingsController extends ChangeNotifier {
   SettingsController(this._storage)
-      : _wallIndex = _storage.wallIndex % walls.length,
-        _fontId = _storage.fontId,
+      : _fontId = _storage.fontId,
         _languageCode = _storage.languageCode,
         _wallDecor = _storage.wallDecor;
 
   final NoteStorage _storage;
 
-  int _wallIndex;
   String _fontId;
   String _languageCode;
   bool _wallDecor;
-
-  WallStyle get wall => walls[_wallIndex];
-  int get wallIndex => _wallIndex;
 
   FontChoice get font => fontChoiceById(_fontId);
 
@@ -30,11 +25,7 @@ class SettingsController extends ChangeNotifier {
   Locale? get localeOverride =>
       _languageCode == 'system' ? null : Locale(_languageCode);
 
-  void setWallIndex(int index) {
-    _wallIndex = index % walls.length;
-    _storage.setWallIndex(_wallIndex);
-    notifyListeners();
-  }
+  bool get wallDecor => _wallDecor;
 
   void setFontId(String id) {
     _fontId = id;
@@ -47,8 +38,6 @@ class SettingsController extends ChangeNotifier {
     _storage.setLanguageCode(code);
     notifyListeners();
   }
-
-  bool get wallDecor => _wallDecor;
 
   void setWallDecor(bool value) {
     _wallDecor = value;

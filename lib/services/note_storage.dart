@@ -2,18 +2,21 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/board.dart';
 import '../models/note.dart';
+import '../models/view_mode.dart';
 
-/// Persists notes and view settings locally, mirroring the key/value JSON
-/// store the original desktop app kept in its user-data folder.
+/// Persists notes, boards and preferences locally as JSON.
 class NoteStorage {
   NoteStorage(this._prefs);
 
   static const _notesKey = 'notes';
-  static const _sortKey = 'sort';
-  static const _gridKey = 'grid';
+  static const _boardsKey = 'boards';
+  static const _currentBoardKey = 'currentBoard';
+  static const _sortAscKey = 'sort';
+  static const _sortByCreatedKey = 'sortByCreated';
+  static const _viewModeKey = 'viewMode';
   static const _filterKey = 'filter';
-  static const _wallKey = 'wall';
   static const _fontKey = 'font';
   static const _languageKey = 'language';
   static const _decorKey = 'decor';
@@ -23,6 +26,8 @@ class NoteStorage {
   static Future<NoteStorage> create() async {
     return NoteStorage(await SharedPreferences.getInstance());
   }
+
+  // --- Notes ---------------------------------------------------------------
 
   List<Note> loadNotes() {
     final raw = _prefs.getString(_notesKey);
@@ -44,21 +49,58 @@ class NoteStorage {
     );
   }
 
-  bool get sortAscending => _prefs.getBool(_sortKey) ?? false;
-  Future<void> setSortAscending(bool value) => _prefs.setBool(_sortKey, value);
+  // --- Boards --------------------------------------------------------------
 
-  bool get gridView => _prefs.getBool(_gridKey) ?? false;
-  Future<void> setGridView(bool value) => _prefs.setBool(_gridKey, value);
+  List<Board> loadBoards() {
+    final raw = _prefs.getString(_boardsKey);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded
+          .map((e) => Board.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
 
-  /// -1 = All, 0 = Normal, 1 = Link (same convention as the original app).
+  Future<void> saveBoards(List<Board> boards) {
+    return _prefs.setString(
+      _boardsKey,
+      jsonEncode(boards.map((b) => b.toJson()).toList()),
+    );
+  }
+
+  String? get currentBoardId => _prefs.getString(_currentBoardKey);
+  Future<void> setCurrentBoardId(String id) =>
+      _prefs.setString(_currentBoardKey, id);
+
+  // --- View preferences ----------------------------------------------------
+
+  bool get sortAscending => _prefs.getBool(_sortAscKey) ?? false;
+  Future<void> setSortAscending(bool value) =>
+      _prefs.setBool(_sortAscKey, value);
+
+  bool get sortByCreated => _prefs.getBool(_sortByCreatedKey) ?? true;
+  Future<void> setSortByCreated(bool value) =>
+      _prefs.setBool(_sortByCreatedKey, value);
+
+  ViewMode get viewMode {
+    final name = _prefs.getString(_viewModeKey);
+    return ViewMode.values
+            .where((m) => m.name == name)
+            .cast<ViewMode?>()
+            .firstOrNull ??
+        ViewMode.grid;
+  }
+
+  Future<void> setViewMode(ViewMode mode) =>
+      _prefs.setString(_viewModeKey, mode.name);
+
+  /// -1 = All, 0 = Normal, 1 = Link, 2 = Checklist.
   int get typeFilter => _prefs.getInt(_filterKey) ?? -1;
   Future<void> setTypeFilter(int value) => _prefs.setInt(_filterKey, value);
 
-  /// Index into the [walls] list in theme.dart.
-  int get wallIndex => _prefs.getInt(_wallKey) ?? 0;
-  Future<void> setWallIndex(int value) => _prefs.setInt(_wallKey, value);
-
-  /// Id of a [FontChoice] in theme.dart.
   String get fontId => _prefs.getString(_fontKey) ?? 'patrick';
   Future<void> setFontId(String value) => _prefs.setString(_fontKey, value);
 
@@ -67,7 +109,6 @@ class NoteStorage {
   Future<void> setLanguageCode(String value) =>
       _prefs.setString(_languageKey, value);
 
-  /// Whether the procedural wall stains layer is shown.
   bool get wallDecor => _prefs.getBool(_decorKey) ?? true;
   Future<void> setWallDecor(bool value) => _prefs.setBool(_decorKey, value);
 }

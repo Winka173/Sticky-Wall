@@ -1,38 +1,61 @@
 # Sticky Wall
 
-A Flutter sticky-notes / bookmarks app — pastel paper notes pinned to a real
-wall texture, written in a handwriting font. Bilingual (English / Tiếng Việt).
-Modeled after the original "Mia Note" Angular + Electron desktop app.
+A Flutter sticky-notes app that behaves like a real pin-board: pastel paper
+notes on a textured wall, written in a handwriting font, that you can drag,
+pin, color, and organize across multiple boards. Bilingual (English / Tiếng
+Việt). Modeled after the original "Mia Note" Angular + Electron desktop app,
+then taken well beyond it.
 
-| Cork board | Green chalkboard | Black chalkboard |
+| Wall (drag freely) | Grid | List |
 |---|---|---|
-| ![Cork](screenshots/preview_cork.png) | ![Green chalkboard](screenshots/preview_chalk_green.png) | ![Black chalkboard](screenshots/preview_chalk_black.png) |
+| ![Wall](screenshots/mode_wall.png) | ![Grid](screenshots/preview_cork.png) | ![List](screenshots/mode_list.png) |
 
-| Painted wall | Brick wall | Wood planks |
+| Cork | Green chalkboard | Black chalkboard |
 |---|---|---|
-| ![Painted](screenshots/preview_plaster.png) | ![Brick](screenshots/preview_brick.png) | ![Wood](screenshots/preview_wood.png) |
+| ![Cork](screenshots/preview_cork.png) | ![Green](screenshots/preview_chalk_green.png) | ![Black](screenshots/preview_chalk_black.png) |
+
+| Painted wall | Brick | Wood |
+|---|---|---|
+| ![Plaster](screenshots/preview_plaster.png) | ![Brick](screenshots/preview_brick.png) | ![Wood](screenshots/preview_wood.png) |
 
 ## Features
 
-- Two note types: **Normal** (free multi-line text) and **Link** (a label + URL)
-- Add / edit / delete notes, with duplicate prevention and delete confirmation
-- Live search across note content and URLs
-- Filter by type (All / Normal / Link), asc/desc sort, list or grid view
-- **Six switchable walls**: cork board, green/black chalkboard, painted
-  plaster, brick, wood planks
-- **Four selectable fonts** — Patrick Hand, Itim, Dancing Script,
-  Be Vietnam Pro — all with full Vietnamese diacritics support
-- **Bilingual UI**: English and Tiếng Việt, following the system locale or
-  set manually in the Customize sheet
-- **Wall stains**: a procedural grime layer (water rings, drips, paint
-  splatters, smudges, scuffs) drawn per wall — chalky white marks on dark
-  walls, damp/dirt tones on light ones. Toggleable in the Customize sheet.
-- **Note emotes**: each note can carry an emoji sticker, picked in the
-  create/edit dialog (shown large on grid cards, inline in list view)
-- Notes are pastel paper cards with a push-pin, a deterministic color and a
-  slight hand-stuck tilt (both derived from the note's guid, so they're stable)
-- Link notes open in the system browser
-- All data and preferences persist locally on the device (no backend)
+**Notes**
+- Three types: **Normal** (multi-line text), **Link** (label + URL), and
+  **Checklist** (tickable items with done-count)
+- **Emote** sticker, **paper color** picker (or auto-from-id), **pin to top**,
+  and a **reminder** (date + time) that fires a local notification
+- Add / edit / delete with **undo** (delete shows an Undo snackbar), plus
+  duplicate prevention
+- Notes are paper cards with a push-pin, drop shadow and a slight hand-stuck
+  tilt; pinned notes straighten and get a gold pin
+
+**Layouts**
+- **Wall** — drag notes anywhere; tap empty space to create one there
+- **Grid** — masonry layout (varied heights)
+- **List** — compact rows
+- Live search, filter by type, sort by newest or by name
+
+**Boards**
+- Multiple named boards ("My Wall", "Work", …); each remembers its own wall
+- Switch by tapping a board tab or swiping horizontally in grid/list;
+  add / rename / delete boards
+
+**The wall**
+- Six switchable textures: cork, green/black chalkboard, painted plaster,
+  brick, wood — each under a tuned scrim so writing keeps contrast
+- Procedural **stains** layer (water rings, drips, paint splatters, smudges,
+  scuffs) drawn per wall; toggleable
+- Subtle vignette for depth
+
+**Fonts & language**
+- Four handwriting fonts (Patrick Hand, Itim, Dancing Script, Be Vietnam Pro),
+  all with full Vietnamese diacritics; Pacifico for the title
+- Full English / Tiếng Việt UI, following the system locale or set manually
+
+**Data**
+- Everything persists locally (no backend)
+- **Export** the whole wall to a JSON file (share sheet) and **import** it back
 
 ## Getting started
 
@@ -42,48 +65,43 @@ flutter run
 ```
 
 Localizations are generated from `lib/l10n/*.arb` on `flutter pub get`
-(see `l10n.yaml`). To add a language, add `app_<code>.arb` and rerun.
+(see `l10n.yaml`). App icon and splash are generated art:
 
-## Design: keeping writing and wall in harmony
+```sh
+flutter test --update-goldens test/icon_gen_test.dart   # regenerate art
+dart run flutter_launcher_icons
+dart run flutter_native_splash:create
+```
 
-- Every wall texture sits under a tuned scrim overlay (`WallStyle.overlay`)
-  that quiets the texture so text keeps ~4.5:1 contrast. The two chalkboards
-  are the same concrete texture under different scrims.
-- Text written directly on the wall (title, empty state, toolbar) uses
-  chalk-white with a soft shadow on dark walls, dark ink on light walls —
-  chosen per wall via `WallStyle.dark`.
-- Note text never sits on the busy texture: it's always dark ink on a pastel
-  paper card with its own drop shadow.
-- The selected handwriting family styles notes and UI alike; each font
-  carries an optical `scale` so scripts with a small x-height (Dancing
-  Script) read at the same size as the others. Pacifico is reserved for the
-  app title.
+## Architecture
+
+State lives in two `ChangeNotifier`s the widgets listen to:
+
+| Path | Purpose |
+|---|---|
+| `lib/models/` | `Note`, `ChecklistItem`, `Board`, `ViewMode` |
+| `lib/services/note_storage.dart` | JSON persistence via `shared_preferences` |
+| `lib/services/notes_controller.dart` | Boards + notes + CRUD, undo, move, sort |
+| `lib/services/settings_controller.dart` | Font / language / stains |
+| `lib/services/reminder_service.dart` | Local notifications (flutter_local_notifications) |
+| `lib/services/backup_service.dart` | Export / import JSON |
+| `lib/screens/home_screen.dart` | Header, board bar, toolbar, the three views |
+| `lib/widgets/wall_view.dart` | Free drag-and-drop canvas |
+| `lib/widgets/note_dialog.dart` | Create/Edit dialog (type, color, pin, reminder, emote) |
+| `lib/widgets/note_views.dart` | Sticky card + list tile |
+| `lib/widgets/wall_decor.dart` | Procedural stains (CustomPainter) |
+| `lib/widgets/settings_sheet.dart` · `board_bar.dart` | Customize sheet, board tabs |
+| `lib/theme.dart` | Walls, fonts, palette, theme |
+| `test/*_test.dart` | Widget/unit tests + skipped golden generators for screenshots & icon |
 
 ## Assets & credits
 
 - Wall textures: [ambientCG](https://ambientcg.com) — Cork004,
-  PaintedPlaster017, Concrete046, Bricks104, Planks021. License: CC0
-  (public domain).
-- Fonts from Google Fonts, SIL Open Font License (copies in `assets/fonts/`):
+  PaintedPlaster017, Concrete046, Bricks104, Planks021. License: CC0.
+- Fonts (Google Fonts, SIL OFL, copies in `assets/fonts/`):
   [Patrick Hand](https://fonts.google.com/specimen/Patrick+Hand),
   [Itim](https://fonts.google.com/specimen/Itim),
   [Dancing Script](https://fonts.google.com/specimen/Dancing+Script),
   [Be Vietnam Pro](https://fonts.google.com/specimen/Be+Vietnam+Pro),
-  [Pacifico](https://fonts.google.com/specimen/Pacifico) (title only).
-  All include the Vietnamese subset.
-
-## Structure
-
-| Path | Purpose |
-|---|---|
-| `lib/models/note.dart` | Note model (guid, content, url) |
-| `lib/services/note_storage.dart` | Local persistence via `shared_preferences` |
-| `lib/services/settings_controller.dart` | Wall / font / language state |
-| `lib/screens/home_screen.dart` | Main screen: header, toolbar, wall, list/grid |
-| `lib/widgets/note_dialog.dart` | Create/Edit note dialog with validation |
-| `lib/widgets/note_views.dart` | Sticky-note card and paper-strip renderings |
-| `lib/widgets/wall_decor.dart` | Procedural wall stains (CustomPainter) |
-| `lib/widgets/settings_sheet.dart` | Customize sheet (wall, stains, font, language) |
-| `lib/theme.dart` | Walls, fonts, palette, theme |
-| `lib/l10n/` | ARB sources + generated localizations |
-| `test/preview_test.dart` | Screenshot generator (skipped by default) |
+  [Pacifico](https://fonts.google.com/specimen/Pacifico). All include the
+  Vietnamese subset.

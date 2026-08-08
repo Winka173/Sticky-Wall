@@ -5,7 +5,7 @@ import '../l10n/app_localizations.dart';
 import '../models/note.dart';
 import '../theme.dart';
 
-Future<void> _openUrl(BuildContext context, String url) async {
+Future<void> openNoteUrl(BuildContext context, String url) async {
   var target = url.trim();
   if (!target.startsWith(RegExp(r'https?://', caseSensitive: false))) {
     target = 'https://$target';
@@ -21,20 +21,115 @@ Future<void> _openUrl(BuildContext context, String url) async {
   }
 }
 
-/// Deterministic per-note value derived from the guid, stable across runs
-/// (String.hashCode is not), used to pick paper color and tilt.
-int _noteSeed(Note note) =>
-    note.guid.codeUnits.fold(0, (acc, c) => (acc * 31 + c) & 0x7fffffff);
-
-Color notePaperColor(Note note) =>
-    AppColors.notePapers[_noteSeed(note) % AppColors.notePapers.length];
-
-/// Small tilt (±~2°) so notes look hand-stuck rather than machine-aligned.
-double _noteTilt(Note note, {double step = 0.009}) =>
-    ((_noteSeed(note) >> 3) % 5 - 2) * step;
+/// Small stable tilt (±~2°) so notes look hand-stuck, not machine-aligned.
+double noteTilt(Note note, {double step = 0.008}) =>
+    ((stableHash(note.guid) >> 3) % 5 - 2) * step;
 
 double _fontScale(BuildContext context) =>
     Theme.of(context).extension<NoteTextScale>()?.scale ?? 1.0;
+
+/// Callbacks shared by the card and the list tile.
+class NoteCallbacks {
+  const NoteCallbacks({
+    required this.onEdit,
+    required this.onDelete,
+    required this.onTogglePin,
+    required this.onToggleItem,
+  });
+
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onTogglePin;
+  final void Function(int index) onToggleItem;
+}
+
+BoxDecoration paperDecoration(Note note, {bool raised = false}) {
+  return BoxDecoration(
+    color: noteColor(note.colorIndex, note.guid),
+    borderRadius: BorderRadius.circular(3),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: raised ? 0.38 : 0.28),
+        blurRadius: raised ? 16 : 7,
+        offset: Offset(raised ? 4 : 2, raised ? 10 : 4),
+      ),
+    ],
+  );
+}
+
+/// The push-pin at the top of a card; gold and larger when the note is pinned.
+class NotePin extends StatelessWidget {
+  const NotePin({super.key, required this.pinned});
+
+  final bool pinned;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = pinned ? 16.0 : 12.0;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          colors: pinned
+              ? const [Color(0xFFFFE082), Color(0xFFF9A825)]
+              : const [Color(0xFFEF9A9A), Color(0xFFD32F2F)],
+          center: const Alignment(-0.3, -0.3),
+        ),
+        shape: BoxShape.circle,
+        boxShadow: const [
+          BoxShadow(color: Colors.black38, blurRadius: 3, offset: Offset(1, 2)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReminderChip extends StatelessWidget {
+  const _ReminderChip({required this.at});
+
+  final DateTime at;
+
+  @override
+  Widget build(BuildContext context) {
+    final overdue = at.isBefore(DateTime.now());
+    final ml = MaterialLocalizations.of(context);
+    final label = '${ml.formatShortMonthDay(at)} '
+        '${ml.formatTimeOfDay(TimeOfDay.fromDateTime(at))}';
+    final color = overdue ? const Color(0xFFC62828) : const Color(0xFF4E6E4E);
+
+    // The ConstrainedBox guarantees the inner Row always has a bounded width,
+    // so the Flexible text can ellipsize instead of overflowing — whatever the
+    // parent (a tight card cell or a roomy list row) hands us.
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 150),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(overdue ? Icons.alarm_on : Icons.alarm,
+                size: 13, color: color),
+            const SizedBox(width: 3),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, color: color),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 TextStyle _inkText(BuildContext context) => TextStyle(
       color: AppColors.ink,
@@ -49,181 +144,280 @@ TextStyle _linkText(BuildContext context) => TextStyle(
       decorationColor: const Color(0xFF1A55A5),
     );
 
-class _NoteActions extends StatelessWidget {
-  const _NoteActions({required this.onEdit, required this.onDelete});
+/// The body of a note (everything but the pin): type-specific content, an
+/// emote, a reminder chip and an action row.
+class _NoteBody extends StatelessWidget {
+  const _NoteBody({
+    required this.note,
+    required this.cb,
+    required this.maxContentLines,
+  });
 
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final Note note;
+  final NoteCallbacks cb;
+  final int maxContentLines;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          icon: const Icon(Icons.edit, size: 20, color: Color(0x993B372F)),
-          onPressed: onEdit,
-        ),
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          icon: const Icon(Icons.delete, size: 20, color: AppColors.deleteIcon),
-          onPressed: onDelete,
+        Flexible(child: _content(context)),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            if (note.emoji.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Text(note.emoji, style: const TextStyle(fontSize: 22)),
+              ),
+            if (note.reminderAt != null)
+              Flexible(child: _ReminderChip(at: note.reminderAt!)),
+            const Spacer(),
+            const SizedBox(width: 4),
+            InkResponse(
+              onTap: cb.onDelete,
+              radius: 18,
+              child: const Icon(Icons.delete_outline,
+                  size: 19, color: Color(0x99C62828)),
+            ),
+          ],
         ),
       ],
     );
   }
+
+  Widget _content(BuildContext context) {
+    switch (note.type) {
+      case NoteType.link:
+        return InkWell(
+          onTap: () => openNoteUrl(context, note.url),
+          child: Text(
+            note.content,
+            maxLines: maxContentLines,
+            overflow: TextOverflow.ellipsis,
+            style: _linkText(context),
+          ),
+        );
+      case NoteType.checklist:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (note.content.isNotEmpty)
+              Text(note.content,
+                  style: _inkText(context).copyWith(
+                      fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
+            for (var i = 0; i < note.checklist.length && i < maxContentLines; i++)
+              _ChecklistRow(
+                item: note.checklist[i],
+                onTap: () => cb.onToggleItem(i),
+                context: context,
+              ),
+            if (note.checklist.length > maxContentLines)
+              Text('+${note.checklist.length - maxContentLines}…',
+                  style: TextStyle(
+                      color: AppColors.ink.withValues(alpha: 0.6),
+                      fontSize: 14)),
+          ],
+        );
+      case NoteType.normal:
+        return Text(
+          note.content,
+          maxLines: maxContentLines,
+          overflow: TextOverflow.ellipsis,
+          style: _inkText(context),
+        );
+    }
+  }
 }
 
-/// The red push-pin dot at the top of a note.
-class _Pin extends StatelessWidget {
-  const _Pin();
+class _ChecklistRow extends StatelessWidget {
+  const _ChecklistRow({
+    required this.item,
+    required this.onTap,
+    required this.context,
+  });
+
+  final ChecklistItem item;
+  final VoidCallback onTap;
+  final BuildContext context;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 12,
-      height: 12,
-      decoration: const BoxDecoration(
-        color: AppColors.pin,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(color: Colors.black38, blurRadius: 3, offset: Offset(1, 2)),
-        ],
+  Widget build(BuildContext _) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 1),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              item.done ? Icons.check_box : Icons.check_box_outline_blank,
+              size: 18,
+              color: AppColors.ink.withValues(alpha: 0.8),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                item.text,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: AppColors.ink,
+                  decoration:
+                      item.done ? TextDecoration.lineThrough : null,
+                  decorationColor: AppColors.ink,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-BoxDecoration _paperDecoration(Note note) {
-  return BoxDecoration(
-    color: notePaperColor(note),
-    borderRadius: BorderRadius.circular(2),
-    boxShadow: const [
-      BoxShadow(color: Colors.black45, blurRadius: 6, offset: Offset(2, 4)),
-    ],
-  );
-}
-
-/// List mode: a full-width paper strip with a small tilt.
-class NoteListTile extends StatelessWidget {
-  const NoteListTile({
+/// A pinned sticky note used by both the wall and grid views.
+class StickyNoteCard extends StatelessWidget {
+  const StickyNoteCard({
     super.key,
     required this.note,
-    required this.onEdit,
-    required this.onDelete,
+    required this.cb,
+    this.raised = false,
+    this.maxContentLines = 6,
   });
 
   final Note note;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final NoteCallbacks cb;
+  final bool raised;
+  final int maxContentLines;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: note.pinned ? 0 : noteTilt(note),
+      child: GestureDetector(
+        onTap: cb.onEdit,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.topCenter,
+          children: [
+            Container(
+              decoration: paperDecoration(note, raised: raised),
+              padding: const EdgeInsets.fromLTRB(12, 18, 10, 8),
+              child: _NoteBody(
+                note: note,
+                cb: cb,
+                maxContentLines: maxContentLines,
+              ),
+            ),
+            Positioned(
+              top: -6,
+              child: GestureDetector(
+                onTap: cb.onTogglePin,
+                child: NotePin(pinned: note.pinned),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A compact full-width row for list mode.
+class NoteListTile extends StatelessWidget {
+  const NoteListTile({super.key, required this.note, required this.cb});
+
+  final Note note;
+  final NoteCallbacks cb;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-      child: Transform.rotate(
-        angle: _noteTilt(note, step: 0.004),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: GestureDetector(
+        onTap: cb.onEdit,
         child: Container(
-          decoration: _paperDecoration(note),
-          padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
+          decoration: paperDecoration(note),
+          padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
           child: Row(
             children: [
+              GestureDetector(
+                onTap: cb.onTogglePin,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: NotePin(pinned: note.pinned),
+                ),
+              ),
               if (note.emoji.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: Text(note.emoji, style: const TextStyle(fontSize: 22)),
+                  child: Text(note.emoji, style: const TextStyle(fontSize: 20)),
                 ),
-              Expanded(
-                child: note.type == NoteType.link
-                    ? Wrap(
-                        spacing: 10,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Text('${note.content}:', style: _inkText(context)),
-                          InkWell(
-                            onTap: () => _openUrl(context, note.url),
-                            child: Text(
-                              note.url,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: _linkText(context),
-                            ),
-                          ),
-                        ],
-                      )
-                    : Text(note.content, style: _inkText(context)),
+              Expanded(child: _listContent(context)),
+              if (note.reminderAt != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: _ReminderChip(at: note.reminderAt!),
+                ),
+              InkResponse(
+                onTap: cb.onDelete,
+                radius: 18,
+                child: const Icon(Icons.delete_outline,
+                    size: 20, color: Color(0x99C62828)),
               ),
-              _NoteActions(onEdit: onEdit, onDelete: onDelete),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-/// Grid mode: a square-ish pastel sticky note pinned to the wall.
-class NoteGridCard extends StatelessWidget {
-  const NoteGridCard({
-    super.key,
-    required this.note,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final Note note;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: _noteTilt(note),
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.topCenter,
-        children: [
-          Container(
-            decoration: _paperDecoration(note),
-            padding: const EdgeInsets.fromLTRB(12, 16, 12, 4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: note.type == NoteType.link
-                      ? InkWell(
-                          onTap: () => _openUrl(context, note.url),
-                          child: Text(
-                            note.content,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 4,
-                            style: _linkText(context),
-                          ),
-                        )
-                      : Text(
-                          note.content,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 5,
-                          style: _inkText(context),
-                        ),
-                ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: _NoteActions(onEdit: onEdit, onDelete: onDelete),
-                ),
-              ],
+  Widget _listContent(BuildContext context) {
+    switch (note.type) {
+      case NoteType.link:
+        return Wrap(
+          spacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text('${note.content}:', style: _inkText(context)),
+            InkWell(
+              onTap: () => openNoteUrl(context, note.url),
+              child: Text(note.url,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: _linkText(context)),
             ),
-          ),
-          const Positioned(top: -5, child: _Pin()),
-          if (note.emoji.isNotEmpty)
-            Positioned(
-              left: 8,
-              bottom: 10,
-              child: Text(note.emoji, style: const TextStyle(fontSize: 26)),
+          ],
+        );
+      case NoteType.checklist:
+        final done = note.checklist.where((i) => i.done).length;
+        return Row(
+          children: [
+            const Icon(Icons.checklist, size: 18, color: AppColors.ink),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                note.content.isEmpty ? '($done/${note.checklist.length})'
+                    : '${note.content}  ($done/${note.checklist.length})',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: _inkText(context),
+              ),
             ),
-        ],
-      ),
-    );
+          ],
+        );
+      case NoteType.normal:
+        return Text(note.content,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: _inkText(context));
+    }
   }
 }
