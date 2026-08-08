@@ -22,10 +22,10 @@ Future<void> _loadRealFonts() async {
 }
 
 final _sampleNotes = [
-  Note(guid: 'a1', content: 'Mua sữa và trứng gà cho bữa sáng'),
+  Note(guid: 'a1', content: 'Mua sữa và trứng gà cho bữa sáng', emoji: '🛒'),
   Note(guid: 'b2', content: 'Tài liệu Flutter', url: 'https://docs.flutter.dev'),
-  Note(guid: 'c3', content: 'Học tiếng Anh 30 phút mỗi ngày'),
-  Note(guid: 'd4', content: 'Nhớ gọi điện hỏi thăm mẹ'),
+  Note(guid: 'c3', content: 'Học tiếng Anh 30 phút mỗi ngày', emoji: '📚'),
+  Note(guid: 'd4', content: 'Nhớ gọi điện hỏi thăm mẹ', emoji: '❤️'),
   Note(guid: 'e5', content: 'Bảng màu Material', url: 'https://m3.material.io'),
   Note(guid: 'f6', content: 'Đặt lịch khám răng thứ Năm tuần sau'),
 ];

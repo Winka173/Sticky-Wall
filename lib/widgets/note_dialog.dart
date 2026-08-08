@@ -5,11 +5,22 @@ import '../models/note.dart';
 
 /// Result returned by [showNoteDialog] when the user saves.
 class NoteDialogResult {
-  NoteDialogResult({required this.content, required this.url});
+  NoteDialogResult({
+    required this.content,
+    required this.url,
+    required this.emoji,
+  });
 
   final String content;
   final String url;
+  final String emoji;
 }
+
+const _emojiChoices = [
+  '😀', '😂', '🥰', '😎', '🤔', '😢', '😡', '😴',
+  '🎉', '❤️', '⭐', '🔥', '✅', '📌', '💡', '📞',
+  '🛒', '💪', '📚', '⏰', '🍀', '🎁', '☕', '✈️',
+];
 
 /// Opens the Create/Edit Note dialog. Returns null when cancelled.
 ///
@@ -42,6 +53,7 @@ class _NoteDialogState extends State<_NoteDialog> {
   late final TextEditingController _contentController;
   late final TextEditingController _urlController;
   late NoteType _type;
+  late String _emoji;
 
   bool get _isEdit => widget.note != null;
 
@@ -49,6 +61,7 @@ class _NoteDialogState extends State<_NoteDialog> {
   void initState() {
     super.initState();
     _type = widget.note?.type ?? NoteType.normal;
+    _emoji = widget.note?.emoji ?? '';
     _contentController = TextEditingController(text: widget.note?.content);
     _urlController = TextEditingController(text: widget.note?.url);
   }
@@ -87,7 +100,9 @@ class _NoteDialogState extends State<_NoteDialog> {
       return;
     }
 
-    Navigator.of(context).pop(NoteDialogResult(content: content, url: url));
+    Navigator.of(context).pop(
+      NoteDialogResult(content: content, url: url, emoji: _emoji),
+    );
   }
 
   @override
@@ -151,6 +166,46 @@ class _NoteDialogState extends State<_NoteDialog> {
                       : null,
                 ),
               ],
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.emote,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: [
+                  for (final emoji in _emojiChoices)
+                    InkWell(
+                      borderRadius: BorderRadius.circular(6),
+                      // Tapping the selected emote again clears it.
+                      onTap: () => setState(
+                        () => _emoji = _emoji == emoji ? '' : emoji,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: _emoji == emoji
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.25)
+                              : null,
+                        ),
+                        child: Text(emoji,
+                            style: const TextStyle(fontSize: 20)),
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
         ),

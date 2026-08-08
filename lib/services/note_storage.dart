@@ -16,6 +16,7 @@ class NoteStorage {
   static const _wallKey = 'wall';
   static const _fontKey = 'font';
   static const _languageKey = 'language';
+  static const _decorKey = 'decor';
 
   final SharedPreferences _prefs;
 
@@ -65,4 +66,8 @@ class NoteStorage {
   String get languageCode => _prefs.getString(_languageKey) ?? 'system';
   Future<void> setLanguageCode(String value) =>
       _prefs.setString(_languageKey, value);
+
+  /// Whether the procedural wall stains layer is shown.
+  bool get wallDecor => _prefs.getBool(_decorKey) ?? true;
+  Future<void> setWallDecor(bool value) => _prefs.setBool(_decorKey, value);
 }

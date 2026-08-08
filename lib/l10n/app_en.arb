@@ -46,5 +46,7 @@
   "wallPlaster": "Painted wall",
   "wallBrick": "Brick wall",
   "wallWood": "Wood planks",
-  "fontPreview": "Hello! A quick note on the wall."
+  "fontPreview": "Hello! A quick note on the wall.",
+  "emote": "Emote",
+  "wallDecor": "Wall stains & marks"
 }

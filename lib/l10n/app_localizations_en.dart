@@ -130,4 +130,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fontPreview => 'Hello! A quick note on the wall.';
+
+  @override
+  String get emote => 'Emote';
+
+  @override
+  String get wallDecor => 'Wall stains & marks';
 }

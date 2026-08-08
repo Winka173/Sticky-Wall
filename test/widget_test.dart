@@ -69,4 +69,12 @@ void main() {
     });
     expect(note.content, 'line1\nline2');
   });
+
+  test('emoji survives a JSON round-trip and defaults to empty', () {
+    final note = Note(guid: 'd', content: 'x', emoji: '🎉');
+    expect(Note.fromJson(note.toJson()).emoji, '🎉');
+
+    final legacy = Note.fromJson({'guid': 'e', 'content': 'y', 'url': ''});
+    expect(legacy.emoji, '');
+  });
 }

@@ -130,4 +130,10 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get fontPreview => 'Xin chào! Ghi chú nhanh lên tường.';
+
+  @override
+  String get emote => 'Emote';
+
+  @override
+  String get wallDecor => 'Vết bẩn trên tường';
 }

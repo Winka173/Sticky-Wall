@@ -24,6 +24,11 @@ Modeled after the original "Mia Note" Angular + Electron desktop app.
   Be Vietnam Pro — all with full Vietnamese diacritics support
 - **Bilingual UI**: English and Tiếng Việt, following the system locale or
   set manually in the Customize sheet
+- **Wall stains**: a procedural grime layer (water rings, drips, paint
+  splatters, smudges, scuffs) drawn per wall — chalky white marks on dark
+  walls, damp/dirt tones on light ones. Toggleable in the Customize sheet.
+- **Note emotes**: each note can carry an emoji sticker, picked in the
+  create/edit dialog (shown large on grid cards, inline in list view)
 - Notes are pastel paper cards with a push-pin, a deterministic color and a
   slight hand-stuck tilt (both derived from the note's guid, so they're stable)
 - Link notes open in the system browser
@@ -77,7 +82,8 @@ Localizations are generated from `lib/l10n/*.arb` on `flutter pub get`
 | `lib/screens/home_screen.dart` | Main screen: header, toolbar, wall, list/grid |
 | `lib/widgets/note_dialog.dart` | Create/Edit note dialog with validation |
 | `lib/widgets/note_views.dart` | Sticky-note card and paper-strip renderings |
-| `lib/widgets/settings_sheet.dart` | Customize sheet (wall, font, language) |
+| `lib/widgets/wall_decor.dart` | Procedural wall stains (CustomPainter) |
+| `lib/widgets/settings_sheet.dart` | Customize sheet (wall, stains, font, language) |
 | `lib/theme.dart` | Walls, fonts, palette, theme |
 | `lib/l10n/` | ARB sources + generated localizations |
 | `test/preview_test.dart` | Screenshot generator (skipped by default) |

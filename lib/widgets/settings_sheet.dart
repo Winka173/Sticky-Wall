@@ -101,7 +101,16 @@ class _SettingsSheet extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                l10n.wallDecor,
+                style: const TextStyle(fontSize: 16, color: AppColors.ink),
+              ),
+              value: settings.wallDecor,
+              onChanged: settings.setWallDecor,
+            ),
+            const SizedBox(height: 8),
             _SectionTitle(l10n.fontSection),
             RadioGroup<String>(
               groupValue: settings.font.id,

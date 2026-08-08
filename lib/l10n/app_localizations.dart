@@ -337,6 +337,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hello! A quick note on the wall.'**
   String get fontPreview;
+
+  /// No description provided for @emote.
+  ///
+  /// In en, this message translates to:
+  /// **'Emote'**
+  String get emote;
+
+  /// No description provided for @wallDecor.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall stains & marks'**
+  String get wallDecor;
 }
 
 class _AppLocalizationsDelegate

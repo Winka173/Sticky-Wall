@@ -129,6 +129,11 @@ class NoteListTile extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
           child: Row(
             children: [
+              if (note.emoji.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Text(note.emoji, style: const TextStyle(fontSize: 22)),
+                ),
               Expanded(
                 child: note.type == NoteType.link
                     ? Wrap(
@@ -211,6 +216,12 @@ class NoteGridCard extends StatelessWidget {
             ),
           ),
           const Positioned(top: -5, child: _Pin()),
+          if (note.emoji.isNotEmpty)
+            Positioned(
+              left: 8,
+              bottom: 10,
+              child: Text(note.emoji, style: const TextStyle(fontSize: 26)),
+            ),
         ],
       ),
     );

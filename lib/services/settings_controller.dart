@@ -9,13 +9,15 @@ class SettingsController extends ChangeNotifier {
   SettingsController(this._storage)
       : _wallIndex = _storage.wallIndex % walls.length,
         _fontId = _storage.fontId,
-        _languageCode = _storage.languageCode;
+        _languageCode = _storage.languageCode,
+        _wallDecor = _storage.wallDecor;
 
   final NoteStorage _storage;
 
   int _wallIndex;
   String _fontId;
   String _languageCode;
+  bool _wallDecor;
 
   WallStyle get wall => walls[_wallIndex];
   int get wallIndex => _wallIndex;
@@ -43,6 +45,14 @@ class SettingsController extends ChangeNotifier {
   void setLanguageCode(String code) {
     _languageCode = code;
     _storage.setLanguageCode(code);
+    notifyListeners();
+  }
+
+  bool get wallDecor => _wallDecor;
+
+  void setWallDecor(bool value) {
+    _wallDecor = value;
+    _storage.setWallDecor(value);
     notifyListeners();
   }
 }

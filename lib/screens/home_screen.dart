@@ -9,6 +9,7 @@ import '../theme.dart';
 import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
 import '../widgets/settings_sheet.dart';
+import '../widgets/wall_decor.dart';
 
 const _kToastDuration = Duration(seconds: 3);
 
@@ -89,7 +90,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _notes.add(
-        Note(guid: _uuid.v4(), content: result.content, url: result.url),
+        Note(
+          guid: _uuid.v4(),
+          content: result.content,
+          url: result.url,
+          emoji: result.emoji,
+        ),
       );
     });
     await _storage.saveNotes(_notes);
@@ -104,6 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       note.content = result.content;
       note.url = result.url;
+      note.emoji = result.emoji;
     });
     await _storage.saveNotes(_notes);
     if (mounted) _toast(_l10n.updateSuccess);
@@ -308,23 +315,30 @@ class _HomeScreenState extends State<HomeScreen> {
       // The scrim quiets the texture so writing keeps its contrast.
       child: Container(
         color: _wall.overlay,
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: _addNote,
-            icon: const Icon(Icons.push_pin),
-            label: Text(_l10n.addNote, style: const TextStyle(fontSize: 17)),
-          ),
-          body: SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(),
-                _buildToolbar(),
-                const SizedBox(height: 8),
-                Expanded(child: _buildNotes()),
-              ],
+        child: Stack(
+          children: [
+            if (widget.settings.wallDecor)
+              Positioned.fill(child: WallDecor(wall: _wall)),
+            Scaffold(
+              backgroundColor: Colors.transparent,
+              floatingActionButton: FloatingActionButton.extended(
+                onPressed: _addNote,
+                icon: const Icon(Icons.push_pin),
+                label:
+                    Text(_l10n.addNote, style: const TextStyle(fontSize: 17)),
+              ),
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    _buildHeader(),
+                    _buildToolbar(),
+                    const SizedBox(height: 8),
+                    Expanded(child: _buildNotes()),
+                  ],
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
