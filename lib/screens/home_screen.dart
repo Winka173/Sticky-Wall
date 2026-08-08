@@ -34,8 +34,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _typeFilter = -1;
   bool _sortAscending = false;
   bool _gridView = false;
+  int _wallIndex = 0;
 
   NoteStorage get _storage => widget.storage;
+  WallStyle get _wall => walls[_wallIndex % walls.length];
 
   @override
   void initState() {
@@ -44,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _typeFilter = _storage.typeFilter;
     _sortAscending = _storage.sortAscending;
     _gridView = _storage.gridView;
+    _wallIndex = _storage.wallIndex % walls.length;
     _searchController.addListener(() => setState(() {}));
   }
 
@@ -139,57 +142,99 @@ class _HomeScreenState extends State<HomeScreen> {
     _storage.setGridView(_gridView);
   }
 
-  Widget _buildToolbar() {
+  void _nextWall() {
+    setState(() => _wallIndex = (_wallIndex + 1) % walls.length);
+    _storage.setWallIndex(_wallIndex);
+    _toast(_wall.label);
+  }
+
+  Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(20, 8, 8, 0),
       child: Row(
         children: [
-          SizedBox(
-            width: 110,
-            child: DropdownButtonFormField<int>(
-              initialValue: _typeFilter,
-              isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Type'),
-              dropdownColor: AppColors.gradientStart,
-              items: [
-                for (final option in _typeOptions)
-                  DropdownMenuItem(
-                    value: option.key,
-                    child: Text(option.label),
-                  ),
-              ],
-              onChanged: (value) {
-                if (value == null) return;
-                setState(() => _typeFilter = value);
-                _storage.setTypeFilter(value);
-              },
+          Text(
+            'Sticky Wall',
+            style: TextStyle(
+              fontFamily: 'Pacifico',
+              fontSize: 30,
+              color: _wall.wallText,
+              shadows: _wall.wallTextShadows,
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(labelText: 'Search'),
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
+          const Spacer(),
           IconButton(
-            tooltip: 'Sort',
-            icon: Icon(
-              _sortAscending ? Icons.filter_list_off : Icons.filter_list,
-              color: Colors.white,
-            ),
-            onPressed: _toggleSort,
-          ),
-          IconButton(
-            tooltip: _gridView ? 'List view' : 'Grid view',
-            icon: Icon(
-              _gridView ? Icons.format_list_bulleted : Icons.apps,
-              color: Colors.white,
-            ),
-            onPressed: _toggleGrid,
+            tooltip: 'Change wall',
+            icon: Icon(Icons.wallpaper, color: _wall.wallText),
+            onPressed: _nextWall,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildToolbar() {
+    final wallText = _wall.wallText;
+
+    return Theme(
+      data: wallControlsTheme(context, _wall),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 110,
+              child: DropdownButtonFormField<int>(
+                initialValue: _typeFilter,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Type'),
+                dropdownColor: _wall.dropdownSurface,
+                style: TextStyle(
+                  fontFamily: 'PatrickHand',
+                  fontSize: 17,
+                  color: wallText,
+                ),
+                iconEnabledColor: wallText,
+                items: [
+                  for (final option in _typeOptions)
+                    DropdownMenuItem(
+                      value: option.key,
+                      child: Text(option.label),
+                    ),
+                ],
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() => _typeFilter = value);
+                  _storage.setTypeFilter(value);
+                },
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(labelText: 'Search'),
+                style: TextStyle(color: wallText, fontSize: 17),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Sort',
+              icon: Icon(
+                _sortAscending ? Icons.filter_list_off : Icons.filter_list,
+                color: wallText,
+              ),
+              onPressed: _toggleSort,
+            ),
+            IconButton(
+              tooltip: _gridView ? 'List view' : 'Grid view',
+              icon: Icon(
+                _gridView ? Icons.format_list_bulleted : Icons.apps,
+                color: wallText,
+              ),
+              onPressed: _toggleGrid,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -198,22 +243,31 @@ class _HomeScreenState extends State<HomeScreen> {
     final notes = _visibleNotes;
 
     if (notes.isEmpty) {
-      return const Center(
-        child: Text(
-          'No notes yet. Tap "Add Note" to create one.',
-          style: TextStyle(color: Colors.white70),
+      return Center(
+        child: Transform.rotate(
+          angle: -0.03,
+          child: Text(
+            'No notes yet.\nTap "Add Note" to stick one on the wall!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 22,
+              height: 1.4,
+              color: _wall.wallTextFaded,
+              shadows: _wall.wallTextShadows,
+            ),
+          ),
         ),
       );
     }
 
     if (_gridView) {
       return GridView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 250,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 1.6,
+          maxCrossAxisExtent: 220,
+          mainAxisSpacing: 22,
+          crossAxisSpacing: 18,
+          childAspectRatio: 1.1,
         ),
         itemCount: notes.length,
         itemBuilder: (context, index) {
@@ -228,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.only(top: 8, bottom: 90),
       itemCount: notes.length,
       itemBuilder: (context, index) {
         final note = notes[index];
@@ -244,22 +298,33 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(gradient: appGradient),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: _addNote,
-          icon: const Icon(Icons.add),
-          label: const Text('Add Note'),
+      decoration: BoxDecoration(
+        color: const Color(0xFF6B5849),
+        image: DecorationImage(
+          image: AssetImage(_wall.asset),
+          repeat: ImageRepeat.repeat,
+          scale: 2.2,
         ),
-        body: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 8),
-              _buildToolbar(),
-              const SizedBox(height: 8),
-              Expanded(child: _buildNotes()),
-            ],
+      ),
+      // The scrim quiets the texture so writing keeps its contrast.
+      child: Container(
+        color: _wall.overlay,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: _addNote,
+            icon: const Icon(Icons.push_pin),
+            label: const Text('Add Note', style: TextStyle(fontSize: 17)),
+          ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(),
+                _buildToolbar(),
+                const SizedBox(height: 8),
+                Expanded(child: _buildNotes()),
+              ],
+            ),
           ),
         ),
       ),

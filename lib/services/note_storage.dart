@@ -13,6 +13,7 @@ class NoteStorage {
   static const _sortKey = 'sort';
   static const _gridKey = 'grid';
   static const _filterKey = 'filter';
+  static const _wallKey = 'wall';
 
   final SharedPreferences _prefs;
 
@@ -49,4 +50,8 @@ class NoteStorage {
   /// -1 = All, 0 = Normal, 1 = Link (same convention as the original app).
   int get typeFilter => _prefs.getInt(_filterKey) ?? -1;
   Future<void> setTypeFilter(int value) => _prefs.setInt(_filterKey, value);
+
+  /// Index into the [walls] list in theme.dart.
+  int get wallIndex => _prefs.getInt(_wallKey) ?? 0;
+  Future<void> setWallIndex(int value) => _prefs.setInt(_wallKey, value);
 }
