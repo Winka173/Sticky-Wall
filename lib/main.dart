@@ -8,7 +8,9 @@ import 'services/image_service.dart';
 import 'services/note_storage.dart';
 import 'services/notes_controller.dart';
 import 'services/reminder_service.dart';
+import 'services/sample_notes.dart';
 import 'services/settings_controller.dart';
+import 'services/share_service.dart';
 import 'services/widget_service.dart';
 import 'theme.dart';
 
@@ -18,8 +20,21 @@ Future<void> main() async {
   final reminders = ReminderService();
   await Future.wait([reminders.init(), ImageService.init()]);
 
-  final notes = NotesController(storage, reminders);
+  // Decided before the controller writes its default board.
+  final firstRun = storage.isFirstRun;
+  final notes = NotesController(
+    storage,
+    reminders,
+    deletePhoto: ImageService.deleteFile,
+    deleteWallImage: ImageService.deleteWallFile,
+  );
   final settings = SettingsController(storage);
+
+  if (firstRun) {
+    final sample = SampleNotes.build(
+        _localizationsFor(settings.localeOverride), notes.currentBoardId);
+    notes.seed(sample.notes, links: sample.links);
+  }
 
   // Keep the home-screen widget in sync with the current board's pinned notes
   // (and with the language, so untitled notes get the right placeholder).
@@ -39,7 +54,11 @@ Future<void> main() async {
   settings.addListener(syncWidget);
   syncWidget();
 
-  runApp(StickyWallApp(settings: settings, notes: notes));
+  runApp(StickyWallApp(
+    settings: settings,
+    notes: notes,
+    shareReceiver: ShareReceiver(),
+  ));
 }
 
 /// Resolves strings outside the widget tree (for the home-screen widget):
@@ -58,10 +77,12 @@ class StickyWallApp extends StatelessWidget {
     super.key,
     required this.settings,
     required this.notes,
+    this.shareReceiver,
   });
 
   final SettingsController settings;
   final NotesController notes;
+  final ShareReceiver? shareReceiver;
 
   @override
   Widget build(BuildContext context) {
@@ -71,13 +92,20 @@ class StickyWallApp extends StatelessWidget {
         title: 'Sticky Wall',
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(settings.font),
+        // "Lights off": the same warm theme, dimmed — never a grey dark mode.
+        darkTheme: buildAppTheme(settings.font, night: true),
+        themeMode: settings.themeMode,
         locale: settings.localeOverride,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         // Notes carry their own depth; the platform's injected scrollbar
         // (desktop/web) clutters the wall, so hide it globally.
         scrollBehavior: const _NoScrollbarBehavior(),
-        home: HomeScreen(notes: notes, settings: settings),
+        home: HomeScreen(
+          notes: notes,
+          settings: settings,
+          shareReceiver: shareReceiver,
+        ),
       ),
     );
   }

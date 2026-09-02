@@ -46,6 +46,9 @@ class NoteCallbacks {
     required this.onTogglePin,
     required this.onToggleItem,
     required this.onLongPress,
+    this.onPinDragStart,
+    this.onPinDragUpdate,
+    this.onPinDragEnd,
   });
 
   final VoidCallback onEdit;
@@ -54,6 +57,15 @@ class NoteCallbacks {
 
   /// Opens the note's action sheet (edit, pin, move, share, delete).
   final VoidCallback onLongPress;
+
+  /// Dragging *from* the pin (rather than tapping it) pulls a thread out of
+  /// it; the wall view uses these to tie two notes together. Positions are
+  /// global. All three are set together or not at all.
+  final void Function(Offset global)? onPinDragStart;
+  final void Function(Offset global)? onPinDragUpdate;
+  final void Function(Offset global)? onPinDragEnd;
+
+  bool get canDragPin => onPinDragStart != null;
 }
 
 /// An attached photo, rounded and height-capped.
@@ -84,10 +96,14 @@ class _NotePhoto extends StatelessWidget {
   }
 }
 
-BoxDecoration paperDecoration(Note note, {bool raised = false}) {
+BoxDecoration paperDecoration(BuildContext context, Note note,
+    {bool raised = false, bool selected = false}) {
   return BoxDecoration(
-    color: noteColor(note.colorIndex, note.guid),
+    color: paperColorOf(context, note.colorIndex, note.guid),
     borderRadius: BorderRadius.circular(AppRadii.paper),
+    border: selected
+        ? Border.all(color: AppColors.ink, width: 2.5)
+        : null,
     boxShadow: [
       BoxShadow(
         color: Colors.black.withValues(alpha: raised ? 0.38 : 0.28),
@@ -160,11 +176,12 @@ class _NotePinState extends State<NotePin> with SingleTickerProviderStateMixin {
 }
 
 /// A comfortably tappable pin: 44 wide, centered on the paper's top edge.
+/// On the wall it can also be dragged to pull a thread out of it.
 class _PinTarget extends StatelessWidget {
-  const _PinTarget({required this.pinned, required this.onTap});
+  const _PinTarget({required this.pinned, required this.cb});
 
   final bool pinned;
-  final VoidCallback onTap;
+  final NoteCallbacks cb;
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +191,20 @@ class _PinTarget extends StatelessWidget {
       label: pinned ? l10n.unpin : l10n.pin,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
+        onTap: cb.onTogglePin,
+        // Being the innermost pan recognizer, this beats the card's own drag
+        // and the wall's pan — so a drag that *starts* on the pin is always
+        // a thread, and one that starts on the paper always moves the note.
+        onPanStart: cb.canDragPin
+            ? (d) => cb.onPinDragStart!(d.globalPosition)
+            : null,
+        onPanUpdate: cb.canDragPin
+            ? (d) => cb.onPinDragUpdate!(d.globalPosition)
+            : null,
+        onPanEnd: cb.canDragPin
+            ? (d) => cb.onPinDragEnd!(d.globalPosition)
+            : null,
+        onPanCancel: cb.canDragPin ? () => cb.onPinDragEnd!(Offset.zero) : null,
         child: SizedBox(
           width: 44,
           height: _pinInset * 2,
@@ -186,13 +216,16 @@ class _PinTarget extends StatelessWidget {
 }
 
 class _ReminderChip extends StatelessWidget {
-  const _ReminderChip({required this.at});
+  const _ReminderChip({required this.note});
 
-  final DateTime at;
+  final Note note;
 
   @override
   Widget build(BuildContext context) {
-    final overdue = at.isBefore(DateTime.now());
+    final at = note.nextReminder()!;
+    final repeats = note.repeat != ReminderRepeat.none;
+    // A repeating reminder is never "overdue" — it just rings again.
+    final overdue = !repeats && at.isBefore(DateTime.now());
     final ml = MaterialLocalizations.of(context);
     final label = '${ml.formatShortMonthDay(at)} '
         '${ml.formatTimeOfDay(TimeOfDay.fromDateTime(at))}';
@@ -207,7 +240,15 @@ class _ReminderChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(overdue ? Icons.alarm_on : Icons.alarm, size: 13, color: color),
+          Icon(
+            repeats
+                ? Icons.repeat
+                : overdue
+                    ? Icons.alarm_on
+                    : Icons.alarm,
+            size: 13,
+            color: color,
+          ),
           const SizedBox(width: 3),
           Flexible(
             child: Text(
@@ -220,6 +261,51 @@ class _ReminderChip extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The big tick stamped across a finished to-do list.
+class _DoneStamp extends StatelessWidget {
+  const _DoneStamp();
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Center(
+        child: Transform.rotate(
+          angle: -0.25,
+          child: Icon(
+            Icons.check_rounded,
+            size: 72,
+            color: const Color(0xFF2E7D32).withValues(alpha: 0.55),
+            shadows: const [
+              Shadow(color: Colors.white54, blurRadius: 2, offset: Offset(0, 1)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A small ink check badge in the corner of a selected note.
+class _SelectedBadge extends StatelessWidget {
+  const _SelectedBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 22,
+      height: 22,
+      decoration: const BoxDecoration(
+        color: AppColors.ink,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(color: Colors.black38, blurRadius: 3, offset: Offset(0, 1)),
+        ],
+      ),
+      child: const Icon(Icons.check, size: 15, color: AppColors.chalk),
     );
   }
 }
@@ -268,7 +354,7 @@ class _NoteBody extends StatelessWidget {
                 Expanded(
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: _ReminderChip(at: note.reminderAt!),
+                    child: _ReminderChip(note: note),
                   ),
                 ),
             ],
@@ -405,6 +491,7 @@ class StickyNoteCard extends StatelessWidget {
     required this.note,
     required this.cb,
     this.raised = false,
+    this.selected = false,
     this.maxContentLines = 6,
     this.captureKey,
   });
@@ -412,6 +499,9 @@ class StickyNoteCard extends StatelessWidget {
   final Note note;
   final NoteCallbacks cb;
   final bool raised;
+
+  /// Drawn with an ink border and a check badge while multi-selecting.
+  final bool selected;
   final int maxContentLines;
 
   /// When set, the paper (without the pin) is wrapped in a RepaintBoundary so
@@ -420,11 +510,13 @@ class StickyNoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final done = note.type == NoteType.checklist && note.checklistDone;
     Widget paper = Container(
       // Fill whatever width the wall/grid grants — the paper is a fixed-size
       // sheet, not something that shrinks to a short line of text.
       width: double.infinity,
-      decoration: paperDecoration(note, raised: raised),
+      decoration: paperDecoration(context, note,
+          raised: raised, selected: selected),
       child: Stack(
         children: [
           // Adhesive strip along the top, like a real sticky note.
@@ -458,9 +550,13 @@ class StickyNoteCard extends StatelessWidget {
               maxContentLines: maxContentLines,
             ),
           ),
+          // A finished list fades a little and gets a big tick, so it reads
+          // as "done" from across the room.
+          if (done) const Positioned.fill(child: _DoneStamp()),
         ],
       ),
     );
+    if (done) paper = Opacity(opacity: 0.72, child: paper);
     if (captureKey != null) {
       paper = RepaintBoundary(key: captureKey, child: paper);
     }
@@ -480,8 +576,10 @@ class StickyNoteCard extends StatelessWidget {
             Padding(padding: const EdgeInsets.only(top: _pinInset), child: paper),
             Positioned(
               top: 0,
-              child: _PinTarget(pinned: note.pinned, onTap: cb.onTogglePin),
+              child: _PinTarget(pinned: note.pinned, cb: cb),
             ),
+            if (selected)
+              const Positioned(right: -6, top: _pinInset - 6, child: _SelectedBadge()),
           ],
         ),
       ),
@@ -527,17 +625,19 @@ class NoteListTile extends StatelessWidget {
     super.key,
     required this.note,
     required this.cb,
+    this.selected = false,
     this.captureKey,
   });
 
   final Note note;
   final NoteCallbacks cb;
+  final bool selected;
   final GlobalKey? captureKey;
 
   @override
   Widget build(BuildContext context) {
     Widget row = Container(
-      decoration: paperDecoration(note),
+      decoration: paperDecoration(context, note, selected: selected),
       padding: const EdgeInsets.fromLTRB(6, 6, 14, 6),
       child: _rowContent(context),
     );
@@ -557,7 +657,13 @@ class NoteListTile extends StatelessWidget {
   Widget _rowContent(BuildContext context) {
     return Row(
       children: [
-        _PinTarget(pinned: note.pinned, onTap: cb.onTogglePin),
+        if (selected)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 11),
+            child: _SelectedBadge(),
+          )
+        else
+          _PinTarget(pinned: note.pinned, cb: cb),
         if (note.imagePath.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -582,7 +688,7 @@ class NoteListTile extends StatelessWidget {
             padding: const EdgeInsets.only(left: 6),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 120),
-              child: _ReminderChip(at: note.reminderAt!),
+              child: _ReminderChip(note: note),
             ),
           ),
       ],

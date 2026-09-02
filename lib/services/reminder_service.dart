@@ -85,10 +85,25 @@ class ReminderService {
     }
   }
 
+  /// Which fields of the date the OS should match to fire again: a daily
+  /// reminder repeats at the same time, weekly on the same weekday, monthly
+  /// on the same day of the month. Null for a one-off.
+  static DateTimeComponents? _repeatOf(ReminderRepeat repeat) =>
+      switch (repeat) {
+        ReminderRepeat.none => null,
+        ReminderRepeat.daily => DateTimeComponents.time,
+        ReminderRepeat.weekly => DateTimeComponents.dayOfWeekAndTime,
+        ReminderRepeat.monthly => DateTimeComponents.dayOfMonthAndTime,
+      };
+
+  /// (Re)schedules the notification for [note]: the next occurrence of a
+  /// repeating reminder, or the one date of a single reminder if it is still
+  /// ahead. Trashed notes never ring.
   Future<void> sync(Note note) async {
     await cancel(note);
-    final at = note.reminderAt;
-    if (!_ready || at == null || at.isBefore(DateTime.now())) return;
+    if (!_ready || note.isTrashed) return;
+    final at = note.nextReminder();
+    if (at == null || at.isBefore(DateTime.now())) return;
 
     await _ensurePermission();
     final when = tz.TZDateTime.from(at, tz.local);
@@ -107,6 +122,7 @@ class ReminderService {
           scheduledDate: when,
           notificationDetails: _details,
           androidScheduleMode: mode,
+          matchDateTimeComponents: _repeatOf(note.repeat),
         );
         return;
       } catch (e) {

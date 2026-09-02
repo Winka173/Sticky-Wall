@@ -43,45 +43,96 @@ List<DrawStroke> _smiley() => [
 Future<StickyWallApp> _app({
   required ViewMode mode,
   required List<Note> notes,
+  List<NoteLink> links = const [],
+  int wallIndex = 0,
+  NightMode night = NightMode.off,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final storage = await NoteStorage.create();
-  await storage.saveBoards([Board(id: 'default', name: '', wallIndex: 0)]);
+  await storage
+      .saveBoards([Board(id: 'default', name: '', wallIndex: wallIndex)]);
   await storage.saveNotes(notes);
+  await storage.saveLinks(links);
   await storage.setViewMode(mode);
   await storage.setLanguageCode('vi');
+  await storage.setNightMode(night);
   return StickyWallApp(
     settings: SettingsController(storage),
     notes: NotesController(storage, ReminderService()),
   );
 }
 
-Future<void> _pump(WidgetTester tester, Widget app) async {
+Future<void> _pump(WidgetTester tester, Widget app,
+    {String wallAsset = 'assets/images/wall_cork.jpg'}) async {
   tester.view.physicalSize = const Size(1170, 2280);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(app);
   await tester.runAsync(() async {
     final ctx = tester.element(find.byType(Scaffold).first);
-    await precacheImage(const AssetImage('assets/images/wall_cork.jpg'), ctx);
+    await precacheImage(AssetImage(wallAsset), ctx);
   });
   for (var i = 0; i < 6; i++) {
     await tester.pump(const Duration(milliseconds: 130));
   }
 }
 
-void main() {
-  testWidgets('mode wall features', skip: true, (tester) async {
-    await _fonts();
-    final app = await _app(mode: ViewMode.wall, notes: [
+List<Note> _wallNotes() => [
       Note(guid: 'a', content: 'Nhớ tưới cây', boardId: 'default', createdAt: _t(1), colorIndex: 3, emoji: '🌱', x: 0.05, y: 0.02, scale: 1.15),
       Note(guid: 'b', content: 'Vẽ nhanh', boardId: 'default', createdAt: _t(2), type: NoteType.drawing, colorIndex: 0, strokes: _smiley(), x: 0.55, y: 0.05),
       Note(guid: 'c', content: 'Ghi chú to', boardId: 'default', createdAt: _t(3), pinned: true, colorIndex: 1, x: 0.06, y: 0.5, scale: 1.5),
       Note(guid: 'd', content: 'nhỏ', boardId: 'default', createdAt: _t(4), colorIndex: 2, x: 0.66, y: 0.62, scale: 0.8),
-    ]);
+    ];
+
+void main() {
+  testWidgets('mode wall features', skip: true, (tester) async {
+    await _fonts();
+    final app = await _app(
+      mode: ViewMode.wall,
+      notes: _wallNotes(),
+      // A red thread ties the sketch to the big note.
+      links: const [NoteLink('b', 'c')],
+    );
     await _pump(tester, app);
     await expectLater(
         find.byType(StickyWallApp), matchesGoldenFile('mode_wall.png'));
+  });
+
+  testWidgets('night mode', skip: true, (tester) async {
+    await _fonts();
+    final app = await _app(
+      mode: ViewMode.wall,
+      notes: _wallNotes(),
+      links: const [NoteLink('a', 'd')],
+      wallIndex: 3, // plaster: the dimming is most visible on a light wall
+      night: NightMode.on,
+    );
+    await _pump(tester, app, wallAsset: 'assets/images/wall_plaster.jpg');
+    await expectLater(
+        find.byType(StickyWallApp), matchesGoldenFile('night.png'));
+  });
+
+  testWidgets('trash', skip: true, (tester) async {
+    await _fonts();
+    final now = DateTime.now();
+    final app = await _app(mode: ViewMode.grid, notes: [
+      Note(guid: 'a', content: 'Nháp bài viết cũ', boardId: 'default', createdAt: _t(1), colorIndex: 2)
+        ..deletedAt = now.subtract(const Duration(days: 2)),
+      Note(guid: 'b', content: 'Đi chợ', boardId: 'default', createdAt: _t(2), type: NoteType.checklist, colorIndex: 0, checklist: [ChecklistItem(text: 'Sữa', done: true), ChecklistItem(text: 'Trứng', done: true)])
+        ..deletedAt = now.subtract(const Duration(days: 12)),
+      Note(guid: 'c', content: 'Link tham khảo', url: 'https://docs.flutter.dev', boardId: 'default', createdAt: _t(3), colorIndex: 3)
+        ..deletedAt = now.subtract(const Duration(days: 28)),
+      Note(guid: 'd', content: 'Còn giữ trên tường', boardId: 'default', createdAt: _t(4), colorIndex: 1),
+    ]);
+    await _pump(tester, app);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Thùng rác (3)'));
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 130));
+    }
+    await expectLater(
+        find.byType(StickyWallApp), matchesGoldenFile('trash.png'));
   });
 
   testWidgets('mode grid', skip: true, (tester) async {

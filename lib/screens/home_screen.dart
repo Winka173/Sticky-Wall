@@ -12,21 +12,33 @@ import '../models/view_mode.dart';
 import '../services/image_service.dart';
 import '../services/notes_controller.dart';
 import '../services/settings_controller.dart';
+import '../services/share_service.dart';
 import '../theme.dart';
 import '../widgets/board_bar.dart';
 import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
+import '../widgets/peel_away.dart';
 import '../widgets/settings_sheet.dart';
-import '../widgets/wall_decor.dart';
+import '../widgets/wall_background.dart';
 import '../widgets/wall_view.dart';
+import 'trash_screen.dart';
 
 const _kToast = Duration(seconds: 3);
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.notes, required this.settings});
+  const HomeScreen({
+    super.key,
+    required this.notes,
+    required this.settings,
+    this.shareReceiver,
+  });
 
   final NotesController notes;
   final SettingsController settings;
+
+  /// Delivers content shared from other apps; null (tests, desktop) means the
+  /// screen never listens for it.
+  final ShareReceiver? shareReceiver;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -35,7 +47,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
   final _imageService = ImageService();
+  final _wallHandle = WallHandle();
   bool _searching = false;
+
+  // Multi-select: on while the selection bar is up; guids of chosen notes.
+  bool _selecting = false;
+  final _selected = <String>{};
 
   // Per-note RepaintBoundary keys so a note can be rasterized to an image.
   // Keyed by view mode *and* guid: while the content AnimatedSwitcher
@@ -50,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
   late ViewMode _lastViewMode = _notes.viewMode;
 
   NotesController get _notes => widget.notes;
-  WallStyle get _wall => walls[_notes.currentBoard.wallIndex % walls.length];
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
 
   String _captureId(Note note) => '${_notes.viewMode.name}/${note.guid}';
@@ -62,18 +78,30 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _searchController.addListener(() => _notes.search = _searchController.text);
+    widget.shareReceiver?.listen(_onShared);
   }
 
   @override
   void dispose() {
+    widget.shareReceiver?.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
   void _toast(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: _kToast),
-    );
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message), duration: _kToast));
+  }
+
+  void _undoToast(String message, VoidCallback undo) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(message),
+        duration: _kToast,
+        action: SnackBarAction(label: _l10n.undo, onPressed: undo),
+      ));
   }
 
   String _boardName(Board board) =>
@@ -84,10 +112,39 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _searching = on);
   }
 
+  // --- Sharing in ----------------------------------------------------------
+
+  /// Something arrived through the system share sheet: open the editor with
+  /// it filled in, so the user can still pick a board, color or emote.
+  Future<void> _onShared(SharedContent content) async {
+    final draft = _notes.draft();
+    if (content.imagePath.isNotEmpty) {
+      final stored = await _imageService.importSharedImage(content.imagePath);
+      if (stored != null) draft.imagePath = stored;
+    }
+    if (!mounted) return;
+    if (content.url.isNotEmpty) {
+      draft.type = NoteType.link;
+      draft.url = content.url;
+    }
+    draft.content = content.text.isNotEmpty
+        ? content.text
+        : (draft.imagePath.isNotEmpty ? _l10n.sharedNote : '');
+    // Whatever was open (another editor, a sheet) gives way to the new note.
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    await _openEditor(draft, isNew: true);
+  }
+
   // --- Note actions --------------------------------------------------------
 
   NoteCallbacks _callbacks(Note note) => NoteCallbacks(
-        onEdit: () => _openEditor(note, isNew: false),
+        onEdit: () {
+          if (_selecting) {
+            _toggleSelected(note);
+          } else {
+            _openEditor(note, isNew: false);
+          }
+        },
         onTogglePin: () {
           HapticFeedback.selectionClick();
           _notes.togglePin(note);
@@ -95,7 +152,11 @@ class _HomeScreenState extends State<HomeScreen> {
         onToggleItem: (i) => _notes.toggleChecklistItem(note, i),
         onLongPress: () {
           HapticFeedback.mediumImpact();
-          _showNoteActions(note);
+          if (_selecting) {
+            _toggleSelected(note);
+          } else {
+            _showNoteActions(note);
+          }
         },
       );
 
@@ -118,6 +179,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   note.pinned ? Icons.push_pin : Icons.push_pin_outlined),
               title: Text(note.pinned ? l10n.unpin : l10n.pin),
               onTap: () => Navigator.pop(context, 'pin'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.checklist_rtl),
+              title: Text(l10n.select),
+              onTap: () => Navigator.pop(context, 'select'),
             ),
             if (canMove)
               ListTile(
@@ -154,21 +220,24 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'pin':
         HapticFeedback.selectionClick();
         _notes.togglePin(note);
+      case 'select':
+        _startSelecting(note);
       case 'move':
-        await _moveToBoard(note);
+        await _moveToBoard([note]);
       case 'share':
         await _captureAndShare(note);
       case 'save':
         await _captureAndSave(note);
       case 'delete':
-        _delete(note);
+        await _delete(note);
     }
   }
 
-  Future<void> _moveToBoard(Note note) async {
+  Future<void> _moveToBoard(List<Note> notes) async {
+    if (notes.isEmpty) return;
     final l10n = _l10n;
-    final targets =
-        _notes.boards.where((b) => b.id != note.boardId).toList();
+    final current = _notes.currentBoardId;
+    final targets = _notes.boards.where((b) => b.id != current).toList();
     final target = await showModalBottomSheet<Board>(
       context: context,
       builder: (context) => SafeArea(
@@ -183,7 +252,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             for (final board in targets)
               ListTile(
-                leading: const Icon(Icons.dashboard_outlined),
+                leading: board.icon.isEmpty
+                    ? const Icon(Icons.dashboard_outlined)
+                    : Text(board.icon, style: const TextStyle(fontSize: 22)),
                 title: Text(_boardName(board)),
                 onTap: () => Navigator.pop(context, board),
               ),
@@ -192,7 +263,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     if (target == null || !mounted) return;
-    _notes.moveToBoard(note, target.id);
+    _notes.moveAllToBoard(notes, target.id);
+    _exitSelecting();
     _toast(l10n.movedToBoard(_boardName(target)));
   }
 
@@ -246,28 +318,118 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _delete(Note note) {
+  /// Peels the note off the wall (unless it already animated itself away,
+  /// e.g. a swipe-to-dismiss) and drops it in the trash, with Undo.
+  Future<void> _delete(Note note, {bool peel = true}) async {
+    if (peel) {
+      final key = _captureKeys[_captureId(note)];
+      if (key != null) await PeelAway.play(context, key);
+      if (!mounted) return;
+    }
     _notes.delete(note);
-    _captureKeys.removeWhere((k, _) => k.endsWith('/${note.guid}'));
-    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
-    messenger
-        .showSnackBar(
-          SnackBar(
-            content: Text(_l10n.noteDeleted),
-            duration: _kToast,
-            action: SnackBarAction(
-              label: _l10n.undo,
-              onPressed: _notes.undoDelete,
-            ),
-          ),
-        )
-        .closed
-        .then((reason) {
-      if (reason == SnackBarClosedReason.action) return;
-      // Undo is off the table now; the note's photo can go too.
-      final orphan = _notes.purgeDeleted(note);
-      if (orphan != null) ImageService.deleteFile(orphan);
+    _forgetKeys([note]);
+    _undoToast(_l10n.noteDeleted, _notes.undoDelete);
+  }
+
+  Future<void> _deleteMany(List<Note> notes) async {
+    if (notes.isEmpty) return;
+    // Peel a handful for the effect; a huge selection just vanishes.
+    final keys = [
+      for (final n in notes.take(8)) _captureKeys[_captureId(n)],
+    ].nonNulls;
+    await Future.wait(keys.map((k) => PeelAway.play(context, k)));
+    if (!mounted) return;
+    _notes.trashAll(notes);
+    _forgetKeys(notes);
+    _exitSelecting();
+    _undoToast(_l10n.notesDeleted(notes.length), _notes.undoDelete);
+  }
+
+  void _forgetKeys(Iterable<Note> notes) {
+    final guids = {for (final n in notes) n.guid};
+    _captureKeys.removeWhere((k, _) => guids.contains(k.split('/').last));
+  }
+
+  // --- Multi-select --------------------------------------------------------
+
+  List<Note> get _selectedNotes =>
+      _notes.boardNotes.where((n) => _selected.contains(n.guid)).toList();
+
+  void _startSelecting(Note note) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _selecting = true;
+      _selected
+        ..clear()
+        ..add(note.guid);
     });
+  }
+
+  void _toggleSelected(Note note) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      if (!_selected.remove(note.guid)) _selected.add(note.guid);
+    });
+  }
+
+  void _selectAll() {
+    final pool = _notes.isFiltering ? _notes.visibleNotes : _notes.boardNotes;
+    setState(() => _selected.addAll(pool.map((n) => n.guid)));
+  }
+
+  void _exitSelecting() {
+    if (!_selecting && _selected.isEmpty) return;
+    setState(() {
+      _selecting = false;
+      _selected.clear();
+    });
+  }
+
+  Future<void> _recolorSelected() async {
+    final notes = _selectedNotes;
+    if (notes.isEmpty) return;
+    final l10n = _l10n;
+    final picked = await showModalBottomSheet<int>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.color,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  // -1 stands for "auto" (derive from each note's guid).
+                  _Swatch(
+                    color: AppColors.paper,
+                    auto: true,
+                    onTap: () => Navigator.pop(context, -1),
+                  ),
+                  for (final (i, c) in AppColors.notePapers.indexed)
+                    _Swatch(color: c, onTap: () => Navigator.pop(context, i)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    _notes.recolor(notes, picked < 0 ? null : picked);
+  }
+
+  void _pinSelected() {
+    final notes = _selectedNotes;
+    if (notes.isEmpty) return;
+    HapticFeedback.selectionClick();
+    _notes.pinAll(notes, !notes.every((n) => n.pinned));
   }
 
   // --- Layout --------------------------------------------------------------
@@ -277,13 +439,17 @@ class _HomeScreenState extends State<HomeScreen> {
     return ListenableBuilder(
       listenable: Listenable.merge([widget.notes, widget.settings]),
       builder: (context, _) {
-        final wall = _wall;
+        final night = isNight(context);
+        final wall = wallFor(_notes.currentBoard, night: night);
         // Only a board or layout change may retarget the slide; unrelated
         // rebuilds (typing in search) must not yank a running transition.
         final boardIndex = _notes.currentBoardIndex;
         if (boardIndex != _lastBoardIndex) {
           _slideDir = boardIndex > _lastBoardIndex ? 1 : -1;
           _lastBoardIndex = boardIndex;
+          // A selection belongs to one board.
+          _selected.clear();
+          _selecting = false;
         } else if (_notes.viewMode != _lastViewMode) {
           _slideDir = 0;
         }
@@ -298,8 +464,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Positioned.fill(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 450),
-                child: _WallBackground(
-                  key: ValueKey('${wall.id}-${widget.settings.wallDecor}'),
+                child: WallBackground(
+                  key: ValueKey(
+                      '${wall.id}-${wall.imageFile}-${widget.settings.wallDecor}'),
                   wall: wall,
                   decor: widget.settings.wallDecor,
                 ),
@@ -311,17 +478,22 @@ class _HomeScreenState extends State<HomeScreen> {
               // squash the wall underneath would make every note slide about
               // behind the barrier while you type.
               resizeToAvoidBottomInset: false,
-              floatingActionButton: FloatingActionButton.extended(
-                onPressed: () => _openEditor(_notes.draft(), isNew: true),
-                backgroundColor: AppColors.accent,
-                foregroundColor: AppColors.ink,
-                // Shrinks to a plain "+" once a free wall has notes on it, so
-                // it covers less of them.
-                isExtended: showFabLabel,
-                icon: const Icon(Icons.add),
-                label:
-                    Text(_l10n.addNote, style: const TextStyle(fontSize: 17)),
-              ),
+              floatingActionButton: _selecting
+                  ? null
+                  : FloatingActionButton.extended(
+                      onPressed: () =>
+                          _openEditor(_notes.draft(), isNew: true),
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: AppColors.ink,
+                      // Shrinks to a plain "+" once a free wall has notes on
+                      // it, so it covers less of them.
+                      isExtended: showFabLabel,
+                      icon: const Icon(Icons.add),
+                      label: Text(_l10n.addNote,
+                          style: const TextStyle(fontSize: 17)),
+                    ),
+              bottomNavigationBar:
+                  _selecting ? _selectionBar(wall) : null,
               body: SafeArea(
                 child: Column(
                   children: [
@@ -372,9 +544,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  BoxDecoration _frosted(WallStyle wall) => BoxDecoration(
+  BoxDecoration _frosted(WallStyle wall, {double radius = 21}) =>
+      BoxDecoration(
         color: wall.dark ? const Color(0x26FFFFFF) : const Color(0x14000000),
-        borderRadius: BorderRadius.circular(21),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: wall.wallTextFaded.withValues(alpha: 0.25)),
       );
 
@@ -386,41 +559,127 @@ class _HomeScreenState extends State<HomeScreen> {
         height: 48,
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
-          child: _searching
-              ? _searchField(wall)
-              : Row(
-                  key: const ValueKey('title'),
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _l10n.appTitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.fade,
-                        softWrap: false,
-                        style: TextStyle(
-                          fontFamily: 'Pacifico',
-                          fontSize: 28,
-                          color: text,
-                          shadows: wall.wallTextShadows,
+          child: _selecting
+              ? _selectionTitle(wall)
+              : _searching
+                  ? _searchField(wall)
+                  : Row(
+                      key: const ValueKey('title'),
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _l10n.appTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.fade,
+                            softWrap: false,
+                            style: TextStyle(
+                              fontFamily: 'Pacifico',
+                              fontSize: 28,
+                              color: text,
+                              shadows: wall.wallTextShadows,
+                            ),
+                          ),
                         ),
-                      ),
+                        IconButton(
+                          tooltip: _l10n.search,
+                          icon: Icon(Icons.search, color: text),
+                          onPressed: () => _setSearching(true),
+                        ),
+                        IconButton(
+                          tooltip: _l10n.customize,
+                          icon: Icon(Icons.palette_outlined, color: text),
+                          onPressed: () => showSettingsSheet(
+                            context,
+                            settings: widget.settings,
+                            notes: _notes,
+                          ),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      tooltip: _l10n.search,
-                      icon: Icon(Icons.search, color: text),
-                      onPressed: () => _setSearching(true),
-                    ),
-                    IconButton(
-                      tooltip: _l10n.customize,
-                      icon: Icon(Icons.palette_outlined, color: text),
-                      onPressed: () => showSettingsSheet(
-                        context,
-                        settings: widget.settings,
-                        notes: _notes,
-                      ),
-                    ),
-                  ],
+        ),
+      ),
+    );
+  }
+
+  Widget _selectionTitle(WallStyle wall) {
+    final text = wall.wallText;
+    return Padding(
+      key: const ValueKey('select'),
+      padding: const EdgeInsets.fromLTRB(0, 3, 8, 3),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        decoration: _frosted(wall),
+        child: Row(
+          children: [
+            IconButton(
+              tooltip: _l10n.cancel,
+              iconSize: 20,
+              icon: Icon(Icons.close, color: text),
+              onPressed: _exitSelecting,
+            ),
+            Expanded(
+              child: Text(
+                _l10n.selectedCount(_selected.length),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: text, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            IconButton(
+              tooltip: _l10n.selectAll,
+              iconSize: 22,
+              icon: Icon(Icons.select_all, color: text),
+              onPressed: _selectAll,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Bulk actions for the current selection, docked at the bottom.
+  Widget _selectionBar(WallStyle wall) {
+    final notes = _selectedNotes;
+    final any = notes.isNotEmpty;
+    final allPinned = any && notes.every((n) => n.pinned);
+    final l10n = _l10n;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        child: Container(
+          decoration: _frosted(wall, radius: 16),
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              _BarAction(
+                icon: allPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                label: allPinned ? l10n.unpin : l10n.pin,
+                color: wall.wallText,
+                onTap: any ? _pinSelected : null,
+              ),
+              _BarAction(
+                icon: Icons.palette_outlined,
+                label: l10n.color,
+                color: wall.wallText,
+                onTap: any ? _recolorSelected : null,
+              ),
+              if (_notes.boards.length > 1)
+                _BarAction(
+                  icon: Icons.drive_file_move_outlined,
+                  label: l10n.move,
+                  color: wall.wallText,
+                  onTap: any ? () => _moveToBoard(notes) : null,
                 ),
+              _BarAction(
+                icon: Icons.delete_outline,
+                label: l10n.delete,
+                color: wall.dark ? const Color(0xFFFF8A80) : AppColors.deleteIcon,
+                onTap: any ? () => _deleteMany(notes) : null,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -462,11 +721,21 @@ class _HomeScreenState extends State<HomeScreen> {
               valueListenable: _searchController,
               builder: (context, value, _) => value.text.isEmpty
                   ? const SizedBox(width: 12)
-                  : IconButton(
-                      tooltip: _l10n.clear,
-                      iconSize: 18,
-                      icon: Icon(Icons.close, color: faded),
-                      onPressed: _searchController.clear,
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Live hit count, so you know when to stop typing.
+                        Text(
+                          _l10n.resultCount(_notes.visibleNotes.length),
+                          style: TextStyle(color: faded, fontSize: 13),
+                        ),
+                        IconButton(
+                          tooltip: _l10n.clear,
+                          iconSize: 18,
+                          icon: Icon(Icons.close, color: faded),
+                          onPressed: _searchController.clear,
+                        ),
+                      ],
                     ),
             ),
           ],
@@ -484,6 +753,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _filterButton(wall),
           if (_notes.viewMode != ViewMode.wall) _sortButton(wall),
           _layoutButton(wall),
+          _moreButton(wall),
         ],
       ),
     );
@@ -598,12 +868,68 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Everything that didn't earn its own button: select, tidy, trash, lights.
+  Widget _moreButton(WallStyle wall) {
+    final l10n = _l10n;
+    final onWall = _notes.viewMode == ViewMode.wall;
+    final canTidy = onWall && _notes.boardNotes.length > 1;
+    final night = isNight(context);
+    final trashCount = _notes.trashCount;
+    return PopupMenuButton<String>(
+      tooltip: l10n.moreActions,
+      icon: Icon(Icons.more_vert, color: wall.wallText),
+      onSelected: (v) {
+        switch (v) {
+          case 'select':
+            if (_notes.boardNotes.isNotEmpty) {
+              setState(() {
+                _selecting = true;
+                _selected.clear();
+              });
+            }
+          case 'tidy':
+            HapticFeedback.lightImpact();
+            _wallHandle.tidy();
+          case 'tidyColor':
+            HapticFeedback.lightImpact();
+            _wallHandle.tidy(byColor: true);
+          case 'trash':
+            Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => TrashScreen(notes: _notes),
+            ));
+          case 'lights':
+            widget.settings.setNightMode(night ? NightMode.off : NightMode.on);
+        }
+      },
+      itemBuilder: (context) => [
+        if (_notes.boardNotes.isNotEmpty)
+          _menuItem('select', l10n.select, icon: Icons.checklist_rtl),
+        if (canTidy) ...[
+          _menuItem('tidy', l10n.tidy, icon: Icons.auto_awesome_mosaic_outlined),
+          _menuItem('tidyColor', l10n.tidyByColor,
+              icon: Icons.palette_outlined),
+        ],
+        _menuItem(
+          'trash',
+          trashCount > 0 ? '${l10n.trash} ($trashCount)' : l10n.trash,
+          icon: Icons.delete_outline,
+        ),
+        _menuItem(
+          'lights',
+          night ? l10n.lightsOn : l10n.lightsOff,
+          icon: night ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+        ),
+      ],
+    );
+  }
+
   Widget _buildContent(WallStyle wall) {
     // Wall mode: free-drag canvas with every note on the board. Search and
     // the type filter dim non-matches instead of removing them, so nothing
     // jumps around. Rendered even when empty so the wall still takes taps.
     if (_notes.viewMode == ViewMode.wall) {
       final notes = _notes.boardNotes;
+      final boardId = _notes.currentBoardId;
       return WallView(
         notes: notes,
         callbacksFor: _callbacks,
@@ -611,6 +937,21 @@ class _HomeScreenState extends State<HomeScreen> {
         onResize: _notes.resizeNote,
         onBringToFront: _notes.bringToFront,
         onCreateAt: (x, y) => _openEditor(_notes.draftAt(x, y), isNew: true),
+        links: _notes.linksOn(boardId),
+        onConnect: (a, b) {
+          if (_notes.connect(a, b)) {
+            HapticFeedback.lightImpact();
+            _toast(_l10n.threadTied);
+          }
+        },
+        onCutLink: (link) {
+          HapticFeedback.lightImpact();
+          _notes.disconnect(link);
+          _undoToast(_l10n.threadCut, () => _notes.connect(link.a, link.b));
+        },
+        onArrange: _notes.arrange,
+        handle: _wallHandle,
+        selected: _selecting ? _selected : const {},
         captureKeys: {for (final n in notes) n.guid: _keyFor(n)},
         isDimmed: (n) => _notes.isFiltering && !_notes.matches(n),
         resetZoomTooltip: _l10n.resetZoom,
@@ -645,23 +986,31 @@ class _HomeScreenState extends State<HomeScreen> {
       Duration(milliseconds: 25 * math.min(index, 12));
 
   Widget _grid(List<Note> notes) {
-    return MasonryGridView.count(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
-      crossAxisCount: 2,
-      // The pin already pokes 14 px above each card, so keep rows tight.
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 14,
-      itemCount: notes.length,
-      itemBuilder: (context, i) => NoteAppear(
-        key: ValueKey(notes[i].guid),
-        delay: _staggerFor(i),
-        child: StickyNoteCard(
-          note: notes[i],
-          cb: _callbacks(notes[i]),
-          maxContentLines: 8,
-          captureKey: _keyFor(notes[i]),
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // ~200 px per column: two on a phone, up to six on a wide tablet or
+        // desktop window.
+        final cols = (constraints.maxWidth / 200).floor().clamp(2, 6);
+        return MasonryGridView.count(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
+          crossAxisCount: cols,
+          // The pin already pokes 14 px above each card, so keep rows tight.
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 14,
+          itemCount: notes.length,
+          itemBuilder: (context, i) => NoteAppear(
+            key: ValueKey(notes[i].guid),
+            delay: _staggerFor(i),
+            child: StickyNoteCard(
+              note: notes[i],
+              cb: _callbacks(notes[i]),
+              selected: _selecting && _selected.contains(notes[i].guid),
+              maxContentLines: 8,
+              captureKey: _keyFor(notes[i]),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -671,10 +1020,22 @@ class _HomeScreenState extends State<HomeScreen> {
       itemCount: notes.length,
       itemBuilder: (context, i) {
         final note = notes[i];
+        final tile = NoteAppear(
+          delay: _staggerFor(i),
+          child: NoteListTile(
+            note: note,
+            cb: _callbacks(note),
+            selected: _selecting && _selected.contains(note.guid),
+            captureKey: _keyFor(note),
+          ),
+        );
+        // No swipe-to-delete while selecting: swipes would fight with taps
+        // that toggle selection.
+        if (_selecting) return tile;
         return Dismissible(
           key: ValueKey('dismiss-${note.guid}'),
           direction: DismissDirection.endToStart,
-          onDismissed: (_) => _delete(note),
+          onDismissed: (_) => _delete(note, peel: false),
           background: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             padding: const EdgeInsets.only(right: 22),
@@ -685,14 +1046,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: const Icon(Icons.delete_outline, color: Colors.white),
           ),
-          child: NoteAppear(
-            delay: _staggerFor(i),
-            child: NoteListTile(
-              note: note,
-              cb: _callbacks(note),
-              captureKey: _keyFor(note),
-            ),
-          ),
+          child: tile,
         );
       },
     );
@@ -771,50 +1125,73 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/// The wall texture + scrim + stains + vignette, kept outside the Scaffold so
-/// wall switches can crossfade without touching app content.
-class _WallBackground extends StatelessWidget {
-  const _WallBackground({
-    super.key,
-    required this.wall,
-    required this.decor,
+/// One icon-over-label button in the selection bar.
+class _BarAction extends StatelessWidget {
+  const _BarAction({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
   });
 
-  final WallStyle wall;
-  final bool decor;
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF6B5849),
-        image: DecorationImage(
-          image: AssetImage(wall.asset),
-          repeat: ImageRepeat.repeat,
-          scale: 2.2,
+    final c = onTap == null ? color.withValues(alpha: 0.35) : color;
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: c, size: 24),
+              const SizedBox(height: 3),
+              Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: c, fontSize: 12.5)),
+            ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+/// A paper-color choice in the bulk recolor sheet.
+class _Swatch extends StatelessWidget {
+  const _Swatch({required this.color, required this.onTap, this.auto = false});
+
+  final Color color;
+  final VoidCallback onTap;
+  final bool auto;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
-        color: wall.overlay,
-        child: Stack(
-          children: [
-            if (decor) Positioned.fill(child: WallDecor(wall: wall)),
-            // Soft vignette adds depth so the wall recedes at the edges.
-            const Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      radius: 1.15,
-                      colors: [Colors.transparent, Color(0x33000000)],
-                      stops: [0.62, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.black26),
+          boxShadow: const [
+            BoxShadow(
+                color: Colors.black26, blurRadius: 3, offset: Offset(0, 1.5)),
           ],
         ),
+        child: auto
+            ? const Icon(Icons.auto_awesome, size: 20, color: AppColors.ink)
+            : null,
       ),
     );
   }

@@ -81,10 +81,210 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duplicateExists => 'This link is already on the wall';
 
   @override
-  String get noteDeleted => 'Note deleted';
+  String get noteDeleted => 'Moved to trash';
+
+  @override
+  String notesDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes moved to trash',
+      one: '1 note moved to trash',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get undo => 'Undo';
+
+  @override
+  String get trash => 'Trash';
+
+  @override
+  String get trashEmpty => 'The trash is empty';
+
+  @override
+  String get trashHint => 'Notes here are deleted for good after 30 days.';
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String get restored => 'Note restored';
+
+  @override
+  String get deleteForever => 'Delete forever';
+
+  @override
+  String get emptyTrash => 'Empty trash';
+
+  @override
+  String emptyTrashConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete all $count notes in the trash for good?',
+      one: 'Delete the 1 note in the trash for good?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String daysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days left',
+      one: '1 day left',
+      zero: 'Expires today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deletedOn(String date) {
+    return 'Deleted $date';
+  }
+
+  @override
+  String get repeat => 'Repeat';
+
+  @override
+  String get repeatNone => 'Once';
+
+  @override
+  String get repeatDaily => 'Daily';
+
+  @override
+  String get repeatWeekly => 'Weekly';
+
+  @override
+  String get repeatMonthly => 'Monthly';
+
+  @override
+  String get select => 'Select notes';
+
+  @override
+  String selectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get selectAll => 'Select all';
+
+  @override
+  String get move => 'Move';
+
+  @override
+  String get tidy => 'Tidy up';
+
+  @override
+  String get tidyByColor => 'Arrange by color';
+
+  @override
+  String get moreActions => 'More';
+
+  @override
+  String get threadCut => 'Thread cut';
+
+  @override
+  String get threadTied => 'Thread tied';
+
+  @override
+  String get threadTip => 'Drag from a pin onto another note to tie a thread.';
+
+  @override
+  String get nightSection => 'Lights';
+
+  @override
+  String get nightModeOff => 'Always on';
+
+  @override
+  String get nightModeOn => 'Always off';
+
+  @override
+  String get nightModeSystem => 'Follow system';
+
+  @override
+  String get nightModeSchedule => 'On a schedule';
+
+  @override
+  String get lightsOff => 'Lights off';
+
+  @override
+  String get lightsOn => 'Lights on';
+
+  @override
+  String nightSchedule(String start, String end) {
+    return 'From $start to $end';
+  }
+
+  @override
+  String get nightStart => 'Lights off at';
+
+  @override
+  String get nightEnd => 'Lights on at';
+
+  @override
+  String get customWall => 'Your photo';
+
+  @override
+  String get changePhoto => 'Change photo';
+
+  @override
+  String get removePhoto => 'Remove photo';
+
+  @override
+  String get autoTrashDone => 'Tidy finished to-do lists';
+
+  @override
+  String get autoTrashDoneHint =>
+      'A list with every item ticked moves to the trash after a day.';
+
+  @override
+  String resultCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes',
+      one: '1 note',
+      zero: 'No matches',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get boardIcon => 'Board icon';
+
+  @override
+  String get none => 'None';
+
+  @override
+  String get sharedNote => 'Shared from another app';
+
+  @override
+  String get sampleDrag =>
+      'Drag me anywhere on the wall 👉\nLong-press an empty spot to stick a new note there.';
+
+  @override
+  String get sampleLongPress =>
+      'Long-press me for more: move to another board, share, delete…';
+
+  @override
+  String get sampleChecklistTitle => 'Try ticking these ✅';
+
+  @override
+  String get sampleChecklist1 => 'Tap the red pin to keep a note on top';
+
+  @override
+  String get sampleChecklist2 => 'Drag the corner handle to resize';
+
+  @override
+  String get sampleChecklist3 => 'Delete us once you know the ropes';
+
+  @override
+  String get sampleThread =>
+      'Drag from my pin onto another note to tie a thread 🧵';
 
   @override
   String get emptyState =>

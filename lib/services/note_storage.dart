@@ -7,12 +7,17 @@ import '../models/board.dart';
 import '../models/note.dart';
 import '../models/view_mode.dart';
 
+/// When the wall goes dark: never, always, with the system theme, or between
+/// two hours of the day.
+enum NightMode { off, on, system, schedule }
+
 /// Persists notes, boards and preferences locally as JSON.
 class NoteStorage {
   NoteStorage(this._prefs);
 
   static const _notesKey = 'notes';
   static const _boardsKey = 'boards';
+  static const _linksKey = 'links';
   static const _currentBoardKey = 'currentBoard';
   static const _sortAscKey = 'sort';
   static const _sortByCreatedKey = 'sortByCreated';
@@ -21,12 +26,21 @@ class NoteStorage {
   static const _fontKey = 'font';
   static const _languageKey = 'language';
   static const _decorKey = 'decor';
+  static const _nightKey = 'night';
+  static const _nightStartKey = 'nightStart';
+  static const _nightEndKey = 'nightEnd';
+  static const _autoTrashDoneKey = 'autoTrashDone';
 
   final SharedPreferences _prefs;
 
   static Future<NoteStorage> create() async {
     return NoteStorage(await SharedPreferences.getInstance());
   }
+
+  /// True until anything has ever been saved — used to stick the sample notes
+  /// on a brand-new install (and never again, even once they're deleted).
+  bool get isFirstRun =>
+      !_prefs.containsKey(_notesKey) && !_prefs.containsKey(_boardsKey);
 
   /// Decodes a stored JSON list record by record. One malformed entry (a
   /// hand-edited backup, a field from a newer version) is skipped rather
@@ -78,6 +92,17 @@ class NoteStorage {
   Future<void> setCurrentBoardId(String id) =>
       _prefs.setString(_currentBoardKey, id);
 
+  // --- Threads between notes ----------------------------------------------
+
+  List<NoteLink> loadLinks() => _loadList(_linksKey, NoteLink.fromJson);
+
+  Future<void> saveLinks(List<NoteLink> links) {
+    return _prefs.setString(
+      _linksKey,
+      jsonEncode(links.map((l) => l.toJson()).toList()),
+    );
+  }
+
   // --- View preferences ----------------------------------------------------
 
   bool get sortAscending => _prefs.getBool(_sortAscKey) ?? false;
@@ -114,4 +139,31 @@ class NoteStorage {
 
   bool get wallDecor => _prefs.getBool(_decorKey) ?? true;
   Future<void> setWallDecor(bool value) => _prefs.setBool(_decorKey, value);
+
+  // --- Lights --------------------------------------------------------------
+
+  NightMode get nightMode {
+    final name = _prefs.getString(_nightKey);
+    return NightMode.values
+            .where((m) => m.name == name)
+            .cast<NightMode?>()
+            .firstOrNull ??
+        NightMode.off;
+  }
+
+  Future<void> setNightMode(NightMode mode) =>
+      _prefs.setString(_nightKey, mode.name);
+
+  /// Hour of day (0–23) the scheduled night starts / ends.
+  int get nightStart => _prefs.getInt(_nightStartKey) ?? 21;
+  Future<void> setNightStart(int hour) => _prefs.setInt(_nightStartKey, hour);
+
+  int get nightEnd => _prefs.getInt(_nightEndKey) ?? 6;
+  Future<void> setNightEnd(int hour) => _prefs.setInt(_nightEndKey, hour);
+
+  // --- Housekeeping --------------------------------------------------------
+
+  bool get autoTrashDone => _prefs.getBool(_autoTrashDoneKey) ?? false;
+  Future<void> setAutoTrashDone(bool value) =>
+      _prefs.setBool(_autoTrashDoneKey, value);
 }

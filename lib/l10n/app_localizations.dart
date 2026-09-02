@@ -245,14 +245,326 @@ abstract class AppLocalizations {
   /// No description provided for @noteDeleted.
   ///
   /// In en, this message translates to:
-  /// **'Note deleted'**
+  /// **'Moved to trash'**
   String get noteDeleted;
+
+  /// No description provided for @notesDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 note moved to trash} other{{count} notes moved to trash}}'**
+  String notesDeleted(int count);
 
   /// No description provided for @undo.
   ///
   /// In en, this message translates to:
   /// **'Undo'**
   String get undo;
+
+  /// No description provided for @trash.
+  ///
+  /// In en, this message translates to:
+  /// **'Trash'**
+  String get trash;
+
+  /// No description provided for @trashEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The trash is empty'**
+  String get trashEmpty;
+
+  /// No description provided for @trashHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes here are deleted for good after 30 days.'**
+  String get trashHint;
+
+  /// No description provided for @restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restore;
+
+  /// No description provided for @restored.
+  ///
+  /// In en, this message translates to:
+  /// **'Note restored'**
+  String get restored;
+
+  /// No description provided for @deleteForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete forever'**
+  String get deleteForever;
+
+  /// No description provided for @emptyTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty trash'**
+  String get emptyTrash;
+
+  /// No description provided for @emptyTrashConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete the 1 note in the trash for good?} other{Delete all {count} notes in the trash for good?}}'**
+  String emptyTrashConfirm(int count);
+
+  /// No description provided for @daysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Expires today} =1{1 day left} other{{count} days left}}'**
+  String daysLeft(int count);
+
+  /// No description provided for @deletedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {date}'**
+  String deletedOn(String date);
+
+  /// No description provided for @repeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get repeat;
+
+  /// No description provided for @repeatNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Once'**
+  String get repeatNone;
+
+  /// No description provided for @repeatDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get repeatDaily;
+
+  /// No description provided for @repeatWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get repeatWeekly;
+
+  /// No description provided for @repeatMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get repeatMonthly;
+
+  /// No description provided for @select.
+  ///
+  /// In en, this message translates to:
+  /// **'Select notes'**
+  String get select;
+
+  /// No description provided for @selectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String selectedCount(int count);
+
+  /// No description provided for @selectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get selectAll;
+
+  /// No description provided for @move.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get move;
+
+  /// No description provided for @tidy.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidy up'**
+  String get tidy;
+
+  /// No description provided for @tidyByColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrange by color'**
+  String get tidyByColor;
+
+  /// No description provided for @moreActions.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get moreActions;
+
+  /// No description provided for @threadCut.
+  ///
+  /// In en, this message translates to:
+  /// **'Thread cut'**
+  String get threadCut;
+
+  /// No description provided for @threadTied.
+  ///
+  /// In en, this message translates to:
+  /// **'Thread tied'**
+  String get threadTied;
+
+  /// No description provided for @threadTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag from a pin onto another note to tie a thread.'**
+  String get threadTip;
+
+  /// No description provided for @nightSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Lights'**
+  String get nightSection;
+
+  /// No description provided for @nightModeOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Always on'**
+  String get nightModeOff;
+
+  /// No description provided for @nightModeOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Always off'**
+  String get nightModeOn;
+
+  /// No description provided for @nightModeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow system'**
+  String get nightModeSystem;
+
+  /// No description provided for @nightModeSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'On a schedule'**
+  String get nightModeSchedule;
+
+  /// No description provided for @lightsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Lights off'**
+  String get lightsOff;
+
+  /// No description provided for @lightsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Lights on'**
+  String get lightsOn;
+
+  /// No description provided for @nightSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'From {start} to {end}'**
+  String nightSchedule(String start, String end);
+
+  /// No description provided for @nightStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Lights off at'**
+  String get nightStart;
+
+  /// No description provided for @nightEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Lights on at'**
+  String get nightEnd;
+
+  /// No description provided for @customWall.
+  ///
+  /// In en, this message translates to:
+  /// **'Your photo'**
+  String get customWall;
+
+  /// No description provided for @changePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Change photo'**
+  String get changePhoto;
+
+  /// No description provided for @removePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get removePhoto;
+
+  /// No description provided for @autoTrashDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidy finished to-do lists'**
+  String get autoTrashDone;
+
+  /// No description provided for @autoTrashDoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A list with every item ticked moves to the trash after a day.'**
+  String get autoTrashDoneHint;
+
+  /// No description provided for @resultCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No matches} =1{1 note} other{{count} notes}}'**
+  String resultCount(int count);
+
+  /// No description provided for @boardIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Board icon'**
+  String get boardIcon;
+
+  /// No description provided for @none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get none;
+
+  /// No description provided for @sharedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared from another app'**
+  String get sharedNote;
+
+  /// No description provided for @sampleDrag.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag me anywhere on the wall 👉\nLong-press an empty spot to stick a new note there.'**
+  String get sampleDrag;
+
+  /// No description provided for @sampleLongPress.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press me for more: move to another board, share, delete…'**
+  String get sampleLongPress;
+
+  /// No description provided for @sampleChecklistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try ticking these ✅'**
+  String get sampleChecklistTitle;
+
+  /// No description provided for @sampleChecklist1.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the red pin to keep a note on top'**
+  String get sampleChecklist1;
+
+  /// No description provided for @sampleChecklist2.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the corner handle to resize'**
+  String get sampleChecklist2;
+
+  /// No description provided for @sampleChecklist3.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete us once you know the ropes'**
+  String get sampleChecklist3;
+
+  /// No description provided for @sampleThread.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag from my pin onto another note to tie a thread 🧵'**
+  String get sampleThread;
 
   /// No description provided for @emptyState.
   ///

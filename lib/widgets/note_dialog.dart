@@ -277,7 +277,7 @@ class _NoteDialogState extends State<_NoteDialog>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final paper = noteColor(_n.colorIndex, _n.guid);
+    final paper = paperColorOf(context, _n.colorIndex, _n.guid);
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -683,10 +683,20 @@ class _NoteDialogState extends State<_NoteDialog>
     );
   }
 
+  static String repeatLabel(AppLocalizations l10n, ReminderRepeat r) =>
+      switch (r) {
+        ReminderRepeat.none => l10n.repeatNone,
+        ReminderRepeat.daily => l10n.repeatDaily,
+        ReminderRepeat.weekly => l10n.repeatWeekly,
+        ReminderRepeat.monthly => l10n.repeatMonthly,
+      };
+
   Widget _reminderLine(AppLocalizations l10n) {
     final ml = MaterialLocalizations.of(context);
-    final at = _n.reminderAt!;
-    final overdue = at.isBefore(DateTime.now());
+    final repeats = _n.repeat != ReminderRepeat.none;
+    // For a repeating reminder show when it rings *next*, not when it began.
+    final at = _n.nextReminder()!;
+    final overdue = !repeats && at.isBefore(DateTime.now());
     final color = overdue ? AppColors.deleteIcon : _ink.withValues(alpha: 0.7);
     final label =
         '${ml.formatMediumDate(at)} ${ml.formatTimeOfDay(TimeOfDay.fromDateTime(at))}';
@@ -694,7 +704,7 @@ class _NoteDialogState extends State<_NoteDialog>
       padding: const EdgeInsets.only(top: 8),
       child: Row(
         children: [
-          Icon(Icons.alarm, size: 16, color: color),
+          Icon(repeats ? Icons.repeat : Icons.alarm, size: 16, color: color),
           const SizedBox(width: 6),
           Expanded(
             child: InkWell(
@@ -702,9 +712,34 @@ class _NoteDialogState extends State<_NoteDialog>
               child: Text(label, style: TextStyle(fontSize: 14, color: color)),
             ),
           ),
+          // "Once / Daily / Weekly / Monthly" — a small pill that opens a menu.
+          PopupMenuButton<ReminderRepeat>(
+            tooltip: l10n.repeat,
+            initialValue: _n.repeat,
+            onSelected: (r) => setState(() => _n.repeat = r),
+            itemBuilder: (_) => [
+              for (final r in ReminderRepeat.values)
+                PopupMenuItem(value: r, child: Text(repeatLabel(l10n, r))),
+            ],
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: _ink.withValues(alpha: repeats ? 0.14 : 0.07),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                repeatLabel(l10n, _n.repeat),
+                style: TextStyle(fontSize: 13, color: _ink.withValues(alpha: 0.8)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
           InkResponse(
             radius: 14,
-            onTap: () => setState(() => _n.reminderAt = null),
+            onTap: () => setState(() {
+              _n.reminderAt = null;
+              _n.repeat = ReminderRepeat.none;
+            }),
             child: Icon(Icons.close,
                 size: 16, color: _ink.withValues(alpha: 0.5)),
           ),
@@ -802,7 +837,7 @@ class _NoteDialogState extends State<_NoteDialog>
               width: 22,
               height: 22,
               decoration: BoxDecoration(
-                color: noteColor(_n.colorIndex, _n.guid),
+                color: paperColorOf(context, _n.colorIndex, _n.guid),
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: _showColors ? _ink : _ink.withValues(alpha: 0.5),

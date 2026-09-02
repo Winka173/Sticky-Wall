@@ -5,11 +5,17 @@ import '../models/board.dart';
 import '../services/notes_controller.dart';
 import '../theme.dart';
 
-/// Horizontal strip of board "tabs" with add / rename / delete.
+/// Emoji offered as board icons.
+const boardIcons = [
+  '🏠', '💼', '📚', '🎯', '🛒', '✈️', '💡', '🎨',
+  '🍳', '💪', '🎵', '🌱', '❤️', '⭐', '📌', '🧠',
+];
+
+/// Horizontal strip of board "tabs" with add / rename / icon / delete.
 ///
-/// Tapping a chip switches boards; tapping the *selected* chip (or
-/// long-pressing any) opens rename/delete — the little chevron on the
-/// selected chip is the hint that it does more.
+/// Tapping a chip switches boards; tapping the *selected* chip opens the
+/// manage sheet — the little chevron on it is the hint that it does more.
+/// Long-press and drag a chip to reorder boards.
 class BoardBar extends StatelessWidget {
   const BoardBar({super.key, required this.notes, required this.textColor});
 
@@ -22,32 +28,51 @@ class BoardBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final boards = notes.boards;
 
     return SizedBox(
       height: 40,
-      child: ListView(
+      child: ReorderableListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(left: 16, right: 4),
-        children: [
-          for (final board in notes.boards)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.only(left: 16),
+        buildDefaultDragHandles: false,
+        onReorderItem: notes.reorderBoards,
+        proxyDecorator: (child, _, animation) => AnimatedBuilder(
+          animation: animation,
+          child: child,
+          builder: (context, child) => Transform.scale(
+            scale: 1 + 0.08 * Curves.easeInOut.transform(animation.value),
+            child: Material(color: Colors.transparent, child: child),
+          ),
+        ),
+        footer: Padding(
+          padding: const EdgeInsets.only(right: 4),
+          child: _AddChip(
+            tooltip: l10n.newBoard,
+            textColor: textColor,
+            onTap: () => _create(context, l10n),
+          ),
+        ),
+        itemCount: boards.length,
+        itemBuilder: (context, index) {
+          final board = boards[index];
+          return Padding(
+            key: ValueKey('board-${board.id}'),
+            padding: const EdgeInsets.only(right: 8),
+            child: ReorderableDelayedDragStartListener(
+              index: index,
               child: _BoardChip(
                 label: _displayName(l10n, board),
+                icon: board.icon,
                 selected: board.id == notes.currentBoardId,
                 textColor: textColor,
                 onTap: () => board.id == notes.currentBoardId
                     ? _manage(context, l10n, board)
                     : notes.selectBoard(board.id),
-                onLongPress: () => _manage(context, l10n, board),
               ),
             ),
-          _AddChip(
-            tooltip: l10n.newBoard,
-            textColor: textColor,
-            onTap: () => _create(context, l10n),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -68,7 +93,9 @@ class BoardBar extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
               child: Text(
-                _displayName(l10n, board),
+                board.icon.isEmpty
+                    ? _displayName(l10n, board)
+                    : '${board.icon} ${_displayName(l10n, board)}',
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
@@ -77,6 +104,11 @@ class BoardBar extends StatelessWidget {
               leading: const Icon(Icons.edit_outlined),
               title: Text(l10n.rename),
               onTap: () => Navigator.pop(context, 'rename'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.emoji_emotions_outlined),
+              title: Text(l10n.boardIcon),
+              onTap: () => Navigator.pop(context, 'icon'),
             ),
             if (notes.boards.length > 1)
               ListTile(
@@ -100,6 +132,9 @@ class BoardBar extends StatelessWidget {
           initial: board.name,
           hint: _displayName(l10n, board));
       if (name != null) notes.renameBoard(board.id, name);
+    } else if (action == 'icon') {
+      final icon = await _pickIcon(context, l10n, board.icon);
+      if (icon != null) notes.setBoardIcon(board.id, icon);
     } else if (action == 'delete') {
       final ok = await showDialog<bool>(
         context: context,
@@ -117,6 +152,48 @@ class BoardBar extends StatelessWidget {
       );
       if (ok == true) notes.deleteBoard(board.id);
     }
+  }
+
+  /// Emoji grid; returns '' for "none", null on cancel.
+  Future<String?> _pickIcon(
+      BuildContext context, AppLocalizations l10n, String current) {
+    return showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.boardIcon,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _IconChoice(
+                    selected: current.isEmpty,
+                    onTap: () => Navigator.pop(context, ''),
+                    child: Text(l10n.none,
+                        style: const TextStyle(
+                            fontSize: 14, color: AppColors.ink)),
+                  ),
+                  for (final e in boardIcons)
+                    _IconChoice(
+                      selected: e == current,
+                      onTap: () => Navigator.pop(context, e),
+                      child: Text(e, style: const TextStyle(fontSize: 24)),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   /// Asks for a board name. Returns the trimmed text, or null on cancel.
@@ -139,6 +216,40 @@ class BoardBar extends StatelessWidget {
       ),
     );
     return result?.trim();
+  }
+}
+
+class _IconChoice extends StatelessWidget {
+  const _IconChoice({
+    required this.selected,
+    required this.onTap,
+    required this.child,
+  });
+
+  final bool selected;
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: selected ? AppColors.ink.withValues(alpha: 0.12) : null,
+          border: Border.all(
+            color: selected ? AppColors.ink : Colors.black26,
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: child,
+      ),
+    );
   }
 }
 
@@ -203,26 +314,26 @@ class _NameDialogState extends State<_NameDialog> {
 class _BoardChip extends StatelessWidget {
   const _BoardChip({
     required this.label,
+    required this.icon,
     required this.selected,
     required this.textColor,
     required this.onTap,
-    required this.onLongPress,
   });
 
   final String label;
+  final String icon;
   final bool selected;
   final Color textColor;
   final VoidCallback onTap;
-  final VoidCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      onLongPress: onLongPress,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: EdgeInsets.fromLTRB(16, 6, selected ? 10 : 16, 6),
+        padding: EdgeInsets.fromLTRB(
+            icon.isEmpty ? 16 : 12, 6, selected ? 10 : 16, 6),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: selected ? textColor.withValues(alpha: 0.18) : null,
@@ -235,6 +346,11 @@ class _BoardChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (icon.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Text(icon, style: const TextStyle(fontSize: 16)),
+              ),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 160),
               child: Text(

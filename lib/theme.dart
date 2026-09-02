@@ -50,6 +50,20 @@ Color noteColor(int? colorIndex, String guid) {
   return AppColors.notePapers[i % AppColors.notePapers.length];
 }
 
+/// Paper under a dimmed lamp: the pastel pulled toward a warm shadow tone.
+Color nightPaper(Color day) =>
+    Color.lerp(day, const Color(0xFF7A6A4A), 0.38)!;
+
+/// [noteColor] as it should look right now — dimmed when the lights are off.
+Color paperColorOf(BuildContext context, int? colorIndex, String guid) {
+  final day = noteColor(colorIndex, guid);
+  return isNight(context) ? nightPaper(day) : day;
+}
+
+/// Whether the current theme is the "lights off" one.
+bool isNight(BuildContext context) =>
+    Theme.of(context).extension<NightMood>()?.night ?? false;
+
 /// The selected font's optical scale (see [FontChoice.scale]).
 double noteFontScale(BuildContext context) =>
     Theme.of(context).extension<NoteTextScale>()?.scale ?? 1.0;
@@ -70,7 +84,19 @@ class WallStyle {
     required this.asset,
     required this.overlay,
     required this.dark,
+    this.imageFile,
   });
+
+  /// A wall made of the user's own photo (an absolute file path). A dark
+  /// photo gets a smoky scrim and chalk writing; a light one a milky scrim
+  /// and ink — either way the picture stays visible but never fights text.
+  factory WallStyle.photo(String path, {required bool dark}) => WallStyle(
+        id: 'photo',
+        asset: '',
+        overlay: dark ? const Color(0x6B000000) : const Color(0x73FFFFFF),
+        dark: dark,
+        imageFile: path,
+      );
 
   /// Stable identifier, also used to pick the localized display name.
   final String id;
@@ -81,6 +107,21 @@ class WallStyle {
 
   /// true → chalk-white writing on the wall; false → dark ink.
   final bool dark;
+
+  /// Set for [WallStyle.photo] walls; null for the bundled textures.
+  final String? imageFile;
+
+  bool get isPhoto => imageFile != null;
+
+  /// The same wall with the lights off: whatever the texture, text turns to
+  /// chalk because the room is dark.
+  WallStyle get atNight => WallStyle(
+        id: id,
+        asset: asset,
+        overlay: overlay,
+        dark: true,
+        imageFile: imageFile,
+      );
 
   Color get wallText => dark ? AppColors.chalk : AppColors.ink;
 
@@ -191,7 +232,25 @@ class NoteTextScale extends ThemeExtension<NoteTextScale> {
   NoteTextScale lerp(ThemeExtension<NoteTextScale>? other, double t) => this;
 }
 
-ThemeData buildAppTheme(FontChoice font) {
+/// Whether the room lights are off — the wall darkens and paper dims. Read
+/// through [isNight]; set by [buildAppTheme].
+class NightMood extends ThemeExtension<NightMood> {
+  const NightMood(this.night);
+
+  final bool night;
+
+  @override
+  NightMood copyWith({bool? night}) => NightMood(night ?? this.night);
+
+  @override
+  NightMood lerp(ThemeExtension<NightMood>? other, double t) => this;
+}
+
+ThemeData buildAppTheme(FontChoice font, {bool night = false}) {
+  // At night every sheet of paper the UI is made of — dialogs, menus, bottom
+  // sheets — dims to the same lamp-lit tone as the notes.
+  final paper = night ? const Color(0xFFE9DFC6) : AppColors.paper;
+
   // Everything Material draws by default (radios, chips, sliders, buttons)
   // uses the same ink-on-paper palette as the notes, so no stock purple or
   // brown ever shows through.
@@ -199,7 +258,7 @@ ThemeData buildAppTheme(FontChoice font) {
     seedColor: AppColors.ink,
     primary: AppColors.ink,
     onPrimary: AppColors.chalk,
-    surface: AppColors.paper,
+    surface: paper,
     onSurface: AppColors.ink,
   );
   final base = ThemeData(
@@ -212,25 +271,25 @@ ThemeData buildAppTheme(FontChoice font) {
   );
 
   return base.copyWith(
-    extensions: [NoteTextScale(font.scale)],
+    extensions: [NoteTextScale(font.scale), NightMood(night)],
     splashFactory: InkSparkle.splashFactory,
     // Dialogs look like a sheet of note paper.
     dialogTheme: base.dialogTheme.copyWith(
-      backgroundColor: AppColors.paper,
+      backgroundColor: paper,
       titleTextStyle: TextStyle(
         fontFamily: font.family,
         fontSize: 24 * font.scale,
         color: AppColors.ink,
       ),
     ),
-    bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: AppColors.paper,
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: paper,
       shape: sheetShape,
       showDragHandle: true,
       dragHandleColor: AppColors.inkHint,
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: AppColors.paper,
+      color: paper,
       textStyle: TextStyle(
         fontFamily: font.family,
         fontSize: 16 * font.scale,
