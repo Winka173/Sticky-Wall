@@ -256,9 +256,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get none => 'Không có';
 
   @override
-  String get sharedNote => 'Chia sẻ từ ứng dụng khác';
-
-  @override
   String get sampleDrag =>
       'Kéo tôi đi khắp tường 👉\nChạm giữ chỗ trống để dán tờ mới ngay đó.';
 
@@ -290,7 +287,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get wallCreateHint =>
-      'Mẹo: chạm giữ vào chỗ trống trên tường để dán ghi chú ngay tại đó.';
+      'Mẹo: chạm giữ vào chỗ trống trên tường để dán ghi chú hoặc ảnh ngay tại đó.';
 
   @override
   String get noMatches => 'Không có ghi chú nào khớp';
@@ -382,13 +379,54 @@ class AppLocalizationsVi extends AppLocalizations {
   String get fontPreview => 'Xin chào! Ghi chú nhanh lên tường.';
 
   @override
-  String get photo => 'Ảnh';
-
-  @override
   String get fromGallery => 'Chọn từ thư viện';
 
   @override
   String get takePhoto => 'Chụp ảnh';
+
+  @override
+  String get typePhoto => 'Ảnh';
+
+  @override
+  String get caption => 'Chú thích';
+
+  @override
+  String get addPhotos => 'Thêm ảnh';
+
+  @override
+  String get photoRequired => 'Thêm ít nhất một ảnh';
+
+  @override
+  String get pinPhotos => 'Ghim ảnh lên tường';
+
+  @override
+  String get noteHere => 'Ghi chú mới tại đây';
+
+  @override
+  String get photosHere => 'Ghim ảnh tại đây';
+
+  @override
+  String get viewPhotos => 'Xem ảnh';
+
+  @override
+  String photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ảnh',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String photosPinned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Đã ghim $count ảnh lên tường',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get shareAsImage => 'Chia sẻ ảnh';

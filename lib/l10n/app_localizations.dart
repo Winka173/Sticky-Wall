@@ -518,12 +518,6 @@ abstract class AppLocalizations {
   /// **'None'**
   String get none;
 
-  /// No description provided for @sharedNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Shared from another app'**
-  String get sharedNote;
-
   /// No description provided for @sampleDrag.
   ///
   /// In en, this message translates to:
@@ -581,7 +575,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallCreateHint.
   ///
   /// In en, this message translates to:
-  /// **'Tip: long-press anywhere on the wall to stick a note right there.'**
+  /// **'Tip: long-press anywhere on the wall to stick a note or a photo right there.'**
   String get wallCreateHint;
 
   /// No description provided for @noMatches.
@@ -758,12 +752,6 @@ abstract class AppLocalizations {
   /// **'Hello! A quick note on the wall.'**
   String get fontPreview;
 
-  /// No description provided for @photo.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo'**
-  String get photo;
-
   /// No description provided for @fromGallery.
   ///
   /// In en, this message translates to:
@@ -775,6 +763,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Take a photo'**
   String get takePhoto;
+
+  /// No description provided for @typePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get typePhoto;
+
+  /// No description provided for @caption.
+  ///
+  /// In en, this message translates to:
+  /// **'Caption'**
+  String get caption;
+
+  /// No description provided for @addPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos'**
+  String get addPhotos;
+
+  /// No description provided for @photoRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one photo'**
+  String get photoRequired;
+
+  /// No description provided for @pinPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin photos on the wall'**
+  String get pinPhotos;
+
+  /// No description provided for @noteHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticky note here'**
+  String get noteHere;
+
+  /// No description provided for @photosHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos here'**
+  String get photosHere;
+
+  /// No description provided for @viewPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'View photos'**
+  String get viewPhotos;
+
+  /// No description provided for @photoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String photoCount(int count);
+
+  /// No description provided for @photosPinned.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo pinned on the wall} other{{count} photos pinned on the wall}}'**
+  String photosPinned(int count);
 
   /// No description provided for @shareAsImage.
   ///

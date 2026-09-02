@@ -21,6 +21,7 @@ Note _note(
   String url = '',
   String board = 'default',
   String image = '',
+  List<String>? images,
   NoteType? type,
   DateTime? createdAt,
 }) =>
@@ -29,7 +30,7 @@ Note _note(
       content: content,
       url: url,
       type: type,
-      imagePath: image,
+      images: images ?? (image.isEmpty ? null : [image]),
       createdAt: createdAt ?? _epoch,
       boardId: board,
     );
@@ -309,6 +310,76 @@ void main() {
 
       again.replaceAll(again.boards, [_note('1', 'x')]);
       expect(again.links, isEmpty);
+    });
+  });
+
+  group('photos', () {
+    test('several photos round-trip through JSON', () {
+      final n = _note('1', 'x', images: ['a.jpg', 'b.jpg', 'c.jpg']);
+      final json = jsonDecode(jsonEncode(n.toJson())) as Map<String, dynamic>;
+      expect(Note.fromJson(json).images, ['a.jpg', 'b.jpg', 'c.jpg']);
+      // Older builds only know `imagePath`; they keep the first photo.
+      expect(json['imagePath'], 'a.jpg');
+    });
+
+    test('a legacy imagePath is read as a one-photo list', () {
+      final json = _note('1', 'x').toJson()
+        ..remove('images')
+        ..['imagePath'] = 'old.jpg';
+      expect(Note.fromJson(json).images, ['old.jpg']);
+      expect(Note.fromJson(json..['imagePath'] = '').images, isEmpty);
+    });
+
+    test('addPhotos pins one print per file, cascading from the spot',
+        () async {
+      final c = await _controller();
+      final created = c.addPhotos(['a.jpg', 'b.jpg', 'c.jpg'], x: 0.2, y: 0.3);
+      expect(created.length, 3);
+      expect(c.boardNotes.length, 3);
+      for (final (i, n) in created.indexed) {
+        expect(n.type, NoteType.photo);
+        expect(n.images, ['${'abc'[i]}.jpg']);
+        expect(n.boardId, 'default');
+      }
+      expect(created[0].x, closeTo(0.2, 1e-9));
+      expect(created[1].x, greaterThan(created[0].x));
+      expect(created[1].y, greaterThan(created[0].y));
+      expect(c.addPhotos([]), isEmpty);
+      expect(c.boardNotes.length, 3);
+    });
+
+    test('a print can be tied to a note with a thread', () async {
+      final c = await _controller(notes: [_note('n', 'text')]);
+      final print = c.addPhotos(['a.jpg']).single;
+      expect(c.connect(print.guid, 'n'), true);
+      expect(c.linksOn('default').single.same('n', print.guid), true);
+    });
+
+    test('type filter 4 keeps only prints', () async {
+      final c = await _controller(notes: [_note('n', 'text')]);
+      c.addPhotos(['a.jpg']);
+      c.typeFilter = 4;
+      expect(c.visibleNotes.single.type, NoteType.photo);
+      c.typeFilter = 0;
+      expect(c.visibleNotes.single.guid, 'n');
+    });
+
+    test('purging a multi-photo note deletes only the orphaned files',
+        () async {
+      final removed = <String>[];
+      final c = await _controller(
+        notes: [
+          _note('1', 'x', images: ['a.jpg', 'shared.jpg']),
+          _note('2', 'y', images: ['shared.jpg', 'b.jpg']),
+        ],
+        deletePhoto: removed.add,
+      );
+      final n1 = c.boardNotes[0];
+      c.delete(n1);
+      c.purge(n1);
+      expect(removed, ['a.jpg']);
+      expect(c.photoInUse('shared.jpg'), true);
+      expect(c.photoInUse('a.jpg'), false);
     });
   });
 

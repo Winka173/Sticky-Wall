@@ -9,8 +9,10 @@ import '../l10n/app_localizations.dart';
 import '../models/note.dart';
 import '../services/image_service.dart';
 import '../theme.dart';
+import 'action_sheet.dart';
 import 'drawing_canvas.dart';
 import 'note_views.dart';
+import 'photo_viewer.dart';
 
 const _emojiChoices = [
   '😀', '😂', '🥰', '😎', '🤔', '😢', '😡', '😴',
@@ -36,7 +38,8 @@ Future<Note?> showNoteDialog(
 }
 
 /// The note editor: a sheet of paper with type-specific fields (text, link,
-/// checklist or drawing), plus photo, emote, colour and reminder controls.
+/// checklist, drawing or photo print), plus photos, emote, colour and
+/// reminder controls.
 class _NoteDialog extends StatefulWidget {
   const _NoteDialog({
     required this.note,
@@ -105,7 +108,7 @@ class _NoteDialogState extends State<_NoteDialog>
   @override
   void dispose() {
     for (final path in _addedPhotos) {
-      if (!_saved || path != _n.imagePath) ImageService.deleteFile(path);
+      if (!_saved || !_n.images.contains(path)) ImageService.deleteFile(path);
     }
     _content.dispose();
     _url.dispose();
@@ -172,6 +175,8 @@ class _NoteDialogState extends State<_NoteDialog>
         }
       case NoteType.drawing:
         if (content.isEmpty && _n.strokes.isEmpty) error = l10n.noteEmpty;
+      case NoteType.photo:
+        if (_n.images.isEmpty) error = l10n.photoRequired;
     }
     if (error != null) {
       _fail(error);
@@ -221,25 +226,32 @@ class _NoteDialogState extends State<_NoteDialog>
     });
   }
 
-  Future<void> _attachPhoto(ImageSource source) async {
+  /// Appends photos to the note: any number from the gallery, one from the
+  /// camera.
+  Future<void> _attachPhotos(ImageSource source) async {
     try {
-      final path = await ImageService().pickImage(source);
-      if (path == null || !mounted) return;
-      _discardPhotoIfAdded(_n.imagePath);
-      _addedPhotos.add(path);
-      setState(() => _n.imagePath = path);
+      final service = ImageService();
+      final picked = source == ImageSource.gallery
+          ? await service.pickImages()
+          : [?await service.pickImage(source)];
+      if (picked.isEmpty || !mounted) return;
+      _addedPhotos.addAll(picked);
+      setState(() {
+        _n.images.addAll(picked);
+        _error = null;
+      });
     } catch (_) {
       // Permission denied, camera error, I/O — leave the note unchanged.
     }
   }
 
-  void _removePhoto() {
-    _discardPhotoIfAdded(_n.imagePath);
-    setState(() => _n.imagePath = '');
+  void _removePhoto(String path) {
+    _discardPhotoIfAdded(path);
+    setState(() => _n.images.remove(path));
   }
 
-  /// A photo attached earlier in this session and now replaced/removed can be
-  /// deleted right away; the note's original photo is the caller's business.
+  /// A photo attached earlier in this session and now removed can be deleted
+  /// right away; the note's original photos are the caller's business.
   void _discardPhotoIfAdded(String path) {
     if (_addedPhotos.remove(path)) ImageService.deleteFile(path);
   }
@@ -271,6 +283,8 @@ class _NoteDialogState extends State<_NoteDialog>
     setState(() {
       _n.type = t;
       _error = null;
+      // A print has no paper colour to pick.
+      if (t == NoteType.photo) _showColors = false;
     });
   }
 
@@ -279,7 +293,11 @@ class _NoteDialogState extends State<_NoteDialog>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final paper = paperColorOf(context, _n.colorIndex, _n.guid);
+    final isPhoto = _n.type == NoteType.photo;
+    // Same paper as the card: the print white for a photo, else the colour.
+    final paper = isPhoto
+        ? printColorOf(context)
+        : paperColorOf(context, _n.colorIndex, _n.guid);
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -323,7 +341,7 @@ class _NoteDialogState extends State<_NoteDialog>
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (_n.imagePath.isNotEmpty) _photoPreview(l10n),
+                          if (_n.hasPhotos || isPhoto) _photoStrip(l10n),
                           _writingArea(l10n),
                           if (_n.type == NoteType.link) _urlField(l10n),
                           if (_n.type == NoteType.checklist)
@@ -429,35 +447,97 @@ class _NoteDialogState extends State<_NoteDialog>
     );
   }
 
-  Widget _photoPreview(AppLocalizations l10n) {
+  /// The attached photos as a sideways-scrolling strip of thumbnails, each
+  /// with its own remove button, ending in an "add more" tile. Tapping a
+  /// thumbnail opens it full screen. A photo note with nothing attached yet
+  /// shows only the add tile, stretched, as an invitation.
+  Widget _photoStrip(AppLocalizations l10n) {
+    const side = 88.0;
+    final faint = _ink.withValues(alpha: 0.45);
+    final addTile = Tooltip(
+      message: l10n.addPhotos,
+      child: Material(
+        color: _ink.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(6),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(6),
+          onTap: () => _photoMenu(l10n),
+          child: SizedBox(
+            width: _n.hasPhotos ? side : double.infinity,
+            height: side,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_photo_alternate_outlined,
+                    size: 26, color: faint),
+                if (!_n.hasPhotos) ...[
+                  const SizedBox(height: 4),
+                  Text(l10n.addPhotos,
+                      style: TextStyle(fontSize: 13, color: faint)),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (!_n.hasPhotos) {
+      return Padding(
+          padding: const EdgeInsets.only(bottom: 10), child: addTile);
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Stack(
-        alignment: Alignment.topRight,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: Image.file(
-              File(ImageService.resolve(_n.imagePath)),
-              height: 130,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => const SizedBox(
-                height: 130,
-                child: Center(child: Icon(Icons.broken_image)),
+      child: SizedBox(
+        height: side,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: [
+            for (final (i, path) in _n.images.indexed)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: GestureDetector(
+                        onTap: () =>
+                            showPhotoViewer(context, _n.images, initial: i),
+                        child: Image.file(
+                          File(ImageService.resolve(path)),
+                          width: side,
+                          height: side,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => const SizedBox(
+                            width: side,
+                            height: side,
+                            child: Center(child: Icon(Icons.broken_image)),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 2,
+                      right: 2,
+                      child: GestureDetector(
+                        onTap: () => _removePhoto(path),
+                        child: Tooltip(
+                          message: l10n.delete,
+                          child: const CircleAvatar(
+                            backgroundColor: Colors.black54,
+                            radius: 11,
+                            child: Icon(Icons.close,
+                                size: 13, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
-          IconButton(
-            tooltip: l10n.delete,
-            icon: const CircleAvatar(
-              backgroundColor: Colors.black54,
-              radius: 13,
-              child: Icon(Icons.close, size: 15, color: Colors.white),
-            ),
-            onPressed: _removePhoto,
-          ),
-        ],
+            addTile,
+          ],
+        ),
       ),
     );
   }
@@ -467,6 +547,7 @@ class _NoteDialogState extends State<_NoteDialog>
   /// reads as writing on the paper, and what you see is what gets stuck up.
   Widget _writingArea(AppLocalizations l10n) {
     final isNormal = _n.type == NoteType.normal;
+    final isPhoto = _n.type == NoteType.photo;
     final style = noteBodyStyle(context);
     final lineHeight = style.fontSize! * style.height!;
     final strut = StrutStyle(
@@ -477,7 +558,8 @@ class _NoteDialogState extends State<_NoteDialog>
 
     final field = TextField(
       controller: _content,
-      autofocus: widget.isNew,
+      // A new photo note starts by picking photos, not typing.
+      autofocus: widget.isNew && !isPhoto,
       cursorColor: _ink,
       style: style,
       strutStyle: strut,
@@ -485,7 +567,7 @@ class _NoteDialogState extends State<_NoteDialog>
       keyboardType: isNormal ? TextInputType.multiline : TextInputType.text,
       textInputAction: isNormal
           ? TextInputAction.newline
-          : _n.type == NoteType.drawing
+          : _n.type == NoteType.drawing || isPhoto
               ? TextInputAction.done
               : TextInputAction.next,
       onSubmitted: isNormal
@@ -502,10 +584,14 @@ class _NoteDialogState extends State<_NoteDialog>
         border: InputBorder.none,
         isDense: true,
         contentPadding: EdgeInsets.zero,
-        hintText: isNormal ? l10n.contentHint : l10n.title,
+        hintText: isNormal
+            ? l10n.contentHint
+            : isPhoto
+                ? l10n.caption
+                : l10n.title,
         hintStyle: style.copyWith(color: _ink.withValues(alpha: 0.35)),
       ),
-      maxLines: isNormal ? null : 1,
+      maxLines: isNormal ? null : isPhoto ? 2 : 1,
       minLines: isNormal ? 5 : 1,
     );
 
@@ -761,8 +847,10 @@ class _NoteDialogState extends State<_NoteDialog>
       (NoteType.link, Icons.link, l10n.typeLink),
       (NoteType.checklist, Icons.checklist, l10n.typeChecklist),
       (NoteType.drawing, Icons.brush_outlined, l10n.typeDrawing),
+      (NoteType.photo, Icons.photo_outlined, l10n.typePhoto),
     ];
     final faint = _ink.withValues(alpha: 0.45);
+    final isPhoto = _n.type == NoteType.photo;
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -801,17 +889,19 @@ class _NoteDialogState extends State<_NoteDialog>
             ),
           ),
           const SizedBox(width: 6),
-          IconButton(
-            tooltip: l10n.photo,
-            onPressed: () => _photoMenu(l10n),
-            color: _n.imagePath.isEmpty ? faint : _ink,
-            icon: Icon(
-              _n.imagePath.isEmpty
-                  ? Icons.photo_camera_back_outlined
-                  : Icons.photo,
-              size: 22,
+          // A photo note already has its add tile in the strip above.
+          if (!isPhoto)
+            IconButton(
+              tooltip: l10n.addPhotos,
+              onPressed: () => _photoMenu(l10n),
+              color: _n.hasPhotos ? _ink : faint,
+              icon: Icon(
+                _n.hasPhotos
+                    ? Icons.photo_library
+                    : Icons.photo_camera_back_outlined,
+                size: 22,
+              ),
             ),
-          ),
           IconButton(
             tooltip: l10n.reminder,
             onPressed: _pickReminder,
@@ -832,52 +922,50 @@ class _NoteDialogState extends State<_NoteDialog>
                 ? const Icon(Icons.add_reaction_outlined, size: 22)
                 : Text(_n.emoji, style: const TextStyle(fontSize: 20)),
           ),
-          IconButton(
-            tooltip: l10n.color,
-            onPressed: () => setState(() {
-              _showColors = !_showColors;
-              _showEmoji = false;
-            }),
-            icon: Container(
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                color: paperColorOf(context, _n.colorIndex, _n.guid),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _showColors ? _ink : _ink.withValues(alpha: 0.5),
-                  width: _showColors ? 2 : 1.2,
+          // Prints are always white — no paper colour to choose.
+          if (!isPhoto)
+            IconButton(
+              tooltip: l10n.color,
+              onPressed: () => setState(() {
+                _showColors = !_showColors;
+                _showEmoji = false;
+              }),
+              icon: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: paperColorOf(context, _n.colorIndex, _n.guid),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _showColors ? _ink : _ink.withValues(alpha: 0.5),
+                    width: _showColors ? 2 : 1.2,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
   Future<void> _photoMenu(AppLocalizations l10n) async {
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: Text(l10n.fromGallery),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: Text(l10n.takePhoto),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-          ],
+    final source = await showActionSheet<ImageSource>(
+      context,
+      title: l10n.addPhotos,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.photo_library_outlined),
+          title: Text(l10n.fromGallery),
+          onTap: () => Navigator.pop(context, ImageSource.gallery),
         ),
-      ),
+        ListTile(
+          leading: const Icon(Icons.photo_camera_outlined),
+          title: Text(l10n.takePhoto),
+          onTap: () => Navigator.pop(context, ImageSource.camera),
+        ),
+      ],
     );
-    if (source != null && mounted) await _attachPhoto(source);
+    if (source != null && mounted) await _attachPhotos(source);
   }
 
   Widget _emojiStrip() {

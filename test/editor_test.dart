@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sticky_wall/main.dart';
 import 'package:sticky_wall/models/note.dart';
+import 'package:sticky_wall/models/view_mode.dart';
 import 'package:sticky_wall/services/note_storage.dart';
 import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/reminder_service.dart';
@@ -10,10 +11,11 @@ import 'package:sticky_wall/services/settings_controller.dart';
 import 'package:sticky_wall/widgets/add_note_button.dart';
 
 Future<NotesController> _pumpApp(WidgetTester tester,
-    {List<Note> notes = const []}) async {
+    {List<Note> notes = const [], ViewMode? viewMode}) async {
   SharedPreferences.setMockInitialValues({});
   final storage = await NoteStorage.create();
   await storage.saveNotes(notes);
+  if (viewMode != null) await storage.setViewMode(viewMode);
   final controller = NotesController(storage, ReminderService());
   await tester.pumpWidget(StickyWallApp(
     settings: SettingsController(storage),
@@ -116,5 +118,63 @@ void main() {
     final note = notes.boardNotes.single;
     expect(note.type, NoteType.checklist);
     expect(note.checklist.map((i) => i.text), ['milk', 'eggs']);
+  });
+
+  testWidgets('a photo print needs at least one photo', (tester) async {
+    final notes = await _pumpApp(tester);
+    await _openEditor(tester);
+
+    await tester.tap(find.byTooltip('Photo'));
+    await tester.pumpAndSettle();
+    // The strip shows the invitation, the caption hint replaces the title.
+    expect(find.text('Add photos'), findsOneWidget);
+    expect(find.text('Caption'), findsOneWidget);
+
+    await tester.tap(_saveButton);
+    await tester.pumpAndSettle();
+    expect(find.text('Add at least one photo'), findsOneWidget);
+    expect(notes.boardNotes, isEmpty);
+  });
+
+  testWidgets('a print pinned on the wall shows its caption and actions',
+      (tester) async {
+    final notes = await _pumpApp(tester, notes: [
+      Note(
+        guid: 'p',
+        content: 'Beach day',
+        type: NoteType.photo,
+        images: ['missing.jpg'],
+        createdAt: DateTime(2026),
+        boardId: 'default',
+      ),
+    ]);
+    expect(notes.boardNotes.single.type, NoteType.photo);
+    expect(find.text('Beach day'), findsOneWidget);
+
+    // Long-press opens the action sheet — every row visible, "View photos"
+    // included, nothing overflowing on a small screen.
+    await tester.longPress(find.text('Beach day'));
+    await tester.pumpAndSettle();
+    expect(find.text('View photos'), findsOneWidget);
+    expect(find.text('Delete'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('long-pressing empty wall offers a note or photos there',
+      (tester) async {
+    // The free-drag wall is where long-press-to-create lives; the default
+    // grid layout has no such spot.
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall);
+    await tester.longPressAt(const Offset(200, 400));
+    await tester.pumpAndSettle();
+    expect(find.text('Sticky note here'), findsOneWidget);
+    expect(find.text('Photos here'), findsOneWidget);
+
+    await tester.tap(find.text('Sticky note here'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Right here');
+    await tester.tap(_saveButton);
+    await tester.pumpAndSettle();
+    expect(notes.boardNotes.single.content, 'Right here');
   });
 }

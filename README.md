@@ -29,21 +29,33 @@ then taken well beyond it.
 ## Features
 
 **Notes**
-- Four types: **Normal** (multi-line text), **Link** (label + URL),
-  **Checklist** (tickable items with done-count), and **Drawing** (freehand
+- Five types: **Normal** (multi-line text), **Link** (label + URL),
+  **Checklist** (tickable items with done-count), **Drawing** (freehand
   sketch with a color/size pen and eraser, on a canvas whose **paper tone**
-  and **guide pattern** — plain, ruled, grid, dots — you pick; the note on
-  the wall shows the same paper)
-- Attach a **photo** (gallery or camera), add an **emote** sticker, pick a
+  and **guide pattern** — plain, ruled, grid, dots — you pick) and **Photo**
+  (a print pinned straight on the wall, see below)
+- A sketch *is* its card: the canvas runs edge to edge with no margin or
+  adhesive strip, and a title / emote / reminder — if any — sits on a small
+  label strip beneath it in the note's paper color
+- Attach **any number of photos** (gallery or camera) to a note: one fills
+  the card's width, two sit side by side, four make a grid, and anything
+  that would leave a hole or overflow is folded into a "+N" cell so the card
+  stays a card; tap a photo to open the **viewer** (swipe between them,
+  pinch to zoom). Add an **emote** sticker, pick a
   **paper color** (or auto-from-id), **pin to top**, and set a **reminder**
   (date + time, optionally **repeating daily / weekly / monthly**) that fires
   a local notification
+- **Photo prints** — pick several photos at once (⋮ → *Pin photos on the
+  wall*, or long-press empty wall → *Photos here*) and each lands on the
+  wall as its own print: a white border, the picture at its real aspect
+  ratio, an optional caption; drag, resize, tie threads and move it between
+  boards like any note
 - The editor *is* the note: same handwriting, same paper color, faint ruled
   lines under each baseline, Save/Cancel on the adhesive strip so they are
   never hidden by the keyboard; validation is inline (the paper shakes)
-- **Long-press** a note for Edit / Pin / **Move to another board** / Share /
-  Save / Select / Delete. **Share** renders the note as an image; **Save**
-  puts it in the photo gallery
+- **Long-press** a note for Edit / Pin / **View photos** / **Move to another
+  board** / Share / Save / Select / Delete. **Share** renders the note as an
+  image; **Save** puts it in the photo gallery
 - Delete **peels the note off the wall** and drops it in the **Trash**, with
   an Undo snackbar; in list mode, swipe a row to delete. A link already on
   the wall (ignoring `https://`, `www.` and a trailing slash) is rejected
@@ -56,10 +68,11 @@ then taken well beyond it.
 - **Wall** — drag notes anywhere, **resize** the active note with its corner
   handle, **pinch to zoom / pan** the whole board — the wall texture and its
   stains travel with the notes, only the lighting stays put (double-tap or
-  the reset button snaps back); **long-press** empty space to stick a note
-  there
+  the reset button snaps back); **long-press** empty space (the empty-wall
+  tip included) to stick a note or a batch of photo prints there
 - **Threads** — drag from one note's pin to another to tie a red yarn thread
-  between them; tap a thread to cut it (Undo re-ties it)
+  between them — photo prints included; tap a thread to cut it (Undo re-ties
+  it)
 - **Tidy up** (⋮ menu) flies every note into a neat grid, or groups them
   **by color**. Rows are packed from the cards' real rendered heights (an
   offstage measuring pass), so short and long notes sit a pin's length apart
@@ -117,9 +130,10 @@ then taken well beyond it.
   a scrim so the writing on it stays legible
 - Procedural **stains** layer (water rings, drips, paint splatters, smudges,
   scuffs) drawn per wall; toggleable
-- **Lights off**: a night mode that dims the wall and papers to a warm,
-  lamp-lit look (never a grey dark theme) — off / on / follow system / on a
-  schedule (e.g. 21:00 → 06:00); quick toggle in the ⋮ menu
+- **Lights off**: a night mode that dims the wall, papers, sketches and
+  photos to a warm, lamp-lit look (never a grey dark theme) — off / on /
+  follow system / on a schedule (e.g. 21:00 → 06:00); quick toggle in the ⋮
+  menu
 - Subtle vignette for depth
 
 **Fonts & language**
@@ -140,8 +154,8 @@ then taken well beyond it.
 - Everything persists locally (no backend). A single corrupt record is
   skipped on load instead of taking every note with it
 - Photos are copied into the app's documents folder and referenced by file
-  name, so they survive iOS container moves; files no longer referenced by
-  any note are removed
+  name, so they survive iOS container moves; a file is removed only once no
+  note — live or in the trash — refers to it
 - **Export** the whole wall to a JSON file (share sheet) and **import** it back
 
 ## Getting started
@@ -201,7 +215,7 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/services/share_service.dart` | Receives shares from other apps (`receive_sharing_intent`) |
 | `lib/services/sample_notes.dart` | First-launch sample notes |
 | `lib/services/backup_service.dart` | Export / import JSON |
-| `lib/services/image_service.dart` | Pick photo / wall photo, capture note→PNG, share, save to gallery |
+| `lib/services/image_service.dart` | Pick photos (multi) / wall photo, capture note→PNG, share, save to gallery |
 | `lib/services/widget_service.dart` | Push pinned notes to the home-screen widget |
 | `lib/screens/home_screen.dart` | Header, board bar, toolbar, the three views, multi-select |
 | `lib/screens/trash_screen.dart` | Trash: restore / delete forever / empty |
@@ -209,8 +223,10 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/widgets/wall_background.dart` | Wall texture or custom photo + scrim, stains, vignette |
 | `lib/widgets/peel_away.dart` | "Peel off the wall" delete animation |
 | `lib/widgets/drawing_canvas.dart` | Freehand drawing editor (pen, eraser, paper tone + guide pattern) and the painters that draw a sketch anywhere |
-| `lib/widgets/note_dialog.dart` | Create/Edit dialog (type, color, pin, reminder + repeat, emote) |
-| `lib/widgets/note_views.dart` | Sticky card + list tile |
+| `lib/widgets/note_dialog.dart` | Create/Edit dialog (type, color, pin, reminder + repeat, emote, photo strip) |
+| `lib/widgets/note_views.dart` | Sticky card (paper sheet, edge-to-edge sketch, photo print), photo layouts, list tile, night shade |
+| `lib/widgets/photo_viewer.dart` | Full-screen photo pager (swipe, pinch to zoom) |
+| `lib/widgets/action_sheet.dart` | Bottom action sheet that sizes to its content (long-press menus) |
 | `lib/widgets/add_note_button.dart` | The sticky-note-with-a-pencil FAB |
 | `lib/widgets/wall_decor.dart` | Procedural stains (CustomPainter) |
 | `lib/widgets/board_bar.dart` · `board_dialog.dart` | Reorderable board tabs with a fixed "+", and the create / edit board dialog (name, icon, bold / italic / underline) |
@@ -224,7 +240,11 @@ Screenshots are produced by the golden generators: remove `skip: true` in
 `flutter test --update-goldens` on them, and move the PNGs from `test/` to
 `screenshots/`. `test/preview_fonts.dart` loads the real typefaces and the
 Material icon font into the test binding, so the screenshots show actual
-handwriting and icons rather than the test framework's block glyphs.
+handwriting and icons rather than the test framework's block glyphs. The
+photo print in the fixtures is a small sunset painted with `dart:ui` into a
+temp PNG at test time (no binary fixture in the repo); it is decoded via
+`runAsync` *before* the first pump, because an image that starts loading
+inside the fake-async zone never finishes.
 
 ## Assets & credits
 

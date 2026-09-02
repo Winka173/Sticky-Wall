@@ -10,6 +10,7 @@ import '../services/image_service.dart';
 import '../services/notes_controller.dart';
 import '../services/settings_controller.dart';
 import '../theme.dart';
+import 'action_sheet.dart';
 
 /// Localized display name for a bundled wall texture.
 String wallLabel(AppLocalizations l10n, String id) => switch (id) {
@@ -294,25 +295,20 @@ class _SettingsSheet extends StatelessWidget {
       BuildContext context, AppLocalizations l10n) async {
     final board = notes.currentBoard;
     if (board.hasWallImage) {
-      final action = await showModalBottomSheet<String>(
-        context: context,
-        builder: (context) => SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.photo_library_outlined),
-                title: Text(l10n.changePhoto),
-                onTap: () => Navigator.pop(context, 'change'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.hide_image_outlined),
-                title: Text(l10n.removePhoto),
-                onTap: () => Navigator.pop(context, 'remove'),
-              ),
-            ],
+      final action = await showActionSheet<String>(
+        context,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: Text(l10n.changePhoto),
+            onTap: () => Navigator.pop(context, 'change'),
           ),
-        ),
+          ListTile(
+            leading: const Icon(Icons.hide_image_outlined),
+            title: Text(l10n.removePhoto),
+            onTap: () => Navigator.pop(context, 'remove'),
+          ),
+        ],
       );
       if (action == null) return;
       if (action == 'remove') {

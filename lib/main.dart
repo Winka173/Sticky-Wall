@@ -53,6 +53,7 @@ Future<void> main() async {
       pinned: notes.boardNotes.where((n) => n.pinned).toList(growable: false),
       checklistLabel: l10n.typeChecklist,
       drawingLabel: l10n.typeDrawing,
+      photoLabel: l10n.typePhoto,
     );
   }
 

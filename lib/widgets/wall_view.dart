@@ -566,20 +566,23 @@ class _WallViewState extends State<WallView>
                         behavior: HitTestBehavior.opaque,
                         onTap: () => _setActive(null),
                         onDoubleTap: _resetZoom,
-                        onLongPressStart: (d) {
-                          HapticFeedback.mediumImpact();
-                          // Same basis as display/move (see _positioned), so
-                          // the note lands centered under the finger.
-                          final x = (d.localPosition.dx - _cardWidth / 2) /
-                              _rangeX(w, 1);
-                          final y = (d.localPosition.dy - 40) / _rangeY(h);
-                          widget.onCreateAt(
-                              x.clamp(0.0, 1.0), y.clamp(0.0, 1.0));
-                        },
+                        onLongPressStart: (d) =>
+                            _createAt(d.localPosition, w, h),
                       ),
                     ),
                     if (widget.notes.isEmpty && widget.emptyHint != null)
-                      Positioned.fill(child: Center(child: widget.emptyHint)),
+                      Positioned.fill(
+                        child: GestureDetector(
+                          // Claims only the hint itself; the bare wall around
+                          // it still reaches the detector above. A Stack stops
+                          // at the first child hit, so without this a long
+                          // press on the hint text would go nowhere.
+                          behavior: HitTestBehavior.deferToChild,
+                          onLongPressStart: (d) =>
+                              _createAt(d.localPosition, w, h),
+                          child: Center(child: widget.emptyHint),
+                        ),
+                      ),
                     for (final (i, note) in widget.notes.indexed)
                       _positioned(note, i, w, h),
                     // Threads lie over the paper, like real yarn over pins.
@@ -634,6 +637,16 @@ class _WallViewState extends State<WallView>
         );
       },
     );
+  }
+
+  /// Long press on bare wall (wall-local [p]): asks for a new note there.
+  void _createAt(Offset p, double w, double h) {
+    HapticFeedback.mediumImpact();
+    // Same basis as display/move (see _positioned), so the note lands
+    // centered under the finger.
+    final x = (p.dx - _cardWidth / 2) / _rangeX(w, 1);
+    final y = (p.dy - 40) / _rangeY(h);
+    widget.onCreateAt(x.clamp(0.0, 1.0), y.clamp(0.0, 1.0));
   }
 
   Widget _positioned(Note note, int index, double w, double h) {

@@ -91,7 +91,6 @@
   },
   "boardIcon": "Board icon",
   "none": "None",
-  "sharedNote": "Shared from another app",
   "sampleDrag": "Drag me anywhere on the wall 👉\nLong-press an empty spot to stick a new note there.",
   "sampleLongPress": "Long-press me for more: move to another board, share, delete…",
   "sampleChecklistTitle": "Try ticking these ✅",
@@ -101,7 +100,7 @@
   "sampleThread": "Drag from my pin onto another note to tie a thread 🧵",
   "sampleDrawing": "Doodles too ✏️",
   "emptyState": "No notes yet.\nTap here to stick the first one on the wall!",
-  "wallCreateHint": "Tip: long-press anywhere on the wall to stick a note right there.",
+  "wallCreateHint": "Tip: long-press anywhere on the wall to stick a note or a photo right there.",
   "noMatches": "No notes match",
   "couldNotOpen": "Could not open {url}",
   "@couldNotOpen": {
@@ -134,9 +133,24 @@
   "wallFelt": "Felt board",
   "wallLinen": "Dark linen",
   "fontPreview": "Hello! A quick note on the wall.",
-  "photo": "Photo",
   "fromGallery": "Choose from gallery",
   "takePhoto": "Take a photo",
+  "typePhoto": "Photo",
+  "caption": "Caption",
+  "addPhotos": "Add photos",
+  "photoRequired": "Add at least one photo",
+  "pinPhotos": "Pin photos on the wall",
+  "noteHere": "Sticky note here",
+  "photosHere": "Photos here",
+  "viewPhotos": "View photos",
+  "photoCount": "{count, plural, =1{1 photo} other{{count} photos}}",
+  "@photoCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "photosPinned": "{count, plural, =1{1 photo pinned on the wall} other{{count} photos pinned on the wall}}",
+  "@photosPinned": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "shareAsImage": "Share as image",
   "saveImage": "Save image",
   "imageSaved": "Saved to gallery",

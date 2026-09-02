@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:image_picker/image_picker.dart' show ImageSource;
 
 import '../l10n/app_localizations.dart';
 import '../models/board.dart';
@@ -15,11 +16,13 @@ import '../services/notes_controller.dart';
 import '../services/settings_controller.dart';
 import '../services/share_service.dart';
 import '../theme.dart';
+import '../widgets/action_sheet.dart';
 import '../widgets/add_note_button.dart';
 import '../widgets/board_bar.dart';
 import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
 import '../widgets/peel_away.dart';
+import '../widgets/photo_viewer.dart';
 import '../widgets/settings_sheet.dart';
 import '../widgets/wall_background.dart';
 import '../widgets/wall_view.dart';
@@ -129,16 +132,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final draft = _notes.draft();
     if (content.imagePath.isNotEmpty) {
       final stored = await _imageService.importSharedImage(content.imagePath);
-      if (stored != null) draft.imagePath = stored;
+      if (stored != null) draft.images = [stored];
     }
     if (!mounted) return;
     if (content.url.isNotEmpty) {
       draft.type = NoteType.link;
       draft.url = content.url;
+    } else if (draft.hasPhotos && content.text.isEmpty) {
+      // A bare picture becomes a print on the wall, not a note about one.
+      draft.type = NoteType.photo;
     }
-    draft.content = content.text.isNotEmpty
-        ? content.text
-        : (draft.imagePath.isNotEmpty ? _l10n.sharedNote : '');
+    draft.content = content.text;
     // Whatever was open (another editor, a sheet) gives way to the new note.
     Navigator.of(context).popUntil((route) => route.isFirst);
     await _openEditor(draft, isNew: true);
@@ -172,60 +176,63 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _showNoteActions(Note note) async {
     final l10n = _l10n;
     final canMove = _notes.boards.length > 1;
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit_outlined),
-              title: Text(l10n.edit),
-              onTap: () => Navigator.pop(context, 'edit'),
-            ),
-            ListTile(
-              leading: Icon(
-                  note.pinned ? Icons.push_pin : Icons.push_pin_outlined),
-              title: Text(note.pinned ? l10n.unpin : l10n.pin),
-              onTap: () => Navigator.pop(context, 'pin'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.checklist_rtl),
-              title: Text(l10n.select),
-              onTap: () => Navigator.pop(context, 'select'),
-            ),
-            if (canMove)
-              ListTile(
-                leading: const Icon(Icons.drive_file_move_outlined),
-                title: Text(l10n.moveToBoard),
-                onTap: () => Navigator.pop(context, 'move'),
-              ),
-            ListTile(
-              leading: const Icon(Icons.ios_share),
-              title: Text(l10n.shareAsImage),
-              onTap: () => Navigator.pop(context, 'share'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.download_outlined),
-              title: Text(l10n.saveImage),
-              onTap: () => Navigator.pop(context, 'save'),
-            ),
-            const Divider(height: 1),
-            ListTile(
-              leading:
-                  const Icon(Icons.delete_outline, color: AppColors.deleteIcon),
-              title: Text(l10n.delete,
-                  style: const TextStyle(color: AppColors.deleteIcon)),
-              onTap: () => Navigator.pop(context, 'delete'),
-            ),
-          ],
+    final action = await showActionSheet<String>(
+      context,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.edit_outlined),
+          title: Text(l10n.edit),
+          onTap: () => Navigator.pop(context, 'edit'),
         ),
-      ),
+        if (note.hasPhotos)
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: Text(l10n.viewPhotos),
+            onTap: () => Navigator.pop(context, 'photos'),
+          ),
+        ListTile(
+          leading:
+              Icon(note.pinned ? Icons.push_pin : Icons.push_pin_outlined),
+          title: Text(note.pinned ? l10n.unpin : l10n.pin),
+          onTap: () => Navigator.pop(context, 'pin'),
+        ),
+        ListTile(
+          leading: const Icon(Icons.checklist_rtl),
+          title: Text(l10n.select),
+          onTap: () => Navigator.pop(context, 'select'),
+        ),
+        if (canMove)
+          ListTile(
+            leading: const Icon(Icons.drive_file_move_outlined),
+            title: Text(l10n.moveToBoard),
+            onTap: () => Navigator.pop(context, 'move'),
+          ),
+        ListTile(
+          leading: const Icon(Icons.ios_share),
+          title: Text(l10n.shareAsImage),
+          onTap: () => Navigator.pop(context, 'share'),
+        ),
+        ListTile(
+          leading: const Icon(Icons.download_outlined),
+          title: Text(l10n.saveImage),
+          onTap: () => Navigator.pop(context, 'save'),
+        ),
+        const Divider(height: 1),
+        ListTile(
+          leading:
+              const Icon(Icons.delete_outline, color: AppColors.deleteIcon),
+          title: Text(l10n.delete,
+              style: const TextStyle(color: AppColors.deleteIcon)),
+          onTap: () => Navigator.pop(context, 'delete'),
+        ),
+      ],
     );
     if (!mounted) return;
     switch (action) {
       case 'edit':
         await _openEditor(note, isNew: false);
+      case 'photos':
+        await showPhotoViewer(context, note.images);
       case 'pin':
         unawaited(HapticFeedback.selectionClick());
         _notes.togglePin(note);
@@ -247,30 +254,20 @@ class _HomeScreenState extends State<HomeScreen> {
     final l10n = _l10n;
     final current = _notes.currentBoardId;
     final targets = _notes.boards.where((b) => b.id != current).toList();
-    final target = await showModalBottomSheet<Board>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-              child: Text(l10n.moveToBoard,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
-            ),
-            for (final board in targets)
-              ListTile(
-                leading: board.icon.isEmpty
-                    ? const Icon(Icons.dashboard_outlined)
-                    : Text(board.icon, style: const TextStyle(fontSize: 22)),
-                title: Text(_boardName(board),
-                    style: board.decorate(const TextStyle())),
-                onTap: () => Navigator.pop(context, board),
-              ),
-          ],
-        ),
-      ),
+    final target = await showActionSheet<Board>(
+      context,
+      title: l10n.moveToBoard,
+      children: [
+        for (final board in targets)
+          ListTile(
+            leading: board.icon.isEmpty
+                ? const Icon(Icons.dashboard_outlined)
+                : Text(board.icon, style: const TextStyle(fontSize: 22)),
+            title: Text(_boardName(board),
+                style: board.decorate(const TextStyle())),
+            onTap: () => Navigator.pop(context, board),
+          ),
+      ],
     );
     if (target == null || !mounted) return;
     _notes.moveAllToBoard(notes, target.id);
@@ -308,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openEditor(Note note, {required bool isNew}) async {
-    final oldPhoto = note.imagePath;
+    final oldPhotos = List.of(note.images);
     final result = await showNoteDialog(
       context,
       note: note,
@@ -321,10 +318,73 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       _notes.update(result);
     }
-    // The photo was swapped or removed: drop the old file unless another
-    // note still shows it.
-    if (oldPhoto != result.imagePath && !_notes.photoInUse(oldPhoto)) {
-      unawaited(ImageService.deleteFile(oldPhoto));
+    // Photos taken off the note: drop their files unless another note still
+    // shows them.
+    for (final path in oldPhotos) {
+      if (!result.images.contains(path) && !_notes.photoInUse(path)) {
+        unawaited(ImageService.deleteFile(path));
+      }
+    }
+  }
+
+  /// Picks photos (several from the gallery, or one from the camera) and pins
+  /// each as its own print — at [x],[y] when the user long-pressed a spot.
+  Future<void> _pinPhotos({double? x, double? y}) async {
+    final l10n = _l10n;
+    final source = await showActionSheet<ImageSource>(
+      context,
+      title: l10n.pinPhotos,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.photo_library_outlined),
+          title: Text(l10n.fromGallery),
+          onTap: () => Navigator.pop(context, ImageSource.gallery),
+        ),
+        ListTile(
+          leading: const Icon(Icons.photo_camera_outlined),
+          title: Text(l10n.takePhoto),
+          onTap: () => Navigator.pop(context, ImageSource.camera),
+        ),
+      ],
+    );
+    if (source == null || !mounted) return;
+    List<String> stored;
+    try {
+      stored = source == ImageSource.gallery
+          ? await _imageService.pickImages()
+          : [?await _imageService.pickImage(source)];
+    } catch (_) {
+      return; // Permission denied, camera error — nothing to pin.
+    }
+    if (stored.isEmpty || !mounted) return;
+    final created = _notes.addPhotos(stored, x: x, y: y);
+    _toast(_l10n.photosPinned(created.length));
+  }
+
+  /// Long-press on an empty spot of the wall: a note or photos, right there.
+  Future<void> _createAt(double x, double y) async {
+    final l10n = _l10n;
+    final choice = await showActionSheet<String>(
+      context,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.sticky_note_2_outlined),
+          title: Text(l10n.noteHere),
+          onTap: () => Navigator.pop(context, 'note'),
+        ),
+        ListTile(
+          leading: const Icon(Icons.add_photo_alternate_outlined),
+          title: Text(l10n.photosHere),
+          onTap: () => Navigator.pop(context, 'photos'),
+        ),
+      ],
+    );
+    if (choice == null || !mounted) return;
+    switch (choice) {
+      case 'note':
+        await _openEditor(_notes.draftAt(x, y), isNew: true);
+      case 'photos':
+        await _pinPhotos(x: x, y: y);
     }
   }
 
@@ -813,6 +873,7 @@ class _HomeScreenState extends State<HomeScreen> {
       (1, l10n.typeLink, Icons.link),
       (2, l10n.typeChecklist, Icons.checklist),
       (3, l10n.typeDrawing, Icons.brush_outlined),
+      (4, l10n.typePhoto, Icons.photo_outlined),
     ];
     return PopupMenuButton<int>(
       tooltip: l10n.type,
@@ -883,7 +944,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Everything that didn't earn its own button: select, tidy, trash, lights.
+  /// Everything that didn't earn its own button: photos, select, tidy, trash,
+  /// lights.
   Widget _moreButton(WallStyle wall) {
     final l10n = _l10n;
     final onWall = _notes.viewMode == ViewMode.wall;
@@ -895,6 +957,8 @@ class _HomeScreenState extends State<HomeScreen> {
       icon: Icon(Icons.more_vert, color: wall.wallText),
       onSelected: (v) {
         switch (v) {
+          case 'photos':
+            _pinPhotos();
           case 'select':
             if (_notes.boardNotes.isNotEmpty) {
               setState(() {
@@ -917,6 +981,8 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       itemBuilder: (context) => [
+        _menuItem('photos', l10n.pinPhotos,
+            icon: Icons.add_photo_alternate_outlined),
         if (_notes.boardNotes.isNotEmpty)
           _menuItem('select', l10n.select, icon: Icons.checklist_rtl),
         if (canTidy) ...[
@@ -951,7 +1017,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onMove: _notes.moveNote,
         onResize: _notes.resizeNote,
         onBringToFront: _notes.bringToFront,
-        onCreateAt: (x, y) => _openEditor(_notes.draftAt(x, y), isNew: true),
+        onCreateAt: _createAt,
         links: _notes.linksOn(boardId),
         onConnect: (a, b) {
           if (_notes.connect(a, b)) {

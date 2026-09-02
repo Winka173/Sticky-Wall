@@ -2,7 +2,11 @@ import 'draw_stroke.dart';
 
 /// What kind of note a card is. Stored by name in JSON; legacy notes without
 /// a type are inferred from their fields (see [Note.fromJson]).
-enum NoteType { normal, link, checklist, drawing }
+///
+/// [photo] is a picture pinned straight on the wall — a photo print rather
+/// than a sheet of paper, with an optional caption. It is still a [Note], so
+/// dragging, resizing, threads, boards and the trash all work the same.
+enum NoteType { normal, link, checklist, drawing, photo }
 
 /// How often a reminder fires again after its first time.
 enum ReminderRepeat { none, daily, weekly, monthly }
@@ -43,7 +47,7 @@ class Note {
     List<ChecklistItem>? checklist,
     List<DrawStroke>? strokes,
     this.canvas = const DrawCanvas(),
-    this.imagePath = '',
+    List<String>? images,
     this.x = 0.5,
     this.y = 0.5,
     this.scale = 1.0,
@@ -51,7 +55,8 @@ class Note {
     this.completedAt,
   })  : type = type ?? (url.isEmpty ? NoteType.normal : NoteType.link),
         checklist = checklist ?? [],
-        strokes = strokes ?? [];
+        strokes = strokes ?? [],
+        images = images ?? [];
 
   final String guid;
   String content;
@@ -77,9 +82,12 @@ class Note {
   /// The paper the strokes sit on (tone + guide pattern); drawing notes only.
   DrawCanvas canvas;
 
-  /// Attached photo reference — the file name inside the app's photo folder
-  /// (see `ImageService.resolve`); empty if none.
-  String imagePath;
+  /// Attached photos, in display order — file names inside the app's photo
+  /// folder (see `ImageService.resolve`). A [NoteType.photo] note needs at
+  /// least one; any other type may carry some as well.
+  List<String> images;
+
+  bool get hasPhotos => images.isNotEmpty;
 
   DateTime createdAt;
 
@@ -133,6 +141,20 @@ class Note {
   static DateTime? _date(Object? value) =>
       value is String ? DateTime.tryParse(value) : null;
 
+  /// Photo list from JSON: the `images` array written by current versions,
+  /// or the single `imagePath` older versions stored.
+  static List<String> _images(Map<String, dynamic> json) {
+    final list = json['images'];
+    if (list is List) {
+      return [
+        for (final e in list)
+          if (e is String && e.isNotEmpty) e,
+      ];
+    }
+    final legacy = json['imagePath'] as String? ?? '';
+    return legacy.isEmpty ? [] : [legacy];
+  }
+
   factory Note.fromJson(Map<String, dynamic> json) {
     final url = json['url'] as String? ?? '';
     final typeName = json['type'] as String?;
@@ -166,7 +188,7 @@ class Note {
           .map((e) => DrawStroke.fromJson(e as Map<String, dynamic>))
           .toList(),
       canvas: DrawCanvas.fromJson(json['canvas'] as Map<String, dynamic>?),
-      imagePath: json['imagePath'] as String? ?? '',
+      images: _images(json),
       createdAt:
           _date(json['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       x: (json['x'] as num?)?.toDouble() ?? 0.5,
@@ -191,7 +213,10 @@ class Note {
         'checklist': checklist.map((i) => i.toJson()).toList(),
         'strokes': strokes.map((s) => s.toJson()).toList(),
         'canvas': canvas.toJson(),
-        'imagePath': imagePath,
+        'images': images,
+        // Older builds only know the single field; keep the first photo there
+        // so a backup restored on one still shows something.
+        'imagePath': images.isEmpty ? '' : images.first,
         'createdAt': createdAt.toIso8601String(),
         'x': x,
         'y': y,

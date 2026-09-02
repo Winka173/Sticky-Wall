@@ -283,6 +283,7 @@ class NotesController extends ChangeNotifier {
       1 => note.type == NoteType.link,
       2 => note.type == NoteType.checklist,
       3 => note.type == NoteType.drawing,
+      4 => note.type == NoteType.photo,
       _ => true,
     };
     if (!matchesType) return false;
@@ -342,6 +343,34 @@ class NotesController extends ChangeNotifier {
     _persistNotes();
     _reminders.sync(note);
     notifyListeners();
+  }
+
+  /// Pins photos (already copied by `ImageService`) straight onto the current
+  /// board, one photo print per file, fanned out from ([x], [y]) so a batch
+  /// lands as a loose stack rather than one on top of the other. Defaults to
+  /// the middle of the wall. Returns the notes created.
+  List<Note> addPhotos(List<String> stored, {double? x, double? y}) {
+    if (stored.isEmpty) return const [];
+    final rng = math.Random();
+    final baseX = x ?? 0.30 + rng.nextDouble() * 0.30;
+    final baseY = y ?? 0.25 + rng.nextDouble() * 0.30;
+    final created = <Note>[];
+    for (final (i, file) in stored.indexed) {
+      // Each print sits a little right and below the previous one; a long
+      // batch wraps back so nothing ends up off the wall.
+      final step = i % 6;
+      final note = _newNoteAt(
+        (baseX + step * 0.06).clamp(0.0, 1.0),
+        (baseY + step * 0.05).clamp(0.0, 1.0),
+      )
+        ..type = NoteType.photo
+        ..images = [file];
+      _notes.add(note);
+      created.add(note);
+    }
+    _persistNotes();
+    notifyListeners();
+    return created;
   }
 
   /// Replaces the stored note that has the same guid (the dialog edits a
@@ -450,13 +479,14 @@ class NotesController extends ChangeNotifier {
       _links.removeWhere((l) => l.connects(note.guid));
       _storage.saveLinks(_links);
     }
-    final path = note.imagePath;
-    if (path.isNotEmpty && !photoInUse(path)) _deletePhoto(path);
+    for (final path in note.images) {
+      if (!photoInUse(path)) _deletePhoto(path);
+    }
   }
 
   /// Whether some note (live or trashed) still shows the photo at [path].
   bool photoInUse(String path) =>
-      path.isNotEmpty && _notes.any((n) => n.imagePath == path);
+      path.isNotEmpty && _notes.any((n) => n.images.contains(path));
 
   /// Moves a note onto another board, dropping it near the center there.
   void moveToBoard(Note note, String boardId) => moveAllToBoard([note], boardId);

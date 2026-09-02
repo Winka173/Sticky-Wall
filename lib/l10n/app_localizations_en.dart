@@ -260,9 +260,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get none => 'None';
 
   @override
-  String get sharedNote => 'Shared from another app';
-
-  @override
   String get sampleDrag =>
       'Drag me anywhere on the wall 👉\nLong-press an empty spot to stick a new note there.';
 
@@ -295,7 +292,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wallCreateHint =>
-      'Tip: long-press anywhere on the wall to stick a note right there.';
+      'Tip: long-press anywhere on the wall to stick a note or a photo right there.';
 
   @override
   String get noMatches => 'No notes match';
@@ -387,13 +384,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fontPreview => 'Hello! A quick note on the wall.';
 
   @override
-  String get photo => 'Photo';
-
-  @override
   String get fromGallery => 'Choose from gallery';
 
   @override
   String get takePhoto => 'Take a photo';
+
+  @override
+  String get typePhoto => 'Photo';
+
+  @override
+  String get caption => 'Caption';
+
+  @override
+  String get addPhotos => 'Add photos';
+
+  @override
+  String get photoRequired => 'Add at least one photo';
+
+  @override
+  String get pinPhotos => 'Pin photos on the wall';
+
+  @override
+  String get noteHere => 'Sticky note here';
+
+  @override
+  String get photosHere => 'Photos here';
+
+  @override
+  String get viewPhotos => 'View photos';
+
+  @override
+  String photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String photosPinned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos pinned on the wall',
+      one: '1 photo pinned on the wall',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get shareAsImage => 'Share as image';

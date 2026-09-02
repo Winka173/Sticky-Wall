@@ -4,6 +4,7 @@ import '../l10n/app_localizations.dart';
 import '../models/board.dart';
 import '../services/notes_controller.dart';
 import '../theme.dart';
+import 'action_sheet.dart';
 import 'board_dialog.dart';
 
 /// Horizontal strip of board "tabs" with add / edit / delete.
@@ -99,38 +100,28 @@ class BoardBar extends StatelessWidget {
 
   Future<void> _manage(
       BuildContext context, AppLocalizations l10n, Board board) async {
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-              child: Text(
-                board.icon.isEmpty
-                    ? _displayName(l10n, board)
-                    : '${board.icon} ${_displayName(l10n, board)}',
-                style: board.decorate(
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit_outlined),
-              title: Text(l10n.editBoard),
-              onTap: () => Navigator.pop(context, 'edit'),
-            ),
-            if (notes.boards.length > 1)
-              ListTile(
-                leading: const Icon(Icons.delete_outline,
-                    color: AppColors.deleteIcon),
-                title: Text(l10n.deleteBoard,
-                    style: const TextStyle(color: AppColors.deleteIcon)),
-                onTap: () => Navigator.pop(context, 'delete'),
-              ),
-          ],
+    final action = await showActionSheet<String>(
+      context,
+      title: board.icon.isEmpty
+          ? _displayName(l10n, board)
+          : '${board.icon} ${_displayName(l10n, board)}',
+      titleStyle: board.decorate(
+          const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      children: [
+        ListTile(
+          leading: const Icon(Icons.edit_outlined),
+          title: Text(l10n.editBoard),
+          onTap: () => Navigator.pop(context, 'edit'),
         ),
-      ),
+        if (notes.boards.length > 1)
+          ListTile(
+            leading:
+                const Icon(Icons.delete_outline, color: AppColors.deleteIcon),
+            title: Text(l10n.deleteBoard,
+                style: const TextStyle(color: AppColors.deleteIcon)),
+            onTap: () => Navigator.pop(context, 'delete'),
+          ),
+      ],
     );
     if (action == null || !context.mounted) return;
 

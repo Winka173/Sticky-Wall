@@ -24,8 +24,16 @@ abstract class AppColors {
   static const pin = Color(0xFFD32F2F);
   static const paper = Color(0xFFFFF9E6);
 
+  /// The white border of a photo print pinned on the wall.
+  static const printPaper = Color(0xFFFCFAF4);
+
   /// Translucent dark chrome floated over the wall (zoom reset, handles).
   static const overlayDark = Color(0xCC33322C);
+
+  /// Laid over artwork (a sketch, a photo) with the lights off: the same
+  /// warm shadow [nightPaper] blends in, at the same strength (0.38 → 0x61),
+  /// so a picture dims exactly as much as the paper next to it.
+  static const nightShade = Color(0x617A6A4A);
 
   /// Pastel sticky-note paper colors.
   static const notePapers = [
@@ -52,15 +60,23 @@ Color noteColor(int? colorIndex, String guid) {
   return AppColors.notePapers[i % AppColors.notePapers.length];
 }
 
+/// The warm shadow tone paper takes on with the lights off.
+const _nightTone = Color(0xFF7A6A4A);
+
 /// Paper under a dimmed lamp: the pastel pulled toward a warm shadow tone.
-Color nightPaper(Color day) =>
-    Color.lerp(day, const Color(0xFF7A6A4A), 0.38)!;
+Color nightPaper(Color day) => Color.lerp(day, _nightTone, 0.38)!;
 
 /// [noteColor] as it should look right now — dimmed when the lights are off.
 Color paperColorOf(BuildContext context, int? colorIndex, String guid) {
   final day = noteColor(colorIndex, guid);
   return isNight(context) ? nightPaper(day) : day;
 }
+
+/// The border colour of a photo print, dimmed with the lights off like the
+/// note paper is.
+Color printColorOf(BuildContext context) => isNight(context)
+    ? nightPaper(AppColors.printPaper)
+    : AppColors.printPaper;
 
 /// Whether the current theme is the "lights off" one.
 bool isNight(BuildContext context) =>

@@ -109,19 +109,19 @@ class _TrashTile extends StatelessWidget {
   final VoidCallback onRestore;
   final VoidCallback onPurge;
 
-  String _preview() {
+  String _preview(AppLocalizations l10n) {
     if (note.type == NoteType.checklist) {
       final head = note.content.trim();
       final items = note.checklist.map((i) => i.text).join(' · ');
       return [head, items].where((s) => s.isNotEmpty).join('\n');
     }
-    if (note.type == NoteType.link && note.content.trim().isEmpty) {
-      return note.url;
-    }
-    if (note.type == NoteType.drawing && note.content.trim().isEmpty) {
-      return '✏️';
-    }
-    return note.content;
+    if (note.content.trim().isNotEmpty) return note.content;
+    return switch (note.type) {
+      NoteType.link => note.url,
+      NoteType.drawing => '✏️',
+      NoteType.photo => '📷 ${l10n.photoCount(note.images.length)}',
+      _ => note.content,
+    };
   }
 
   @override
@@ -148,8 +148,8 @@ class _TrashTile extends StatelessWidget {
                 children: [
                   Text(
                     note.emoji.isEmpty
-                        ? _preview()
-                        : '${note.emoji} ${_preview()}',
+                        ? _preview(l10n)
+                        : '${note.emoji} ${_preview(l10n)}',
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(

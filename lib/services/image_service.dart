@@ -50,6 +50,14 @@ class ImageService {
   /// Absolute path for a board's wall photo.
   static String resolveWall(String stored) => _resolveIn(_wallFolder, stored);
 
+  /// Largest edge a note photo is stored at; plenty for a card and a
+  /// full-screen look, without keeping 12-megapixel originals around.
+  static const _maxPhotoEdge = 1600.0;
+
+  // Makes names unique even when a batch of photos is imported within the
+  // same microsecond tick.
+  static int _importSeq = 0;
+
   /// Copies [source] into the app's own folder under a fresh name and returns
   /// that name (see [resolve]), so the file survives even if the original is
   /// removed.
@@ -58,17 +66,26 @@ class ImageService {
     final dir = Directory('$_docsDir/$folder');
     if (!dir.existsSync()) dir.createSync(recursive: true);
     final ext = source.contains('.') ? source.split('.').last : 'jpg';
-    final name = '${DateTime.now().microsecondsSinceEpoch}.$ext';
+    final seq = (_importSeq++ % 1000).toString().padLeft(3, '0');
+    final name = '${DateTime.now().microsecondsSinceEpoch}$seq.$ext';
     await File(source).copy('${dir.path}/$name');
     return name;
   }
 
-  /// Picks a photo for a note. Returns the stored reference, or null when the
-  /// user cancelled.
+  /// Picks one photo for a note. Returns the stored reference, or null when
+  /// the user cancelled.
   Future<String?> pickImage(ImageSource source) async {
-    final picked = await _picker.pickImage(source: source, maxWidth: 1600);
+    final picked =
+        await _picker.pickImage(source: source, maxWidth: _maxPhotoEdge);
     if (picked == null) return null;
     return _import(picked.path);
+  }
+
+  /// Picks any number of photos from the gallery and stores each. Returns
+  /// their references in the order chosen; empty when the user cancelled.
+  Future<List<String>> pickImages() async {
+    final picked = await _picker.pickMultiImage(maxWidth: _maxPhotoEdge);
+    return [for (final file in picked) await _import(file.path)];
   }
 
   /// Stores an image handed to us by another app (share sheet) as a note
@@ -130,12 +147,17 @@ class ImageService {
     } catch (_) {}
   }
 
-  /// Removes a note photo previously copied by [pickImage]. Missing files and
-  /// I/O errors are ignored — this is best-effort housekeeping.
+  /// Removes a note photo previously copied by [pickImage] / [pickImages].
+  /// Missing files and I/O errors are ignored — this is best-effort
+  /// housekeeping.
   static Future<void> deleteFile(String stored) async {
     if (stored.isEmpty) return;
     await _delete(resolve(stored));
   }
+
+  /// [deleteFile] for several photos at once.
+  static Future<void> deleteFiles(Iterable<String> stored) =>
+      Future.wait(stored.map(deleteFile));
 
   /// Removes a wall photo previously copied by [pickWallImage].
   static Future<void> deleteWallFile(String stored) async {
