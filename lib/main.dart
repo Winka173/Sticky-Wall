@@ -3,6 +3,7 @@ import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/material.dart';
 
 import 'l10n/app_localizations.dart';
+import 'models/view_mode.dart';
 import 'screens/home_screen.dart';
 import 'services/image_service.dart';
 import 'services/note_storage.dart';
@@ -34,6 +35,9 @@ Future<void> main() async {
     final sample = SampleNotes.build(
         _localizationsFor(settings.localeOverride), notes.currentBoardId);
     notes.seed(sample.notes, links: sample.links);
+    // The samples teach wall gestures (and one is tied to another by a
+    // thread), so a fresh install opens on the wall rather than the grid.
+    notes.viewMode = ViewMode.wall;
   }
 
   // Keep the home-screen widget in sync with the current board's pinned notes

@@ -123,8 +123,17 @@ then taken well beyond it.
 
 ```sh
 flutter pub get
-flutter run
+flutter emulators                  # list Android emulators (AVDs)
+flutter emulators --launch <id>    # boot one, or plug in a phone with USB debugging
+flutter run                        # picks the running device; -d <id> to choose
 ```
+
+Android is the primary target (share intents, home-screen widget,
+notifications are all wired up there). The Gradle config pins every plugin to
+the app's `compileSdk` and enables core-library desugaring for
+`flutter_local_notifications`, so a stock Android SDK 36 install builds it.
+Chrome / Edge also run the app for a quick look at the UI, but the native
+plugins (notifications, share, widget, gallery) are no-ops there.
 
 Localizations are generated from `lib/l10n/*.arb` on `flutter pub get`
 (see `l10n.yaml`). App icon and splash are generated art:

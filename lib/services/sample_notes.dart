@@ -37,14 +37,16 @@ class SampleNotes {
           checklist: checklist,
         );
 
-    final drag = note(0, l10n.sampleDrag, color: 0, x: 0.06, y: 0.04);
-    final longPress = note(1, l10n.sampleLongPress, color: 1, x: 0.56, y: 0.12);
+    // x/y are fractions of the free travel (wall minus one card), so two
+    // columns need x near 0 and near 1 to sit apart on a phone-width wall.
+    final drag = note(0, l10n.sampleDrag, color: 0, x: 0.02, y: 0.03);
+    final longPress = note(1, l10n.sampleLongPress, color: 1, x: 0.98, y: 0.12);
     final checklist = note(
       2,
       l10n.sampleChecklistTitle,
       color: 3,
-      x: 0.08,
-      y: 0.42,
+      x: 0.03,
+      y: 0.40,
       type: NoteType.checklist,
       checklist: [
         ChecklistItem(text: l10n.sampleChecklist1),
@@ -52,7 +54,7 @@ class SampleNotes {
         ChecklistItem(text: l10n.sampleChecklist3),
       ],
     );
-    final thread = note(3, l10n.sampleThread, color: 2, x: 0.55, y: 0.52);
+    final thread = note(3, l10n.sampleThread, color: 2, x: 0.97, y: 0.55);
 
     return SampleNotes(
       notes: [drag, longPress, checklist, thread],
