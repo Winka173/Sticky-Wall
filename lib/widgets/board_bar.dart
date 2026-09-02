@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 
 import '../l10n/app_localizations.dart';
 import '../models/board.dart';
@@ -12,18 +13,93 @@ import 'board_dialog.dart';
 /// Tapping a chip switches boards; tapping the *selected* chip opens the
 /// manage sheet — the little chevron on it is the hint that it does more.
 /// Long-press and drag a chip to reorder boards.
-class BoardBar extends StatelessWidget {
+class BoardBar extends StatefulWidget {
   const BoardBar({super.key, required this.notes, required this.textColor});
 
   final NotesController notes;
   final Color textColor;
 
+  @override
+  State<BoardBar> createState() => _BoardBarState();
+}
+
+class _BoardBarState extends State<BoardBar> {
+  final _scroll = ScrollController();
+
+  /// On the selected chip, so it can be scrolled into view.
+  final _selectedKey = GlobalKey();
+
+  // What the strip last revealed the selected tab for; see [_revealSelected].
+  String? _revealedBoard;
+  double _revealedWidth = -1;
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
   String _displayName(AppLocalizations l10n, Board board) =>
       board.name.isEmpty ? l10n.defaultBoardName : board.name;
+
+  /// Scrolls the strip just far enough that the selected tab is fully
+  /// visible — once when the board changes and once when the strip is
+  /// resized (grid / list add a sort button to the toolbar, which narrows the
+  /// strip and would otherwise leave the active tab half hidden behind the
+  /// "+"). Not on every rebuild: the user may have scrolled the strip to
+  /// look at the other boards.
+  void _revealSelected(double width) {
+    final id = widget.notes.currentBoardId;
+    if (id == _revealedBoard && width == _revealedWidth) return;
+    _revealedBoard = id;
+    _revealedWidth = width;
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _scrollToSelected(approach: true));
+  }
+
+  void _scrollToSelected({required bool approach}) {
+    if (!mounted || !_scroll.hasClients) return;
+    final position = _scroll.position;
+    final chip = _selectedKey.currentContext?.findRenderObject();
+    final viewport = RenderAbstractViewport.maybeOf(chip);
+    if (chip == null || viewport == null) {
+      // Too far off the end to have been built yet: jump roughly there —
+      // proportionally along the strip — and finish once it exists.
+      if (!approach) return;
+      final boards = widget.notes.boards;
+      final index =
+          boards.indexWhere((b) => b.id == widget.notes.currentBoardId);
+      if (index < 0 || boards.length < 2) return;
+      position.jumpTo(position.maxScrollExtent * index / (boards.length - 1));
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _scrollToSelected(approach: false));
+      return;
+    }
+    const gap = 8.0;
+    final start = viewport.getOffsetToReveal(chip, 0).offset - gap;
+    final end = viewport.getOffsetToReveal(chip, 1).offset + gap;
+    final double target;
+    if (position.pixels > start || end < start) {
+      // Cut off at the front — or wider than the strip, in which case its
+      // beginning is the part worth showing.
+      target = start;
+    } else if (position.pixels < end) {
+      target = end;
+    } else {
+      return;
+    }
+    position.animateTo(
+      target.clamp(position.minScrollExtent, position.maxScrollExtent),
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final notes = widget.notes;
+    final textColor = widget.textColor;
     final boards = notes.boards;
 
     return SizedBox(
@@ -34,42 +110,48 @@ class BoardBar extends StatelessWidget {
           // they fit, and only becomes a fixed trailing button once the
           // strip has to scroll.
           Flexible(
-            child: ReorderableListView.builder(
-              scrollDirection: Axis.horizontal,
-              shrinkWrap: true,
-              padding: const EdgeInsets.only(left: 16),
-              buildDefaultDragHandles: false,
-              onReorderItem: notes.reorderBoards,
-              proxyDecorator: (child, _, animation) => AnimatedBuilder(
-                animation: animation,
-                child: child,
-                builder: (context, child) => Transform.scale(
-                  scale:
-                      1 + 0.08 * Curves.easeInOut.transform(animation.value),
-                  child: Material(color: Colors.transparent, child: child),
-                ),
-              ),
-              itemCount: boards.length,
-              itemBuilder: (context, index) {
-                final board = boards[index];
-                return Padding(
-                  key: ValueKey('board-${board.id}'),
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ReorderableDelayedDragStartListener(
-                    index: index,
-                    child: _BoardChip(
-                      board: board,
-                      label: _displayName(l10n, board),
-                      selected: board.id == notes.currentBoardId,
-                      textColor: textColor,
-                      onTap: () => board.id == notes.currentBoardId
-                          ? _manage(context, l10n, board)
-                          : notes.selectBoard(board.id),
-                    ),
+            child: LayoutBuilder(builder: (context, constraints) {
+              _revealSelected(constraints.maxWidth);
+              return ReorderableListView.builder(
+                scrollController: _scroll,
+                scrollDirection: Axis.horizontal,
+                shrinkWrap: true,
+                padding: const EdgeInsets.only(left: 16),
+                buildDefaultDragHandles: false,
+                onReorderItem: notes.reorderBoards,
+                proxyDecorator: (child, _, animation) => AnimatedBuilder(
+                  animation: animation,
+                  child: child,
+                  builder: (context, child) => Transform.scale(
+                    scale: 1 +
+                        0.08 * Curves.easeInOut.transform(animation.value),
+                    child: Material(color: Colors.transparent, child: child),
                   ),
-                );
-              },
-            ),
+                ),
+                itemCount: boards.length,
+                itemBuilder: (context, index) {
+                  final board = boards[index];
+                  final selected = board.id == notes.currentBoardId;
+                  return Padding(
+                    key: ValueKey('board-${board.id}'),
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ReorderableDelayedDragStartListener(
+                      key: selected ? _selectedKey : null,
+                      index: index,
+                      child: _BoardChip(
+                        board: board,
+                        label: _displayName(l10n, board),
+                        selected: selected,
+                        textColor: textColor,
+                        onTap: () => selected
+                            ? _manage(context, l10n, board)
+                            : notes.selectBoard(board.id),
+                      ),
+                    ),
+                  );
+                },
+              );
+            }),
           ),
           // Outside the scrolling strip, so it never hides behind the tabs
           // when their names are long or there are many of them.
@@ -89,7 +171,7 @@ class BoardBar extends StatelessWidget {
   Future<void> _create(BuildContext context) async {
     final draft = await showBoardDialog(context);
     if (draft == null || draft.name.isEmpty) return;
-    notes.addBoard(
+    widget.notes.addBoard(
       draft.name,
       icon: draft.icon,
       bold: draft.bold,
@@ -113,7 +195,7 @@ class BoardBar extends StatelessWidget {
           title: Text(l10n.editBoard),
           onTap: () => Navigator.pop(context, 'edit'),
         ),
-        if (notes.boards.length > 1)
+        if (widget.notes.boards.length > 1)
           ListTile(
             leading:
                 const Icon(Icons.delete_outline, color: AppColors.deleteIcon),
@@ -128,7 +210,7 @@ class BoardBar extends StatelessWidget {
     if (action == 'edit') {
       final draft = await showBoardDialog(context, board: board);
       if (draft == null) return;
-      notes.updateBoard(
+      widget.notes.updateBoard(
         board.id,
         name: draft.name,
         icon: draft.icon,
@@ -151,7 +233,7 @@ class BoardBar extends StatelessWidget {
           ],
         ),
       );
-      if (ok == true) notes.deleteBoard(board.id);
+      if (ok == true) widget.notes.deleteBoard(board.id);
     }
   }
 }

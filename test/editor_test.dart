@@ -160,6 +160,64 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a print with several photos offers layouts; bare drops the caption',
+      (tester) async {
+    final notes = await _pumpApp(tester, notes: [
+      Note(
+        guid: 'p',
+        content: 'Beach day',
+        type: NoteType.photo,
+        images: ['a.jpg', 'b.jpg', 'c.jpg'],
+        createdAt: DateTime(2026),
+        boardId: 'default',
+      ),
+    ]);
+    await tester.tap(find.text('Beach day'));
+    await tester.pumpAndSettle();
+
+    // All four arrangements on offer, the caption field showing the caption.
+    for (final name in ['Grid', 'Pile', 'Collage', 'Edge to edge']) {
+      expect(find.byTooltip(name), findsOneWidget);
+    }
+    expect(find.widgetWithText(TextField, 'Beach day'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Pile'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(TextField, 'Beach day'), findsOneWidget);
+
+    // Edge to edge has no border to write on: the caption field goes away
+    // (the text is kept, for the list row and search), and the saved note
+    // carries the layout.
+    await tester.tap(find.byTooltip('Edge to edge'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(TextField, 'Beach day'), findsNothing);
+    await tester.tap(_saveButton);
+    await tester.pumpAndSettle();
+    final saved = notes.boardNotes.single;
+    expect(saved.photoLayout, PhotoLayout.bare);
+    expect(saved.content, 'Beach day');
+    // …and the bare card shows no caption on the wall.
+    expect(find.text('Beach day'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a text note with one photo gets no layout picker',
+      (tester) async {
+    await _pumpApp(tester, notes: [
+      Note(
+        guid: 'n',
+        content: 'One snap',
+        images: ['a.jpg'],
+        createdAt: DateTime(2026),
+        boardId: 'default',
+      ),
+    ]);
+    await tester.tap(find.text('One snap'));
+    await tester.pumpAndSettle();
+    expect(find.text('Photo layout'), findsNothing);
+    expect(find.byTooltip('Pile'), findsNothing);
+  });
+
   testWidgets('long-pressing empty wall offers a note or photos there',
       (tester) async {
     // The free-drag wall is where long-press-to-create lives; the default

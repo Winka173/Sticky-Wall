@@ -8,6 +8,19 @@ import 'draw_stroke.dart';
 /// dragging, resizing, threads, boards and the trash all work the same.
 enum NoteType { normal, link, checklist, drawing, photo }
 
+/// How a card lays out several photos. Chosen per note in the editor; stored
+/// by name, and anything unknown (or missing, for older data) reads as [grid].
+///
+/// - [grid]: side by side / two columns inside the print border, "+N" past
+///   four.
+/// - [stack]: a pile of snapshots — the first on top, the next ones fanned
+///   out behind it.
+/// - [collage]: the first photo large with the rest in a column beside it.
+/// - [bare]: the photos *are* the card, edge to edge with no border and no
+///   caption — the photo counterpart of a sketch. Only a [NoteType.photo]
+///   note can be bare; on any other type it draws like [grid].
+enum PhotoLayout { grid, stack, collage, bare }
+
 /// How often a reminder fires again after its first time.
 enum ReminderRepeat { none, daily, weekly, monthly }
 
@@ -48,6 +61,7 @@ class Note {
     List<DrawStroke>? strokes,
     this.canvas = const DrawCanvas(),
     List<String>? images,
+    this.photoLayout = PhotoLayout.grid,
     this.x = 0.5,
     this.y = 0.5,
     this.scale = 1.0,
@@ -87,7 +101,15 @@ class Note {
   /// least one; any other type may carry some as well.
   List<String> images;
 
+  /// How [images] are arranged on the card when there are several.
+  PhotoLayout photoLayout;
+
   bool get hasPhotos => images.isNotEmpty;
+
+  /// True when the card shows the photos edge to edge with no caption: a
+  /// photo note laid out [PhotoLayout.bare]. Other types keep their paper.
+  bool get isBarePhoto =>
+      type == NoteType.photo && photoLayout == PhotoLayout.bare;
 
   DateTime createdAt;
 
@@ -169,6 +191,12 @@ class Note {
             .cast<ReminderRepeat?>()
             .firstOrNull ??
         ReminderRepeat.none;
+    final layoutName = json['photoLayout'] as String?;
+    final layout = PhotoLayout.values
+            .where((l) => l.name == layoutName)
+            .cast<PhotoLayout?>()
+            .firstOrNull ??
+        PhotoLayout.grid;
 
     return Note(
       guid: json['guid'] as String,
@@ -189,6 +217,7 @@ class Note {
           .toList(),
       canvas: DrawCanvas.fromJson(json['canvas'] as Map<String, dynamic>?),
       images: _images(json),
+      photoLayout: layout,
       createdAt:
           _date(json['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       x: (json['x'] as num?)?.toDouble() ?? 0.5,
@@ -217,6 +246,7 @@ class Note {
         // Older builds only know the single field; keep the first photo there
         // so a backup restored on one still shows something.
         'imagePath': images.isEmpty ? '' : images.first,
+        'photoLayout': photoLayout.name,
         'createdAt': createdAt.toIso8601String(),
         'x': x,
         'y': y,

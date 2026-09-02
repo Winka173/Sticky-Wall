@@ -342,7 +342,10 @@ class _NoteDialogState extends State<_NoteDialog>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (_n.hasPhotos || isPhoto) _photoStrip(l10n),
-                          _writingArea(l10n),
+                          if (_layoutOptions().length > 1)
+                            _layoutPicker(l10n),
+                          // A bare print has no border to write a caption on.
+                          if (!_n.isBarePhoto) _writingArea(l10n),
                           if (_n.type == NoteType.link) _urlField(l10n),
                           if (_n.type == NoteType.checklist)
                             _checklistEditor(l10n),
@@ -538,6 +541,87 @@ class _NoteDialogState extends State<_NoteDialog>
             addTile,
           ],
         ),
+      ),
+    );
+  }
+
+  /// The photo arrangements that make sense for this note: the grid, pile
+  /// and collage only differ with two or more photos, and only a print can
+  /// go edge to edge. Fewer than two choices and the picker stays hidden.
+  List<PhotoLayout> _layoutOptions() {
+    final several = _n.images.length > 1;
+    final isPhoto = _n.type == NoteType.photo;
+    return [
+      if (several || isPhoto) PhotoLayout.grid,
+      if (several) ...[PhotoLayout.stack, PhotoLayout.collage],
+      if (isPhoto) PhotoLayout.bare,
+    ];
+  }
+
+  String _layoutLabel(AppLocalizations l10n, PhotoLayout layout) =>
+      switch (layout) {
+        PhotoLayout.grid => l10n.layoutGrid,
+        PhotoLayout.stack => l10n.layoutStack,
+        PhotoLayout.collage => l10n.layoutCollage,
+        PhotoLayout.bare => l10n.layoutBare,
+      };
+
+  /// One tile per arrangement, each a little schematic of it (like the canvas
+  /// paper swatches in the drawing editor), the chosen one ringed in ink.
+  Widget _layoutPicker(AppLocalizations l10n) {
+    final options = _layoutOptions();
+    // A layout that stopped making sense (a bare print turned into a text
+    // note, say) shows as the grid it draws like.
+    final current =
+        options.contains(_n.photoLayout) ? _n.photoLayout : PhotoLayout.grid;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 2),
+            child: Text(l10n.photoLayout,
+                style: TextStyle(
+                    fontSize: 13, color: _ink.withValues(alpha: 0.6))),
+          ),
+          for (final layout in options)
+            Tooltip(
+              message: _layoutLabel(l10n, layout),
+              child: GestureDetector(
+                onTap: () {
+                  if (layout == _n.photoLayout) return;
+                  HapticFeedback.selectionClick();
+                  setState(() => _n.photoLayout = layout);
+                },
+                child: Semantics(
+                  button: true,
+                  selected: layout == current,
+                  label: _layoutLabel(l10n, layout),
+                  child: Container(
+                    width: 44,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: printColorOf(context),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: layout == current ? _ink : Colors.black26,
+                        width: layout == current ? 2.5 : 1,
+                      ),
+                    ),
+                    child: CustomPaint(
+                      painter: _LayoutGlyphPainter(
+                        layout: layout,
+                        color: _ink.withValues(alpha: 0.55),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -1098,4 +1182,76 @@ class _RulesPainter extends CustomPainter {
       oldDelegate.firstLine != firstLine ||
       oldDelegate.lineHeight != lineHeight ||
       oldDelegate.color != color;
+}
+
+/// A thumbnail-sized schematic of a [PhotoLayout]: filled blocks standing
+/// for photos, inside a margin that stands for the print's border — except
+/// for the bare layout, whose block fills the tile edge to edge.
+class _LayoutGlyphPainter extends CustomPainter {
+  _LayoutGlyphPainter({required this.layout, required this.color});
+
+  final PhotoLayout layout;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final r = const Radius.circular(1.5);
+    void block(Rect rect) =>
+        canvas.drawRRect(RRect.fromRectAndRadius(rect, r), paint);
+
+    const m = 6.0, gap = 2.5;
+    final inner = Rect.fromLTWH(m, m, size.width - 2 * m, size.height - 2 * m);
+    switch (layout) {
+      case PhotoLayout.bare:
+        block(Rect.fromLTWH(1.5, 1.5, size.width - 3, size.height - 3));
+      case PhotoLayout.grid:
+        final w = (inner.width - gap) / 2, h = (inner.height - gap) / 2;
+        for (final (dx, dy) in [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)]) {
+          block(Rect.fromLTWH(
+              inner.left + dx * (w + gap), inner.top + dy * (h + gap), w, h));
+        }
+      case PhotoLayout.collage:
+        final bigW = (inner.width - gap) * 0.62;
+        final smallW = inner.width - gap - bigW;
+        final smallH = (inner.height - gap) / 2;
+        block(Rect.fromLTWH(inner.left, inner.top, bigW, inner.height));
+        for (var i = 0; i < 2; i++) {
+          block(Rect.fromLTWH(inner.left + bigW + gap,
+              inner.top + i * (smallH + gap), smallW, smallH));
+        }
+      case PhotoLayout.stack:
+        // Two tilted snapshots behind a straight one, drawn back to front;
+        // the ones behind are ghosted so the pile reads as depth.
+        final card = Rect.fromCenter(
+            center: inner.center,
+            width: inner.width * 0.82,
+            height: inner.height * 0.86);
+        for (final (angle, alpha) in [(0.34, 0.32), (-0.2, 0.58), (0.0, 1.0)]) {
+          canvas.save();
+          canvas.translate(card.center.dx, card.center.dy);
+          canvas.rotate(angle);
+          canvas.translate(-card.center.dx, -card.center.dy);
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(card, r),
+            Paint()..color = color.withValues(alpha: color.a * alpha),
+          );
+          if (alpha < 1) {
+            // A hairline of paper between snapshots so they don't merge.
+            canvas.drawRRect(
+              RRect.fromRectAndRadius(card, r),
+              Paint()
+                ..color = Colors.white
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = 1,
+            );
+          }
+          canvas.restore();
+        }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_LayoutGlyphPainter oldDelegate) =>
+      oldDelegate.layout != layout || oldDelegate.color != color;
 }

@@ -10,21 +10,21 @@ then taken well beyond it.
 |---|---|---|---|
 | ![Wall](screenshots/mode_wall.png) | ![Grid](screenshots/mode_grid.png) | ![List](screenshots/mode_list.png) | ![Editor](screenshots/editor.png) |
 
-| Lights off (night mode) | Trash (30-day retention) | Cork | Green chalkboard |
+| Lights off (night mode) | Trash (30-day retention) | Photo layouts | Drawing note |
 |---|---|---|---|
-| ![Night](screenshots/night.png) | ![Trash](screenshots/trash.png) | ![Cork](screenshots/preview_cork.png) | ![Green](screenshots/preview_chalk_green.png) |
+| ![Night](screenshots/night.png) | ![Trash](screenshots/trash.png) | ![Photo editor](screenshots/photo_editor.png) | ![Drawing](screenshots/drawing.png) |
 
-| Black chalkboard | Painted wall | Brick | Wood |
+| Green chalkboard | Black chalkboard | Painted wall | Brick |
 |---|---|---|---|
-| ![Black](screenshots/preview_chalk_black.png) | ![Plaster](screenshots/preview_plaster.png) | ![Brick](screenshots/preview_brick.png) | ![Wood](screenshots/preview_wood.png) |
+| ![Green](screenshots/preview_chalk_green.png) | ![Black](screenshots/preview_chalk_black.png) | ![Plaster](screenshots/preview_plaster.png) | ![Brick](screenshots/preview_brick.png) |
 
-| Kraft paper | Marble | Terrazzo | Denim |
+| Wood | Kraft paper | Marble | Terrazzo |
 |---|---|---|---|
-| ![Kraft](screenshots/preview_kraft.png) | ![Marble](screenshots/preview_marble.png) | ![Terrazzo](screenshots/preview_terrazzo.png) | ![Denim](screenshots/preview_denim.png) |
+| ![Wood](screenshots/preview_wood.png) | ![Kraft](screenshots/preview_kraft.png) | ![Marble](screenshots/preview_marble.png) | ![Terrazzo](screenshots/preview_terrazzo.png) |
 
-| Felt | Linen | Drawing note | Customize sheet |
+| Denim | Felt | Linen | Customize sheet |
 |---|---|---|---|
-| ![Felt](screenshots/preview_felt.png) | ![Linen](screenshots/preview_linen.png) | ![Drawing](screenshots/drawing.png) | ![Settings](screenshots/settings.png) |
+| ![Denim](screenshots/preview_denim.png) | ![Felt](screenshots/preview_felt.png) | ![Linen](screenshots/preview_linen.png) | ![Settings](screenshots/settings.png) |
 
 ## Features
 
@@ -37,10 +37,14 @@ then taken well beyond it.
 - A sketch *is* its card: the canvas runs edge to edge with no margin or
   adhesive strip, and a title / emote / reminder — if any — sits on a small
   label strip beneath it in the note's paper color
-- Attach **any number of photos** (gallery or camera) to a note: one fills
-  the card's width, two sit side by side, four make a grid, and anything
-  that would leave a hole or overflow is folded into a "+N" cell so the card
-  stays a card; tap a photo to open the **viewer** (swipe between them,
+- Attach **any number of photos** (gallery or camera) to a note, and choose
+  how several of them are **laid out** — a picker of little schematics
+  appears in the editor as soon as there are two: **Grid** (side by side,
+  then two columns, with a "+N" cell instead of a hole or an overflow),
+  **Pile** (a stack of snapshots, the first on top and the next two fanned
+  out behind it, tilted, with a ×N count) or **Collage** (the first photo
+  large with the rest in a column beside it). The card stays a card in
+  every layout; tap a photo to open the **viewer** (swipe between them,
   pinch to zoom). Add an **emote** sticker, pick a
   **paper color** (or auto-from-id), **pin to top**, and set a **reminder**
   (date + time, optionally **repeating daily / weekly / monthly**) that fires
@@ -49,7 +53,10 @@ then taken well beyond it.
   wall*, or long-press empty wall → *Photos here*) and each lands on the
   wall as its own print: a white border, the picture at its real aspect
   ratio, an optional caption; drag, resize, tie threads and move it between
-  boards like any note
+  boards like any note. A print gets a fourth layout, **Edge to edge**: no
+  border at all, the photo(s) *are* the card like a sketch is — and since
+  there is no border to write on, the caption field goes away with it (an
+  emote or reminder still gets a label strip underneath)
 - The editor *is* the note: same handwriting, same paper color, faint ruled
   lines under each baseline, Save/Cancel on the adhesive strip so they are
   never hidden by the keyboard; validation is inline (the paper shakes)
@@ -120,7 +127,9 @@ then taken well beyond it.
 - Switch by tapping a board tab or swiping horizontally in grid/list; the
   content slides in the direction you moved. Tap the selected tab to edit or
   delete it; **long-press and drag** a tab to reorder boards. The "+" that
-  adds a board sits after the last tab and stays put once the tabs scroll
+  adds a board sits after the last tab and stays put once the tabs scroll;
+  the active tab is scrolled into view whenever you switch boards or the
+  strip changes width (grid / list add a sort button beside it)
 
 **The wall**
 - Twelve switchable textures: cork, green/black chalkboard, painted plaster,
@@ -207,7 +216,7 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 
 | Path | Purpose |
 |---|---|
-| `lib/models/` | `Note` (+ `ReminderRepeat`, `NoteLink`), `ChecklistItem`, `Board` (name, icon, formatting), `DrawStroke` / `DrawCanvas`, `ViewMode` |
+| `lib/models/` | `Note` (+ `NoteType`, `PhotoLayout`, `ReminderRepeat`, `NoteLink`), `ChecklistItem`, `Board` (name, icon, formatting), `DrawStroke` / `DrawCanvas`, `ViewMode` |
 | `lib/services/note_storage.dart` | JSON persistence via `shared_preferences` (notes, boards, threads, settings) |
 | `lib/services/notes_controller.dart` | Boards + notes + CRUD, trash & retention, bulk actions, threads, tidy |
 | `lib/services/settings_controller.dart` | Font / language / stains / night mode & schedule |
@@ -223,13 +232,13 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/widgets/wall_background.dart` | Wall texture or custom photo + scrim, stains, vignette |
 | `lib/widgets/peel_away.dart` | "Peel off the wall" delete animation |
 | `lib/widgets/drawing_canvas.dart` | Freehand drawing editor (pen, eraser, paper tone + guide pattern) and the painters that draw a sketch anywhere |
-| `lib/widgets/note_dialog.dart` | Create/Edit dialog (type, color, pin, reminder + repeat, emote, photo strip) |
-| `lib/widgets/note_views.dart` | Sticky card (paper sheet, edge-to-edge sketch, photo print), photo layouts, list tile, night shade |
+| `lib/widgets/note_dialog.dart` | Create/Edit dialog (type, color, pin, reminder + repeat, emote, photo strip + layout picker) |
+| `lib/widgets/note_views.dart` | Sticky card (paper sheet, edge-to-edge sketch, framed or bare photo print), the photo layouts (grid / pile / collage), list tile, night shade |
 | `lib/widgets/photo_viewer.dart` | Full-screen photo pager (swipe, pinch to zoom) |
 | `lib/widgets/action_sheet.dart` | Bottom action sheet that sizes to its content (long-press menus) |
 | `lib/widgets/add_note_button.dart` | The sticky-note-with-a-pencil FAB |
 | `lib/widgets/wall_decor.dart` | Procedural stains (CustomPainter) |
-| `lib/widgets/board_bar.dart` · `board_dialog.dart` | Reorderable board tabs with a fixed "+", and the create / edit board dialog (name, icon, bold / italic / underline) |
+| `lib/widgets/board_bar.dart` · `board_dialog.dart` | Reorderable board tabs with a fixed "+" that keep the active tab in view, and the create / edit board dialog (name, icon, bold / italic / underline) |
 | `lib/widgets/settings_sheet.dart` | Customize sheet (wall, photo, night, font, trash) |
 | `lib/theme.dart` | Walls, fonts, palette (`AppColors`), radii, light + night themes — every control reads its look from here |
 | `lib/util/` | `foldText` (diacritic folding), `stableHash` (deterministic ids/seeds) |
@@ -241,10 +250,10 @@ Screenshots are produced by the golden generators: remove `skip: true` in
 `screenshots/`. `test/preview_fonts.dart` loads the real typefaces and the
 Material icon font into the test binding, so the screenshots show actual
 handwriting and icons rather than the test framework's block glyphs. The
-photo print in the fixtures is a small sunset painted with `dart:ui` into a
-temp PNG at test time (no binary fixture in the repo); it is decoded via
-`runAsync` *before* the first pump, because an image that starts loading
-inside the fake-async zone never finishes.
+photos in the fixtures are three small scenes (sunset, dusk, meadow) painted
+with `dart:ui` into temp PNGs at test time (no binary fixtures in the repo);
+they are decoded via `runAsync` *before* the first pump, because an image
+that starts loading inside the fake-async zone never finishes.
 
 ## Assets & credits
 

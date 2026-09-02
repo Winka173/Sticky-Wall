@@ -788,6 +788,36 @@ abstract class AppLocalizations {
   /// **'Add at least one photo'**
   String get photoRequired;
 
+  /// No description provided for @photoLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo layout'**
+  String get photoLayout;
+
+  /// No description provided for @layoutGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid'**
+  String get layoutGrid;
+
+  /// No description provided for @layoutStack.
+  ///
+  /// In en, this message translates to:
+  /// **'Pile'**
+  String get layoutStack;
+
+  /// No description provided for @layoutCollage.
+  ///
+  /// In en, this message translates to:
+  /// **'Collage'**
+  String get layoutCollage;
+
+  /// No description provided for @layoutBare.
+  ///
+  /// In en, this message translates to:
+  /// **'Edge to edge'**
+  String get layoutBare;
+
   /// No description provided for @pinPhotos.
   ///
   /// In en, this message translates to:

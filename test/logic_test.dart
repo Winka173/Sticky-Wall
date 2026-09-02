@@ -330,6 +330,31 @@ void main() {
       expect(Note.fromJson(json..['imagePath'] = '').images, isEmpty);
     });
 
+    test('the photo layout round-trips and defaults to the grid', () {
+      final n = _note('1', 'x', images: ['a.jpg', 'b.jpg'])
+        ..photoLayout = PhotoLayout.stack;
+      final json = jsonDecode(jsonEncode(n.toJson())) as Map<String, dynamic>;
+      expect(json['photoLayout'], 'stack');
+      expect(Note.fromJson(json).photoLayout, PhotoLayout.stack);
+      expect(n.clone().photoLayout, PhotoLayout.stack);
+      // Data from before layouts existed, or from a newer build with one
+      // this build doesn't know, reads as the grid.
+      expect(Note.fromJson(json..remove('photoLayout')).photoLayout,
+          PhotoLayout.grid);
+      expect(Note.fromJson(json..['photoLayout'] = 'mosaic').photoLayout,
+          PhotoLayout.grid);
+    });
+
+    test('only a photo note laid out bare counts as bare', () {
+      final print = _note('1', 'x', images: ['a.jpg'], type: NoteType.photo)
+        ..photoLayout = PhotoLayout.bare;
+      expect(print.isBarePhoto, true);
+      expect((print..photoLayout = PhotoLayout.grid).isBarePhoto, false);
+      final text = _note('2', 'y', images: ['a.jpg'])
+        ..photoLayout = PhotoLayout.bare;
+      expect(text.isBarePhoto, false);
+    });
+
     test('addPhotos pins one print per file, cascading from the spot',
         () async {
       final c = await _controller();

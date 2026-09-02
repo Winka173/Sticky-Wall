@@ -105,14 +105,16 @@ class _PhotoTile extends StatelessWidget {
   }
 }
 
-/// The photos attached to a note, laid out by count: one fills the width,
-/// two sit side by side, more make a two-column grid of squares. Past
-/// [maxShown] the last cell carries a "+N" so the card stays a card, not an
-/// album; the editor and viewer show them all.
+/// The photos attached to a note, arranged per [layout] (see [PhotoLayout]).
+/// A lone photo always just fills the width. Whatever the arrangement, the
+/// card stays a card, not an album: the grid and collage fold the overflow
+/// into a "+N" cell, the pile shows the top three and a count; the editor
+/// and viewer show them all.
 class NotePhotos extends StatelessWidget {
   const NotePhotos({
     super.key,
     required this.images,
+    this.layout = PhotoLayout.grid,
     this.singleHeight = 120,
     this.singleMaxHeight,
     this.maxShown = 4,
@@ -121,6 +123,10 @@ class NotePhotos extends StatelessWidget {
   });
 
   final List<String> images;
+
+  /// The arrangement. [PhotoLayout.bare] is a matter of the card's border,
+  /// which the card handles; here it arranges like the grid.
+  final PhotoLayout layout;
 
   /// Height of a lone photo; a pair is half as tall, a grid is square cells.
   final double singleHeight;
@@ -144,33 +150,151 @@ class NotePhotos extends StatelessWidget {
             : _PhotoTile(path: images.first, height: singleHeight),
       );
     }
-    // Only an even count fills a two-column grid; three photos show as two
-    // plus a "+1" cell rather than leaving a hole.
+    return LayoutBuilder(
+      builder: (context, constraints) => switch (layout) {
+        PhotoLayout.stack => _pile(constraints.maxWidth, rounded),
+        PhotoLayout.collage => _collage(constraints.maxWidth, rounded),
+        PhotoLayout.grid || PhotoLayout.bare =>
+          _grid(constraints.maxWidth, rounded),
+      },
+    );
+  }
+
+  /// A photo, or the "+N" cell when it is the last one shown and more follow.
+  Widget _cell(int i, int last, int hidden) => i == last && hidden > 0
+      ? _MorePhotos(path: images[i], more: hidden)
+      : _PhotoTile(path: images[i]);
+
+  /// Two columns. Only an even count fills them; three photos show as two
+  /// plus a "+1" cell rather than leaving a hole.
+  Widget _grid(double width, BorderRadius rounded) {
     final shown = math.min(images.length, maxShown);
     final cells = shown.isOdd ? shown - 1 : shown;
     final hidden = images.length - cells;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final cellW = (constraints.maxWidth - gap) / 2;
-        final cellH = cells == 2 ? singleHeight * 0.62 : cellW;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [
-            for (var i = 0; i < cells; i++)
-              ClipRRect(
-                borderRadius: rounded,
-                child: SizedBox(
-                  width: cellW,
-                  height: cellH,
-                  child: i == cells - 1 && hidden > 0
-                      ? _MorePhotos(path: images[i], more: hidden)
-                      : _PhotoTile(path: images[i]),
+    final cellW = (width - gap) / 2;
+    final cellH = cells == 2 ? singleHeight * 0.62 : cellW;
+    return Wrap(
+      spacing: gap,
+      runSpacing: gap,
+      children: [
+        for (var i = 0; i < cells; i++)
+          ClipRRect(
+            borderRadius: rounded,
+            child: SizedBox(
+              width: cellW,
+              height: cellH,
+              child: _cell(i, cells - 1, hidden),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// The first photo large on the left, the next ones (up to three) in a
+  /// column on the right, the overflow folded into the column's last cell.
+  Widget _collage(double width, BorderRadius rounded) {
+    final side = math.min(images.length - 1, 3);
+    final hidden = images.length - 1 - side;
+    final bigW = (width - gap) * 0.66;
+    final smallW = width - gap - bigW;
+    // Squarer with a longer column, so the small cells stay near-square.
+    final height = side == 1 ? bigW * 0.78 : bigW * 0.92;
+    final smallH = (height - gap * (side - 1)) / side;
+    return SizedBox(
+      height: height,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ClipRRect(
+            borderRadius: rounded,
+            child: SizedBox(width: bigW, child: _PhotoTile(path: images[0])),
+          ),
+          SizedBox(width: gap),
+          Column(
+            children: [
+              for (var i = 1; i <= side; i++) ...[
+                if (i > 1) SizedBox(height: gap),
+                ClipRRect(
+                  borderRadius: rounded,
+                  child: SizedBox(
+                    width: smallW,
+                    height: smallH,
+                    child: _cell(i, side, hidden),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// A pile of snapshots: the first photo on top, the next two fanned out
+  /// behind it — tilted a few degrees, a touch smaller, peeking out over the
+  /// top edge — with the total count in the corner.
+  Widget _pile(double width, BorderRadius rounded) {
+    final height = width / 1.4;
+    // Room above the top photo for the corners of the tilted ones behind.
+    const peek = 10.0;
+    final behind = math.min(images.length - 1, 2);
+    // Each snapshot casts a soft shadow on the one beneath, which is what
+    // separates them where the same photo repeats.
+    Widget photo(int i) => DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: rounded,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 1.5),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: rounded,
+            child: _PhotoTile(path: images[i]),
+          ),
+        );
+    return SizedBox(
+      height: height + peek,
+      child: Stack(
+        // The shadows may spill onto the print border around the pile.
+        clipBehavior: Clip.none,
+        children: [
+          // Back to front, so the one right underneath draws over the one
+          // further down the pile. Alternate tilt directions.
+          for (var i = behind; i >= 1; i--)
+            Positioned(
+              left: 0,
+              right: 0,
+              top: peek - 5.0 * i,
+              height: height,
+              child: Transform.rotate(
+                angle: i == 1 ? -0.1 : 0.08,
+                child: Transform.scale(
+                  // Smaller the further down, so the tilted corners stay
+                  // inside the print's border on the sides (and hidden
+                  // behind the top photo at the bottom).
+                  scale: i == 1 ? 0.93 : 0.86,
+                  child: photo(i),
                 ),
               ),
-          ],
-        );
-      },
+            ),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: peek,
+            height: height,
+            child: photo(0),
+          ),
+          Positioned(
+            right: 6,
+            top: peek + 6,
+            child: _CountBadge(count: images.length, fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -205,6 +329,34 @@ class _MorePhotos extends StatelessWidget {
   }
 }
 
+/// A small dark "×N" pill laid over a photo: how many the note carries.
+class _CountBadge extends StatelessWidget {
+  const _CountBadge({required this.count, this.fontSize = 9});
+
+  final int count;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: fontSize / 3, vertical: fontSize / 9),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(fontSize / 3),
+      ),
+      child: Text(
+        '×$count',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
 /// List-row thumbnail: the first photo, with a small "×N" badge when the note
 /// carries more.
 class _Thumbnail extends StatelessWidget {
@@ -230,21 +382,7 @@ class _Thumbnail extends StatelessWidget {
             Positioned(
               right: 1,
               bottom: 1,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: Text(
-                  '×${images.length}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              child: _CountBadge(count: images.length),
             ),
         ],
       ),
@@ -520,7 +658,8 @@ class _NoteBody extends StatelessWidget {
     final showPhotos = note.hasPhotos && note.type != NoteType.photo;
     // A print or sketch without a caption has no text above the footer, so
     // no gap either.
-    final hasText = note.content.isNotEmpty || note.type == NoteType.checklist;
+    final hasText = (note.content.isNotEmpty && !note.isBarePhoto) ||
+        note.type == NoteType.checklist;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -528,7 +667,7 @@ class _NoteBody extends StatelessWidget {
         if (showPhotos)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: NotePhotos(images: note.images),
+            child: NotePhotos(images: note.images, layout: note.photoLayout),
           ),
         _content(context),
         if (hasFooter) ...[
@@ -609,8 +748,12 @@ class _NoteBody extends StatelessWidget {
           style: body,
         );
       case NoteType.photo:
-        // The caption written under a print; nothing at all when blank.
-        if (note.content.isEmpty) return const SizedBox.shrink();
+        // The caption written under a print; nothing at all when blank, and
+        // never on a bare print, which has no border to write on (the list
+        // row still uses it as the title).
+        if (note.content.isEmpty || note.isBarePhoto) {
+          return const SizedBox.shrink();
+        }
         return SizedBox(
           width: double.infinity,
           child: Text(
@@ -792,7 +935,12 @@ class StickyNoteCard extends StatelessWidget {
   /// A photo print: the pictures inside a narrow white border, with the
   /// caption (and emote / reminder) written underneath like on the back of a
   /// snapshot. No adhesive strip or curled corner — it's glossy paper.
+  ///
+  /// Laid out [PhotoLayout.bare] there is no border at all: the photos run
+  /// edge to edge like a sketch does, and only an emote or reminder earns a
+  /// label strip underneath (a bare print carries no caption).
   Widget _print(BuildContext context) {
+    if (note.isBarePhoto) return _barePrint(context);
     final hasCaption = note.content.isNotEmpty ||
         note.emoji.isNotEmpty ||
         note.reminderAt != null;
@@ -809,6 +957,7 @@ class StickyNoteCard extends StatelessWidget {
         children: [
           NotePhotos(
             images: note.images,
+            layout: note.photoLayout,
             singleHeight: 150,
             singleMaxHeight: 230,
             radius: 2,
@@ -824,6 +973,43 @@ class StickyNoteCard extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _barePrint(BuildContext context) {
+    final hasLabel = note.emoji.isNotEmpty || note.reminderAt != null;
+    return Container(
+      width: double.infinity,
+      decoration: paperDecoration(context, note,
+          raised: raised, selected: selected),
+      child: ClipRRect(
+        borderRadius:
+            BorderRadius.circular(AppRadii.paper - (selected ? 2 : 0)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Square corners and hairline gaps: the card's own corners do the
+            // rounding, and the print white shows through as thin seams.
+            NotePhotos(
+              images: note.images,
+              singleHeight: 170,
+              singleMaxHeight: 260,
+              radius: 0,
+              gap: 2,
+            ),
+            if (hasLabel)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+                child: _NoteBody(
+                  note: note,
+                  cb: cb,
+                  maxContentLines: maxContentLines,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

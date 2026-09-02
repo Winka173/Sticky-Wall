@@ -119,6 +119,45 @@ void main() {
     expect(style.decoration, isNull);
   });
 
+  testWidgets('the selected tab is scrolled into view, and stays there',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 2220);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+    final (app, notes) = await _app();
+    // Short names: the test font is wide, and a chip has to be narrower than
+    // the strip before it can be fully in view at all.
+    for (final name in ['Việc', 'Học', 'Nhà', 'Đi']) {
+      notes.addBoard(name);
+    }
+    notes
+      ..selectBoard('default')
+      ..viewMode = ViewMode.wall;
+    await tester.pumpWidget(app);
+    await tester.pumpAndSettle();
+
+    // The strip is wider than the screen; the last tab is off the end.
+    Rect strip() => tester.getRect(find.byType(ReorderableListView));
+    bool inStrip(String label) {
+      final tab = find.text(label);
+      if (tab.evaluate().isEmpty) return false;
+      final rect = tester.getRect(tab);
+      return rect.left >= strip().left && rect.right <= strip().right;
+    }
+    expect(inStrip('Đi'), isFalse);
+
+    // Selecting it brings it fully into view without scrolling by hand…
+    notes.selectBoard(notes.boards.last.id);
+    await tester.pumpAndSettle();
+    expect(inStrip('Đi'), isTrue);
+
+    // …and it stays in view when the toolbar grows a sort button (grid)
+    // and narrows the strip.
+    notes.viewMode = ViewMode.grid;
+    await tester.pumpAndSettle();
+    expect(inStrip('Đi'), isTrue);
+  });
+
   testWidgets('editing a board pre-fills the dialog and keeps changes',
       (tester) async {
     tester.view.physicalSize = const Size(1080, 2220);

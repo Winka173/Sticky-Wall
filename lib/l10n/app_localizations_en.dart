@@ -402,6 +402,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get photoRequired => 'Add at least one photo';
 
   @override
+  String get photoLayout => 'Photo layout';
+
+  @override
+  String get layoutGrid => 'Grid';
+
+  @override
+  String get layoutStack => 'Pile';
+
+  @override
+  String get layoutCollage => 'Collage';
+
+  @override
+  String get layoutBare => 'Edge to edge';
+
+  @override
   String get pinPhotos => 'Pin photos on the wall';
 
   @override

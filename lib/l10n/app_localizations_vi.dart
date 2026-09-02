@@ -397,6 +397,21 @@ class AppLocalizationsVi extends AppLocalizations {
   String get photoRequired => 'Thêm ít nhất một ảnh';
 
   @override
+  String get photoLayout => 'Bố cục ảnh';
+
+  @override
+  String get layoutGrid => 'Lưới';
+
+  @override
+  String get layoutStack => 'Chồng ảnh';
+
+  @override
+  String get layoutCollage => 'Ghép ảnh';
+
+  @override
+  String get layoutBare => 'Tràn viền';
+
+  @override
   String get pinPhotos => 'Ghim ảnh lên tường';
 
   @override
