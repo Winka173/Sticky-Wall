@@ -4,9 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 
-int _stableHash(String s) =>
-    s.codeUnits.fold(0, (acc, c) => (acc * 31 + c) & 0x7fffffff);
-
 /// Procedural grime layer: water rings, drips, paint splatters, smudges and
 /// scuffs painted over the wall (under the notes). Deterministic per wall,
 /// and kept at very low opacity so writing and notes stay legible.
@@ -45,7 +42,7 @@ class _WallDecorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rng = math.Random(_stableHash(wall.id));
+    final rng = math.Random(stableHash(wall.id));
     final count =
         (size.width * size.height / (180 * 180)).round().clamp(10, 70);
 

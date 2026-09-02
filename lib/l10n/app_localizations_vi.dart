@@ -24,28 +24,22 @@ class AppLocalizationsVi extends AppLocalizations {
   String get typeAll => 'Tất cả';
 
   @override
-  String get typeNormal => 'Thường';
+  String get typeNormal => 'Văn bản';
 
   @override
   String get typeLink => 'Liên kết';
 
   @override
-  String get typeChecklist => 'Danh sách';
+  String get typeChecklist => 'Việc cần làm';
 
   @override
-  String get createNote => 'Tạo ghi chú';
-
-  @override
-  String get editNote => 'Sửa ghi chú';
-
-  @override
-  String get content => 'Nội dung';
+  String get typeDrawing => 'Vẽ tay';
 
   @override
   String get title => 'Tiêu đề';
 
   @override
-  String get contentHint => 'Ghi gì đó...';
+  String get contentHint => 'Viết gì đó lên đây…';
 
   @override
   String get link => 'Liên kết';
@@ -66,25 +60,25 @@ class AppLocalizationsVi extends AppLocalizations {
   String get delete => 'Xóa';
 
   @override
+  String get edit => 'Sửa';
+
+  @override
   String get rename => 'Đổi tên';
 
   @override
-  String get contentRequired => 'Vui lòng nhập nội dung';
+  String get clear => 'Xóa hết';
 
   @override
-  String get linkRequired => 'Vui lòng nhập liên kết';
+  String get contentRequired => 'Viết gì đó trước nhé';
 
   @override
-  String get duplicateExists => 'Nội dung hoặc liên kết đã tồn tại';
+  String get linkRequired => 'Thêm liên kết trước nhé';
 
   @override
-  String get addSuccess => 'Đã thêm thành công';
+  String get noteEmpty => 'Ghi chú vẫn đang trống';
 
   @override
-  String get updateSuccess => 'Đã cập nhật thành công';
-
-  @override
-  String get deleteSuccess => 'Đã xóa thành công';
+  String get duplicateExists => 'Liên kết này đã có trên tường';
 
   @override
   String get noteDeleted => 'Đã xóa ghi chú';
@@ -94,7 +88,14 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get emptyState =>
-      'Chưa có ghi chú nào.\nNhấn “Thêm ghi chú” để dán lên tường!';
+      'Chưa có ghi chú nào.\nChạm vào đây để dán tờ đầu tiên lên tường!';
+
+  @override
+  String get wallCreateHint =>
+      'Mẹo: chạm giữ vào chỗ trống trên tường để dán ghi chú ngay tại đó.';
+
+  @override
+  String get noMatches => 'Không có ghi chú nào khớp';
 
   @override
   String couldNotOpen(String url) {
@@ -105,7 +106,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get customize => 'Tùy chỉnh';
 
   @override
-  String get wallSection => 'Tường';
+  String get wallSection => 'Chất liệu tường';
 
   @override
   String get fontSection => 'Phông chữ';
@@ -120,7 +121,22 @@ class AppLocalizationsVi extends AppLocalizations {
   String get sortTooltip => 'Sắp xếp';
 
   @override
-  String get viewWall => 'Tường';
+  String get sortNewest => 'Mới nhất';
+
+  @override
+  String get sortOldest => 'Cũ nhất';
+
+  @override
+  String get sortAZ => 'A → Z';
+
+  @override
+  String get sortZA => 'Z → A';
+
+  @override
+  String get layout => 'Bố cục';
+
+  @override
+  String get viewWall => 'Dán tự do';
 
   @override
   String get viewGrid => 'Lưới';
@@ -129,40 +145,34 @@ class AppLocalizationsVi extends AppLocalizations {
   String get viewList => 'Danh sách';
 
   @override
-  String get wallCork => 'Bảng gỗ bần';
+  String get wallCork => 'Bảng ghim';
 
   @override
-  String get wallChalkGreen => 'Bảng phấn xanh';
+  String get wallChalkGreen => 'Bảng xanh';
 
   @override
-  String get wallChalkBlack => 'Bảng phấn đen';
+  String get wallChalkBlack => 'Bảng đen';
 
   @override
-  String get wallPlaster => 'Tường sơn';
+  String get wallPlaster => 'Tường vôi';
 
   @override
   String get wallBrick => 'Tường gạch';
 
   @override
-  String get wallWood => 'Tường gỗ';
+  String get wallWood => 'Ván gỗ';
 
   @override
   String get fontPreview => 'Xin chào! Ghi chú nhanh lên tường.';
 
   @override
-  String get emote => 'Emote';
-
-  @override
-  String get typeDrawing => 'Vẽ tay';
-
-  @override
   String get photo => 'Ảnh';
 
   @override
-  String get fromGallery => 'Thư viện';
+  String get fromGallery => 'Chọn từ thư viện';
 
   @override
-  String get takePhoto => 'Máy ảnh';
+  String get takePhoto => 'Chụp ảnh';
 
   @override
   String get shareAsImage => 'Chia sẻ ảnh';
@@ -177,89 +187,76 @@ class AppLocalizationsVi extends AppLocalizations {
   String get imageSaveFailed => 'Không lưu được ảnh';
 
   @override
-  String get resetZoom => 'Đặt lại thu phóng';
+  String get resetZoom => 'Về cỡ gốc';
 
   @override
   String get wallDecor => 'Vết bẩn trên tường';
 
   @override
-  String get color => 'Màu giấy';
-
-  @override
-  String get colorAuto => 'Tự động';
-
-  @override
   String get pin => 'Ghim lên đầu';
+
+  @override
+  String get unpin => 'Bỏ ghim';
 
   @override
   String get reminder => 'Nhắc nhở';
 
   @override
-  String get noReminder => 'Không nhắc';
-
-  @override
-  String get setReminder => 'Đặt nhắc nhở';
-
-  @override
-  String get clearReminder => 'Xóa';
-
-  @override
-  String get checklistItems => 'Mục';
-
-  @override
   String get addItem => 'Thêm mục';
 
   @override
-  String get sortByCreated => 'Mới nhất trước';
+  String get penSize => 'Cỡ bút';
 
   @override
-  String get sortByName => 'Theo tên';
+  String get emote => 'Biểu tượng';
 
   @override
-  String get sortAsc => 'Tăng dần';
+  String get color => 'Màu giấy';
 
   @override
-  String get sortDesc => 'Giảm dần';
+  String get newBoard => 'Tường mới';
 
   @override
-  String get boards => 'Bảng';
-
-  @override
-  String get newBoard => 'Bảng mới';
-
-  @override
-  String get boardName => 'Tên bảng';
+  String get boardName => 'Tên tường';
 
   @override
   String get defaultBoardName => 'Tường của tôi';
 
   @override
-  String get deleteBoard => 'Xóa bảng';
+  String get deleteBoard => 'Xóa tường';
 
   @override
   String deleteBoardConfirm(String name) {
-    return 'Xóa “$name” và toàn bộ ghi chú của nó?';
+    return 'Xóa “$name” và toàn bộ ghi chú trên đó?';
+  }
+
+  @override
+  String get moveToBoard => 'Chuyển sang tường khác';
+
+  @override
+  String movedToBoard(String name) {
+    return 'Đã chuyển sang “$name”';
   }
 
   @override
   String get dataSection => 'Sao lưu';
 
   @override
-  String get exportData => 'Xuất ghi chú';
+  String get exportData => 'Sao lưu ghi chú';
 
   @override
-  String get importData => 'Nhập ghi chú';
+  String get importData => 'Khôi phục bản sao lưu';
 
   @override
   String get importHint => 'Dán bản sao lưu vào đây';
 
   @override
-  String get importSuccess => 'Đã nhập thành công';
+  String get importSuccess => 'Đã khôi phục thành công';
 
   @override
   String get importFailed => 'Không đọc được bản sao lưu';
 
   @override
   String get importReplaceWarning =>
-      'Nhập sẽ thay thế toàn bộ bảng và ghi chú hiện tại.';
+      'Khôi phục sẽ thay thế toàn bộ tường và ghi chú hiện tại.';
 }

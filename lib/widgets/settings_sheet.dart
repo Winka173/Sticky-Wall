@@ -23,12 +23,7 @@ Future<void> showSettingsSheet(
 }) {
   return showModalBottomSheet(
     context: context,
-    backgroundColor: AppColors.paper,
     isScrollControlled: true,
-    showDragHandle: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
     builder: (context) => ListenableBuilder(
       listenable: Listenable.merge([settings, notes]),
       builder: (context, _) =>
@@ -46,11 +41,11 @@ class _SettingsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final primary = Theme.of(context).colorScheme.primary;
 
     return DraggableScrollableSheet(
       expand: false,
-      initialChildSize: 0.7,
+      // Opens just past the wall picker; drag up for fonts and data.
+      initialChildSize: 0.58,
       maxChildSize: 0.92,
       minChildSize: 0.4,
       builder: (context, scrollController) => ListView(
@@ -76,13 +71,14 @@ class _SettingsSheet extends StatelessWidget {
                   onTap: () => notes.setCurrentBoardWall(index),
                   child: Column(
                     children: [
-                      Container(
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
                         width: 84,
                         height: 84,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: selected ? primary : Colors.black26,
+                            color: selected ? AppColors.ink : Colors.black26,
                             width: selected ? 3 : 1,
                           ),
                         ),
@@ -93,14 +89,23 @@ class _SettingsSheet extends StatelessWidget {
                             children: [
                               Image.asset(wall.asset, fit: BoxFit.cover),
                               ColoredBox(color: wall.overlay),
+                              if (selected)
+                                const Center(
+                                  child: Icon(Icons.check_circle,
+                                      color: Colors.white, size: 26),
+                                ),
                             ],
                           ),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(wallLabel(l10n, wall.id),
-                          style: const TextStyle(
-                              fontSize: 13, color: AppColors.ink)),
+                          style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.ink,
+                              fontWeight: selected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal)),
                     ],
                   ),
                 );
@@ -138,7 +143,7 @@ class _SettingsSheet extends StatelessWidget {
                         style: TextStyle(
                             fontFamily: font.family,
                             fontSize: 15 * font.scale,
-                            color: const Color(0x993B372F))),
+                            color: AppColors.inkSoft)),
                   ),
               ],
             ),
@@ -188,40 +193,10 @@ class _SettingsSheet extends StatelessWidget {
   }
 
   Future<void> _importFlow(BuildContext context, AppLocalizations l10n) async {
-    final controller = TextEditingController();
     final text = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.importData),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l10n.importReplaceWarning,
-                style: const TextStyle(fontSize: 14, color: Color(0x99000000))),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              maxLines: 6,
-              decoration: InputDecoration(
-                hintText: l10n.importHint,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: Text(l10n.importData),
-          ),
-        ],
-      ),
+      builder: (context) => _ImportDialog(l10n: l10n),
     );
-
     if (text == null || text.trim().isEmpty || !context.mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
@@ -236,6 +211,62 @@ class _SettingsSheet extends StatelessWidget {
   }
 }
 
+/// Owns its controller so it is disposed with the dialog, not while the
+/// field is still animating off screen.
+class _ImportDialog extends StatefulWidget {
+  const _ImportDialog({required this.l10n});
+
+  final AppLocalizations l10n;
+
+  @override
+  State<_ImportDialog> createState() => _ImportDialogState();
+}
+
+class _ImportDialogState extends State<_ImportDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = widget.l10n;
+    return AlertDialog(
+      title: Text(l10n.importData),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(l10n.importReplaceWarning,
+              style: const TextStyle(fontSize: 14, color: AppColors.inkSoft)),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _controller,
+            maxLines: 6,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: l10n.importHint,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _controller.text),
+          child: Text(l10n.importData),
+        ),
+      ],
+    );
+  }
+}
+
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);
 
@@ -246,9 +277,9 @@ class _SectionTitle extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 8),
       child: Text(text,
-          style: TextStyle(
+          style: const TextStyle(
               fontSize: 16,
-              color: Theme.of(context).colorScheme.primary,
+              color: AppColors.ink,
               fontWeight: FontWeight.bold)),
     );
   }

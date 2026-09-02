@@ -4,28 +4,34 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/note.dart';
+import '../util/stable_hash.dart';
 
 /// Wraps [FlutterLocalNotificationsPlugin] for note reminders.
 ///
 /// [init] must be called once at startup before scheduling. All methods no-op
 /// safely when the platform has no notification support (e.g. in tests or on
 /// the web), so callers never need to guard.
+///
+/// The notification permission is requested lazily — the first time a reminder
+/// is actually scheduled — rather than on first launch, so a new user isn't
+/// greeted by a system prompt before they've done anything.
 class ReminderService {
   final _plugin = FlutterLocalNotificationsPlugin();
   bool _ready = false;
+  bool _permissionAsked = false;
 
   Future<void> init() async {
     try {
       tz.initializeTimeZones();
       const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-      const darwin = DarwinInitializationSettings();
+      const darwin = DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      );
       await _plugin.initialize(
         settings: const InitializationSettings(android: android, iOS: darwin),
       );
-      await _plugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.requestNotificationsPermission();
       _ready = true;
     } catch (e) {
       // Unsupported platform / no plugin — reminders simply won't fire.
@@ -44,26 +50,68 @@ class ReminderService {
     iOS: DarwinNotificationDetails(),
   );
 
-  /// A stable per-note notification id derived from the guid.
-  int _idFor(Note note) => note.guid.hashCode & 0x7fffffff;
+  /// A stable per-note notification id derived from the guid. Must survive a
+  /// restart so an edited reminder replaces (not duplicates) the old one.
+  int _idFor(Note note) => stableHash(note.guid) & 0x7fffffff;
+
+  /// What the notification says. A to-do or drawing note may have no title,
+  /// so fall back to its items, then to the app name — never a blank banner.
+  static String titleFor(Note note) {
+    var text = note.content.trim();
+    if (text.isEmpty) {
+      text = note.checklist
+          .map((i) => i.text.trim())
+          .where((t) => t.isNotEmpty)
+          .join(', ');
+    }
+    if (text.isEmpty) text = 'Sticky Wall';
+    return note.emoji.isEmpty ? text : '${note.emoji} $text';
+  }
+
+  Future<void> _ensurePermission() async {
+    if (_permissionAsked) return;
+    _permissionAsked = true;
+    try {
+      await _plugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+      await _plugin
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+    } catch (e) {
+      debugPrint('Notification permission request failed: $e');
+    }
+  }
 
   Future<void> sync(Note note) async {
     await cancel(note);
     final at = note.reminderAt;
     if (!_ready || at == null || at.isBefore(DateTime.now())) return;
 
-    try {
-      await _plugin.zonedSchedule(
-        id: _idFor(note),
-        title:
-            note.emoji.isEmpty ? note.content : '${note.emoji} ${note.content}',
-        body: null,
-        scheduledDate: tz.TZDateTime.from(at, tz.local),
-        notificationDetails: _details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      );
-    } catch (e) {
-      debugPrint('Failed to schedule reminder: $e');
+    await _ensurePermission();
+    final when = tz.TZDateTime.from(at, tz.local);
+
+    // Android 14+ denies SCHEDULE_EXACT_ALARM by default; rather than lose the
+    // reminder entirely, fall back to an inexact alarm (fires within minutes).
+    for (final mode in const [
+      AndroidScheduleMode.exactAllowWhileIdle,
+      AndroidScheduleMode.inexactAllowWhileIdle,
+    ]) {
+      try {
+        await _plugin.zonedSchedule(
+          id: _idFor(note),
+          title: titleFor(note),
+          body: null,
+          scheduledDate: when,
+          notificationDetails: _details,
+          androidScheduleMode: mode,
+        );
+        return;
+      } catch (e) {
+        debugPrint('Failed to schedule reminder ($mode): $e');
+      }
     }
   }
 

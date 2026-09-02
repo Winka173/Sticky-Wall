@@ -24,28 +24,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get typeAll => 'All';
 
   @override
-  String get typeNormal => 'Normal';
+  String get typeNormal => 'Text';
 
   @override
   String get typeLink => 'Link';
 
   @override
-  String get typeChecklist => 'Checklist';
+  String get typeChecklist => 'To-do list';
 
   @override
-  String get createNote => 'Create Note';
-
-  @override
-  String get editNote => 'Edit Note';
-
-  @override
-  String get content => 'Content';
+  String get typeDrawing => 'Drawing';
 
   @override
   String get title => 'Title';
 
   @override
-  String get contentHint => 'Note something...';
+  String get contentHint => 'Write something…';
 
   @override
   String get link => 'Link';
@@ -66,25 +60,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
+  String get edit => 'Edit';
+
+  @override
   String get rename => 'Rename';
 
   @override
-  String get contentRequired => 'Content is required';
+  String get clear => 'Clear';
 
   @override
-  String get linkRequired => 'Link is required';
+  String get contentRequired => 'Write something first';
 
   @override
-  String get duplicateExists => 'This content or link already exists';
+  String get linkRequired => 'Add a link first';
 
   @override
-  String get addSuccess => 'Added successfully';
+  String get noteEmpty => 'The note is still empty';
 
   @override
-  String get updateSuccess => 'Updated successfully';
-
-  @override
-  String get deleteSuccess => 'Deleted successfully';
+  String get duplicateExists => 'This link is already on the wall';
 
   @override
   String get noteDeleted => 'Note deleted';
@@ -94,7 +88,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emptyState =>
-      'No notes yet.\nTap “Add Note” to stick one on the wall!';
+      'No notes yet.\nTap here to stick the first one on the wall!';
+
+  @override
+  String get wallCreateHint =>
+      'Tip: long-press anywhere on the wall to stick a note right there.';
+
+  @override
+  String get noMatches => 'No notes match';
 
   @override
   String couldNotOpen(String url) {
@@ -105,7 +106,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customize => 'Customize';
 
   @override
-  String get wallSection => 'Wall';
+  String get wallSection => 'Wall texture';
 
   @override
   String get fontSection => 'Font';
@@ -118,6 +119,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sortTooltip => 'Sort';
+
+  @override
+  String get sortNewest => 'Newest first';
+
+  @override
+  String get sortOldest => 'Oldest first';
+
+  @override
+  String get sortAZ => 'A → Z';
+
+  @override
+  String get sortZA => 'Z → A';
+
+  @override
+  String get layout => 'Layout';
 
   @override
   String get viewWall => 'Wall';
@@ -150,19 +166,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fontPreview => 'Hello! A quick note on the wall.';
 
   @override
-  String get emote => 'Emote';
-
-  @override
-  String get typeDrawing => 'Drawing';
-
-  @override
   String get photo => 'Photo';
 
   @override
-  String get fromGallery => 'Gallery';
+  String get fromGallery => 'Choose from gallery';
 
   @override
-  String get takePhoto => 'Camera';
+  String get takePhoto => 'Take a photo';
 
   @override
   String get shareAsImage => 'Share as image';
@@ -183,46 +193,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallDecor => 'Wall stains & marks';
 
   @override
-  String get color => 'Paper color';
-
-  @override
-  String get colorAuto => 'Auto';
-
-  @override
   String get pin => 'Pin to top';
+
+  @override
+  String get unpin => 'Unpin';
 
   @override
   String get reminder => 'Reminder';
 
   @override
-  String get noReminder => 'No reminder';
-
-  @override
-  String get setReminder => 'Set reminder';
-
-  @override
-  String get clearReminder => 'Clear';
-
-  @override
-  String get checklistItems => 'Items';
-
-  @override
   String get addItem => 'Add item';
 
   @override
-  String get sortByCreated => 'Newest first';
+  String get penSize => 'Pen size';
 
   @override
-  String get sortByName => 'By name';
+  String get emote => 'Emote';
 
   @override
-  String get sortAsc => 'Ascending';
-
-  @override
-  String get sortDesc => 'Descending';
-
-  @override
-  String get boards => 'Boards';
+  String get color => 'Paper color';
 
   @override
   String get newBoard => 'New board';
@@ -242,24 +231,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get moveToBoard => 'Move to another board';
+
+  @override
+  String movedToBoard(String name) {
+    return 'Moved to “$name”';
+  }
+
+  @override
   String get dataSection => 'Backup';
 
   @override
-  String get exportData => 'Export notes';
+  String get exportData => 'Back up notes';
 
   @override
-  String get importData => 'Import notes';
+  String get importData => 'Restore backup';
 
   @override
   String get importHint => 'Paste a backup here';
 
   @override
-  String get importSuccess => 'Imported successfully';
+  String get importSuccess => 'Restored successfully';
 
   @override
   String get importFailed => 'Could not read that backup';
 
   @override
   String get importReplaceWarning =>
-      'Importing replaces all current boards and notes.';
+      'Restoring replaces all current boards and notes.';
 }

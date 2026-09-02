@@ -8,7 +8,7 @@ then taken well beyond it.
 
 | Wall (drag, resize, draw, zoom) | Grid | List | Paper editor |
 |---|---|---|---|
-| ![Wall](screenshots/mode_wall.png) | ![Grid](screenshots/preview_cork.png) | ![List](screenshots/mode_list.png) | ![Editor](screenshots/editor.png) |
+| ![Wall](screenshots/mode_wall.png) | ![Grid](screenshots/mode_grid.png) | ![List](screenshots/mode_list.png) | ![Editor](screenshots/editor.png) |
 
 | Cork | Green chalkboard | Black chalkboard |
 |---|---|---|
@@ -27,20 +27,27 @@ then taken well beyond it.
 - Attach a **photo** (gallery or camera), add an **emote** sticker, pick a
   **paper color** (or auto-from-id), **pin to top**, and set a **reminder**
   (date + time) that fires a local notification
-- **Share** a note as an image or **save** it to the photo gallery
-  (long-press a note)
-- Add / edit / delete with **undo** (delete shows an Undo snackbar), plus
-  duplicate prevention
+- The editor *is* the note: same handwriting, same paper color, faint ruled
+  lines under each baseline, Save/Cancel on the adhesive strip so they are
+  never hidden by the keyboard; validation is inline (the paper shakes)
+- **Long-press** a note for Edit / Pin / **Move to another board** / Share /
+  Save / Delete. **Share** renders the note as an image; **Save** puts it in
+  the photo gallery
+- Delete shows an **Undo** snackbar; in list mode, swipe a row to delete.
+  A link already on the wall (ignoring `https://`, `www.` and a trailing
+  slash) is rejected
 - Notes are paper cards with a push-pin, drop shadow and a slight hand-stuck
-  tilt; pinned notes straighten and get a gold pin
+  tilt; pinned notes straighten and get a gold pin (tap the pin to toggle)
 
 **Layouts**
-- **Wall** — drag notes anywhere, **resize** each with its corner handle,
-  **pinch to zoom / pan** the whole board (reset-zoom button); tap empty
-  space to create a note there
+- **Wall** — drag notes anywhere, **resize** the active note with its corner
+  handle, **pinch to zoom / pan** the whole board (double-tap or the
+  reset button snaps back); **long-press** empty space to stick a note there
 - **Grid** — masonry layout (varied heights)
-- **List** — compact rows
-- Live search, filter by type, sort by newest or by name
+- **List** — compact rows, swipe-to-delete
+- Live, diacritic-insensitive search ("tuoi" finds "Tưới") and a type filter;
+  on the wall, notes that don't match are dimmed in place rather than
+  removed. Grid/list add a sort menu (newest, oldest, A–Z, Z–A)
 
 **Home-screen widget** (Android)
 - A widget showing the current board's pinned notes; tap to open the app.
@@ -52,8 +59,9 @@ then taken well beyond it.
 
 **Boards**
 - Multiple named boards ("My Wall", "Work", …); each remembers its own wall
-- Switch by tapping a board tab or swiping horizontally in grid/list;
-  add / rename / delete boards
+- Switch by tapping a board tab or swiping horizontally in grid/list; the
+  content slides in the direction you moved. Tap the selected tab (or
+  long-press any) to rename / delete it
 
 **The wall**
 - Six switchable textures: cork, green/black chalkboard, painted plaster,
@@ -68,7 +76,11 @@ then taken well beyond it.
 - Full English / Tiếng Việt UI, following the system locale or set manually
 
 **Data**
-- Everything persists locally (no backend)
+- Everything persists locally (no backend). A single corrupt record is
+  skipped on load instead of taking every note with it
+- Photos are copied into the app's documents folder and referenced by file
+  name, so they survive iOS container moves; files no longer referenced by
+  any note are removed
 - **Export** the whole wall to a JSON file (share sheet) and **import** it back
 
 ## Getting started
@@ -108,8 +120,14 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/widgets/note_views.dart` | Sticky card + list tile |
 | `lib/widgets/wall_decor.dart` | Procedural stains (CustomPainter) |
 | `lib/widgets/settings_sheet.dart` · `board_bar.dart` | Customize sheet, board tabs |
-| `lib/theme.dart` | Walls, fonts, palette, theme |
+| `lib/theme.dart` | Walls, fonts, palette (`AppColors`), theme |
+| `lib/util/` | `foldText` (diacritic folding), `stableHash` (deterministic ids/seeds) |
 | `test/*_test.dart` | Widget/unit tests + skipped golden generators for screenshots & icon |
+
+Screenshots are produced by the golden generators: remove `skip: true` in
+`test/preview_test.dart` / `test/modes_preview_test.dart`, run
+`flutter test --update-goldens` on them, and move the PNGs from `test/` to
+`screenshots/`.
 
 ## Assets & credits
 

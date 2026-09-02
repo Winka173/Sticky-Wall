@@ -63,7 +63,8 @@ class Note {
   /// Freehand strokes for a drawing note.
   List<DrawStroke> strokes;
 
-  /// Absolute path to an attached photo (empty if none).
+  /// Attached photo reference — the file name inside the app's photo folder
+  /// (see `ImageService.resolve`); empty if none.
   String imagePath;
 
   DateTime createdAt;

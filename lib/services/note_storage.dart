@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/board.dart';
@@ -27,20 +28,33 @@ class NoteStorage {
     return NoteStorage(await SharedPreferences.getInstance());
   }
 
-  // --- Notes ---------------------------------------------------------------
-
-  List<Note> loadNotes() {
-    final raw = _prefs.getString(_notesKey);
+  /// Decodes a stored JSON list record by record. One malformed entry (a
+  /// hand-edited backup, a field from a newer version) is skipped rather
+  /// than taking every other note down with it.
+  List<T> _loadList<T>(String key, T Function(Map<String, dynamic>) parse) {
+    final raw = _prefs.getString(key);
     if (raw == null || raw.isEmpty) return [];
+    final List<dynamic> decoded;
     try {
-      final decoded = jsonDecode(raw) as List<dynamic>;
-      return decoded
-          .map((e) => Note.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
+      decoded = jsonDecode(raw) as List<dynamic>;
+    } catch (e) {
+      debugPrint('Could not decode "$key": $e');
       return [];
     }
+    final out = <T>[];
+    for (final entry in decoded) {
+      try {
+        out.add(parse(entry as Map<String, dynamic>));
+      } catch (e) {
+        debugPrint('Skipping malformed "$key" record: $e');
+      }
+    }
+    return out;
   }
+
+  // --- Notes ---------------------------------------------------------------
+
+  List<Note> loadNotes() => _loadList(_notesKey, Note.fromJson);
 
   Future<void> saveNotes(List<Note> notes) {
     return _prefs.setString(
@@ -51,18 +65,7 @@ class NoteStorage {
 
   // --- Boards --------------------------------------------------------------
 
-  List<Board> loadBoards() {
-    final raw = _prefs.getString(_boardsKey);
-    if (raw == null || raw.isEmpty) return [];
-    try {
-      final decoded = jsonDecode(raw) as List<dynamic>;
-      return decoded
-          .map((e) => Board.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      return [];
-    }
-  }
+  List<Board> loadBoards() => _loadList(_boardsKey, Board.fromJson);
 
   Future<void> saveBoards(List<Board> boards) {
     return _prefs.setString(
@@ -97,7 +100,7 @@ class NoteStorage {
   Future<void> setViewMode(ViewMode mode) =>
       _prefs.setString(_viewModeKey, mode.name);
 
-  /// -1 = All, 0 = Normal, 1 = Link, 2 = Checklist.
+  /// -1 = All, 0 = Normal, 1 = Link, 2 = Checklist, 3 = Drawing.
   int get typeFilter => _prefs.getInt(_filterKey) ?? -1;
   Future<void> setTypeFilter(int value) => _prefs.setInt(_filterKey, value);
 

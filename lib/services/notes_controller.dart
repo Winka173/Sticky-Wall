@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../models/board.dart';
 import '../models/note.dart';
 import '../models/view_mode.dart';
+import '../util/text_fold.dart';
 import 'note_storage.dart';
 import 'reminder_service.dart';
 
@@ -106,7 +107,12 @@ class NotesController extends ChangeNotifier {
   void deleteBoard(String id) {
     if (_boards.length <= 1) return;
     _boards.removeWhere((b) => b.id == id);
+    for (final note in _notes.where((n) => n.boardId == id)) {
+      _reminders.cancel(note);
+    }
     _notes.removeWhere((n) => n.boardId == id);
+    // Undo would resurrect a note onto a board that no longer exists.
+    if (_lastDeleted?.boardId == id) _lastDeleted = null;
     if (_currentBoardId == id) _currentBoardId = _boards.first.id;
     _storage
       ..saveBoards(_boards)
@@ -138,16 +144,15 @@ class NotesController extends ChangeNotifier {
   }
 
   bool get sortByCreated => _sortByCreated;
-  set sortByCreated(bool value) {
-    _sortByCreated = value;
-    _storage.setSortByCreated(value);
-    notifyListeners();
-  }
-
   bool get sortAscending => _sortAscending;
-  void toggleSortDirection() {
-    _sortAscending = !_sortAscending;
-    _storage.setSortAscending(_sortAscending);
+
+  void setSort({required bool byCreated, required bool ascending}) {
+    if (_sortByCreated == byCreated && _sortAscending == ascending) return;
+    _sortByCreated = byCreated;
+    _sortAscending = ascending;
+    _storage
+      ..setSortByCreated(byCreated)
+      ..setSortAscending(ascending);
     notifyListeners();
   }
 
@@ -163,26 +168,34 @@ class NotesController extends ChangeNotifier {
   List<Note> get boardNotes =>
       _notes.where((n) => n.boardId == _currentBoardId).toList();
 
+  /// True when a search or type filter is narrowing the notes shown.
+  bool get isFiltering => _search.trim().isNotEmpty || _typeFilter != -1;
+
+  /// Whether [note] passes the current type filter and search. Search is
+  /// case- and diacritic-insensitive ("tuoi" finds "Tưới").
+  bool matches(Note note) {
+    final matchesType = switch (_typeFilter) {
+      0 => note.type == NoteType.normal,
+      1 => note.type == NoteType.link,
+      2 => note.type == NoteType.checklist,
+      3 => note.type == NoteType.drawing,
+      _ => true,
+    };
+    if (!matchesType) return false;
+    final search = foldText(_search.trim());
+    if (search.isEmpty) return true;
+    final haystack = foldText([
+      note.content,
+      note.url,
+      ...note.checklist.map((i) => i.text),
+    ].join(' '));
+    return haystack.contains(search);
+  }
+
   /// Notes on the current board, filtered by type/search and sorted, for the
   /// grid and list views. Pinned notes come first.
   List<Note> get visibleNotes {
-    final search = _search.toLowerCase().trim();
-
-    final filtered = boardNotes.where((note) {
-      final matchesType = switch (_typeFilter) {
-        0 => note.type == NoteType.normal,
-        1 => note.type == NoteType.link,
-        2 => note.type == NoteType.checklist,
-        3 => note.type == NoteType.drawing,
-        _ => true,
-      };
-      final haystack = [
-        note.content,
-        note.url,
-        ...note.checklist.map((i) => i.text),
-      ].join(' ').toLowerCase();
-      return matchesType && haystack.contains(search);
-    }).toList();
+    final filtered = boardNotes.where(matches).toList();
 
     filtered.sort((a, b) {
       if (a.pinned != b.pinned) return a.pinned ? -1 : 1;
@@ -260,6 +273,35 @@ class NotesController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Called once the Undo snackbar for [note] is gone without being used.
+  /// Gives up the undo slot (if it is still this note's) and returns the
+  /// note's photo reference when no surviving note shows it, so the caller
+  /// can remove the file from disk. Returns null if the note was restored.
+  String? purgeDeleted(Note note) {
+    if (_lastDeleted?.guid == note.guid) _lastDeleted = null;
+    if (_notes.any((n) => n.guid == note.guid)) return null;
+    final path = note.imagePath;
+    if (path.isEmpty || _notes.any((n) => n.imagePath == path)) return null;
+    return path;
+  }
+
+  /// Whether some other note still shows the photo at [path].
+  bool photoInUse(String path) =>
+      path.isNotEmpty && _notes.any((n) => n.imagePath == path);
+
+  /// Moves a note onto another board, dropping it near the center there.
+  void moveToBoard(Note note, String boardId) {
+    if (note.boardId == boardId || _boards.every((b) => b.id != boardId)) {
+      return;
+    }
+    note
+      ..boardId = boardId
+      ..x = 0.35
+      ..y = 0.3;
+    _persistNotes();
+    notifyListeners();
+  }
+
   void togglePin(Note note) {
     note.pinned = !note.pinned;
     _persistNotes();
@@ -305,6 +347,11 @@ class NotesController extends ChangeNotifier {
   /// Replaces all boards and notes with imported data.
   void replaceAll(List<Board> boards, List<Note> notes) {
     if (boards.isEmpty) return;
+    // Old reminders would otherwise keep firing for notes that no longer exist.
+    for (final note in _notes) {
+      _reminders.cancel(note);
+    }
+    _lastDeleted = null;
     _boards
       ..clear()
       ..addAll(boards);

@@ -131,7 +131,7 @@ abstract class AppLocalizations {
   /// No description provided for @typeNormal.
   ///
   /// In en, this message translates to:
-  /// **'Normal'**
+  /// **'Text'**
   String get typeNormal;
 
   /// No description provided for @typeLink.
@@ -143,26 +143,14 @@ abstract class AppLocalizations {
   /// No description provided for @typeChecklist.
   ///
   /// In en, this message translates to:
-  /// **'Checklist'**
+  /// **'To-do list'**
   String get typeChecklist;
 
-  /// No description provided for @createNote.
+  /// No description provided for @typeDrawing.
   ///
   /// In en, this message translates to:
-  /// **'Create Note'**
-  String get createNote;
-
-  /// No description provided for @editNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Note'**
-  String get editNote;
-
-  /// No description provided for @content.
-  ///
-  /// In en, this message translates to:
-  /// **'Content'**
-  String get content;
+  /// **'Drawing'**
+  String get typeDrawing;
 
   /// No description provided for @title.
   ///
@@ -173,7 +161,7 @@ abstract class AppLocalizations {
   /// No description provided for @contentHint.
   ///
   /// In en, this message translates to:
-  /// **'Note something...'**
+  /// **'Write something…'**
   String get contentHint;
 
   /// No description provided for @link.
@@ -212,47 +200,47 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get delete;
 
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
   /// No description provided for @rename.
   ///
   /// In en, this message translates to:
   /// **'Rename'**
   String get rename;
 
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
   /// No description provided for @contentRequired.
   ///
   /// In en, this message translates to:
-  /// **'Content is required'**
+  /// **'Write something first'**
   String get contentRequired;
 
   /// No description provided for @linkRequired.
   ///
   /// In en, this message translates to:
-  /// **'Link is required'**
+  /// **'Add a link first'**
   String get linkRequired;
+
+  /// No description provided for @noteEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The note is still empty'**
+  String get noteEmpty;
 
   /// No description provided for @duplicateExists.
   ///
   /// In en, this message translates to:
-  /// **'This content or link already exists'**
+  /// **'This link is already on the wall'**
   String get duplicateExists;
-
-  /// No description provided for @addSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Added successfully'**
-  String get addSuccess;
-
-  /// No description provided for @updateSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Updated successfully'**
-  String get updateSuccess;
-
-  /// No description provided for @deleteSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Deleted successfully'**
-  String get deleteSuccess;
 
   /// No description provided for @noteDeleted.
   ///
@@ -269,8 +257,20 @@ abstract class AppLocalizations {
   /// No description provided for @emptyState.
   ///
   /// In en, this message translates to:
-  /// **'No notes yet.\nTap “Add Note” to stick one on the wall!'**
+  /// **'No notes yet.\nTap here to stick the first one on the wall!'**
   String get emptyState;
+
+  /// No description provided for @wallCreateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: long-press anywhere on the wall to stick a note right there.'**
+  String get wallCreateHint;
+
+  /// No description provided for @noMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes match'**
+  String get noMatches;
 
   /// No description provided for @couldNotOpen.
   ///
@@ -287,7 +287,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallSection.
   ///
   /// In en, this message translates to:
-  /// **'Wall'**
+  /// **'Wall texture'**
   String get wallSection;
 
   /// No description provided for @fontSection.
@@ -313,6 +313,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sort'**
   String get sortTooltip;
+
+  /// No description provided for @sortNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get sortNewest;
+
+  /// No description provided for @sortOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest first'**
+  String get sortOldest;
+
+  /// No description provided for @sortAZ.
+  ///
+  /// In en, this message translates to:
+  /// **'A → Z'**
+  String get sortAZ;
+
+  /// No description provided for @sortZA.
+  ///
+  /// In en, this message translates to:
+  /// **'Z → A'**
+  String get sortZA;
+
+  /// No description provided for @layout.
+  ///
+  /// In en, this message translates to:
+  /// **'Layout'**
+  String get layout;
 
   /// No description provided for @viewWall.
   ///
@@ -374,18 +404,6 @@ abstract class AppLocalizations {
   /// **'Hello! A quick note on the wall.'**
   String get fontPreview;
 
-  /// No description provided for @emote.
-  ///
-  /// In en, this message translates to:
-  /// **'Emote'**
-  String get emote;
-
-  /// No description provided for @typeDrawing.
-  ///
-  /// In en, this message translates to:
-  /// **'Drawing'**
-  String get typeDrawing;
-
   /// No description provided for @photo.
   ///
   /// In en, this message translates to:
@@ -395,13 +413,13 @@ abstract class AppLocalizations {
   /// No description provided for @fromGallery.
   ///
   /// In en, this message translates to:
-  /// **'Gallery'**
+  /// **'Choose from gallery'**
   String get fromGallery;
 
   /// No description provided for @takePhoto.
   ///
   /// In en, this message translates to:
-  /// **'Camera'**
+  /// **'Take a photo'**
   String get takePhoto;
 
   /// No description provided for @shareAsImage.
@@ -440,23 +458,17 @@ abstract class AppLocalizations {
   /// **'Wall stains & marks'**
   String get wallDecor;
 
-  /// No description provided for @color.
-  ///
-  /// In en, this message translates to:
-  /// **'Paper color'**
-  String get color;
-
-  /// No description provided for @colorAuto.
-  ///
-  /// In en, this message translates to:
-  /// **'Auto'**
-  String get colorAuto;
-
   /// No description provided for @pin.
   ///
   /// In en, this message translates to:
   /// **'Pin to top'**
   String get pin;
+
+  /// No description provided for @unpin.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get unpin;
 
   /// No description provided for @reminder.
   ///
@@ -464,65 +476,29 @@ abstract class AppLocalizations {
   /// **'Reminder'**
   String get reminder;
 
-  /// No description provided for @noReminder.
-  ///
-  /// In en, this message translates to:
-  /// **'No reminder'**
-  String get noReminder;
-
-  /// No description provided for @setReminder.
-  ///
-  /// In en, this message translates to:
-  /// **'Set reminder'**
-  String get setReminder;
-
-  /// No description provided for @clearReminder.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear'**
-  String get clearReminder;
-
-  /// No description provided for @checklistItems.
-  ///
-  /// In en, this message translates to:
-  /// **'Items'**
-  String get checklistItems;
-
   /// No description provided for @addItem.
   ///
   /// In en, this message translates to:
   /// **'Add item'**
   String get addItem;
 
-  /// No description provided for @sortByCreated.
+  /// No description provided for @penSize.
   ///
   /// In en, this message translates to:
-  /// **'Newest first'**
-  String get sortByCreated;
+  /// **'Pen size'**
+  String get penSize;
 
-  /// No description provided for @sortByName.
+  /// No description provided for @emote.
   ///
   /// In en, this message translates to:
-  /// **'By name'**
-  String get sortByName;
+  /// **'Emote'**
+  String get emote;
 
-  /// No description provided for @sortAsc.
+  /// No description provided for @color.
   ///
   /// In en, this message translates to:
-  /// **'Ascending'**
-  String get sortAsc;
-
-  /// No description provided for @sortDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Descending'**
-  String get sortDesc;
-
-  /// No description provided for @boards.
-  ///
-  /// In en, this message translates to:
-  /// **'Boards'**
-  String get boards;
+  /// **'Paper color'**
+  String get color;
 
   /// No description provided for @newBoard.
   ///
@@ -554,6 +530,18 @@ abstract class AppLocalizations {
   /// **'Delete “{name}” and all its notes?'**
   String deleteBoardConfirm(String name);
 
+  /// No description provided for @moveToBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to another board'**
+  String get moveToBoard;
+
+  /// No description provided for @movedToBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to “{name}”'**
+  String movedToBoard(String name);
+
   /// No description provided for @dataSection.
   ///
   /// In en, this message translates to:
@@ -563,13 +551,13 @@ abstract class AppLocalizations {
   /// No description provided for @exportData.
   ///
   /// In en, this message translates to:
-  /// **'Export notes'**
+  /// **'Back up notes'**
   String get exportData;
 
   /// No description provided for @importData.
   ///
   /// In en, this message translates to:
-  /// **'Import notes'**
+  /// **'Restore backup'**
   String get importData;
 
   /// No description provided for @importHint.
@@ -581,7 +569,7 @@ abstract class AppLocalizations {
   /// No description provided for @importSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Imported successfully'**
+  /// **'Restored successfully'**
   String get importSuccess;
 
   /// No description provided for @importFailed.
@@ -593,7 +581,7 @@ abstract class AppLocalizations {
   /// No description provided for @importReplaceWarning.
   ///
   /// In en, this message translates to:
-  /// **'Importing replaces all current boards and notes.'**
+  /// **'Restoring replaces all current boards and notes.'**
   String get importReplaceWarning;
 }
 

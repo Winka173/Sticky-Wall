@@ -68,5 +68,11 @@
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Sticky Wall needs access to your photos so you can pin a picture onto a note.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Sticky Wall uses the camera so you can take a photo straight onto a note.</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>Sticky Wall saves note images you export to your photo library.</string>
 	</dict>
 </plist>

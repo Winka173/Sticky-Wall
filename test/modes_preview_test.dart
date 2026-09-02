@@ -84,6 +84,21 @@ void main() {
         find.byType(StickyWallApp), matchesGoldenFile('mode_wall.png'));
   });
 
+  testWidgets('mode grid', skip: true, (tester) async {
+    await _fonts();
+    final app = await _app(mode: ViewMode.grid, notes: [
+      Note(guid: 'a', content: 'Đi chợ cuối tuần', boardId: 'default', createdAt: _t(1), type: NoteType.checklist, colorIndex: 0, checklist: [ChecklistItem(text: 'Sữa', done: true), ChecklistItem(text: 'Rau củ'), ChecklistItem(text: 'Trứng')]),
+      Note(guid: 'b', content: 'Tài liệu Flutter', url: 'https://docs.flutter.dev', boardId: 'default', createdAt: _t(2), colorIndex: 3),
+      Note(guid: 'c', content: 'Học tiếng Anh mỗi ngày,\n30 phút buổi sáng', boardId: 'default', createdAt: _t(3), colorIndex: 2, emoji: '📚'),
+      Note(guid: 'd', content: 'Gọi điện cho mẹ', boardId: 'default', createdAt: _t(4), pinned: true, colorIndex: 1, reminderAt: DateTime(2026, 9, 10, 18)),
+      Note(guid: 'e', content: 'Bản vẽ ý tưởng', boardId: 'default', createdAt: _t(5), type: NoteType.drawing, colorIndex: 4, strokes: _smiley()),
+      Note(guid: 'f', content: 'Ý tưởng', boardId: 'default', createdAt: _t(6), colorIndex: 5),
+    ]);
+    await _pump(tester, app);
+    await expectLater(
+        find.byType(StickyWallApp), matchesGoldenFile('mode_grid.png'));
+  });
+
   testWidgets('mode list', skip: true, (tester) async {
     await _fonts();
     final app = await _app(mode: ViewMode.list, notes: [

@@ -1,15 +1,30 @@
 import 'package:flutter/material.dart';
 
+import 'util/stable_hash.dart';
+
+export 'util/stable_hash.dart';
+
 abstract class AppColors {
   /// Dark warm "ink" used on paper notes and light walls.
   static const ink = Color(0xFF3B372F);
 
+  /// Ink at reduced strength, for secondary text and hints on paper.
+  static const inkSoft = Color(0x993B372F);
+  static const inkHint = Color(0x593B372F);
+
   /// Warm chalk white used for text written directly on dark walls.
   static const chalk = Color(0xFFFDFBF3);
 
+  /// Sunny accent for the primary action and small badges.
+  static const accent = Color(0xFFFFCA28);
+
+  static const link = Color(0xFF1A55A5);
   static const deleteIcon = Color(0xFFC62828);
   static const pin = Color(0xFFD32F2F);
   static const paper = Color(0xFFFFF9E6);
+
+  /// Translucent dark chrome floated over the wall (zoom reset, handles).
+  static const overlayDark = Color(0xCC33322C);
 
   /// Pastel sticky-note paper colors.
   static const notePapers = [
@@ -22,8 +37,11 @@ abstract class AppColors {
   ];
 }
 
-int stableHash(String s) =>
-    s.codeUnits.fold(0, (acc, c) => (acc * 31 + c) & 0x7fffffff);
+abstract class AppRadii {
+  static const paper = 3.0;
+  static const control = 8.0;
+  static const sheet = 20.0;
+}
 
 /// A note's paper color: the explicit [colorIndex] if set, else one derived
 /// deterministically from the [guid] so it stays stable across runs.
@@ -31,6 +49,18 @@ Color noteColor(int? colorIndex, String guid) {
   final i = colorIndex ?? (stableHash(guid) % AppColors.notePapers.length);
   return AppColors.notePapers[i % AppColors.notePapers.length];
 }
+
+/// The selected font's optical scale (see [FontChoice.scale]).
+double noteFontScale(BuildContext context) =>
+    Theme.of(context).extension<NoteTextScale>()?.scale ?? 1.0;
+
+/// The one text style for note body text — used by both the editor and the
+/// cards, so what you write is exactly what lands on the wall.
+TextStyle noteBodyStyle(BuildContext context) => TextStyle(
+      color: AppColors.ink,
+      fontSize: 18 * noteFontScale(context),
+      height: 1.4,
+    );
 
 /// A wall the notes are stuck on: a seamless CC0 texture (ambientCG) plus a
 /// scrim overlay tuned so text keeps enough contrast against the texture.
@@ -162,14 +192,28 @@ class NoteTextScale extends ThemeExtension<NoteTextScale> {
 }
 
 ThemeData buildAppTheme(FontChoice font) {
+  // Everything Material draws by default (radios, chips, sliders, buttons)
+  // uses the same ink-on-paper palette as the notes, so no stock purple or
+  // brown ever shows through.
+  final scheme = ColorScheme.fromSeed(
+    seedColor: AppColors.ink,
+    primary: AppColors.ink,
+    onPrimary: AppColors.chalk,
+    surface: AppColors.paper,
+    onSurface: AppColors.ink,
+  );
   final base = ThemeData(
     useMaterial3: true,
     fontFamily: font.family,
-    colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8D6E63)),
+    colorScheme: scheme,
+  );
+  const sheetShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.sheet)),
   );
 
   return base.copyWith(
     extensions: [NoteTextScale(font.scale)],
+    splashFactory: InkSparkle.splashFactory,
     // Dialogs look like a sheet of note paper.
     dialogTheme: base.dialogTheme.copyWith(
       backgroundColor: AppColors.paper,
@@ -179,9 +223,33 @@ ThemeData buildAppTheme(FontChoice font) {
         color: AppColors.ink,
       ),
     ),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: AppColors.paper,
+      shape: sheetShape,
+      showDragHandle: true,
+      dragHandleColor: AppColors.inkHint,
+    ),
+    popupMenuTheme: PopupMenuThemeData(
+      color: AppColors.paper,
+      textStyle: TextStyle(
+        fontFamily: font.family,
+        fontSize: 16 * font.scale,
+        color: AppColors.ink,
+      ),
+    ),
+    listTileTheme: const ListTileThemeData(
+      iconColor: AppColors.ink,
+      textColor: AppColors.ink,
+    ),
+    chipTheme: base.chipTheme.copyWith(
+      selectedColor: AppColors.ink.withValues(alpha: 0.16),
+      side: const BorderSide(color: AppColors.inkHint),
+      labelStyle: const TextStyle(color: AppColors.ink),
+    ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: const Color(0xFF33322C),
+      actionTextColor: AppColors.accent,
       contentTextStyle: TextStyle(
         fontFamily: font.family,
         fontSize: 16 * font.scale,
@@ -190,4 +258,3 @@ ThemeData buildAppTheme(FontChoice font) {
     ),
   );
 }
-

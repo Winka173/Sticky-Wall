@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
+import '../services/image_service.dart';
 import '../theme.dart';
 import 'drawing_canvas.dart';
 
@@ -33,25 +35,24 @@ Future<void> openNoteUrl(BuildContext context, String url) async {
 double noteTilt(Note note, {double step = 0.008}) =>
     ((stableHash(note.guid) >> 3) % 5 - 2) * step;
 
-double _fontScale(BuildContext context) =>
-    Theme.of(context).extension<NoteTextScale>()?.scale ?? 1.0;
+/// Height reserved above the paper for the pin's tap target.
+const _pinInset = 14.0;
 
-/// Callbacks shared by the card and the list tile.
+/// Callbacks shared by the card and the list tile. Deleting lives on the
+/// long-press sheet (and swipe in list mode), never inline on the paper.
 class NoteCallbacks {
   const NoteCallbacks({
     required this.onEdit,
-    required this.onDelete,
     required this.onTogglePin,
     required this.onToggleItem,
     required this.onLongPress,
   });
 
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
   final VoidCallback onTogglePin;
   final void Function(int index) onToggleItem;
 
-  /// Opens the note's action sheet (share/save image, pin, delete).
+  /// Opens the note's action sheet (edit, pin, move, share, delete).
   final VoidCallback onLongPress;
 }
 
@@ -69,7 +70,7 @@ class _NotePhoto extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(4),
         child: Image.file(
-          File(path),
+          File(ImageService.resolve(path)),
           height: height,
           width: double.infinity,
           fit: BoxFit.cover,
@@ -86,7 +87,7 @@ class _NotePhoto extends StatelessWidget {
 BoxDecoration paperDecoration(Note note, {bool raised = false}) {
   return BoxDecoration(
     color: noteColor(note.colorIndex, note.guid),
-    borderRadius: BorderRadius.circular(3),
+    borderRadius: BorderRadius.circular(AppRadii.paper),
     boxShadow: [
       BoxShadow(
         color: Colors.black.withValues(alpha: raised ? 0.38 : 0.28),
@@ -97,29 +98,88 @@ BoxDecoration paperDecoration(Note note, {bool raised = false}) {
   );
 }
 
-/// The push-pin at the top of a card; gold and larger when the note is pinned.
-class NotePin extends StatelessWidget {
+/// The push-pin at the top of a card; gold and larger when the note is
+/// pinned, with a little bounce whenever that changes.
+class NotePin extends StatefulWidget {
   const NotePin({super.key, required this.pinned});
 
   final bool pinned;
 
   @override
+  State<NotePin> createState() => _NotePinState();
+}
+
+class _NotePinState extends State<NotePin> with SingleTickerProviderStateMixin {
+  late final AnimationController _bounce = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 280),
+  );
+
+  late final Animation<double> _scale = TweenSequence([
+    TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.5), weight: 40),
+    TweenSequenceItem(tween: Tween(begin: 1.5, end: 1.0), weight: 60),
+  ]).animate(CurvedAnimation(parent: _bounce, curve: Curves.easeOut));
+
+  @override
+  void didUpdateWidget(NotePin oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.pinned != widget.pinned) _bounce.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _bounce.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final size = pinned ? 16.0 : 12.0;
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          colors: pinned
-              ? const [Color(0xFFFFE082), Color(0xFFF9A825)]
-              : const [Color(0xFFEF9A9A), Color(0xFFD32F2F)],
-          center: const Alignment(-0.3, -0.3),
+    final size = widget.pinned ? 16.0 : 12.0;
+    return ScaleTransition(
+      scale: _scale,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            colors: widget.pinned
+                ? const [Color(0xFFFFE082), Color(0xFFF9A825)]
+                : const [Color(0xFFEF9A9A), Color(0xFFD32F2F)],
+            center: const Alignment(-0.3, -0.3),
+          ),
+          shape: BoxShape.circle,
+          boxShadow: const [
+            BoxShadow(
+                color: Colors.black38, blurRadius: 3, offset: Offset(1, 2)),
+          ],
         ),
-        shape: BoxShape.circle,
-        boxShadow: const [
-          BoxShadow(color: Colors.black38, blurRadius: 3, offset: Offset(1, 2)),
-        ],
+      ),
+    );
+  }
+}
+
+/// A comfortably tappable pin: 44 wide, centered on the paper's top edge.
+class _PinTarget extends StatelessWidget {
+  const _PinTarget({required this.pinned, required this.onTap});
+
+  final bool pinned;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Semantics(
+      button: true,
+      label: pinned ? l10n.unpin : l10n.pin,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: 44,
+          height: _pinInset * 2,
+          child: Center(child: NotePin(pinned: pinned)),
+        ),
       ),
     );
   }
@@ -136,107 +196,90 @@ class _ReminderChip extends StatelessWidget {
     final ml = MaterialLocalizations.of(context);
     final label = '${ml.formatShortMonthDay(at)} '
         '${ml.formatTimeOfDay(TimeOfDay.fromDateTime(at))}';
-    final color = overdue ? const Color(0xFFC62828) : const Color(0xFF4E6E4E);
+    final color = overdue ? AppColors.deleteIcon : const Color(0xFF4E6E4E);
 
-    // The ConstrainedBox guarantees the inner Row always has a bounded width,
-    // so the Flexible text can ellipsize instead of overflowing — whatever the
-    // parent (a tight card cell or a roomy list row) hands us.
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 150),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(overdue ? Icons.alarm_on : Icons.alarm,
-                size: 13, color: color),
-            const SizedBox(width: 3),
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                softWrap: false,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, color: color),
-              ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(overdue ? Icons.alarm_on : Icons.alarm, size: 13, color: color),
+          const SizedBox(width: 3),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 12, color: color),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-TextStyle _inkText(BuildContext context) => TextStyle(
-      color: AppColors.ink,
-      fontSize: 18 * _fontScale(context),
-      height: 1.25,
-    );
-
-TextStyle _linkText(BuildContext context) => TextStyle(
-      color: const Color(0xFF1A55A5),
-      fontSize: 18 * _fontScale(context),
+TextStyle _linkText(BuildContext context) => noteBodyStyle(context).copyWith(
+      color: AppColors.link,
       decoration: TextDecoration.underline,
-      decorationColor: const Color(0xFF1A55A5),
+      decorationColor: AppColors.link,
     );
 
-/// The body of a note (everything but the pin): type-specific content, an
-/// emote, a reminder chip and an action row.
+/// The body of a note (everything but the pin): type-specific content plus,
+/// when present, an emote and a reminder chip.
 class _NoteBody extends StatelessWidget {
   const _NoteBody({
     required this.note,
     required this.cb,
     required this.maxContentLines,
-    this.showDelete = true,
   });
 
   final Note note;
   final NoteCallbacks cb;
   final int maxContentLines;
 
-  /// On the wall the resize handle sits at the bottom-right, so the inline
-  /// delete button is hidden there (delete is on the long-press menu).
-  final bool showDelete;
-
   @override
   Widget build(BuildContext context) {
+    final hasFooter = note.emoji.isNotEmpty || note.reminderAt != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         if (note.imagePath.isNotEmpty) _NotePhoto(path: note.imagePath),
         _content(context),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            if (note.emoji.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Text(note.emoji, style: const TextStyle(fontSize: 22)),
-              ),
-            if (note.reminderAt != null)
-              Flexible(child: _ReminderChip(at: note.reminderAt!)),
-            const Spacer(),
-            if (showDelete) ...[
-              const SizedBox(width: 4),
-              InkResponse(
-                onTap: cb.onDelete,
-                radius: 18,
-                child: const Icon(Icons.delete_outline,
-                    size: 19, color: Color(0x99C62828)),
-              ),
+        if (hasFooter) ...[
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              if (note.emoji.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child:
+                      Text(note.emoji, style: const TextStyle(fontSize: 22)),
+                ),
+              if (note.reminderAt != null)
+                // Expanded + Align: the chip takes only the width it needs but
+                // may shrink (and ellipsize) on a narrow card.
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: _ReminderChip(at: note.reminderAt!),
+                  ),
+                ),
             ],
-          ],
-        ),
+          ),
+        ],
       ],
     );
   }
 
   Widget _content(BuildContext context) {
+    final body = noteBodyStyle(context);
     switch (note.type) {
       case NoteType.drawing:
         return Column(
@@ -249,12 +292,10 @@ class _NoteBody extends StatelessWidget {
                 child: Text(note.content,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: _inkText(context)
-                        .copyWith(fontWeight: FontWeight.bold)),
+                    style: body.copyWith(fontWeight: FontWeight.bold)),
               ),
-            SizedBox(
-              height: 110,
-              width: double.infinity,
+            AspectRatio(
+              aspectRatio: kDrawingAspect,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFFDF5),
@@ -283,21 +324,20 @@ class _NoteBody extends StatelessWidget {
           children: [
             if (note.content.isNotEmpty)
               Text(note.content,
-                  style: _inkText(context).copyWith(
-                      fontWeight: FontWeight.bold),
+                  style: body.copyWith(fontWeight: FontWeight.bold),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis),
-            for (var i = 0; i < note.checklist.length && i < maxContentLines; i++)
+            for (var i = 0;
+                i < note.checklist.length && i < maxContentLines;
+                i++)
               _ChecklistRow(
                 item: note.checklist[i],
                 onTap: () => cb.onToggleItem(i),
-                context: context,
               ),
             if (note.checklist.length > maxContentLines)
               Text('+${note.checklist.length - maxContentLines}…',
-                  style: TextStyle(
-                      color: AppColors.ink.withValues(alpha: 0.6),
-                      fontSize: 14)),
+                  style: const TextStyle(
+                      color: AppColors.inkSoft, fontSize: 14)),
           ],
         );
       case NoteType.normal:
@@ -305,36 +345,37 @@ class _NoteBody extends StatelessWidget {
           note.content,
           maxLines: maxContentLines,
           overflow: TextOverflow.ellipsis,
-          style: _inkText(context),
+          style: body,
         );
     }
   }
 }
 
 class _ChecklistRow extends StatelessWidget {
-  const _ChecklistRow({
-    required this.item,
-    required this.onTap,
-    required this.context,
-  });
+  const _ChecklistRow({required this.item, required this.onTap});
 
   final ChecklistItem item;
   final VoidCallback onTap;
-  final BuildContext context;
 
   @override
-  Widget build(BuildContext _) {
+  Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 1),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 28),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(
-              item.done ? Icons.check_box : Icons.check_box_outline_blank,
-              size: 18,
-              color: AppColors.ink.withValues(alpha: 0.8),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 160),
+              transitionBuilder: (child, anim) =>
+                  ScaleTransition(scale: anim, child: child),
+              child: Icon(
+                item.done ? Icons.check_box : Icons.check_box_outline_blank,
+                key: ValueKey(item.done),
+                size: 18,
+                color: AppColors.ink.withValues(alpha: 0.8),
+              ),
             ),
             const SizedBox(width: 4),
             Expanded(
@@ -344,10 +385,9 @@ class _ChecklistRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 15,
-                  color: AppColors.ink,
-                  decoration:
-                      item.done ? TextDecoration.lineThrough : null,
-                  decorationColor: AppColors.ink,
+                  color: item.done ? AppColors.inkSoft : AppColors.ink,
+                  decoration: item.done ? TextDecoration.lineThrough : null,
+                  decorationColor: AppColors.inkSoft,
                 ),
               ),
             ),
@@ -367,7 +407,6 @@ class StickyNoteCard extends StatelessWidget {
     this.raised = false,
     this.maxContentLines = 6,
     this.captureKey,
-    this.showDelete = true,
   });
 
   final Note note;
@@ -379,12 +418,12 @@ class StickyNoteCard extends StatelessWidget {
   /// it can be rasterized for share/save-as-image.
   final GlobalKey? captureKey;
 
-  /// Hidden on the wall, where the resize handle occupies the bottom-right.
-  final bool showDelete;
-
   @override
   Widget build(BuildContext context) {
     Widget paper = Container(
+      // Fill whatever width the wall/grid grants — the paper is a fixed-size
+      // sheet, not something that shrinks to a short line of text.
+      width: double.infinity,
       decoration: paperDecoration(note, raised: raised),
       child: Stack(
         children: [
@@ -397,7 +436,8 @@ class StickyNoteCard extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: Color(0x21FFFFFF),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(3)),
+                borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(AppRadii.paper)),
               ),
             ),
           ),
@@ -411,12 +451,11 @@ class StickyNoteCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 18, 10, 8),
+            padding: const EdgeInsets.fromLTRB(12, 18, 10, 10),
             child: _NoteBody(
               note: note,
               cb: cb,
               maxContentLines: maxContentLines,
-              showDelete: showDelete,
             ),
           ),
         ],
@@ -426,22 +465,22 @@ class StickyNoteCard extends StatelessWidget {
       paper = RepaintBoundary(key: captureKey, child: paper);
     }
 
-    return Transform.rotate(
-      angle: note.pinned ? 0 : noteTilt(note),
+    // Pinning straightens the note; the turn is animated so it visibly
+    // "snaps" upright instead of jumping.
+    return AnimatedRotation(
+      turns: (note.pinned ? 0 : noteTilt(note)) / (2 * math.pi),
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
       child: GestureDetector(
         onTap: cb.onEdit,
         onLongPress: cb.onLongPress,
         child: Stack(
-          clipBehavior: Clip.none,
           alignment: Alignment.topCenter,
           children: [
-            paper,
+            Padding(padding: const EdgeInsets.only(top: _pinInset), child: paper),
             Positioned(
-              top: -6,
-              child: GestureDetector(
-                onTap: cb.onTogglePin,
-                child: NotePin(pinned: note.pinned),
-              ),
+              top: 0,
+              child: _PinTarget(pinned: note.pinned, onTap: cb.onTogglePin),
             ),
           ],
         ),
@@ -499,7 +538,7 @@ class NoteListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget row = Container(
       decoration: paperDecoration(note),
-      padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+      padding: const EdgeInsets.fromLTRB(6, 6, 14, 6),
       child: _rowContent(context),
     );
     if (captureKey != null) {
@@ -517,47 +556,41 @@ class NoteListTile extends StatelessWidget {
 
   Widget _rowContent(BuildContext context) {
     return Row(
-            children: [
-              GestureDetector(
-                onTap: cb.onTogglePin,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: NotePin(pinned: note.pinned),
-                ),
-              ),
-              if (note.imagePath.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: Image.file(File(note.imagePath),
-                        width: 34, height: 34, fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) =>
-                            const Icon(Icons.broken_image, size: 20)),
-                  ),
-                ),
-              if (note.emoji.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Text(note.emoji, style: const TextStyle(fontSize: 20)),
-                ),
-              Expanded(child: _listContent(context)),
-              if (note.reminderAt != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: _ReminderChip(at: note.reminderAt!),
-                ),
-              InkResponse(
-                onTap: cb.onDelete,
-                radius: 18,
-                child: const Icon(Icons.delete_outline,
-                    size: 20, color: Color(0x99C62828)),
-              ),
-            ],
+      children: [
+        _PinTarget(pinned: note.pinned, onTap: cb.onTogglePin),
+        if (note.imagePath.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: Image.file(File(ImageService.resolve(note.imagePath)),
+                  width: 34,
+                  height: 34,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) =>
+                      const Icon(Icons.broken_image, size: 20)),
+            ),
+          ),
+        if (note.emoji.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Text(note.emoji, style: const TextStyle(fontSize: 20)),
+          ),
+        Expanded(child: _listContent(context)),
+        if (note.reminderAt != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 6),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 120),
+              child: _ReminderChip(at: note.reminderAt!),
+            ),
+          ),
+      ],
     );
   }
 
   Widget _listContent(BuildContext context) {
+    final body = noteBodyStyle(context);
     switch (note.type) {
       case NoteType.drawing:
         return Row(
@@ -569,7 +602,7 @@ class NoteListTile extends StatelessWidget {
                 note.content.isEmpty ? '✍️' : note.content,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: _inkText(context),
+                style: body,
               ),
             ),
           ],
@@ -579,7 +612,7 @@ class NoteListTile extends StatelessWidget {
           spacing: 8,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text('${note.content}:', style: _inkText(context)),
+            Text('${note.content}:', style: body),
             InkWell(
               onTap: () => openNoteUrl(context, note.url),
               child: Text(note.url,
@@ -597,20 +630,81 @@ class NoteListTile extends StatelessWidget {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                note.content.isEmpty ? '($done/${note.checklist.length})'
+                note.content.isEmpty
+                    ? '($done/${note.checklist.length})'
                     : '${note.content}  ($done/${note.checklist.length})',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: _inkText(context),
+                style: body,
               ),
             ),
           ],
         );
       case NoteType.normal:
         return Text(note.content,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: _inkText(context));
+            maxLines: 2, overflow: TextOverflow.ellipsis, style: body);
     }
+  }
+}
+
+/// Plays a small "stick onto the wall" entrance: fade in while settling down
+/// onto the surface. [delay] staggers a batch (grid, wall) so notes land one
+/// after another instead of popping in all at once.
+class NoteAppear extends StatefulWidget {
+  const NoteAppear({
+    super.key,
+    required this.child,
+    this.delay = Duration.zero,
+  });
+
+  final Widget child;
+  final Duration delay;
+
+  @override
+  State<NoteAppear> createState() => _NoteAppearState();
+}
+
+class _NoteAppearState extends State<NoteAppear>
+    with SingleTickerProviderStateMixin {
+  static const _play = Duration(milliseconds: 300);
+
+  // One controller covers delay + play; the Interval curve holds the note
+  // invisible during the delay. No Timer, so tests and disposal stay clean.
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.delay + _play,
+  )..forward();
+
+  late final Animation<double> _t = CurvedAnimation(
+    parent: _c,
+    curve: Interval(
+      widget.delay.inMilliseconds / (widget.delay + _play).inMilliseconds,
+      1.0,
+      curve: Curves.easeOutCubic,
+    ),
+  );
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _t,
+      child: widget.child,
+      builder: (context, child) {
+        final v = _t.value;
+        return Opacity(
+          opacity: v,
+          child: Transform.translate(
+            offset: Offset(0, 10 * (1 - v)),
+            child: Transform.scale(scale: 0.96 + 0.04 * v, child: child),
+          ),
+        );
+      },
+    );
   }
 }
