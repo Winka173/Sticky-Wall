@@ -6,9 +6,9 @@ pin, color, and organize across multiple boards. Bilingual (English / Tiếng
 Việt). Modeled after the original "Mia Note" Angular + Electron desktop app,
 then taken well beyond it.
 
-| Wall (drag, resize, draw, zoom) | Grid | List |
-|---|---|---|
-| ![Wall](screenshots/mode_wall.png) | ![Grid](screenshots/preview_cork.png) | ![List](screenshots/mode_list.png) |
+| Wall (drag, resize, draw, zoom) | Grid | List | Paper editor |
+|---|---|---|---|
+| ![Wall](screenshots/mode_wall.png) | ![Grid](screenshots/preview_cork.png) | ![List](screenshots/mode_list.png) | ![Editor](screenshots/editor.png) |
 
 | Cork | Green chalkboard | Black chalkboard |
 |---|---|---|
