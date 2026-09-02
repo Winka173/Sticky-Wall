@@ -48,6 +48,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
   final _imageService = ImageService();
   final _wallHandle = WallHandle();
+  // Pan/zoom of the wall, shared with the background so the texture moves
+  // with the notes.
+  final _camera = WallCamera();
   bool _searching = false;
 
   // Multi-select: on while the selection bar is up; guids of chosen notes.
@@ -85,6 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     widget.shareReceiver?.dispose();
     _searchController.dispose();
+    _camera.dispose();
     super.dispose();
   }
 
@@ -469,6 +473,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       '${wall.id}-${wall.imageFile}-${widget.settings.wallDecor}'),
                   wall: wall,
                   decor: widget.settings.wallDecor,
+                  // Only the wall pans; grid and list scroll over a still
+                  // background.
+                  camera:
+                      _notes.viewMode == ViewMode.wall ? _camera : null,
                 ),
               ),
             ),
@@ -951,6 +959,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         onArrange: _notes.arrange,
         handle: _wallHandle,
+        camera: _camera,
         selected: _selecting ? _selected : const {},
         captureKeys: {for (final n in notes) n.guid: _keyFor(n)},
         isDimmed: (n) => _notes.isFiltering && !_notes.matches(n),

@@ -21,6 +21,40 @@ class WallHandle {
   void tidy({bool byColor = false}) => _state?._tidy(byColor: byColor);
 }
 
+/// The wall's pan/zoom, shared between [WallView] (which drives it) and the
+/// full-screen background behind it, so the texture travels with the notes
+/// instead of the paper sliding over a wall that stands still.
+///
+/// [matrix] maps wall coordinates to the wall viewport; [origin] is where
+/// that viewport's top-left corner sits on screen, so anything drawn in
+/// screen space can apply the same transform about the same point.
+class WallCamera extends ChangeNotifier {
+  WallCamera() {
+    controller.addListener(notifyListeners);
+  }
+
+  final controller = TransformationController();
+  Offset _origin = Offset.zero;
+
+  Matrix4 get matrix => controller.value;
+  Offset get origin => _origin;
+
+  /// True while the wall is zoomed or panned away from its resting place.
+  bool get moved => !controller.value.isIdentity();
+
+  void _setOrigin(Offset o) {
+    if (o == _origin) return;
+    _origin = o;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+}
+
 /// The free-form "wall": notes sit at absolute positions, can be dragged and
 /// resized, and the whole board can be pinched to zoom / panned. Red threads
 /// can be tied between pins by dragging from one pin to another note.
@@ -41,6 +75,7 @@ class WallView extends StatefulWidget {
     this.onCutLink,
     this.onArrange,
     this.handle,
+    this.camera,
     this.selected = const {},
     this.captureKeys,
     this.emptyHint,
@@ -69,6 +104,10 @@ class WallView extends StatefulWidget {
   /// Receives the result of [WallHandle.tidy].
   final void Function(List<Placement> placements)? onArrange;
   final WallHandle? handle;
+
+  /// Pan/zoom state to drive, when the background wants to follow it. Without
+  /// one the wall keeps a private controller.
+  final WallCamera? camera;
 
   /// Guids drawn as selected (multi-select mode).
   final Set<String> selected;
@@ -102,7 +141,12 @@ class _WallViewState extends State<WallView>
   static const double _bottomInset = 80;
 
   final _wallKey = GlobalKey();
-  final _tc = TransformationController();
+
+  // The shared camera's controller when we have one, else our own.
+  TransformationController? _ownTc;
+  TransformationController get _tc =>
+      widget.camera?.controller ?? (_ownTc ??= TransformationController());
+
   late final AnimationController _zoomReset = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 240),
@@ -139,6 +183,14 @@ class _WallViewState extends State<WallView>
       final anim = _zoomAnim;
       if (anim != null) _tc.value = anim.value;
     });
+    // A shared camera outlives the wall it was zoomed on; a wall that has
+    // just appeared (another board) glides back to its resting view. Deferred
+    // because the background listens too, and it may already be built.
+    if (widget.camera?.moved ?? false) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _resetZoom();
+      });
+    }
   }
 
   @override
@@ -154,7 +206,7 @@ class _WallViewState extends State<WallView>
   void dispose() {
     if (widget.handle?._state == this) widget.handle?._state = null;
     _zoomReset.dispose();
-    _tc.dispose();
+    _ownTc?.dispose();
     super.dispose();
   }
 
@@ -162,6 +214,17 @@ class _WallViewState extends State<WallView>
     _zoomAnim = Matrix4Tween(begin: _tc.value, end: Matrix4.identity())
         .animate(CurvedAnimation(parent: _zoomReset, curve: Curves.easeOutCubic));
     _zoomReset.forward(from: 0);
+  }
+
+  /// Tells the camera where the wall viewport sits on screen, so the
+  /// background can pivot its copy of the transform about the same point.
+  void _reportOrigin() {
+    final camera = widget.camera;
+    if (camera == null || !mounted) return;
+    final box = context.findRenderObject();
+    if (box is RenderBox && box.hasSize && box.attached) {
+      camera._setOrigin(box.localToGlobal(Offset.zero));
+    }
   }
 
   void _setActive(String? guid) {
@@ -385,6 +448,10 @@ class _WallViewState extends State<WallView>
         final h = constraints.maxHeight;
         _size = Size(w, h);
         final threads = _threads(w, h);
+        // Our screen position is only known once laid out.
+        if (widget.camera != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _reportOrigin());
+        }
 
         return Stack(
           children: [
@@ -393,6 +460,8 @@ class _WallViewState extends State<WallView>
               minScale: 0.6,
               maxScale: 3,
               boundaryMargin: const EdgeInsets.all(320),
+              // Re-measure right before a gesture, when it matters most.
+              onInteractionStart: (_) => _reportOrigin(),
               child: SizedBox(
                 key: _wallKey,
                 width: w,

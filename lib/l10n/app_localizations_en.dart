@@ -287,6 +287,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Drag from my pin onto another note to tie a thread 🧵';
 
   @override
+  String get sampleDrawing => 'Doodles too ✏️';
+
+  @override
   String get emptyState =>
       'No notes yet.\nTap here to stick the first one on the wall!';
 

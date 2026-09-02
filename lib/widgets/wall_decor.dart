@@ -43,8 +43,11 @@ class _WallDecorPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rng = math.Random(stableHash(wall.id));
+    // Roughly one mark per 180×180 patch. The sheet can be far larger than
+    // the screen (it is dragged around behind the notes), so the cap is
+    // generous; it only guards against absurd sizes.
     final count =
-        (size.width * size.height / (180 * 180)).round().clamp(10, 70);
+        (size.width * size.height / (180 * 180)).round().clamp(10, 320);
 
     for (var i = 0; i < count; i++) {
       final at = Offset(

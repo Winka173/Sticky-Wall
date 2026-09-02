@@ -44,8 +44,10 @@ then taken well beyond it.
 
 **Layouts**
 - **Wall** — drag notes anywhere, **resize** the active note with its corner
-  handle, **pinch to zoom / pan** the whole board (double-tap or the
-  reset button snaps back); **long-press** empty space to stick a note there
+  handle, **pinch to zoom / pan** the whole board — the wall texture and its
+  stains travel with the notes, only the lighting stays put (double-tap or
+  the reset button snaps back); **long-press** empty space to stick a note
+  there
 - **Threads** — drag from one note's pin to another to tie a red yarn thread
   between them; tap a thread to cut it (Undo re-ties it)
 - **Tidy up** (⋮ menu) flies every note into a neat grid, or groups them
@@ -107,9 +109,10 @@ then taken well beyond it.
 - Full English / Tiếng Việt UI, following the system locale or set manually
 
 **First launch**
-- A fresh install seeds four sample notes (with one thread tied between two
+- A fresh install seeds five sample notes (with one thread tied between two
   of them) that teach the gestures: drag, long-press, tick a checklist, pull
-  a thread. Delete them like any other note
+  a thread, plus a doodle so the drawing type is discovered. Delete them like
+  any other note
 
 **Data**
 - Everything persists locally (no backend). A single corrupt record is

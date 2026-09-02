@@ -282,6 +282,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get sampleThread => 'Kéo từ ghim của tôi sang tờ khác để nối dây 🧵';
 
   @override
+  String get sampleDrawing => 'Vẽ vời cũng được ✏️';
+
+  @override
   String get emptyState =>
       'Chưa có ghi chú nào.\nChạm vào đây để dán tờ đầu tiên lên tường!';
 

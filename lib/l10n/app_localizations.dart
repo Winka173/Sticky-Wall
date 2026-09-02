@@ -566,6 +566,12 @@ abstract class AppLocalizations {
   /// **'Drag from my pin onto another note to tie a thread 🧵'**
   String get sampleThread;
 
+  /// No description provided for @sampleDrawing.
+  ///
+  /// In en, this message translates to:
+  /// **'Doodles too ✏️'**
+  String get sampleDrawing;
+
   /// No description provided for @emptyState.
   ///
   /// In en, this message translates to:

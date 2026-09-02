@@ -572,14 +572,18 @@ class StickyNoteCard extends StatelessWidget {
         onLongPress: cb.onLongPress,
         child: Stack(
           alignment: Alignment.topCenter,
+          clipBehavior: Clip.none,
           children: [
             Padding(padding: const EdgeInsets.only(top: _pinInset), child: paper),
             Positioned(
               top: 0,
               child: _PinTarget(pinned: note.pinned, cb: cb),
             ),
+            // Sits just inside the corner, on the adhesive strip: a badge
+            // hanging over the edge gets sliced off by the wall's viewport
+            // when the note is pushed against the screen edge.
             if (selected)
-              const Positioned(right: -6, top: _pinInset - 6, child: _SelectedBadge()),
+              const Positioned(right: 3, top: _pinInset + 3, child: _SelectedBadge()),
           ],
         ),
       ),
