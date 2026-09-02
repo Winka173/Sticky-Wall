@@ -68,6 +68,8 @@
   "addItem": "Thêm mục",
   "sortByCreated": "Mới nhất trước",
   "sortByName": "Theo tên",
+  "sortAsc": "Tăng dần",
+  "sortDesc": "Giảm dần",
   "boards": "Bảng",
   "newBoard": "Bảng mới",
   "boardName": "Tên bảng",

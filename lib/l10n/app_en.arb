@@ -71,6 +71,8 @@
   "addItem": "Add item",
   "sortByCreated": "Newest first",
   "sortByName": "By name",
+  "sortAsc": "Ascending",
+  "sortDesc": "Descending",
   "boards": "Boards",
   "newBoard": "New board",
   "boardName": "Board name",

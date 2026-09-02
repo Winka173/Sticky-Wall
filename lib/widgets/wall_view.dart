@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/note.dart';
 import 'note_views.dart';
@@ -142,6 +143,7 @@ class _WallViewState extends State<WallView> {
       width: _cardWidth * scale,
       child: GestureDetector(
         onPanStart: (_) {
+          HapticFeedback.mediumImpact();
           widget.onBringToFront(note);
           setState(() {
             _draggingGuid = note.guid;

@@ -173,6 +173,7 @@ class NotesController extends ChangeNotifier {
         0 => note.type == NoteType.normal,
         1 => note.type == NoteType.link,
         2 => note.type == NoteType.checklist,
+        3 => note.type == NoteType.drawing,
         _ => true,
       };
       final haystack = [

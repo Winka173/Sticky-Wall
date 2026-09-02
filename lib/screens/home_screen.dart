@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import '../l10n/app_localizations.dart';
@@ -63,9 +66,15 @@ class _HomeScreenState extends State<HomeScreen> {
   NoteCallbacks _callbacks(Note note) => NoteCallbacks(
         onEdit: () => _openEditor(note, isNew: false),
         onDelete: () => _delete(note),
-        onTogglePin: () => _notes.togglePin(note),
+        onTogglePin: () {
+          HapticFeedback.selectionClick();
+          _notes.togglePin(note);
+        },
         onToggleItem: (i) => _notes.toggleChecklistItem(note, i),
-        onLongPress: () => _showNoteActions(note),
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+          _showNoteActions(note);
+        },
       );
 
   Future<void> _showNoteActions(Note note) async {
@@ -184,61 +193,55 @@ class _HomeScreenState extends State<HomeScreen> {
       listenable: Listenable.merge([widget.notes, widget.settings]),
       builder: (context, _) {
         final wall = _wall;
-        return Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF6B5849),
-            image: DecorationImage(
-              image: AssetImage(wall.asset),
-              repeat: ImageRepeat.repeat,
-              scale: 2.2,
+        return Stack(
+          children: [
+            // Background layers live outside the Scaffold so switching walls
+            // crossfades the texture without rebuilding the app content.
+            Positioned.fill(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 450),
+                child: _WallBackground(
+                  key: ValueKey('${wall.id}-${widget.settings.wallDecor}'),
+                  wall: wall,
+                  decor: widget.settings.wallDecor,
+                ),
+              ),
             ),
-          ),
-          child: Container(
-            color: wall.overlay,
-            child: Stack(
-              children: [
-                if (widget.settings.wallDecor)
-                  Positioned.fill(child: WallDecor(wall: wall)),
-                // Soft vignette adds depth so the wall recedes at the edges.
-                const Positioned.fill(
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          radius: 1.15,
-                          colors: [Colors.transparent, Color(0x33000000)],
-                          stops: [0.62, 1.0],
+            Scaffold(
+              backgroundColor: Colors.transparent,
+              floatingActionButton: FloatingActionButton.extended(
+                onPressed: () => _openEditor(_notes.draft(), isNew: true),
+                backgroundColor: const Color(0xFFFFCA28),
+                foregroundColor: AppColors.ink,
+                icon: const Icon(Icons.push_pin),
+                label:
+                    Text(_l10n.addNote, style: const TextStyle(fontSize: 17)),
+              ),
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    _buildHeader(wall),
+                    BoardBar(notes: _notes, textColor: wall.wallText),
+                    const SizedBox(height: 8),
+                    _buildToolbar(wall),
+                    const SizedBox(height: 8),
+                    // Board/view switches fade the content in.
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 240),
+                        switchInCurve: Curves.easeOut,
+                        child: KeyedSubtree(
+                          key: ValueKey(
+                              '${_notes.currentBoardId}:${_notes.viewMode.name}'),
+                          child: _buildContent(wall),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-                Scaffold(
-                  backgroundColor: Colors.transparent,
-                  floatingActionButton: FloatingActionButton.extended(
-                    onPressed: () => _openEditor(_notes.draft(), isNew: true),
-                    backgroundColor: const Color(0xFFFFCA28),
-                    foregroundColor: AppColors.ink,
-                    icon: const Icon(Icons.push_pin),
-                    label: Text(_l10n.addNote,
-                        style: const TextStyle(fontSize: 17)),
-                  ),
-                  body: SafeArea(
-                    child: Column(
-                      children: [
-                        _buildHeader(wall),
-                        BoardBar(notes: _notes, textColor: wall.wallText),
-                        const SizedBox(height: 8),
-                        _buildToolbar(wall),
-                        const SizedBox(height: 8),
-                        Expanded(child: _buildContent(wall)),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+          ],
         );
       },
     );
@@ -276,62 +279,153 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildToolbar(WallStyle wall) {
     final l10n = _l10n;
     final text = wall.wallText;
+    final faded = wall.wallTextFaded;
 
-    final typeOptions = [
-      (key: -1, label: l10n.typeAll),
-      (key: 0, label: l10n.typeNormal),
-      (key: 1, label: l10n.typeLink),
-      (key: 2, label: l10n.typeChecklist),
-    ];
-
-    return Theme(
-      data: wallControlsTheme(context, wall),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 116,
-              child: DropdownButtonFormField<int>(
-                initialValue: _notes.typeFilter,
-                isExpanded: true,
-                decoration: InputDecoration(labelText: l10n.type),
-                dropdownColor: wall.dropdownSurface,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyLarge
-                    ?.copyWith(fontSize: 16, color: text),
-                iconEnabledColor: text,
-                items: [
-                  for (final o in typeOptions)
-                    DropdownMenuItem(value: o.key, child: Text(o.label)),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          // Rounded frosted search bar.
+          Expanded(
+            child: Container(
+              height: 42,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: wall.dark
+                    ? const Color(0x26FFFFFF)
+                    : const Color(0x14000000),
+                borderRadius: BorderRadius.circular(21),
+                border: Border.all(color: faded.withValues(alpha: 0.25)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.search, size: 19, color: faded),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      cursorColor: text,
+                      style: TextStyle(color: text, fontSize: 16),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        hintText: l10n.search,
+                        hintStyle: TextStyle(color: faded, fontSize: 16),
+                      ),
+                    ),
+                  ),
+                  if (_searchController.text.isNotEmpty)
+                    InkResponse(
+                      radius: 16,
+                      onTap: _searchController.clear,
+                      child: Icon(Icons.close, size: 17, color: faded),
+                    ),
                 ],
-                onChanged: (v) {
-                  if (v != null) _notes.typeFilter = v;
-                },
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(labelText: l10n.search),
-                style: TextStyle(color: text, fontSize: 16),
-              ),
+          ),
+          const SizedBox(width: 2),
+          _filterButton(wall),
+          _sortButton(wall),
+          _viewModeButton(wall),
+        ],
+      ),
+    );
+  }
+
+  Widget _filterButton(WallStyle wall) {
+    final l10n = _l10n;
+    final active = _notes.typeFilter != -1;
+    final options = [
+      (-1, l10n.typeAll, Icons.all_inclusive),
+      (0, l10n.typeNormal, Icons.notes),
+      (1, l10n.typeLink, Icons.link),
+      (2, l10n.typeChecklist, Icons.checklist),
+      (3, l10n.typeDrawing, Icons.brush),
+    ];
+    return PopupMenuButton<int>(
+      tooltip: l10n.type,
+      color: AppColors.paper,
+      icon: Badge(
+        isLabelVisible: active,
+        smallSize: 8,
+        backgroundColor: const Color(0xFFFFCA28),
+        child: Icon(active ? Icons.filter_alt : Icons.filter_alt_outlined,
+            color: wall.wallText),
+      ),
+      onSelected: (v) => _notes.typeFilter = v,
+      itemBuilder: (context) => [
+        for (final (key, label, icon) in options)
+          PopupMenuItem(
+            value: key,
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: AppColors.ink),
+                const SizedBox(width: 10),
+                Expanded(
+                    child: Text(label,
+                        style: const TextStyle(color: AppColors.ink))),
+                if (_notes.typeFilter == key)
+                  const Icon(Icons.check, size: 18, color: AppColors.ink),
+              ],
             ),
-            IconButton(
-              tooltip: l10n.sortTooltip,
-              icon: Icon(
+          ),
+      ],
+    );
+  }
+
+  Widget _sortButton(WallStyle wall) {
+    final l10n = _l10n;
+    return PopupMenuButton<String>(
+      tooltip: l10n.sortTooltip,
+      color: AppColors.paper,
+      icon: Icon(Icons.swap_vert, color: wall.wallText),
+      onSelected: (v) {
+        switch (v) {
+          case 'created':
+            _notes.sortByCreated = true;
+          case 'name':
+            _notes.sortByCreated = false;
+          case 'dir':
+            _notes.toggleSortDirection();
+        }
+      },
+      itemBuilder: (context) => [
+        _sortItem('created', l10n.sortByCreated, _notes.sortByCreated),
+        _sortItem('name', l10n.sortByName, !_notes.sortByCreated),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'dir',
+          child: Row(
+            children: [
+              Icon(
                 _notes.sortAscending
                     ? Icons.arrow_upward
                     : Icons.arrow_downward,
-                color: text,
+                size: 18,
+                color: AppColors.ink,
               ),
-              onPressed: _notes.toggleSortDirection,
-            ),
-            _viewModeButton(wall),
-          ],
+              const SizedBox(width: 10),
+              Text(_notes.sortAscending ? l10n.sortAsc : l10n.sortDesc,
+                  style: const TextStyle(color: AppColors.ink)),
+            ],
+          ),
         ),
+      ],
+    );
+  }
+
+  PopupMenuItem<String> _sortItem(String value, String label, bool selected) {
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Expanded(
+              child:
+                  Text(label, style: const TextStyle(color: AppColors.ink))),
+          if (selected)
+            const Icon(Icons.check, size: 18, color: AppColors.ink),
+        ],
       ),
     );
   }
@@ -422,22 +516,125 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _emptyState(WallStyle wall) {
+    final faded = wall.wallTextFaded;
     return Center(
-      child: Transform.rotate(
-        angle: -0.03,
-        child: Text(
-          _l10n.emptyState,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 22,
-            height: 1.4,
-            color: wall.wallTextFaded,
-            shadows: wall.wallTextShadows,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => _openEditor(_notes.draft(), isNew: true),
+        child: Transform.rotate(
+          angle: -0.03,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // A dashed "ghost note" inviting the first pin.
+              SizedBox(
+                width: 150,
+                height: 112,
+                child: CustomPaint(
+                  painter: _GhostNotePainter(faded),
+                  child: Icon(Icons.add, size: 36, color: faded),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _l10n.emptyState,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 21,
+                  height: 1.4,
+                  color: faded,
+                  shadows: wall.wallTextShadows,
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
+
+/// The wall texture + scrim + stains + vignette, kept outside the Scaffold so
+/// wall switches can crossfade without touching app content.
+class _WallBackground extends StatelessWidget {
+  const _WallBackground({
+    super.key,
+    required this.wall,
+    required this.decor,
+  });
+
+  final WallStyle wall;
+  final bool decor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF6B5849),
+        image: DecorationImage(
+          image: AssetImage(wall.asset),
+          repeat: ImageRepeat.repeat,
+          scale: 2.2,
+        ),
+      ),
+      child: Container(
+        color: wall.overlay,
+        child: Stack(
+          children: [
+            if (decor) Positioned.fill(child: WallDecor(wall: wall)),
+            // Soft vignette adds depth so the wall recedes at the edges.
+            const Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      radius: 1.15,
+                      colors: [Colors.transparent, Color(0x33000000)],
+                      stops: [0.62, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Dashed outline in the shape of a sticky note.
+class _GhostNotePainter extends CustomPainter {
+  _GhostNotePainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..color = color;
+    final path = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+        (Offset.zero & size).deflate(1.5),
+        const Radius.circular(8),
+      ));
+    for (final metric in path.computeMetrics()) {
+      var d = 0.0;
+      while (d < metric.length) {
+        canvas.drawPath(
+          metric.extractPath(d, math.min(d + 8, metric.length)),
+          paint,
+        );
+        d += 14;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GhostNotePainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// Plays a small "stick onto the wall" entrance: fade + settle + tiny rotate.

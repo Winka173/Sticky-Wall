@@ -386,12 +386,40 @@ class StickyNoteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget paper = Container(
       decoration: paperDecoration(note, raised: raised),
-      padding: const EdgeInsets.fromLTRB(12, 18, 10, 8),
-      child: _NoteBody(
-        note: note,
-        cb: cb,
-        maxContentLines: maxContentLines,
-        showDelete: showDelete,
+      child: Stack(
+        children: [
+          // Adhesive strip along the top, like a real sticky note.
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 14,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Color(0x21FFFFFF),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(3)),
+              ),
+            ),
+          ),
+          // Slightly curled corner.
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: CustomPaint(
+              size: const Size(16, 16),
+              painter: _FoldCornerPainter(),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 18, 10, 8),
+            child: _NoteBody(
+              note: note,
+              cb: cb,
+              maxContentLines: maxContentLines,
+              showDelete: showDelete,
+            ),
+          ),
+        ],
       ),
     );
     if (captureKey != null) {
@@ -420,6 +448,38 @@ class StickyNoteCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A subtle darkening gradient in the bottom-right corner that reads as a
+/// slightly curled page corner.
+class _FoldCornerPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, size.height)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(
+      path,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.transparent, Color(0x2E000000)],
+        ).createShader(Offset.zero & size),
+    );
+    canvas.drawLine(
+      Offset(0, size.height),
+      Offset(size.width, 0),
+      Paint()
+        ..color = const Color(0x14000000)
+        ..strokeWidth = 1,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_FoldCornerPainter oldDelegate) => false;
 }
 
 /// A compact full-width row for list mode.

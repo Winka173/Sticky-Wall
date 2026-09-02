@@ -506,6 +506,18 @@ abstract class AppLocalizations {
   /// **'By name'**
   String get sortByName;
 
+  /// No description provided for @sortAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascending'**
+  String get sortAsc;
+
+  /// No description provided for @sortDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Descending'**
+  String get sortDesc;
+
   /// No description provided for @boards.
   ///
   /// In en, this message translates to:

@@ -63,9 +63,6 @@ class WallStyle {
           Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))
         ]
       : const [];
-
-  Color get dropdownSurface =>
-      dark ? const Color(0xFF33322C) : const Color(0xFFF4F1E8);
 }
 
 const walls = [
@@ -194,25 +191,3 @@ ThemeData buildAppTheme(FontChoice font) {
   );
 }
 
-/// Local theme override so toolbar controls (labels, underlines, icons)
-/// match the writing color of the current wall.
-ThemeData wallControlsTheme(BuildContext context, WallStyle wall) {
-  final theme = Theme.of(context);
-  final text = wall.wallText;
-  final faded = wall.wallTextFaded;
-
-  return theme.copyWith(
-    inputDecorationTheme: InputDecorationTheme(
-      labelStyle: TextStyle(color: faded),
-      floatingLabelStyle: TextStyle(color: text),
-      enabledBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: faded),
-      ),
-      focusedBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: text),
-      ),
-    ),
-    iconTheme: IconThemeData(color: text),
-    textSelectionTheme: TextSelectionThemeData(cursorColor: text),
-  );
-}

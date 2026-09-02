@@ -216,6 +216,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get sortByName => 'Theo tên';
 
   @override
+  String get sortAsc => 'Tăng dần';
+
+  @override
+  String get sortDesc => 'Giảm dần';
+
+  @override
   String get boards => 'Bảng';
 
   @override
