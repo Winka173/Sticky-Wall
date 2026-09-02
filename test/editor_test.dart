@@ -7,6 +7,7 @@ import 'package:sticky_wall/services/note_storage.dart';
 import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
+import 'package:sticky_wall/widgets/add_note_button.dart';
 
 Future<NotesController> _pumpApp(WidgetTester tester,
     {List<Note> notes = const []}) async {
@@ -23,7 +24,7 @@ Future<NotesController> _pumpApp(WidgetTester tester,
 }
 
 Future<void> _openEditor(WidgetTester tester) async {
-  await tester.tap(find.byType(FloatingActionButton));
+  await tester.tap(find.byType(AddNoteButton));
   await tester.pumpAndSettle();
 }
 

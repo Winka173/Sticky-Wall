@@ -18,12 +18,22 @@ then taken well beyond it.
 |---|---|---|---|
 | ![Black](screenshots/preview_chalk_black.png) | ![Plaster](screenshots/preview_plaster.png) | ![Brick](screenshots/preview_brick.png) | ![Wood](screenshots/preview_wood.png) |
 
+| Kraft paper | Marble | Terrazzo | Denim |
+|---|---|---|---|
+| ![Kraft](screenshots/preview_kraft.png) | ![Marble](screenshots/preview_marble.png) | ![Terrazzo](screenshots/preview_terrazzo.png) | ![Denim](screenshots/preview_denim.png) |
+
+| Felt | Linen | Drawing note | Customize sheet |
+|---|---|---|---|
+| ![Felt](screenshots/preview_felt.png) | ![Linen](screenshots/preview_linen.png) | ![Drawing](screenshots/drawing.png) | ![Settings](screenshots/settings.png) |
+
 ## Features
 
 **Notes**
 - Four types: **Normal** (multi-line text), **Link** (label + URL),
   **Checklist** (tickable items with done-count), and **Drawing** (freehand
-  sketch with a color/size pen)
+  sketch with a color/size pen and eraser, on a canvas whose **paper tone**
+  and **guide pattern** — plain, ruled, grid, dots — you pick; the note on
+  the wall shows the same paper)
 - Attach a **photo** (gallery or camera), add an **emote** sticker, pick a
   **paper color** (or auto-from-id), **pin to top**, and set a **reminder**
   (date + time, optionally **repeating daily / weekly / monthly**) that fires
@@ -51,7 +61,12 @@ then taken well beyond it.
 - **Threads** — drag from one note's pin to another to tie a red yarn thread
   between them; tap a thread to cut it (Undo re-ties it)
 - **Tidy up** (⋮ menu) flies every note into a neat grid, or groups them
-  **by color**
+  **by color**. Rows are packed from the cards' real rendered heights (an
+  offstage measuring pass), so short and long notes sit a pin's length apart
+  instead of a card's; when full-size cards will not fit, they shrink to
+  three columns
+- The **add-note button** is a little sticky note with a pencil, at home on
+  any wall; in grid / list and on an empty wall it grows a "New note" label
 - **Grid** — masonry layout; the column count follows the screen width
   (2 on phones, up to 6 on tablets / desktop)
 - **List** — compact rows, swipe-to-delete
@@ -84,15 +99,20 @@ then taken well beyond it.
   it on iOS.
 
 **Boards**
-- Multiple named boards ("My Wall", "Work", …), each with an optional emoji
-  icon; each remembers its own wall texture or **custom wall photo**
+- Multiple named boards ("My Wall", "Work", …); each remembers its own wall
+  texture or **custom wall photo**
+- One dialog creates or edits a board: name, an optional **emoji icon**, and
+  **bold / italic / underline** for the name, previewed live in the field and
+  drawn that way on the tab, in the manage sheet and in "Move to board"
 - Switch by tapping a board tab or swiping horizontally in grid/list; the
-  content slides in the direction you moved. Tap the selected tab to rename /
-  set an icon / delete it; **long-press and drag** a tab to reorder boards
+  content slides in the direction you moved. Tap the selected tab to edit or
+  delete it; **long-press and drag** a tab to reorder boards. The "+" that
+  adds a board sits after the last tab and stays put once the tabs scroll
 
 **The wall**
-- Six switchable textures: cork, green/black chalkboard, painted plaster,
-  brick, wood — each under a tuned scrim so writing keeps contrast
+- Twelve switchable textures: cork, green/black chalkboard, painted plaster,
+  brick, wood, kraft paper, marble, terrazzo, denim, felt, linen — each under
+  a tuned scrim so writing keeps contrast
 - Or pick **your own photo** as the wall; its brightness is sampled to choose
   a scrim so the writing on it stays legible
 - Procedural **stains** layer (water rings, drips, paint splatters, smudges,
@@ -103,8 +123,10 @@ then taken well beyond it.
 - Subtle vignette for depth
 
 **Fonts & language**
-- Four handwriting fonts (Patrick Hand, Itim, Dancing Script, Be Vietnam Pro),
-  all with full Vietnamese diacritics; Pacifico for the title. The font
+- Eleven note fonts — Patrick Hand, Itim, Dancing Script, Be Vietnam Pro,
+  Mali, Sriracha, Mynerve, Fuzzy Bubbles, Amatic SC, Charm and IBM Plex Mono
+  — all with full Vietnamese diacritics; Pacifico for the title. Each is
+  size-balanced so switching fonts does not reflow the cards, and the font
   picker previews each as a real sample sticky note
 - Full English / Tiếng Việt UI, following the system locale or set manually
 
@@ -139,7 +161,9 @@ Chrome / Edge also run the app for a quick look at the UI, but the native
 plugins (notifications, share, widget, gallery) are no-ops there.
 
 Localizations are generated from `lib/l10n/*.arb` on `flutter pub get`
-(see `l10n.yaml`). App icon and splash are generated art:
+(see `l10n.yaml`). App icon and splash are generated art — a sticky note on
+cork drawn by `test/icon_gen_test.dart`, with the safe-zone margins Play and
+the App Store mask:
 
 ```sh
 flutter test --update-goldens test/icon_gen_test.dart   # regenerate art
@@ -147,13 +171,29 @@ dart run flutter_launcher_icons
 dart run flutter_native_splash:create
 ```
 
+### Release builds
+
+Release builds are minified and shrunk (`proguard-rules.pro` keeps the
+notification plugin's Gson serialisation and the home-widget provider). Signing stays out
+of the repo: create `android/key.properties` (gitignored) with
+
+```properties
+storeFile=/absolute/path/to/upload-keystore.jks
+storePassword=...
+keyAlias=upload
+keyPassword=...
+```
+
+and `flutter build appbundle` signs with it. Without the file, release builds
+fall back to the debug key so they still install for a smoke test.
+
 ## Architecture
 
 State lives in two `ChangeNotifier`s the widgets listen to:
 
 | Path | Purpose |
 |---|---|
-| `lib/models/` | `Note` (+ `ReminderRepeat`, `NoteLink`), `ChecklistItem`, `Board`, `ViewMode` |
+| `lib/models/` | `Note` (+ `ReminderRepeat`, `NoteLink`), `ChecklistItem`, `Board` (name, icon, formatting), `DrawStroke` / `DrawCanvas`, `ViewMode` |
 | `lib/services/note_storage.dart` | JSON persistence via `shared_preferences` (notes, boards, threads, settings) |
 | `lib/services/notes_controller.dart` | Boards + notes + CRUD, trash & retention, bulk actions, threads, tidy |
 | `lib/services/settings_controller.dart` | Font / language / stains / night mode & schedule |
@@ -165,31 +205,45 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/services/widget_service.dart` | Push pinned notes to the home-screen widget |
 | `lib/screens/home_screen.dart` | Header, board bar, toolbar, the three views, multi-select |
 | `lib/screens/trash_screen.dart` | Trash: restore / delete forever / empty |
-| `lib/widgets/wall_view.dart` | Free drag-and-drop canvas, threads, tidy animation |
+| `lib/widgets/wall_view.dart` | Free drag-and-drop canvas, threads, measured tidy animation |
 | `lib/widgets/wall_background.dart` | Wall texture or custom photo + scrim, stains, vignette |
 | `lib/widgets/peel_away.dart` | "Peel off the wall" delete animation |
-| `lib/widgets/drawing_canvas.dart` | Freehand drawing editor + stroke painter |
+| `lib/widgets/drawing_canvas.dart` | Freehand drawing editor (pen, eraser, paper tone + guide pattern) and the painters that draw a sketch anywhere |
 | `lib/widgets/note_dialog.dart` | Create/Edit dialog (type, color, pin, reminder + repeat, emote) |
 | `lib/widgets/note_views.dart` | Sticky card + list tile |
+| `lib/widgets/add_note_button.dart` | The sticky-note-with-a-pencil FAB |
 | `lib/widgets/wall_decor.dart` | Procedural stains (CustomPainter) |
-| `lib/widgets/settings_sheet.dart` · `board_bar.dart` | Customize sheet (wall, photo, night, font, trash), reorderable board tabs |
-| `lib/theme.dart` | Walls, fonts, palette (`AppColors`), light + night themes |
+| `lib/widgets/board_bar.dart` · `board_dialog.dart` | Reorderable board tabs with a fixed "+", and the create / edit board dialog (name, icon, bold / italic / underline) |
+| `lib/widgets/settings_sheet.dart` | Customize sheet (wall, photo, night, font, trash) |
+| `lib/theme.dart` | Walls, fonts, palette (`AppColors`), radii, light + night themes — every control reads its look from here |
 | `lib/util/` | `foldText` (diacritic folding), `stableHash` (deterministic ids/seeds) |
-| `test/*_test.dart` | Widget/unit tests + skipped golden generators for screenshots & icon |
+| `test/*_test.dart` | Widget/unit tests (logic, editor, tidy packing, wall stability under the keyboard, board dialog, camera) + skipped golden generators for screenshots & icon |
 
 Screenshots are produced by the golden generators: remove `skip: true` in
 `test/preview_test.dart` / `test/modes_preview_test.dart`, run
 `flutter test --update-goldens` on them, and move the PNGs from `test/` to
-`screenshots/`.
+`screenshots/`. `test/preview_fonts.dart` loads the real typefaces and the
+Material icon font into the test binding, so the screenshots show actual
+handwriting and icons rather than the test framework's block glyphs.
 
 ## Assets & credits
 
 - Wall textures: [ambientCG](https://ambientcg.com) — Cork004,
-  PaintedPlaster017, Concrete046, Bricks104, Planks021. License: CC0.
-- Fonts (Google Fonts, SIL OFL, copies in `assets/fonts/`):
+  PaintedPlaster017, Concrete046, Bricks104, Planks021, Paper004 (kraft),
+  Marble012, Terrazzo013, Fabric069 (denim), Fabric034 (felt), Fabric030
+  (linen). License: CC0.
+- Fonts (Google Fonts, SIL OFL — licence files next to each in
+  `assets/fonts/`):
   [Patrick Hand](https://fonts.google.com/specimen/Patrick+Hand),
   [Itim](https://fonts.google.com/specimen/Itim),
   [Dancing Script](https://fonts.google.com/specimen/Dancing+Script),
   [Be Vietnam Pro](https://fonts.google.com/specimen/Be+Vietnam+Pro),
+  [Mali](https://fonts.google.com/specimen/Mali),
+  [Sriracha](https://fonts.google.com/specimen/Sriracha),
+  [Mynerve](https://fonts.google.com/specimen/Mynerve),
+  [Fuzzy Bubbles](https://fonts.google.com/specimen/Fuzzy+Bubbles),
+  [Amatic SC](https://fonts.google.com/specimen/Amatic+SC),
+  [Charm](https://fonts.google.com/specimen/Charm),
+  [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono),
   [Pacifico](https://fonts.google.com/specimen/Pacifico). All include the
   Vietnamese subset.

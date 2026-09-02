@@ -4,6 +4,7 @@ import 'util/stable_hash.dart';
 
 export 'util/stable_hash.dart';
 
+/// The palette: warm ink on paper, one sunny accent, a red pin.
 abstract class AppColors {
   /// Dark warm "ink" used on paper notes and light walls.
   static const ink = Color(0xFF3B372F);
@@ -37,6 +38,7 @@ abstract class AppColors {
   ];
 }
 
+/// Corner radii: paper is barely rounded; controls and sheets more so.
 abstract class AppRadii {
   static const paper = 3.0;
   static const control = 8.0;
@@ -173,7 +175,48 @@ const walls = [
     overlay: Color(0x1A3B2F1E),
     dark: false,
   ),
+  // New walls are appended, never inserted: boards persist the wall by index.
+  WallStyle(
+    id: 'kraft',
+    asset: 'assets/images/wall_kraft.jpg',
+    overlay: Color(0x14FFFFFF),
+    dark: false,
+  ),
+  WallStyle(
+    id: 'marble',
+    asset: 'assets/images/wall_marble.jpg',
+    overlay: Color(0x1AFFFFFF),
+    dark: false,
+  ),
+  WallStyle(
+    id: 'terrazzo',
+    asset: 'assets/images/wall_terrazzo.jpg',
+    overlay: Color(0x33FFFFFF),
+    dark: false,
+  ),
+  WallStyle(
+    id: 'denim',
+    asset: 'assets/images/wall_denim.jpg',
+    overlay: Color(0x4D101C33),
+    dark: true,
+  ),
+  WallStyle(
+    id: 'felt',
+    asset: 'assets/images/wall_felt.jpg',
+    overlay: Color(0x33062A28),
+    dark: true,
+  ),
+  WallStyle(
+    id: 'linen',
+    asset: 'assets/images/wall_linen.jpg',
+    overlay: Color(0x40151412),
+    dark: true,
+  ),
 ];
+
+/// The bundled wall with the given [WallStyle.id], or the first one.
+WallStyle wallById(String id) =>
+    walls.firstWhere((w) => w.id == id, orElse: () => walls.first);
 
 /// A user-selectable font for notes and UI. All families bundled here include
 /// the Vietnamese subset.
@@ -211,8 +254,33 @@ const fontChoices = [
     label: 'Be Vietnam Pro',
     scale: 0.9,
   ),
+  // Neat, rounded schoolbook handwriting.
+  FontChoice(id: 'mali', family: 'Mali', label: 'Mali'),
+  // Bold marker strokes.
+  FontChoice(id: 'sriracha', family: 'Sriracha', label: 'Sriracha', scale: 0.95),
+  // Quick, scratchy ballpoint notes.
+  FontChoice(id: 'mynerve', family: 'Mynerve', label: 'Mynerve', scale: 1.05),
+  // Bubbly, playful lettering.
+  FontChoice(
+    id: 'fuzzy',
+    family: 'FuzzyBubbles',
+    label: 'Fuzzy Bubbles',
+    scale: 0.95,
+  ),
+  // Tall condensed capitals, poster style — needs a big boost to read.
+  FontChoice(id: 'amatic', family: 'AmaticSC', label: 'Amatic SC', scale: 1.35),
+  // Elegant upright script.
+  FontChoice(id: 'charm', family: 'Charm', label: 'Charm', scale: 1.1),
+  // Typewriter.
+  FontChoice(
+    id: 'plexmono',
+    family: 'IBMPlexMono',
+    label: 'Plex Mono',
+    scale: 0.85,
+  ),
 ];
 
+/// The font with the given [FontChoice.id], or the default one.
 FontChoice fontChoiceById(String id) => fontChoices.firstWhere(
       (f) => f.id == id,
       orElse: () => fontChoices.first,
@@ -246,6 +314,9 @@ class NightMood extends ThemeExtension<NightMood> {
   NightMood lerp(ThemeExtension<NightMood>? other, double t) => this;
 }
 
+/// The app theme: everything Material draws is "ink on paper", matching the
+/// notes themselves. [font] is the user's chosen face; [night] dims every
+/// paper surface to the lamp-lit tone the notes take when the lights are off.
 ThemeData buildAppTheme(FontChoice font, {bool night = false}) {
   // At night every sheet of paper the UI is made of — dialogs, menus, bottom
   // sheets — dims to the same lamp-lit tone as the notes.
@@ -258,8 +329,11 @@ ThemeData buildAppTheme(FontChoice font, {bool night = false}) {
     seedColor: AppColors.ink,
     primary: AppColors.ink,
     onPrimary: AppColors.chalk,
+    secondary: AppColors.accent,
+    onSecondary: AppColors.ink,
     surface: paper,
     onSurface: AppColors.ink,
+    error: AppColors.deleteIcon,
   );
   final base = ThemeData(
     useMaterial3: true,
@@ -269,16 +343,42 @@ ThemeData buildAppTheme(FontChoice font, {bool night = false}) {
   const sheetShape = RoundedRectangleBorder(
     borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.sheet)),
   );
+  const controlShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.all(Radius.circular(AppRadii.control)),
+  );
+  final dialogShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(AppRadii.control),
+  );
+
+  /// Resolves to [selected] when the control is on, else [rest].
+  WidgetStateProperty<Color?> onOff(Color selected, Color? rest) =>
+      WidgetStateProperty.resolveWith(
+        (s) => s.contains(WidgetState.selected) ? selected : rest,
+      );
+
+  /// [onOff] for the picker slots typed as a plain [Color].
+  Color stateColor(Color selected, Color rest) => WidgetStateColor.resolveWith(
+        (s) => s.contains(WidgetState.selected) ? selected : rest,
+      );
 
   return base.copyWith(
     extensions: [NoteTextScale(font.scale), NightMood(night)],
     splashFactory: InkSparkle.splashFactory,
+    iconTheme: const IconThemeData(color: AppColors.ink),
+    dividerTheme: const DividerThemeData(color: AppColors.inkHint, space: 1),
     // Dialogs look like a sheet of note paper.
     dialogTheme: base.dialogTheme.copyWith(
       backgroundColor: paper,
+      shape: dialogShape,
       titleTextStyle: TextStyle(
         fontFamily: font.family,
         fontSize: 24 * font.scale,
+        color: AppColors.ink,
+      ),
+      contentTextStyle: TextStyle(
+        fontFamily: font.family,
+        fontSize: 16 * font.scale,
+        height: 1.35,
         color: AppColors.ink,
       ),
     ),
@@ -290,6 +390,7 @@ ThemeData buildAppTheme(FontChoice font, {bool night = false}) {
     ),
     popupMenuTheme: PopupMenuThemeData(
       color: paper,
+      shape: controlShape,
       textStyle: TextStyle(
         fontFamily: font.family,
         fontSize: 16 * font.scale,
@@ -303,7 +404,16 @@ ThemeData buildAppTheme(FontChoice font, {bool night = false}) {
     chipTheme: base.chipTheme.copyWith(
       selectedColor: AppColors.ink.withValues(alpha: 0.16),
       side: const BorderSide(color: AppColors.inkHint),
-      labelStyle: const TextStyle(color: AppColors.ink),
+      // A chip label does not inherit the ambient text style, so the font
+      // has to be spelled out here or the chips fall back to the system one.
+      labelStyle: TextStyle(
+        fontFamily: font.family,
+        fontSize: 15 * font.scale,
+        color: AppColors.ink,
+      ),
+      iconTheme: const IconThemeData(color: AppColors.ink, size: 18),
+      checkmarkColor: AppColors.ink,
+      shape: controlShape,
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
@@ -313,6 +423,153 @@ ThemeData buildAppTheme(FontChoice font, {bool night = false}) {
         fontFamily: font.family,
         fontSize: 16 * font.scale,
         color: AppColors.chalk,
+      ),
+    ),
+    tooltipTheme: TooltipThemeData(
+      decoration: BoxDecoration(
+        color: AppColors.overlayDark,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      textStyle: TextStyle(
+        fontFamily: font.family,
+        fontSize: 14 * font.scale,
+        color: AppColors.chalk,
+      ),
+    ),
+    // Text fields: a pencil line under the text rather than a boxed input.
+    inputDecorationTheme: const InputDecorationTheme(
+      hintStyle: TextStyle(color: AppColors.inkHint),
+      labelStyle: TextStyle(color: AppColors.inkSoft),
+      floatingLabelStyle: TextStyle(color: AppColors.ink),
+      enabledBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: AppColors.inkHint),
+      ),
+      focusedBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: AppColors.ink, width: 1.6),
+      ),
+      errorBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: AppColors.deleteIcon),
+      ),
+      focusedErrorBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: AppColors.deleteIcon, width: 1.6),
+      ),
+      errorStyle: TextStyle(color: AppColors.deleteIcon),
+    ),
+    textSelectionTheme: TextSelectionThemeData(
+      cursorColor: AppColors.ink,
+      selectionColor: AppColors.accent.withValues(alpha: 0.45),
+      selectionHandleColor: AppColors.ink,
+    ),
+    // Toggles: an ink switch/box with a chalk mark, nothing tinted.
+    switchTheme: SwitchThemeData(
+      thumbColor: onOff(AppColors.chalk, AppColors.inkSoft),
+      trackColor: onOff(AppColors.ink, Colors.transparent),
+      trackOutlineColor: onOff(AppColors.ink, AppColors.inkSoft),
+    ),
+    checkboxTheme: CheckboxThemeData(
+      fillColor: onOff(AppColors.ink, Colors.transparent),
+      checkColor: const WidgetStatePropertyAll(AppColors.chalk),
+      side: const BorderSide(color: AppColors.inkSoft, width: 1.6),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(4)),
+      ),
+    ),
+    radioTheme: RadioThemeData(
+      fillColor: onOff(AppColors.ink, AppColors.inkSoft),
+    ),
+    sliderTheme: const SliderThemeData(
+      activeTrackColor: AppColors.ink,
+      inactiveTrackColor: AppColors.inkHint,
+      thumbColor: AppColors.ink,
+      overlayColor: Color(0x1F3B372F),
+    ),
+    // Buttons: ink text; the one filled button is solid ink with chalk text.
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.ink,
+        shape: controlShape,
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.ink,
+        foregroundColor: AppColors.chalk,
+        shape: controlShape,
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.ink,
+        side: const BorderSide(color: AppColors.inkSoft),
+        shape: controlShape,
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: paper,
+        foregroundColor: AppColors.ink,
+        shape: controlShape,
+      ),
+    ),
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(foregroundColor: AppColors.ink),
+    ),
+    segmentedButtonTheme: SegmentedButtonThemeData(
+      style: SegmentedButton.styleFrom(
+        foregroundColor: AppColors.ink,
+        selectedForegroundColor: AppColors.ink,
+        selectedBackgroundColor: AppColors.ink.withValues(alpha: 0.16),
+        side: const BorderSide(color: AppColors.inkHint),
+      ),
+    ),
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
+      color: AppColors.ink,
+      linearTrackColor: AppColors.inkHint,
+    ),
+    dropdownMenuTheme: DropdownMenuThemeData(
+      menuStyle: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(paper),
+        shape: const WidgetStatePropertyAll(controlShape),
+      ),
+    ),
+    menuTheme: MenuThemeData(
+      style: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(paper),
+        shape: const WidgetStatePropertyAll(controlShape),
+      ),
+    ),
+    // Reminder pickers: the same paper sheet with ink digits and a sunny
+    // accent only on the selected day/hour.
+    datePickerTheme: DatePickerThemeData(
+      backgroundColor: paper,
+      shape: dialogShape,
+      headerForegroundColor: AppColors.ink,
+      dayForegroundColor: onOff(AppColors.chalk, AppColors.ink),
+      dayBackgroundColor: onOff(AppColors.ink, Colors.transparent),
+      todayForegroundColor: onOff(AppColors.chalk, AppColors.ink),
+      todayBackgroundColor: onOff(AppColors.ink, Colors.transparent),
+      todayBorder: const BorderSide(color: AppColors.ink),
+      yearForegroundColor: onOff(AppColors.chalk, AppColors.ink),
+      yearBackgroundColor: onOff(AppColors.ink, Colors.transparent),
+      dividerColor: AppColors.inkHint,
+    ),
+    timePickerTheme: TimePickerThemeData(
+      backgroundColor: paper,
+      shape: dialogShape,
+      dialBackgroundColor: AppColors.ink.withValues(alpha: 0.08),
+      dialHandColor: AppColors.ink,
+      dialTextColor: stateColor(AppColors.chalk, AppColors.ink),
+      hourMinuteColor:
+          stateColor(AppColors.accent, AppColors.ink.withValues(alpha: 0.08)),
+      hourMinuteTextColor: AppColors.ink,
+      dayPeriodColor: stateColor(AppColors.accent, Colors.transparent),
+      dayPeriodTextColor: AppColors.ink,
+      dayPeriodBorderSide: const BorderSide(color: AppColors.inkSoft),
+      entryModeIconColor: AppColors.ink,
+      helpTextStyle: TextStyle(
+        fontFamily: font.family,
+        fontSize: 14 * font.scale,
+        color: AppColors.inkSoft,
       ),
     ),
   );

@@ -1,5 +1,7 @@
 import 'draw_stroke.dart';
 
+/// What kind of note a card is. Stored by name in JSON; legacy notes without
+/// a type are inferred from their fields (see [Note.fromJson]).
 enum NoteType { normal, link, checklist, drawing }
 
 /// How often a reminder fires again after its first time.
@@ -40,6 +42,7 @@ class Note {
     this.repeat = ReminderRepeat.none,
     List<ChecklistItem>? checklist,
     List<DrawStroke>? strokes,
+    this.canvas = const DrawCanvas(),
     this.imagePath = '',
     this.x = 0.5,
     this.y = 0.5,
@@ -70,6 +73,9 @@ class Note {
 
   /// Freehand strokes for a drawing note.
   List<DrawStroke> strokes;
+
+  /// The paper the strokes sit on (tone + guide pattern); drawing notes only.
+  DrawCanvas canvas;
 
   /// Attached photo reference — the file name inside the app's photo folder
   /// (see `ImageService.resolve`); empty if none.
@@ -159,6 +165,7 @@ class Note {
       strokes: (json['strokes'] as List<dynamic>? ?? [])
           .map((e) => DrawStroke.fromJson(e as Map<String, dynamic>))
           .toList(),
+      canvas: DrawCanvas.fromJson(json['canvas'] as Map<String, dynamic>?),
       imagePath: json['imagePath'] as String? ?? '',
       createdAt:
           _date(json['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
@@ -183,6 +190,7 @@ class Note {
         'repeat': repeat.name,
         'checklist': checklist.map((i) => i.toJson()).toList(),
         'strokes': strokes.map((s) => s.toJson()).toList(),
+        'canvas': canvas.toJson(),
         'imagePath': imagePath,
         'createdAt': createdAt.toIso8601String(),
         'x': x,

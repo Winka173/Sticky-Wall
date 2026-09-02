@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import '../services/notes_controller.dart';
 import '../services/settings_controller.dart';
 import '../services/share_service.dart';
 import '../theme.dart';
+import '../widgets/add_note_button.dart';
 import '../widgets/board_bar.dart';
 import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
@@ -25,6 +27,9 @@ import 'trash_screen.dart';
 
 const _kToast = Duration(seconds: 3);
 
+/// The main screen: title row, board tabs and tools, then the notes in the
+/// current layout (free wall, grid or list) over the wall texture. Also hosts
+/// the editor, selection mode, search, share/save and incoming shared content.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
@@ -222,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'edit':
         await _openEditor(note, isNew: false);
       case 'pin':
-        HapticFeedback.selectionClick();
+        unawaited(HapticFeedback.selectionClick());
         _notes.togglePin(note);
       case 'select':
         _startSelecting(note);
@@ -259,7 +264,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 leading: board.icon.isEmpty
                     ? const Icon(Icons.dashboard_outlined)
                     : Text(board.icon, style: const TextStyle(fontSize: 22)),
-                title: Text(_boardName(board)),
+                title: Text(_boardName(board),
+                    style: board.decorate(const TextStyle())),
                 onTap: () => Navigator.pop(context, board),
               ),
           ],
@@ -318,7 +324,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // The photo was swapped or removed: drop the old file unless another
     // note still shows it.
     if (oldPhoto != result.imagePath && !_notes.photoInUse(oldPhoto)) {
-      ImageService.deleteFile(oldPhoto);
+      unawaited(ImageService.deleteFile(oldPhoto));
     }
   }
 
@@ -488,21 +494,22 @@ class _HomeScreenState extends State<HomeScreen> {
               resizeToAvoidBottomInset: false,
               floatingActionButton: _selecting
                   ? null
-                  : FloatingActionButton.extended(
+                  : AddNoteButton(
+                      label: _l10n.addNote,
                       onPressed: () =>
                           _openEditor(_notes.draft(), isNew: true),
-                      backgroundColor: AppColors.accent,
-                      foregroundColor: AppColors.ink,
-                      // Shrinks to a plain "+" once a free wall has notes on
-                      // it, so it covers less of them.
-                      isExtended: showFabLabel,
-                      icon: const Icon(Icons.add),
-                      label: Text(_l10n.addNote,
-                          style: const TextStyle(fontSize: 17)),
+                      // Shrinks to just the pencil once a free wall has notes
+                      // on it, so it covers less of them.
+                      extended: showFabLabel,
                     ),
               bottomNavigationBar:
                   _selecting ? _selectionBar(wall) : null,
               body: SafeArea(
+                // While the keyboard is up the system reports no bottom
+                // padding (the keyboard covers the navigation bar), which
+                // would let the wall grow by that strip and every note below
+                // the top row slide down with it. Keep the bar's height.
+                maintainBottomViewPadding: true,
                 child: Column(
                   children: [
                     _buildTitleRow(wall),

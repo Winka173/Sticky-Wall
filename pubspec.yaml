@@ -1,32 +1,16 @@
 name: sticky_wall
-description: "A new Flutter project."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+description: "Sticky notes on a real pin-board: drag, pin, draw, and organize paper notes across textured walls."
+# Not a pub.dev package.
+publish_to: 'none'
 
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-# In Windows, build-name is used as the major, minor, and patch parts
-# of the product and file versions while build-number is used as the build suffix.
+# Version name + build number. Android: versionName / versionCode.
+# iOS: CFBundleShortVersionString / CFBundleVersion. Bump the build number on
+# every store upload; bump the version name for user-visible releases.
 version: 1.0.0+1
 
 environment:
   sdk: ^3.12.2
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
     sdk: flutter
@@ -34,38 +18,39 @@ dependencies:
     sdk: flutter
   intl: any
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  # Local persistence (notes, boards, settings) — no backend.
   shared_preferences: ^2.5.5
   url_launcher: ^6.3.2
   uuid: ^4.6.0
+  # Reminders.
   flutter_local_notifications: ^22.3.0
   timezone: ^0.11.1
+  # Share / save / pick images.
   share_plus: ^13.3.0
   path_provider: ^2.1.6
-  flutter_staggered_grid_view: ^0.7.0
   image_picker: ^1.2.3
   gal: ^2.3.3
+  # Layout.
+  flutter_staggered_grid_view: ^0.7.0
+  # Platform integrations.
   home_widget: ^0.9.3
   receive_sharing_intent: ^1.9.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.8
 
+# App icon: generated from code by test/icon_gen_test.dart, then rasterised
+# into every platform's launcher set with `dart run flutter_launcher_icons`.
 flutter_launcher_icons:
   image_path: "assets/icon/app_icon.png"
   android: true
+  adaptive_icon_background: "assets/icon/app_icon_bg.png"
+  adaptive_icon_foreground: "assets/icon/app_icon_fg.png"
   ios: true
   remove_alpha_ios: true
   web:
@@ -73,6 +58,7 @@ flutter_launcher_icons:
     background_color: "#6B5849"
     theme_color: "#6B5849"
 
+# Splash: same wall colour as the app's first frame so the hand-off is seamless.
 flutter_native_splash:
   color: "#6B5849"
   image: assets/icon/splash_logo.png
@@ -80,27 +66,20 @@ flutter_native_splash:
     color: "#6B5849"
     image: assets/icon/splash_logo.png
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
 
   # Generate lib/l10n/app_localizations*.dart from the ARB files (see l10n.yaml).
   generate: true
 
-  # Wall textures: CC0 from ambientCG (Cork004, PaintedPlaster017, Concrete046,
-  # Bricks104, Planks021).
+  # Wall textures: CC0 from ambientCG — Cork004, PaintedPlaster017,
+  # Concrete046, Bricks104, Planks021, Paper004, Marble012, Terrazzo013,
+  # Fabric069, Fabric034 (recoloured), Fabric030.
   assets:
     - assets/images/
 
-  # Fonts (SIL OFL, licenses in assets/fonts/). All include the Vietnamese
-  # subset.
+  # Fonts (SIL OFL, licenses in assets/fonts/). Every family bundled here
+  # includes the Vietnamese subset — verified glyph by glyph before adding.
   fonts:
     - family: PatrickHand
       fonts:
@@ -117,29 +96,24 @@ flutter:
     - family: BeVietnamPro
       fonts:
         - asset: assets/fonts/BeVietnamPro-Regular.ttf
-
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
-
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/to/asset-from-package
-
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+    - family: Mali
+      fonts:
+        - asset: assets/fonts/Mali-Regular.ttf
+    - family: Sriracha
+      fonts:
+        - asset: assets/fonts/Sriracha-Regular.ttf
+    - family: Mynerve
+      fonts:
+        - asset: assets/fonts/Mynerve-Regular.ttf
+    - family: FuzzyBubbles
+      fonts:
+        - asset: assets/fonts/FuzzyBubbles-Regular.ttf
+    - family: AmaticSC
+      fonts:
+        - asset: assets/fonts/AmaticSC-Regular.ttf
+    - family: Charm
+      fonts:
+        - asset: assets/fonts/Charm-Regular.ttf
+    - family: IBMPlexMono
+      fonts:
+        - asset: assets/fonts/IBMPlexMono-Regular.ttf

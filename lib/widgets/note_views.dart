@@ -10,6 +10,8 @@ import '../services/image_service.dart';
 import '../theme.dart';
 import 'drawing_canvas.dart';
 
+/// Opens [url] in the browser, defaulting to https when no scheme is given,
+/// and reports failure with a snack bar.
 Future<void> openNoteUrl(BuildContext context, String url) async {
   var target = url.trim();
   if (!target.startsWith(RegExp(r'https?://', caseSensitive: false))) {
@@ -96,6 +98,9 @@ class _NotePhoto extends StatelessWidget {
   }
 }
 
+/// The paper a note is drawn on: its colour (dimmed at night), a soft drop
+/// shadow that deepens while [raised] (dragging), and an ink border when
+/// [selected].
 BoxDecoration paperDecoration(BuildContext context, Note note,
     {bool raised = false, bool selected = false}) {
   return BoxDecoration(
@@ -215,6 +220,7 @@ class _PinTarget extends StatelessWidget {
   }
 }
 
+/// Small pill showing the next reminder time; red once it is overdue.
 class _ReminderChip extends StatelessWidget {
   const _ReminderChip({required this.note});
 
@@ -310,6 +316,7 @@ class _SelectedBadge extends StatelessWidget {
   }
 }
 
+/// Body style for a link note's URL: blue and underlined.
 TextStyle _linkText(BuildContext context) => noteBodyStyle(context).copyWith(
       color: AppColors.link,
       decoration: TextDecoration.underline,
@@ -384,11 +391,16 @@ class _NoteBody extends StatelessWidget {
               aspectRatio: kDrawingAspect,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFFDF5),
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(color: Colors.black12),
                 ),
-                child: CustomPaint(painter: StrokePainter(note.strokes)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: DrawingSurface(
+                    strokes: note.strokes,
+                    canvas: note.canvas,
+                  ),
+                ),
               ),
             ),
           ],
@@ -437,6 +449,8 @@ class _NoteBody extends StatelessWidget {
   }
 }
 
+/// One checklist line: a tappable box and the item text, struck through when
+/// done.
 class _ChecklistRow extends StatelessWidget {
   const _ChecklistRow({required this.item, required this.onTap});
 

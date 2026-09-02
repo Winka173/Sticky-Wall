@@ -25,6 +25,8 @@ class WallDecor extends StatelessWidget {
   }
 }
 
+/// Paints the stains, tape marks and scuffs; positions derive from a fixed
+/// seed so the wall looks the same every launch.
 class _WallDecorPainter extends CustomPainter {
   _WallDecorPainter(this.wall);
 

@@ -361,6 +361,24 @@ class AppLocalizationsVi extends AppLocalizations {
   String get wallWood => 'Ván gỗ';
 
   @override
+  String get wallKraft => 'Giấy kraft';
+
+  @override
+  String get wallMarble => 'Đá hoa';
+
+  @override
+  String get wallTerrazzo => 'Đá mài';
+
+  @override
+  String get wallDenim => 'Vải bò';
+
+  @override
+  String get wallFelt => 'Bảng nỉ';
+
+  @override
+  String get wallLinen => 'Vải lanh tối';
+
+  @override
   String get fontPreview => 'Xin chào! Ghi chú nhanh lên tường.';
 
   @override
@@ -406,6 +424,27 @@ class AppLocalizationsVi extends AppLocalizations {
   String get penSize => 'Cỡ bút';
 
   @override
+  String get eraser => 'Tẩy';
+
+  @override
+  String get redo => 'Làm lại';
+
+  @override
+  String get canvasSection => 'Nền vẽ';
+
+  @override
+  String get patternPlain => 'Trơn';
+
+  @override
+  String get patternRuled => 'Kẻ ngang';
+
+  @override
+  String get patternGrid => 'Kẻ ô';
+
+  @override
+  String get patternDots => 'Chấm';
+
+  @override
   String get emote => 'Biểu tượng';
 
   @override
@@ -416,6 +455,21 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get boardName => 'Tên tường';
+
+  @override
+  String get editBoard => 'Chỉnh sửa tường';
+
+  @override
+  String get nameStyle => 'Kiểu chữ tên';
+
+  @override
+  String get bold => 'In đậm';
+
+  @override
+  String get italic => 'In nghiêng';
+
+  @override
+  String get underline => 'Gạch chân';
 
   @override
   String get defaultBoardName => 'Tường của tôi';

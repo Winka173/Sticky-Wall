@@ -11,6 +11,7 @@ import '../services/notes_controller.dart';
 import '../services/settings_controller.dart';
 import '../theme.dart';
 
+/// Localized display name for a bundled wall texture.
 String wallLabel(AppLocalizations l10n, String id) => switch (id) {
       'cork' => l10n.wallCork,
       'chalk_green' => l10n.wallChalkGreen,
@@ -18,9 +19,16 @@ String wallLabel(AppLocalizations l10n, String id) => switch (id) {
       'plaster' => l10n.wallPlaster,
       'brick' => l10n.wallBrick,
       'wood' => l10n.wallWood,
+      'kraft' => l10n.wallKraft,
+      'marble' => l10n.wallMarble,
+      'terrazzo' => l10n.wallTerrazzo,
+      'denim' => l10n.wallDenim,
+      'felt' => l10n.wallFelt,
+      'linen' => l10n.wallLinen,
       _ => id,
     };
 
+/// Localized label for a lights setting.
 String nightModeLabel(AppLocalizations l10n, NightMode mode) => switch (mode) {
       NightMode.off => l10n.nightModeOff,
       NightMode.on => l10n.nightModeOn,
@@ -28,8 +36,11 @@ String nightModeLabel(AppLocalizations l10n, NightMode mode) => switch (mode) {
       NightMode.schedule => l10n.nightModeSchedule,
     };
 
+/// A whole hour as "HH:00".
 String hourLabel(int hour) => '${hour.toString().padLeft(2, '0')}:00';
 
+/// Opens the customization sheet: wall texture, font, lights, language,
+/// auto-tidy and backup.
 Future<void> showSettingsSheet(
   BuildContext context, {
   required SettingsController settings,
@@ -46,6 +57,7 @@ Future<void> showSettingsSheet(
   );
 }
 
+/// Body of [showSettingsSheet]; rebuilds as the settings change.
 class _SettingsSheet extends StatelessWidget {
   const _SettingsSheet({required this.settings, required this.notes});
 
@@ -333,6 +345,7 @@ class _SettingsSheet extends StatelessWidget {
   }
 }
 
+/// A wall texture swatch with its name, outlined when selected.
 class _WallTile extends StatelessWidget {
   const _WallTile({
     required this.label,
@@ -421,6 +434,7 @@ class _PhotoWallTile extends StatelessWidget {
   }
 }
 
+/// The "your photo" tile before a photo has been chosen.
 class _PhotoPlaceholder extends StatelessWidget {
   const _PhotoPlaceholder();
 
@@ -445,6 +459,7 @@ class _PhotoPlaceholder extends StatelessWidget {
   }
 }
 
+/// Dropdown of whole hours for the lights schedule.
 class _HourField extends StatelessWidget {
   const _HourField({
     required this.label,
@@ -641,6 +656,7 @@ class _ImportDialogState extends State<_ImportDialog> {
   }
 }
 
+/// Small caps heading above each settings group.
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);
 

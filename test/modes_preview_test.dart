@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sticky_wall/main.dart';
@@ -12,14 +11,9 @@ import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
 
-Future<void> _fonts() async {
-  for (final e in {
-    'PatrickHand': 'assets/fonts/PatrickHand-Regular.ttf',
-    'Pacifico': 'assets/fonts/Pacifico-Regular.ttf',
-  }.entries) {
-    await (FontLoader(e.key)..addFont(rootBundle.load(e.value))).load();
-  }
-}
+import 'preview_fonts.dart';
+
+Future<void> _fonts() => loadPreviewFonts();
 
 DateTime _t(int d) => DateTime(2026, 8, d, 9);
 
@@ -185,5 +179,46 @@ void main() {
     }
     await expectLater(
         find.byType(StickyWallApp), matchesGoldenFile('editor.png'));
+  });
+
+  testWidgets('drawing editor', skip: true, (tester) async {
+    await _fonts();
+    final app = await _app(mode: ViewMode.grid, notes: [
+      Note(
+        guid: 'a',
+        content: 'Bản vẽ ý tưởng',
+        boardId: 'default',
+        createdAt: _t(1),
+        type: NoteType.drawing,
+        colorIndex: 4,
+        strokes: _smiley(),
+        canvas: const DrawCanvas(
+            color: 0xFFFFF3C4, pattern: CanvasPattern.grid),
+      ),
+    ]);
+    await _pump(tester, app);
+    await tester.tap(find.textContaining('Bản vẽ'));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 130));
+    }
+    // Open the canvas paper panel so the tools are all on show.
+    await tester.tap(find.byIcon(Icons.texture_outlined));
+    for (var i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 130));
+    }
+    await expectLater(
+        find.byType(StickyWallApp), matchesGoldenFile('drawing.png'));
+  });
+
+  testWidgets('settings sheet', skip: true, (tester) async {
+    await _fonts();
+    final app = await _app(mode: ViewMode.wall, notes: _wallNotes());
+    await _pump(tester, app);
+    await tester.tap(find.byIcon(Icons.palette_outlined).first);
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 130));
+    }
+    await expectLater(
+        find.byType(StickyWallApp), matchesGoldenFile('settings.png'));
   });
 }

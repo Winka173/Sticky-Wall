@@ -716,6 +716,42 @@ abstract class AppLocalizations {
   /// **'Wood planks'**
   String get wallWood;
 
+  /// No description provided for @wallKraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Kraft paper'**
+  String get wallKraft;
+
+  /// No description provided for @wallMarble.
+  ///
+  /// In en, this message translates to:
+  /// **'Marble'**
+  String get wallMarble;
+
+  /// No description provided for @wallTerrazzo.
+  ///
+  /// In en, this message translates to:
+  /// **'Terrazzo'**
+  String get wallTerrazzo;
+
+  /// No description provided for @wallDenim.
+  ///
+  /// In en, this message translates to:
+  /// **'Denim'**
+  String get wallDenim;
+
+  /// No description provided for @wallFelt.
+  ///
+  /// In en, this message translates to:
+  /// **'Felt board'**
+  String get wallFelt;
+
+  /// No description provided for @wallLinen.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark linen'**
+  String get wallLinen;
+
   /// No description provided for @fontPreview.
   ///
   /// In en, this message translates to:
@@ -806,6 +842,48 @@ abstract class AppLocalizations {
   /// **'Pen size'**
   String get penSize;
 
+  /// No description provided for @eraser.
+  ///
+  /// In en, this message translates to:
+  /// **'Eraser'**
+  String get eraser;
+
+  /// No description provided for @redo.
+  ///
+  /// In en, this message translates to:
+  /// **'Redo'**
+  String get redo;
+
+  /// No description provided for @canvasSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Canvas paper'**
+  String get canvasSection;
+
+  /// No description provided for @patternPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain'**
+  String get patternPlain;
+
+  /// No description provided for @patternRuled.
+  ///
+  /// In en, this message translates to:
+  /// **'Ruled'**
+  String get patternRuled;
+
+  /// No description provided for @patternGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid'**
+  String get patternGrid;
+
+  /// No description provided for @patternDots.
+  ///
+  /// In en, this message translates to:
+  /// **'Dots'**
+  String get patternDots;
+
   /// No description provided for @emote.
   ///
   /// In en, this message translates to:
@@ -829,6 +907,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Board name'**
   String get boardName;
+
+  /// No description provided for @editBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit board'**
+  String get editBoard;
+
+  /// No description provided for @nameStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Name style'**
+  String get nameStyle;
+
+  /// No description provided for @bold.
+  ///
+  /// In en, this message translates to:
+  /// **'Bold'**
+  String get bold;
+
+  /// No description provided for @italic.
+  ///
+  /// In en, this message translates to:
+  /// **'Italic'**
+  String get italic;
+
+  /// No description provided for @underline.
+  ///
+  /// In en, this message translates to:
+  /// **'Underline'**
+  String get underline;
 
   /// No description provided for @defaultBoardName.
   ///

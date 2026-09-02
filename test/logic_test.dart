@@ -373,7 +373,8 @@ void main() {
         ..repeat = ReminderRepeat.weekly
         ..deletedAt = DateTime(2026, 3, 1)
         ..completedAt = DateTime(2026, 2, 1);
-      final back = Note.fromJson(jsonDecode(jsonEncode(n.toJson())));
+      final back = Note.fromJson(
+          jsonDecode(jsonEncode(n.toJson())) as Map<String, dynamic>);
       expect(back.repeat, ReminderRepeat.weekly);
       expect(back.deletedAt, DateTime(2026, 3, 1));
       expect(back.completedAt, DateTime(2026, 2, 1));

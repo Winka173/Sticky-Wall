@@ -15,6 +15,8 @@ import 'services/share_service.dart';
 import 'services/widget_service.dart';
 import 'theme.dart';
 
+/// Boots storage, reminders and the image cache, seeds the sample notes on a
+/// first run, wires the home-screen widget, then starts the app.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final storage = await NoteStorage.create();
@@ -76,6 +78,8 @@ AppLocalizations _localizationsFor(Locale? override) {
       supported ? Locale(candidate.languageCode) : const Locale('en'));
 }
 
+/// Root widget: builds the paper theme from the chosen font and night mode,
+/// installs localization, and shows the [HomeScreen].
 class StickyWallApp extends StatelessWidget {
   const StickyWallApp({
     super.key,
@@ -115,6 +119,7 @@ class StickyWallApp extends StatelessWidget {
   }
 }
 
+/// Material scroll physics without the platform scrollbar.
 class _NoScrollbarBehavior extends MaterialScrollBehavior {
   const _NoScrollbarBehavior();
 

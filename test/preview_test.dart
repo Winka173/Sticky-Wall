@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sticky_wall/main.dart';
@@ -12,18 +11,9 @@ import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
 import 'package:sticky_wall/theme.dart';
 
-Future<void> _loadRealFonts() async {
-  for (final entry in {
-    'PatrickHand': 'assets/fonts/PatrickHand-Regular.ttf',
-    'Pacifico': 'assets/fonts/Pacifico-Regular.ttf',
-    'Itim': 'assets/fonts/Itim-Regular.ttf',
-    'DancingScript': 'assets/fonts/DancingScript.ttf',
-    'BeVietnamPro': 'assets/fonts/BeVietnamPro-Regular.ttf',
-  }.entries) {
-    final loader = FontLoader(entry.key)..addFont(rootBundle.load(entry.value));
-    await loader.load();
-  }
-}
+import 'preview_fonts.dart';
+
+Future<void> _loadRealFonts() => loadPreviewFonts();
 
 DateTime _t(int day) => DateTime(2026, 8, day, 9);
 

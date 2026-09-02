@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sticky_wall/main.dart';
+import 'package:sticky_wall/models/draw_stroke.dart';
 import 'package:sticky_wall/models/note.dart';
 import 'package:sticky_wall/services/note_storage.dart';
 import 'package:sticky_wall/services/notes_controller.dart';
@@ -89,6 +90,27 @@ void main() {
     expect(round.pinned, true);
     expect(round.reminderAt, DateTime(2026, 8, 8, 9, 30));
     expect(round.checklist.single.done, true);
+  });
+
+  test('drawing canvas survives a JSON round-trip and defaults when absent',
+      () {
+    final note = Note(
+      guid: 'e',
+      content: '',
+      createdAt: _epoch,
+      boardId: 'default',
+      type: NoteType.drawing,
+      canvas: const DrawCanvas(color: 0xFF2E3A36, pattern: CanvasPattern.grid),
+    );
+    final round = Note.fromJson(note.toJson());
+    expect(round.canvas.color, 0xFF2E3A36);
+    expect(round.canvas.pattern, CanvasPattern.grid);
+    expect(round.canvas.isDark, true);
+
+    // Notes saved before canvases existed load with the plain default paper.
+    final legacy = note.toJson()..remove('canvas');
+    expect(Note.fromJson(legacy).canvas, const DrawCanvas());
+    expect(const DrawCanvas().isDark, false);
   });
 
   test('controller adds, deletes and undoes a note', () async {

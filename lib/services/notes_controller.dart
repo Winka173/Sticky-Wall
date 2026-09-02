@@ -130,22 +130,43 @@ class NotesController extends ChangeNotifier {
     selectBoard(_boards[index].id);
   }
 
-  Board addBoard(String name) {
-    final board = Board(id: _uuid.v4(), name: name, wallIndex: 0);
+  /// Creates a board with the given tab appearance and switches to it.
+  Board addBoard(
+    String name, {
+    String icon = '',
+    bool bold = false,
+    bool italic = false,
+    bool underline = false,
+  }) {
+    final board = Board(
+      id: _uuid.v4(),
+      name: name,
+      icon: icon,
+      bold: bold,
+      italic: italic,
+      underline: underline,
+    );
     _boards.add(board);
     _storage.saveBoards(_boards);
     selectBoard(board.id);
     return board;
   }
 
-  void renameBoard(String id, String name) {
-    _boards.firstWhere((b) => b.id == id).name = name;
-    _storage.saveBoards(_boards);
-    notifyListeners();
-  }
-
-  void setBoardIcon(String id, String emoji) {
-    _boards.firstWhere((b) => b.id == id).icon = emoji;
+  /// Changes how a board's tab reads; anything left null keeps its value.
+  void updateBoard(
+    String id, {
+    String? name,
+    String? icon,
+    bool? bold,
+    bool? italic,
+    bool? underline,
+  }) {
+    final board = _boards.firstWhere((b) => b.id == id);
+    if (name != null) board.name = name;
+    if (icon != null) board.icon = icon;
+    if (bold != null) board.bold = bold;
+    if (italic != null) board.italic = italic;
+    if (underline != null) board.underline = underline;
     _storage.saveBoards(_boards);
     notifyListeners();
   }

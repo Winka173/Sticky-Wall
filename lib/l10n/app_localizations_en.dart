@@ -366,6 +366,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallWood => 'Wood planks';
 
   @override
+  String get wallKraft => 'Kraft paper';
+
+  @override
+  String get wallMarble => 'Marble';
+
+  @override
+  String get wallTerrazzo => 'Terrazzo';
+
+  @override
+  String get wallDenim => 'Denim';
+
+  @override
+  String get wallFelt => 'Felt board';
+
+  @override
+  String get wallLinen => 'Dark linen';
+
+  @override
   String get fontPreview => 'Hello! A quick note on the wall.';
 
   @override
@@ -411,6 +429,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get penSize => 'Pen size';
 
   @override
+  String get eraser => 'Eraser';
+
+  @override
+  String get redo => 'Redo';
+
+  @override
+  String get canvasSection => 'Canvas paper';
+
+  @override
+  String get patternPlain => 'Plain';
+
+  @override
+  String get patternRuled => 'Ruled';
+
+  @override
+  String get patternGrid => 'Grid';
+
+  @override
+  String get patternDots => 'Dots';
+
+  @override
   String get emote => 'Emote';
 
   @override
@@ -421,6 +460,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get boardName => 'Board name';
+
+  @override
+  String get editBoard => 'Edit board';
+
+  @override
+  String get nameStyle => 'Name style';
+
+  @override
+  String get bold => 'Bold';
+
+  @override
+  String get italic => 'Italic';
+
+  @override
+  String get underline => 'Underline';
 
   @override
   String get defaultBoardName => 'My Wall';

@@ -48,6 +48,8 @@ abstract final class PeelAway {
   }
 }
 
+/// Plays the peel animation on a captured image of the note in an overlay,
+/// then removes itself.
 class _PeelSnapshot extends StatefulWidget {
   const _PeelSnapshot({
     required this.image,

@@ -93,6 +93,8 @@ class TrashScreen extends StatelessWidget {
   }
 }
 
+/// One deleted note: a preview, when it was deleted and how long it has
+/// left, plus restore / delete-forever buttons.
 class _TrashTile extends StatelessWidget {
   const _TrashTile({
     super.key,
@@ -190,6 +192,7 @@ class _TrashTile extends StatelessWidget {
   }
 }
 
+/// Placeholder shown when nothing is in the trash.
 class _Empty extends StatelessWidget {
   const _Empty({required this.wall, required this.l10n});
 

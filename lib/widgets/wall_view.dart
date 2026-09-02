@@ -172,6 +172,13 @@ class _WallViewState extends State<WallView>
   // True while notes fly to their tidied spots (slower, smoother move).
   bool _settling = false;
 
+  // A tidy in progress: the (scale, columns) layouts being tried, each
+  // rendered offstage for one frame so the cards can be measured at that
+  // width (see _tidy). Empty when idle.
+  List<(double scale, int cols)> _probes = const [];
+  bool _probeByColor = false;
+  final _probeKeys = <(double, String), GlobalKey>{};
+
   // Last layout size, so tidy can do its maths outside build.
   Size _size = Size.zero;
 
@@ -373,12 +380,57 @@ class _WallViewState extends State<WallView>
 
   // --- Tidy ----------------------------------------------------------------
 
+  // Air between tidied cards: side by side, between rows (on top of the pin
+  // overhang, which is already part of a card's height), and to the wall edge.
+  static const double _tidyGap = 12;
+  static const double _tidyRowGap = 14;
+  static const double _tidyMargin = 8;
+
+  /// Tidying happens in two frames. The text on a card does not scale with
+  /// its width, it reflows — a narrower card gets taller, up to the line cap —
+  /// so no estimate from the current sizes places rows reliably: guess low and
+  /// rows overlap, guess high and they drift apart. Instead every candidate
+  /// layout is rendered offstage for one frame and measured, then the rows are
+  /// packed with the exact heights in [_finishTidy].
   void _tidy({required bool byColor}) {
+    if (widget.notes.isEmpty || widget.onArrange == null) return;
+    if (_probes.isNotEmpty) return; // one at a time
+    final w = _size.width;
+    if (w <= 0 || _size.height <= 0) return;
+
+    // One candidate per column count the wall can hold: the largest scale
+    // (never above 1) at which that many cards still fit across. A row that
+    // is a hair too wide at the minimum scale is still allowed — rows are
+    // centered, so it only eats into the margins.
+    final probes = <(double, int)>[];
+    for (var cols = 1; cols <= 64; cols++) {
+      final fit = (w - 2 * _tidyMargin - (cols - 1) * _tidyGap) /
+          (cols * _cardWidth);
+      if (fit < _minScale - 0.02) break;
+      final s = fit.clamp(_minScale, 1.0);
+      // Same scale, more columns: strictly better.
+      if (probes.isNotEmpty && probes.last.$1 == s) probes.removeLast();
+      probes.add((s, cols));
+    }
+    if (probes.isEmpty) probes.add((_minScale, 1));
+
+    setState(() {
+      _probes = probes;
+      _probeByColor = byColor;
+      _probeKeys.clear();
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _finishTidy());
+  }
+
+  /// Second half of [_tidy]: reads the measured card heights, picks the
+  /// largest layout whose rows fit the wall (else the smallest), and hands the
+  /// placements up.
+  void _finishTidy() {
+    final probes = _probes;
+    if (!mounted || probes.isEmpty) return;
     final notes = List<Note>.of(widget.notes);
-    if (notes.isEmpty || widget.onArrange == null) return;
     final w = _size.width;
     final h = _size.height;
-    if (w <= 0 || h <= 0) return;
 
     // Reading order first; then, if asked, grouped by paper color.
     notes.sort((a, b) {
@@ -387,58 +439,98 @@ class _WallViewState extends State<WallView>
       if (dy.abs() > 0.08) return dy.sign.toInt();
       return a.x.compareTo(b.x);
     });
-    if (byColor) {
+    if (_probeByColor) {
       int shade(Note n) =>
           AppColors.notePapers.indexOf(noteColor(n.colorIndex, n.guid));
       notes.sort((a, b) => shade(a).compareTo(shade(b)));
     }
 
-    // Paper heights at scale 1, from the real layout where we have it.
-    final heights = <String, double>{};
-    for (final n in notes) {
-      final box = _paperBox(n);
-      heights[n.guid] = box == null ? 150 : box.size.height / n.scale;
+    // Measured paper height at a candidate scale, plus the pin overhang and
+    // the few px the hand-stuck tilt adds to the bounding box.
+    double heightAt(Note n, double s) {
+      final ro = _probeKeys[(s, n.guid)]?.currentContext?.findRenderObject();
+      final paper = ro is RenderBox && ro.hasSize
+          ? ro.size.height
+          : _cardWidth * s * 0.9;
+      return paper + _pinInset + 6;
     }
 
-    const gap = 12.0;
-    const margin = 8.0;
-    final maxH = h - _bottomInset;
-
-    List<Placement> layout(double s) {
+    (List<Placement>, double height) layout((double, int) probe) {
+      final (s, cols) = probe;
       final cw = _cardWidth * s;
-      final cols = math.max(1, ((w - margin * 2 + gap) / (cw + gap)).floor());
+      final left0 = math.max(0.0, (w - cols * cw - (cols - 1) * _tidyGap) / 2);
       final out = <Placement>[];
       var top = 4.0;
       for (var i = 0; i < notes.length; i += cols) {
         final row = notes.sublist(i, math.min(i + cols, notes.length));
         var rowH = 0.0;
         for (final (c, n) in row.indexed) {
-          final left = margin + c * (cw + gap);
+          final left = left0 + c * (cw + _tidyGap);
           out.add((n, left / _rangeX(w, s), top / _rangeY(h), s));
-          rowH = math.max(rowH, heights[n.guid]! * s + _pinInset);
+          rowH = math.max(rowH, heightAt(n, s));
         }
-        top += rowH + gap;
+        top += rowH + _tidyRowGap;
       }
-      // Sentinel row carries the total height so the caller can judge fit.
-      _lastTidyHeight = top;
-      return out;
+      return (out, top - _tidyRowGap);
     }
 
+    // Candidates run from the largest cards down; take the first that fits.
+    final maxH = h - _bottomInset;
     List<Placement>? best;
-    for (var s = 1.0; s >= _minScale - 1e-9; s -= 0.05) {
-      best = layout(s);
-      if (_lastTidyHeight <= maxH) break;
+    for (final probe in probes) {
+      final (placements, height) = layout(probe);
+      best = placements;
+      if (height <= maxH) break;
     }
 
     HapticFeedback.mediumImpact();
     setState(() {
+      _probes = const [];
+      _probeKeys.clear();
       _settling = true;
       _activeGuid = null;
     });
     widget.onArrange!(best!);
   }
 
-  double _lastTidyHeight = 0;
+  /// The offstage cards a tidy measures: every note at every candidate scale.
+  /// Laid out but never painted or hit; gone again after one frame.
+  Widget _tidyProbes() {
+    return Offstage(
+      child: OverflowBox(
+        alignment: Alignment.topLeft,
+        maxWidth: double.infinity,
+        maxHeight: double.infinity,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final (s, _) in _probes)
+              for (final note in widget.notes)
+                SizedBox(
+                  width: _cardWidth * s,
+                  child: StickyNoteCard(
+                    note: note,
+                    cb: _noCallbacks,
+                    maxContentLines: 6,
+                    captureKey:
+                        _probeKeys.putIfAbsent((s, note.guid), GlobalKey.new),
+                  ),
+                ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static void _noop() {}
+  static const _noCallbacks = NoteCallbacks(
+    onEdit: _noop,
+    onTogglePin: _noop,
+    onToggleItem: _noopIndex,
+    onLongPress: _noop,
+  );
+  static void _noopIndex(int _) {}
 
   @override
   Widget build(BuildContext context) {
@@ -537,6 +629,7 @@ class _WallViewState extends State<WallView>
                 ),
               ),
             ),
+            if (_probes.isNotEmpty) _tidyProbes(),
           ],
         );
       },
@@ -700,6 +793,8 @@ class _Thread {
   }
 }
 
+/// Draws the red threads tied between pins, sagging slightly like real
+/// string, plus the one currently being dragged out.
 class _ThreadPainter extends CustomPainter {
   const _ThreadPainter(this.threads, {this.highlight = false});
 

@@ -35,6 +35,8 @@ Future<Note?> showNoteDialog(
   );
 }
 
+/// The note editor: a sheet of paper with type-specific fields (text, link,
+/// checklist or drawing), plus photo, emote, colour and reminder controls.
 class _NoteDialog extends StatefulWidget {
   const _NoteDialog({
     required this.note,
@@ -330,7 +332,10 @@ class _NoteDialogState extends State<_NoteDialog>
                             const SizedBox(height: 8),
                             DrawingEditor(
                               strokes: _n.strokes,
+                              canvas: _n.canvas,
                               onChanged: () => setState(() => _error = null),
+                              onCanvasChanged: (c) =>
+                                  setState(() => _n.canvas = c),
                             ),
                           ],
                           _errorLine(),

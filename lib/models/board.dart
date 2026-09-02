@@ -1,3 +1,5 @@
+import 'package:flutter/painting.dart';
+
 /// A named wall that holds its own set of notes and its own wall texture.
 class Board {
   Board({
@@ -7,6 +9,9 @@ class Board {
     this.wallImage = '',
     this.wallImageDark = false,
     this.icon = '',
+    this.bold = false,
+    this.italic = false,
+    this.underline = false,
   });
 
   final String id;
@@ -26,7 +31,21 @@ class Board {
   /// Optional emoji shown on the board's tab.
   String icon;
 
+  /// How the name is written on the tab. Whole-name formatting, so it reads
+  /// the same everywhere the board is listed.
+  bool bold;
+  bool italic;
+  bool underline;
+
   bool get hasWallImage => wallImage.isNotEmpty;
+
+  /// [base] with this board's formatting laid on top. Anything not switched
+  /// on is left as [base] has it, so a selected tab can still be bold.
+  TextStyle decorate(TextStyle base) => base.copyWith(
+        fontWeight: bold ? FontWeight.bold : null,
+        fontStyle: italic ? FontStyle.italic : null,
+        decoration: underline ? TextDecoration.underline : null,
+      );
 
   factory Board.fromJson(Map<String, dynamic> json) => Board(
         id: json['id'] as String,
@@ -35,6 +54,9 @@ class Board {
         wallImage: json['wallImage'] as String? ?? '',
         wallImageDark: json['wallImageDark'] as bool? ?? false,
         icon: json['icon'] as String? ?? '',
+        bold: json['bold'] as bool? ?? false,
+        italic: json['italic'] as bool? ?? false,
+        underline: json['underline'] as bool? ?? false,
       );
 
   Map<String, dynamic> toJson() => {
@@ -44,5 +66,8 @@ class Board {
         'wallImage': wallImage,
         'wallImageDark': wallImageDark,
         'icon': icon,
+        'bold': bold,
+        'italic': italic,
+        'underline': underline,
       };
 }
