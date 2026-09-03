@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../models/board.dart';
 import '../models/note.dart';
 import '../models/view_mode.dart';
+import '../util/angles.dart';
 import '../util/text_fold.dart';
 import 'note_storage.dart';
 import 'reminder_service.dart';
@@ -364,7 +365,7 @@ class NotesController extends ChangeNotifier {
         (baseY + step * 0.05).clamp(0.0, 1.0),
       )
         ..type = NoteType.photo
-        ..images = [file];
+        ..imagePath = file;
       _notes.add(note);
       created.add(note);
     }
@@ -479,14 +480,12 @@ class NotesController extends ChangeNotifier {
       _links.removeWhere((l) => l.connects(note.guid));
       _storage.saveLinks(_links);
     }
-    for (final path in note.images) {
-      if (!photoInUse(path)) _deletePhoto(path);
-    }
+    if (!photoInUse(note.imagePath)) _deletePhoto(note.imagePath);
   }
 
   /// Whether some note (live or trashed) still shows the photo at [path].
   bool photoInUse(String path) =>
-      path.isNotEmpty && _notes.any((n) => n.images.contains(path));
+      path.isNotEmpty && _notes.any((n) => n.imagePath == path);
 
   /// Moves a note onto another board, dropping it near the center there.
   void moveToBoard(Note note, String boardId) => moveAllToBoard([note], boardId);
@@ -577,13 +576,16 @@ class NotesController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Places (and sizes) many notes at once — the "tidy up" animation.
+  /// Places (and sizes) many notes at once — the "tidy up" animation. A
+  /// tidied note also loses any turn the user gave it: neat rows want the
+  /// cards straight (their slight hand-stuck tilt comes back on its own).
   void arrange(List<(Note, double x, double y, double scale)> placements) {
     for (final (note, x, y, scale) in placements) {
       note
         ..x = x.clamp(0.0, 1.0)
         ..y = y.clamp(0.0, 1.0)
-        ..scale = scale.clamp(0.5, 3.0);
+        ..scale = scale.clamp(0.5, 3.0)
+        ..rotation = null;
     }
     _persistNotes();
     notifyListeners();
@@ -596,6 +598,15 @@ class NotesController extends ChangeNotifier {
 
   void resizeNote(Note note, double scale) {
     note.scale = scale.clamp(0.5, 3.0);
+    _persistNotes();
+    notifyListeners();
+  }
+
+  /// Turns a note on the wall to [angle] radians, or back to its natural
+  /// tilt with null. Stored in (-π, π] so a card spun round and round does
+  /// not accumulate turns.
+  void rotateNote(Note note, double? angle) {
+    note.rotation = angle == null ? null : normalizeAngle(angle);
     _persistNotes();
     notifyListeners();
   }

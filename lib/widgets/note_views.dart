@@ -37,6 +37,13 @@ Future<void> openNoteUrl(BuildContext context, String url) async {
 double noteTilt(Note note, {double step = 0.008}) =>
     ((stableHash(note.guid) >> 3) % 5 - 2) * step;
 
+/// The angle a card is drawn at on the wall, in radians: the turn the user
+/// gave it with the rotate handle if any, else its hand-stuck tilt —
+/// straightened while pinned. Grid and list ignore the turn (a card lying on
+/// its side would collide with its neighbours) and keep only the tilt.
+double noteAngle(Note note) =>
+    note.rotation ?? (note.pinned ? 0 : noteTilt(note));
+
 /// Height reserved above the paper for the pin's tap target.
 const _pinInset = 14.0;
 
@@ -70,21 +77,30 @@ class NoteCallbacks {
   bool get canDragPin => onPinDragStart != null;
 }
 
-/// A stored photo, cropped to fill its box; a broken-image glyph if the file
-/// is gone. Dimmed with the lights off like the paper around it.
-class _PhotoTile extends StatelessWidget {
-  const _PhotoTile({required this.path, this.height, this.maxHeight});
+/// The photo attached to a note, cropped to fill its box; a broken-image
+/// glyph if the file is gone. Dimmed with the lights off like the paper
+/// around it.
+class NotePhoto extends StatelessWidget {
+  const NotePhoto({
+    super.key,
+    required this.path,
+    this.height,
+    this.maxHeight,
+    this.radius = 4,
+  });
 
   final String path;
 
-  /// Fixed height, or null to let the box decide (grid cells) — or, with
-  /// [maxHeight], to keep the photo's own aspect ratio up to that height.
+  /// Fixed height (cropped to it), or null with [maxHeight] to keep the
+  /// photo's own aspect ratio up to that height — a print. One of the two
+  /// should be set, else the image takes its natural size.
   final double? height;
   final double? maxHeight;
+  final double radius;
 
   @override
   Widget build(BuildContext context) {
-    final image = NightShade(
+    Widget image = NightShade(
       child: Image.file(
         File(ImageService.resolve(path)),
         height: height,
@@ -97,295 +113,37 @@ class _PhotoTile extends StatelessWidget {
         ),
       ),
     );
-    if (maxHeight == null) return image;
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight!),
-      child: image,
-    );
-  }
-}
-
-/// The photos attached to a note, arranged per [layout] (see [PhotoLayout]).
-/// A lone photo always just fills the width. Whatever the arrangement, the
-/// card stays a card, not an album: the grid and collage fold the overflow
-/// into a "+N" cell, the pile shows the top three and a count; the editor
-/// and viewer show them all.
-class NotePhotos extends StatelessWidget {
-  const NotePhotos({
-    super.key,
-    required this.images,
-    this.layout = PhotoLayout.grid,
-    this.singleHeight = 120,
-    this.singleMaxHeight,
-    this.maxShown = 4,
-    this.radius = 4,
-    this.gap = 4,
-  });
-
-  final List<String> images;
-
-  /// The arrangement. [PhotoLayout.bare] is a matter of the card's border,
-  /// which the card handles; here it arranges like the grid.
-  final PhotoLayout layout;
-
-  /// Height of a lone photo; a pair is half as tall, a grid is square cells.
-  final double singleHeight;
-
-  /// When set, a lone photo keeps its own aspect ratio instead of being
-  /// cropped to [singleHeight], growing up to this height (a photo print).
-  final double? singleMaxHeight;
-  final int maxShown;
-  final double radius;
-  final double gap;
-
-  @override
-  Widget build(BuildContext context) {
-    if (images.isEmpty) return const SizedBox.shrink();
-    final rounded = BorderRadius.circular(radius);
-    if (images.length == 1) {
-      return ClipRRect(
-        borderRadius: rounded,
-        child: singleMaxHeight != null
-            ? _PhotoTile(path: images.first, maxHeight: singleMaxHeight)
-            : _PhotoTile(path: images.first, height: singleHeight),
+    if (maxHeight != null) {
+      // A floor as well as a ceiling: until the file has decoded the image
+      // has no size of its own, and a print that collapsed to nothing would
+      // make the card jump when the photo arrived (and hide its remove
+      // button in the editor).
+      image = ColoredBox(
+        color: Colors.black.withValues(alpha: 0.06),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: 72, maxHeight: maxHeight!),
+          child: image,
+        ),
       );
     }
-    return LayoutBuilder(
-      builder: (context, constraints) => switch (layout) {
-        PhotoLayout.stack => _pile(constraints.maxWidth, rounded),
-        PhotoLayout.collage => _collage(constraints.maxWidth, rounded),
-        PhotoLayout.grid || PhotoLayout.bare =>
-          _grid(constraints.maxWidth, rounded),
-      },
-    );
-  }
-
-  /// A photo, or the "+N" cell when it is the last one shown and more follow.
-  Widget _cell(int i, int last, int hidden) => i == last && hidden > 0
-      ? _MorePhotos(path: images[i], more: hidden)
-      : _PhotoTile(path: images[i]);
-
-  /// Two columns. Only an even count fills them; three photos show as two
-  /// plus a "+1" cell rather than leaving a hole.
-  Widget _grid(double width, BorderRadius rounded) {
-    final shown = math.min(images.length, maxShown);
-    final cells = shown.isOdd ? shown - 1 : shown;
-    final hidden = images.length - cells;
-    final cellW = (width - gap) / 2;
-    final cellH = cells == 2 ? singleHeight * 0.62 : cellW;
-    return Wrap(
-      spacing: gap,
-      runSpacing: gap,
-      children: [
-        for (var i = 0; i < cells; i++)
-          ClipRRect(
-            borderRadius: rounded,
-            child: SizedBox(
-              width: cellW,
-              height: cellH,
-              child: _cell(i, cells - 1, hidden),
-            ),
-          ),
-      ],
-    );
-  }
-
-  /// The first photo large on the left, the next ones (up to three) in a
-  /// column on the right, the overflow folded into the column's last cell.
-  Widget _collage(double width, BorderRadius rounded) {
-    final side = math.min(images.length - 1, 3);
-    final hidden = images.length - 1 - side;
-    final bigW = (width - gap) * 0.66;
-    final smallW = width - gap - bigW;
-    // Squarer with a longer column, so the small cells stay near-square.
-    final height = side == 1 ? bigW * 0.78 : bigW * 0.92;
-    final smallH = (height - gap * (side - 1)) / side;
-    return SizedBox(
-      height: height,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ClipRRect(
-            borderRadius: rounded,
-            child: SizedBox(width: bigW, child: _PhotoTile(path: images[0])),
-          ),
-          SizedBox(width: gap),
-          Column(
-            children: [
-              for (var i = 1; i <= side; i++) ...[
-                if (i > 1) SizedBox(height: gap),
-                ClipRRect(
-                  borderRadius: rounded,
-                  child: SizedBox(
-                    width: smallW,
-                    height: smallH,
-                    child: _cell(i, side, hidden),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// A pile of snapshots: the first photo on top, the next two fanned out
-  /// behind it — tilted a few degrees, a touch smaller, peeking out over the
-  /// top edge — with the total count in the corner.
-  Widget _pile(double width, BorderRadius rounded) {
-    final height = width / 1.4;
-    // Room above the top photo for the corners of the tilted ones behind.
-    const peek = 10.0;
-    final behind = math.min(images.length - 1, 2);
-    // Each snapshot casts a soft shadow on the one beneath, which is what
-    // separates them where the same photo repeats.
-    Widget photo(int i) => DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: rounded,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 4,
-                offset: const Offset(0, 1.5),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: rounded,
-            child: _PhotoTile(path: images[i]),
-          ),
-        );
-    return SizedBox(
-      height: height + peek,
-      child: Stack(
-        // The shadows may spill onto the print border around the pile.
-        clipBehavior: Clip.none,
-        children: [
-          // Back to front, so the one right underneath draws over the one
-          // further down the pile. Alternate tilt directions.
-          for (var i = behind; i >= 1; i--)
-            Positioned(
-              left: 0,
-              right: 0,
-              top: peek - 5.0 * i,
-              height: height,
-              child: Transform.rotate(
-                angle: i == 1 ? -0.1 : 0.08,
-                child: Transform.scale(
-                  // Smaller the further down, so the tilted corners stay
-                  // inside the print's border on the sides (and hidden
-                  // behind the top photo at the bottom).
-                  scale: i == 1 ? 0.93 : 0.86,
-                  child: photo(i),
-                ),
-              ),
-            ),
-          Positioned(
-            left: 0,
-            right: 0,
-            top: peek,
-            height: height,
-            child: photo(0),
-          ),
-          Positioned(
-            right: 6,
-            top: peek + 6,
-            child: _CountBadge(count: images.length, fontSize: 12),
-          ),
-        ],
-      ),
-    );
+    return ClipRRect(borderRadius: BorderRadius.circular(radius), child: image);
   }
 }
 
-/// The last grid cell when photos overflow: the photo dimmed under "+N".
-class _MorePhotos extends StatelessWidget {
-  const _MorePhotos({required this.path, required this.more});
-
-  final String path;
-  final int more;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        _PhotoTile(path: path),
-        Container(
-          color: Colors.black.withValues(alpha: 0.45),
-          alignment: Alignment.center,
-          child: Text(
-            '+$more',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// A small dark "×N" pill laid over a photo: how many the note carries.
-class _CountBadge extends StatelessWidget {
-  const _CountBadge({required this.count, this.fontSize = 9});
-
-  final int count;
-  final double fontSize;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: fontSize / 3, vertical: fontSize / 9),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(fontSize / 3),
-      ),
-      child: Text(
-        '×$count',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: fontSize,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-}
-
-/// List-row thumbnail: the first photo, with a small "×N" badge when the note
-/// carries more.
+/// List-row thumbnail of the note's photo.
 class _Thumbnail extends StatelessWidget {
-  const _Thumbnail({required this.images});
+  const _Thumbnail({required this.path});
 
   static const size = 34.0;
 
-  final List<String> images;
+  final String path;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: size,
       height: size,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: _PhotoTile(path: images.first, height: size),
-          ),
-          if (images.length > 1)
-            Positioned(
-              right: 1,
-              bottom: 1,
-              child: _CountBadge(count: images.length),
-            ),
-        ],
-      ),
+      child: NotePhoto(path: path, height: size),
     );
   }
 }
@@ -654,20 +412,20 @@ class _NoteBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasFooter = note.emoji.isNotEmpty || note.reminderAt != null;
-    // A photo print draws its pictures itself; here they'd double up.
-    final showPhotos = note.hasPhotos && note.type != NoteType.photo;
+    // A photo print draws its picture itself; here it would double up.
+    final showPhoto = note.hasPhoto && note.type != NoteType.photo;
     // A print or sketch without a caption has no text above the footer, so
     // no gap either.
-    final hasText = (note.content.isNotEmpty && !note.isBarePhoto) ||
-        note.type == NoteType.checklist;
+    final hasText =
+        note.content.isNotEmpty || note.type == NoteType.checklist;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (showPhotos)
+        if (showPhoto)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: NotePhotos(images: note.images, layout: note.photoLayout),
+            child: NotePhoto(path: note.imagePath, height: 120),
           ),
         _content(context),
         if (hasFooter) ...[
@@ -748,12 +506,8 @@ class _NoteBody extends StatelessWidget {
           style: body,
         );
       case NoteType.photo:
-        // The caption written under a print; nothing at all when blank, and
-        // never on a bare print, which has no border to write on (the list
-        // row still uses it as the title).
-        if (note.content.isEmpty || note.isBarePhoto) {
-          return const SizedBox.shrink();
-        }
+        // The caption written under a print; nothing at all when blank.
+        if (note.content.isEmpty) return const SizedBox.shrink();
         return SizedBox(
           width: double.infinity,
           child: Text(
@@ -827,6 +581,7 @@ class StickyNoteCard extends StatelessWidget {
     this.selected = false,
     this.maxContentLines = 6,
     this.captureKey,
+    this.rotated = true,
   });
 
   final Note note;
@@ -841,6 +596,12 @@ class StickyNoteCard extends StatelessWidget {
   /// it can be rasterized for share/save-as-image.
   final GlobalKey? captureKey;
 
+  /// Whether the card gives itself its hand-stuck tilt (see [noteTilt]). The
+  /// wall passes false and turns the card by [noteAngle] together with its
+  /// handles (see [NoteTurn]), so they stay on its corners whichever way it
+  /// faces.
+  final bool rotated;
+
   @override
   Widget build(BuildContext context) {
     final done = note.type == NoteType.checklist && note.checklistDone;
@@ -854,33 +615,29 @@ class StickyNoteCard extends StatelessWidget {
       paper = RepaintBoundary(key: captureKey, child: paper);
     }
 
-    // Pinning straightens the note; the turn is animated so it visibly
-    // "snaps" upright instead of jumping.
-    return AnimatedRotation(
-      turns: (note.pinned ? 0 : noteTilt(note)) / (2 * math.pi),
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-      child: GestureDetector(
-        onTap: cb.onEdit,
-        onLongPress: cb.onLongPress,
-        child: Stack(
-          alignment: Alignment.topCenter,
-          clipBehavior: Clip.none,
-          children: [
-            Padding(padding: const EdgeInsets.only(top: _pinInset), child: paper),
-            Positioned(
-              top: 0,
-              child: _PinTarget(pinned: note.pinned, cb: cb),
-            ),
-            // Sits just inside the corner, on the adhesive strip: a badge
-            // hanging over the edge gets sliced off by the wall's viewport
-            // when the note is pushed against the screen edge.
-            if (selected)
-              const Positioned(right: 3, top: _pinInset + 3, child: _SelectedBadge()),
-          ],
-        ),
+    final card = GestureDetector(
+      onTap: cb.onEdit,
+      onLongPress: cb.onLongPress,
+      child: Stack(
+        alignment: Alignment.topCenter,
+        clipBehavior: Clip.none,
+        children: [
+          Padding(padding: const EdgeInsets.only(top: _pinInset), child: paper),
+          Positioned(
+            top: 0,
+            child: _PinTarget(pinned: note.pinned, cb: cb),
+          ),
+          // Sits just inside the corner, on the adhesive strip: a badge
+          // hanging over the edge gets sliced off by the wall's viewport
+          // when the note is pushed against the screen edge.
+          if (selected)
+            const Positioned(
+                right: 3, top: _pinInset + 3, child: _SelectedBadge()),
+        ],
       ),
     );
+    if (!rotated) return card;
+    return NoteTurn(angle: note.pinned ? 0 : noteTilt(note), child: card);
   }
 
   /// A sheet of sticky paper: adhesive strip, curled corner, the body.
@@ -932,15 +689,11 @@ class StickyNoteCard extends StatelessWidget {
     );
   }
 
-  /// A photo print: the pictures inside a narrow white border, with the
-  /// caption (and emote / reminder) written underneath like on the back of a
-  /// snapshot. No adhesive strip or curled corner — it's glossy paper.
-  ///
-  /// Laid out [PhotoLayout.bare] there is no border at all: the photos run
-  /// edge to edge like a sketch does, and only an emote or reminder earns a
-  /// label strip underneath (a bare print carries no caption).
+  /// A photo print: the picture at its own aspect ratio inside a narrow white
+  /// border, with the caption (and emote / reminder) written underneath like
+  /// on the back of a snapshot. No adhesive strip or curled corner — it's
+  /// glossy paper.
   Widget _print(BuildContext context) {
-    if (note.isBarePhoto) return _barePrint(context);
     final hasCaption = note.content.isNotEmpty ||
         note.emoji.isNotEmpty ||
         note.reminderAt != null;
@@ -955,14 +708,7 @@ class StickyNoteCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          NotePhotos(
-            images: note.images,
-            layout: note.photoLayout,
-            singleHeight: 150,
-            singleMaxHeight: 230,
-            radius: 2,
-            gap: 3,
-          ),
+          NotePhoto(path: note.imagePath, maxHeight: 230, radius: 2),
           if (hasCaption)
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 6, 4, 2),
@@ -973,43 +719,6 @@ class StickyNoteCard extends StatelessWidget {
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _barePrint(BuildContext context) {
-    final hasLabel = note.emoji.isNotEmpty || note.reminderAt != null;
-    return Container(
-      width: double.infinity,
-      decoration: paperDecoration(context, note,
-          raised: raised, selected: selected),
-      child: ClipRRect(
-        borderRadius:
-            BorderRadius.circular(AppRadii.paper - (selected ? 2 : 0)),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Square corners and hairline gaps: the card's own corners do the
-            // rounding, and the print white shows through as thin seams.
-            NotePhotos(
-              images: note.images,
-              singleHeight: 170,
-              singleMaxHeight: 260,
-              radius: 0,
-              gap: 2,
-            ),
-            if (hasLabel)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
-                child: _NoteBody(
-                  note: note,
-                  cb: cb,
-                  maxContentLines: maxContentLines,
-                ),
-              ),
-          ],
-        ),
       ),
     );
   }
@@ -1056,6 +765,33 @@ class StickyNoteCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Turns a card by [angle] (radians, clockwise) about its centre. The turn is
+/// animated so pinning visibly "snaps" the note upright and a tidy-up
+/// straightens it smoothly instead of jumping — except while [live], when the
+/// user's finger is on the rotate handle and the card must follow it exactly.
+class NoteTurn extends StatelessWidget {
+  const NoteTurn({
+    super.key,
+    required this.angle,
+    required this.child,
+    this.live = false,
+  });
+
+  final double angle;
+  final Widget child;
+  final bool live;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedRotation(
+      turns: angle / (2 * math.pi),
+      duration: live ? Duration.zero : const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      child: child,
     );
   }
 }
@@ -1162,10 +898,10 @@ class NoteListTile extends StatelessWidget {
           )
         else
           _PinTarget(pinned: note.pinned, cb: cb),
-        if (note.hasPhotos)
+        if (note.hasPhoto)
           Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: _Thumbnail(images: note.images),
+            child: _Thumbnail(path: note.imagePath),
           ),
         if (note.type == NoteType.drawing)
           Padding(
@@ -1194,23 +930,13 @@ class NoteListTile extends StatelessWidget {
     final body = noteBodyStyle(context);
     switch (note.type) {
       case NoteType.photo:
-        return Row(
-          children: [
-            const Icon(Icons.photo_outlined, size: 18, color: AppColors.ink),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                note.content.isEmpty
-                    ? AppLocalizations.of(context)!
-                        .photoCount(note.images.length)
-                    : note.content,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: body,
-              ),
-            ),
-          ],
-        );
+        // The thumbnail already shows the picture; an uncaptioned print just
+        // gets the type name, in soft ink, like an untitled sketch.
+        return note.content.isEmpty
+            ? Text(AppLocalizations.of(context)!.typePhoto,
+                style: body.copyWith(color: AppColors.inkSoft))
+            : Text(note.content,
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: body);
       case NoteType.drawing:
         // The thumbnail already says "sketch"; an untitled one just gets the
         // type name, in soft ink.

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +11,7 @@ import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
 import 'package:sticky_wall/widgets/add_note_button.dart';
+import 'package:sticky_wall/widgets/note_views.dart';
 
 Future<NotesController> _pumpApp(WidgetTester tester,
     {List<Note> notes = const [], ViewMode? viewMode}) async {
@@ -120,19 +123,19 @@ void main() {
     expect(note.checklist.map((i) => i.text), ['milk', 'eggs']);
   });
 
-  testWidgets('a photo print needs at least one photo', (tester) async {
+  testWidgets('a photo print needs its photo', (tester) async {
     final notes = await _pumpApp(tester);
     await _openEditor(tester);
 
     await tester.tap(find.byTooltip('Photo'));
     await tester.pumpAndSettle();
-    // The strip shows the invitation, the caption hint replaces the title.
-    expect(find.text('Add photos'), findsOneWidget);
+    // The invitation tile shows, the caption hint replaces the title.
+    expect(find.text('Add photo'), findsOneWidget);
     expect(find.text('Caption'), findsOneWidget);
 
     await tester.tap(_saveButton);
     await tester.pumpAndSettle();
-    expect(find.text('Add at least one photo'), findsOneWidget);
+    expect(find.text('Add a photo'), findsOneWidget);
     expect(notes.boardNotes, isEmpty);
   });
 
@@ -143,7 +146,7 @@ void main() {
         guid: 'p',
         content: 'Beach day',
         type: NoteType.photo,
-        images: ['missing.jpg'],
+        imagePath: 'missing.jpg',
         createdAt: DateTime(2026),
         boardId: 'default',
       ),
@@ -151,71 +154,118 @@ void main() {
     expect(notes.boardNotes.single.type, NoteType.photo);
     expect(find.text('Beach day'), findsOneWidget);
 
-    // Long-press opens the action sheet — every row visible, "View photos"
+    // Long-press opens the action sheet — every row visible, "View photo"
     // included, nothing overflowing on a small screen.
     await tester.longPress(find.text('Beach day'));
     await tester.pumpAndSettle();
-    expect(find.text('View photos'), findsOneWidget);
+    expect(find.text('View photo'), findsOneWidget);
     expect(find.text('Delete'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a print with several photos offers layouts; bare drops the caption',
+  testWidgets('a note with a photo can swap or drop it in the editor',
       (tester) async {
     final notes = await _pumpApp(tester, notes: [
       Note(
-        guid: 'p',
-        content: 'Beach day',
-        type: NoteType.photo,
-        images: ['a.jpg', 'b.jpg', 'c.jpg'],
-        createdAt: DateTime(2026),
-        boardId: 'default',
-      ),
-    ]);
-    await tester.tap(find.text('Beach day'));
-    await tester.pumpAndSettle();
-
-    // All four arrangements on offer, the caption field showing the caption.
-    for (final name in ['Grid', 'Pile', 'Collage', 'Edge to edge']) {
-      expect(find.byTooltip(name), findsOneWidget);
-    }
-    expect(find.widgetWithText(TextField, 'Beach day'), findsOneWidget);
-
-    await tester.tap(find.byTooltip('Pile'));
-    await tester.pumpAndSettle();
-    expect(find.widgetWithText(TextField, 'Beach day'), findsOneWidget);
-
-    // Edge to edge has no border to write on: the caption field goes away
-    // (the text is kept, for the list row and search), and the saved note
-    // carries the layout.
-    await tester.tap(find.byTooltip('Edge to edge'));
-    await tester.pumpAndSettle();
-    expect(find.widgetWithText(TextField, 'Beach day'), findsNothing);
-    await tester.tap(_saveButton);
-    await tester.pumpAndSettle();
-    final saved = notes.boardNotes.single;
-    expect(saved.photoLayout, PhotoLayout.bare);
-    expect(saved.content, 'Beach day');
-    // …and the bare card shows no caption on the wall.
-    expect(find.text('Beach day'), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('a text note with one photo gets no layout picker',
-      (tester) async {
-    await _pumpApp(tester, notes: [
-      Note(
         guid: 'n',
         content: 'One snap',
-        images: ['a.jpg'],
+        imagePath: 'a.jpg',
         createdAt: DateTime(2026),
         boardId: 'default',
       ),
     ]);
     await tester.tap(find.text('One snap'));
     await tester.pumpAndSettle();
-    expect(find.text('Photo layout'), findsNothing);
-    expect(find.byTooltip('Pile'), findsNothing);
+
+    // With a photo attached the tool button offers to replace it, and the
+    // photo tile carries its own remove button.
+    expect(find.byTooltip('Replace photo'), findsOneWidget);
+    expect(find.byTooltip('Add photo'), findsNothing);
+    await tester.tap(find.byTooltip('Delete'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Add photo'), findsOneWidget);
+    expect(find.byTooltip('Replace photo'), findsNothing);
+
+    await tester.tap(_saveButton);
+    await tester.pumpAndSettle();
+    expect(notes.boardNotes.single.imagePath, '');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the rotate grip turns a wall note; a tap squares it up',
+      (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(
+        guid: 't',
+        content: 'Turn me',
+        createdAt: DateTime(2026),
+        boardId: 'default',
+        x: 0.5,
+        y: 0.3,
+      ),
+    ]);
+    final note = notes.boardNotes.single;
+    expect(find.byIcon(Icons.rotate_right), findsOneWidget);
+    // The grips only show up on the note last touched: nudge it (further
+    // than the pan slop, or the drag never starts).
+    await tester.drag(find.text('Turn me'), const Offset(0, 60));
+    await tester.pumpAndSettle();
+
+    // Swing the grip an eighth of a turn round the card's centre.
+    final grip = find.byIcon(Icons.rotate_right);
+    final pivot = tester.getCenter(find.byType(NoteTurn));
+    final start = tester.getCenter(grip);
+    final radius = (start - pivot).distance;
+    final from = math.atan2(start.dy - pivot.dy, start.dx - pivot.dx);
+    final gesture = await tester.startGesture(start);
+    for (var i = 1; i <= 8; i++) {
+      final a = from + (math.pi / 4) * i / 8;
+      await gesture.moveTo(
+          pivot + Offset(radius * math.cos(a), radius * math.sin(a)));
+      await tester.pump();
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(note.rotation, isNotNull);
+    expect(note.rotation!, closeTo(noteTilt(note) + math.pi / 4, 0.02));
+
+    // A tap on the same grip straightens the note.
+    await tester.tap(find.byIcon(Icons.rotate_right));
+    await tester.pumpAndSettle();
+    expect(note.rotation, 0);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a turn near a quarter turn clicks into place', (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(
+        guid: 't',
+        content: 'Snap me',
+        createdAt: DateTime(2026),
+        boardId: 'default',
+        x: 0.5,
+        y: 0.3,
+        rotation: 0.5,
+      ),
+    ]);
+    final note = notes.boardNotes.single;
+    await tester.drag(find.text('Snap me'), const Offset(0, 60));
+    await tester.pumpAndSettle();
+
+    // Aim 2° past upright: within the snap band, so it lands exactly on 0.
+    final grip = find.byIcon(Icons.rotate_right);
+    final pivot = tester.getCenter(find.byType(NoteTurn));
+    final start = tester.getCenter(grip);
+    final radius = (start - pivot).distance;
+    final from = math.atan2(start.dy - pivot.dy, start.dx - pivot.dx);
+    final gesture = await tester.startGesture(start);
+    final a = from - 0.5 - 0.035;
+    await gesture.moveTo(
+        pivot + Offset(radius * math.cos(a), radius * math.sin(a)));
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(note.rotation, 0);
   });
 
   testWidgets('long-pressing empty wall offers a note or photos there',

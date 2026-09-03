@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_test/flutter_test.dart';
@@ -21,7 +22,6 @@ Note _note(
   String url = '',
   String board = 'default',
   String image = '',
-  List<String>? images,
   NoteType? type,
   DateTime? createdAt,
 }) =>
@@ -30,7 +30,7 @@ Note _note(
       content: content,
       url: url,
       type: type,
-      images: images ?? (image.isEmpty ? null : [image]),
+      imagePath: image,
       createdAt: createdAt ?? _epoch,
       boardId: board,
     );
@@ -228,14 +228,30 @@ void main() {
       expect(c.boards.map((b) => b.name), ['', 'B', 'C']);
     });
 
-    test('arrange clamps positions and scale', () async {
+    test('arrange clamps positions and scale, and squares notes up', () async {
       final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
       final notes = c.boardNotes;
+      c.rotateNote(notes[0], 1.2);
       c.arrange([(notes[0], -0.2, 0.3, 0.1), (notes[1], 0.4, 1.7, 9)]);
       expect(notes[0].x, 0);
       expect(notes[0].scale, 0.5);
+      expect(notes[0].rotation, isNull, reason: 'tidy straightens');
       expect(notes[1].y, 1);
       expect(notes[1].scale, 3);
+    });
+
+    test('rotateNote stores the turn in (-π, π] and null restores the tilt',
+        () async {
+      final c = await _controller(notes: [_note('1', 'x')]);
+      final note = c.boardNotes.single;
+      c.rotateNote(note, 0.4);
+      expect(note.rotation, closeTo(0.4, 1e-9));
+      c.rotateNote(note, 3 * math.pi + 0.5);
+      expect(note.rotation, closeTo(-math.pi + 0.5, 1e-9));
+      c.rotateNote(note, -math.pi);
+      expect(note.rotation, closeTo(math.pi, 1e-9), reason: 'half turn is +π');
+      c.rotateNote(note, null);
+      expect(note.rotation, isNull);
     });
 
     test('a finished checklist is stamped and swept after a day', () async {
@@ -314,45 +330,30 @@ void main() {
   });
 
   group('photos', () {
-    test('several photos round-trip through JSON', () {
-      final n = _note('1', 'x', images: ['a.jpg', 'b.jpg', 'c.jpg']);
+    test('the photo and the turn round-trip through JSON', () {
+      final n = _note('1', 'x', image: 'a.jpg')..rotation = 0.7;
       final json = jsonDecode(jsonEncode(n.toJson())) as Map<String, dynamic>;
-      expect(Note.fromJson(json).images, ['a.jpg', 'b.jpg', 'c.jpg']);
-      // Older builds only know `imagePath`; they keep the first photo.
-      expect(json['imagePath'], 'a.jpg');
+      final back = Note.fromJson(json);
+      expect(back.imagePath, 'a.jpg');
+      expect(back.rotation, closeTo(0.7, 1e-9));
+      expect(n.clone().rotation, closeTo(0.7, 1e-9));
+      // No turn is stored as null, not 0: the card keeps its natural tilt.
+      expect(Note.fromJson(json..remove('rotation')).rotation, isNull);
+      expect(_note('2', 'y').toJson()['rotation'], isNull);
     });
 
-    test('a legacy imagePath is read as a one-photo list', () {
+    test('data from the multi-photo builds keeps its first photo', () {
       final json = _note('1', 'x').toJson()
-        ..remove('images')
-        ..['imagePath'] = 'old.jpg';
-      expect(Note.fromJson(json).images, ['old.jpg']);
-      expect(Note.fromJson(json..['imagePath'] = '').images, isEmpty);
-    });
-
-    test('the photo layout round-trips and defaults to the grid', () {
-      final n = _note('1', 'x', images: ['a.jpg', 'b.jpg'])
-        ..photoLayout = PhotoLayout.stack;
-      final json = jsonDecode(jsonEncode(n.toJson())) as Map<String, dynamic>;
-      expect(json['photoLayout'], 'stack');
-      expect(Note.fromJson(json).photoLayout, PhotoLayout.stack);
-      expect(n.clone().photoLayout, PhotoLayout.stack);
-      // Data from before layouts existed, or from a newer build with one
-      // this build doesn't know, reads as the grid.
-      expect(Note.fromJson(json..remove('photoLayout')).photoLayout,
-          PhotoLayout.grid);
-      expect(Note.fromJson(json..['photoLayout'] = 'mosaic').photoLayout,
-          PhotoLayout.grid);
-    });
-
-    test('only a photo note laid out bare counts as bare', () {
-      final print = _note('1', 'x', images: ['a.jpg'], type: NoteType.photo)
-        ..photoLayout = PhotoLayout.bare;
-      expect(print.isBarePhoto, true);
-      expect((print..photoLayout = PhotoLayout.grid).isBarePhoto, false);
-      final text = _note('2', 'y', images: ['a.jpg'])
-        ..photoLayout = PhotoLayout.bare;
-      expect(text.isBarePhoto, false);
+        ..remove('imagePath')
+        ..['images'] = ['', 'first.jpg', 'second.jpg'];
+      expect(Note.fromJson(json).imagePath, 'first.jpg');
+      expect(Note.fromJson(json..['images'] = <String>[]).imagePath, '');
+      // A present imagePath wins over the old list.
+      expect(
+          Note.fromJson(json
+            ..['imagePath'] = 'mine.jpg'
+            ..['images'] = ['other.jpg']).imagePath,
+          'mine.jpg');
     });
 
     test('addPhotos pins one print per file, cascading from the spot',
@@ -363,7 +364,7 @@ void main() {
       expect(c.boardNotes.length, 3);
       for (final (i, n) in created.indexed) {
         expect(n.type, NoteType.photo);
-        expect(n.images, ['${'abc'[i]}.jpg']);
+        expect(n.imagePath, '${'abc'[i]}.jpg');
         expect(n.boardId, 'default');
       }
       expect(created[0].x, closeTo(0.2, 1e-9));
@@ -389,22 +390,28 @@ void main() {
       expect(c.visibleNotes.single.guid, 'n');
     });
 
-    test('purging a multi-photo note deletes only the orphaned files',
+    test('purging a note deletes its photo unless another note shows it',
         () async {
       final removed = <String>[];
       final c = await _controller(
         notes: [
-          _note('1', 'x', images: ['a.jpg', 'shared.jpg']),
-          _note('2', 'y', images: ['shared.jpg', 'b.jpg']),
+          _note('1', 'x', image: 'shared.jpg'),
+          _note('2', 'y', image: 'shared.jpg'),
+          _note('3', 'z', image: 'own.jpg'),
         ],
         deletePhoto: removed.add,
       );
       final n1 = c.boardNotes[0];
+      final n3 = c.boardNotes[2];
       c.delete(n1);
       c.purge(n1);
-      expect(removed, ['a.jpg']);
+      expect(removed, isEmpty, reason: 'note 2 still shows shared.jpg');
       expect(c.photoInUse('shared.jpg'), true);
-      expect(c.photoInUse('a.jpg'), false);
+      c.delete(n3);
+      c.purge(n3);
+      expect(removed, ['own.jpg']);
+      expect(c.photoInUse('own.jpg'), false);
+      expect(c.photoInUse(''), false);
     });
   });
 

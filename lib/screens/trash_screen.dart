@@ -119,7 +119,7 @@ class _TrashTile extends StatelessWidget {
     return switch (note.type) {
       NoteType.link => note.url,
       NoteType.drawing => '✏️',
-      NoteType.photo => '📷 ${l10n.photoCount(note.images.length)}',
+      NoteType.photo => '📷 ${l10n.typePhoto}',
       _ => note.content,
     };
   }

@@ -8,19 +8,6 @@ import 'draw_stroke.dart';
 /// dragging, resizing, threads, boards and the trash all work the same.
 enum NoteType { normal, link, checklist, drawing, photo }
 
-/// How a card lays out several photos. Chosen per note in the editor; stored
-/// by name, and anything unknown (or missing, for older data) reads as [grid].
-///
-/// - [grid]: side by side / two columns inside the print border, "+N" past
-///   four.
-/// - [stack]: a pile of snapshots — the first on top, the next ones fanned
-///   out behind it.
-/// - [collage]: the first photo large with the rest in a column beside it.
-/// - [bare]: the photos *are* the card, edge to edge with no border and no
-///   caption — the photo counterpart of a sketch. Only a [NoteType.photo]
-///   note can be bare; on any other type it draws like [grid].
-enum PhotoLayout { grid, stack, collage, bare }
-
 /// How often a reminder fires again after its first time.
 enum ReminderRepeat { none, daily, weekly, monthly }
 
@@ -60,17 +47,16 @@ class Note {
     List<ChecklistItem>? checklist,
     List<DrawStroke>? strokes,
     this.canvas = const DrawCanvas(),
-    List<String>? images,
-    this.photoLayout = PhotoLayout.grid,
+    this.imagePath = '',
     this.x = 0.5,
     this.y = 0.5,
     this.scale = 1.0,
+    this.rotation,
     this.deletedAt,
     this.completedAt,
   })  : type = type ?? (url.isEmpty ? NoteType.normal : NoteType.link),
         checklist = checklist ?? [],
-        strokes = strokes ?? [],
-        images = images ?? [];
+        strokes = strokes ?? [];
 
   final String guid;
   String content;
@@ -96,20 +82,12 @@ class Note {
   /// The paper the strokes sit on (tone + guide pattern); drawing notes only.
   DrawCanvas canvas;
 
-  /// Attached photos, in display order — file names inside the app's photo
-  /// folder (see `ImageService.resolve`). A [NoteType.photo] note needs at
-  /// least one; any other type may carry some as well.
-  List<String> images;
+  /// The attached photo — a file name inside the app's photo folder (see
+  /// `ImageService.resolve`), or empty. A [NoteType.photo] note needs one;
+  /// any other type may carry one as well.
+  String imagePath;
 
-  /// How [images] are arranged on the card when there are several.
-  PhotoLayout photoLayout;
-
-  bool get hasPhotos => images.isNotEmpty;
-
-  /// True when the card shows the photos edge to edge with no caption: a
-  /// photo note laid out [PhotoLayout.bare]. Other types keep their paper.
-  bool get isBarePhoto =>
-      type == NoteType.photo && photoLayout == PhotoLayout.bare;
+  bool get hasPhoto => imagePath.isNotEmpty;
 
   DateTime createdAt;
 
@@ -120,6 +98,12 @@ class Note {
 
   /// Size multiplier on the wall (pinch/handle resize).
   double scale;
+
+  /// How far the card is turned on the wall, in radians (clockwise), once the
+  /// user has spun it with the rotate handle. Null means "as it was stuck":
+  /// a slight hand-placed tilt derived from the guid, straightened while the
+  /// note is pinned (see `noteAngle`).
+  double? rotation;
 
   /// Which board this note lives on.
   String boardId;
@@ -163,18 +147,18 @@ class Note {
   static DateTime? _date(Object? value) =>
       value is String ? DateTime.tryParse(value) : null;
 
-  /// Photo list from JSON: the `images` array written by current versions,
-  /// or the single `imagePath` older versions stored.
-  static List<String> _images(Map<String, dynamic> json) {
+  /// The photo from JSON: `imagePath`, or — for data saved by the short-lived
+  /// builds that allowed several photos per note — the first of `images`.
+  static String _imagePath(Map<String, dynamic> json) {
+    final single = json['imagePath'] as String? ?? '';
+    if (single.isNotEmpty) return single;
     final list = json['images'];
     if (list is List) {
-      return [
-        for (final e in list)
-          if (e is String && e.isNotEmpty) e,
-      ];
+      for (final e in list) {
+        if (e is String && e.isNotEmpty) return e;
+      }
     }
-    final legacy = json['imagePath'] as String? ?? '';
-    return legacy.isEmpty ? [] : [legacy];
+    return '';
   }
 
   factory Note.fromJson(Map<String, dynamic> json) {
@@ -191,12 +175,6 @@ class Note {
             .cast<ReminderRepeat?>()
             .firstOrNull ??
         ReminderRepeat.none;
-    final layoutName = json['photoLayout'] as String?;
-    final layout = PhotoLayout.values
-            .where((l) => l.name == layoutName)
-            .cast<PhotoLayout?>()
-            .firstOrNull ??
-        PhotoLayout.grid;
 
     return Note(
       guid: json['guid'] as String,
@@ -216,13 +194,13 @@ class Note {
           .map((e) => DrawStroke.fromJson(e as Map<String, dynamic>))
           .toList(),
       canvas: DrawCanvas.fromJson(json['canvas'] as Map<String, dynamic>?),
-      images: _images(json),
-      photoLayout: layout,
+      imagePath: _imagePath(json),
       createdAt:
           _date(json['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       x: (json['x'] as num?)?.toDouble() ?? 0.5,
       y: (json['y'] as num?)?.toDouble() ?? 0.5,
       scale: (json['scale'] as num?)?.toDouble() ?? 1.0,
+      rotation: (json['rotation'] as num?)?.toDouble(),
       boardId: json['boardId'] as String? ?? 'default',
       deletedAt: _date(json['deletedAt']),
       completedAt: _date(json['completedAt']),
@@ -242,15 +220,12 @@ class Note {
         'checklist': checklist.map((i) => i.toJson()).toList(),
         'strokes': strokes.map((s) => s.toJson()).toList(),
         'canvas': canvas.toJson(),
-        'images': images,
-        // Older builds only know the single field; keep the first photo there
-        // so a backup restored on one still shows something.
-        'imagePath': images.isEmpty ? '' : images.first,
-        'photoLayout': photoLayout.name,
+        'imagePath': imagePath,
         'createdAt': createdAt.toIso8601String(),
         'x': x,
         'y': y,
         'scale': scale,
+        'rotation': rotation,
         'boardId': boardId,
         'deletedAt': deletedAt?.toIso8601String(),
         'completedAt': completedAt?.toIso8601String(),

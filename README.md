@@ -6,11 +6,11 @@ pin, color, and organize across multiple boards. Bilingual (English / Tiếng
 Việt). Modeled after the original "Mia Note" Angular + Electron desktop app,
 then taken well beyond it.
 
-| Wall (drag, resize, draw, zoom, threads) | Grid | List | Paper editor |
+| Wall (drag, resize, rotate, zoom, threads) | Grid | List | Paper editor |
 |---|---|---|---|
 | ![Wall](screenshots/mode_wall.png) | ![Grid](screenshots/mode_grid.png) | ![List](screenshots/mode_list.png) | ![Editor](screenshots/editor.png) |
 
-| Lights off (night mode) | Trash (30-day retention) | Photo layouts | Drawing note |
+| Lights off (night mode) | Trash (30-day retention) | Photo note | Drawing note |
 |---|---|---|---|
 | ![Night](screenshots/night.png) | ![Trash](screenshots/trash.png) | ![Photo editor](screenshots/photo_editor.png) | ![Drawing](screenshots/drawing.png) |
 
@@ -37,30 +37,22 @@ then taken well beyond it.
 - A sketch *is* its card: the canvas runs edge to edge with no margin or
   adhesive strip, and a title / emote / reminder — if any — sits on a small
   label strip beneath it in the note's paper color
-- Attach **any number of photos** (gallery or camera) to a note, and choose
-  how several of them are **laid out** — a picker of little schematics
-  appears in the editor as soon as there are two: **Grid** (side by side,
-  then two columns, with a "+N" cell instead of a hole or an overflow),
-  **Pile** (a stack of snapshots, the first on top and the next two fanned
-  out behind it, tilted, with a ×N count) or **Collage** (the first photo
-  large with the rest in a column beside it). The card stays a card in
-  every layout; tap a photo to open the **viewer** (swipe between them,
-  pinch to zoom). Add an **emote** sticker, pick a
+- Attach **a photo** (gallery or camera) to any note: it sits above the
+  text on the card and full width in the editor, where a corner button
+  removes it and the camera button swaps it for another; tap it to open the
+  **viewer** (pinch or double-tap to zoom). Add an **emote** sticker, pick a
   **paper color** (or auto-from-id), **pin to top**, and set a **reminder**
   (date + time, optionally **repeating daily / weekly / monthly**) that fires
   a local notification
-- **Photo prints** — pick several photos at once (⋮ → *Pin photos on the
-  wall*, or long-press empty wall → *Photos here*) and each lands on the
-  wall as its own print: a white border, the picture at its real aspect
-  ratio, an optional caption; drag, resize, tie threads and move it between
-  boards like any note. A print gets a fourth layout, **Edge to edge**: no
-  border at all, the photo(s) *are* the card like a sketch is — and since
-  there is no border to write on, the caption field goes away with it (an
-  emote or reminder still gets a label strip underneath)
+- **Photo prints** — a photo pinned straight on the wall: a white border,
+  the picture at its real aspect ratio, an optional caption written on the
+  border. Pick several photos at once (⋮ → *Pin photos on the wall*, or
+  long-press empty wall → *Photos here*) and each lands as its own print;
+  drag, resize, turn, tie threads and move it between boards like any note
 - The editor *is* the note: same handwriting, same paper color, faint ruled
   lines under each baseline, Save/Cancel on the adhesive strip so they are
   never hidden by the keyboard; validation is inline (the paper shakes)
-- **Long-press** a note for Edit / Pin / **View photos** / **Move to another
+- **Long-press** a note for Edit / Pin / **View photo** / **Move to another
   board** / Share / Save / Select / Delete. **Share** renders the note as an
   image; **Save** puts it in the photo gallery
 - Delete **peels the note off the wall** and drops it in the **Trash**, with
@@ -69,19 +61,26 @@ then taken well beyond it.
 - A fully ticked checklist fades and shows a big tick; optionally it is
   swept into the trash automatically after a day
 - Notes are paper cards with a push-pin, drop shadow and a slight hand-stuck
-  tilt; pinned notes straighten and get a gold pin (tap the pin to toggle)
+  tilt; pinned notes straighten and get a gold pin (tap the pin to toggle).
+  On the wall you can also **turn** a note by hand (see below); grid and
+  list keep every card upright
 
 **Layouts**
-- **Wall** — drag notes anywhere, **resize** the active note with its corner
-  handle, **pinch to zoom / pan** the whole board — the wall texture and its
-  stains travel with the notes, only the lighting stays put (double-tap or
-  the reset button snaps back); **long-press** empty space (the empty-wall
-  tip included) to stick a note or a batch of photo prints there
+- **Wall** — drag notes anywhere; the note last touched shows two grips:
+  **resize** with the bottom-right one, **rotate** with the bottom-left one
+  — the card turns about its centre under your finger, clicks into place
+  (with a tick of haptics) when it comes within a few degrees of upright or
+  a quarter turn, and a tap on that grip squares it up again. Grips react
+  after a few pixels, not the usual pan slop, so they never feel stuck.
+  **Pinch to zoom / pan** the whole board — the wall texture and its stains
+  travel with the notes, only the lighting stays put (double-tap or the
+  reset button snaps back); **long-press** empty space (the empty-wall tip
+  included) to stick a note or a batch of photo prints there
 - **Threads** — drag from one note's pin to another to tie a red yarn thread
-  between them — photo prints included; tap a thread to cut it (Undo re-ties
-  it)
-- **Tidy up** (⋮ menu) flies every note into a neat grid, or groups them
-  **by color**. Rows are packed from the cards' real rendered heights (an
+  between them — photo prints included; the thread stays tied to the pin
+  however the note is turned; tap a thread to cut it (Undo re-ties it)
+- **Tidy up** (⋮ menu) flies every note into a neat grid (squaring up any
+  you had turned), or groups them **by color**. Rows are packed from the cards' real rendered heights (an
   offstage measuring pass), so short and long notes sit a pin's length apart
   instead of a card's; when full-size cards will not fit, they shrink to
   three columns
@@ -216,7 +215,7 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 
 | Path | Purpose |
 |---|---|
-| `lib/models/` | `Note` (+ `NoteType`, `PhotoLayout`, `ReminderRepeat`, `NoteLink`), `ChecklistItem`, `Board` (name, icon, formatting), `DrawStroke` / `DrawCanvas`, `ViewMode` |
+| `lib/models/` | `Note` (+ `NoteType`, `ReminderRepeat`, `NoteLink`), `ChecklistItem`, `Board` (name, icon, formatting), `DrawStroke` / `DrawCanvas`, `ViewMode` |
 | `lib/services/note_storage.dart` | JSON persistence via `shared_preferences` (notes, boards, threads, settings) |
 | `lib/services/notes_controller.dart` | Boards + notes + CRUD, trash & retention, bulk actions, threads, tidy |
 | `lib/services/settings_controller.dart` | Font / language / stains / night mode & schedule |
@@ -224,25 +223,25 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/services/share_service.dart` | Receives shares from other apps (`receive_sharing_intent`) |
 | `lib/services/sample_notes.dart` | First-launch sample notes |
 | `lib/services/backup_service.dart` | Export / import JSON |
-| `lib/services/image_service.dart` | Pick photos (multi) / wall photo, capture note→PNG, share, save to gallery |
+| `lib/services/image_service.dart` | Pick a photo (or several, for prints) / wall photo, capture note→PNG, share, save to gallery |
 | `lib/services/widget_service.dart` | Push pinned notes to the home-screen widget |
 | `lib/screens/home_screen.dart` | Header, board bar, toolbar, the three views, multi-select |
 | `lib/screens/trash_screen.dart` | Trash: restore / delete forever / empty |
-| `lib/widgets/wall_view.dart` | Free drag-and-drop canvas, threads, measured tidy animation |
+| `lib/widgets/wall_view.dart` | Free drag-and-drop canvas, resize / rotate grips, threads, measured tidy animation |
 | `lib/widgets/wall_background.dart` | Wall texture or custom photo + scrim, stains, vignette |
 | `lib/widgets/peel_away.dart` | "Peel off the wall" delete animation |
 | `lib/widgets/drawing_canvas.dart` | Freehand drawing editor (pen, eraser, paper tone + guide pattern) and the painters that draw a sketch anywhere |
-| `lib/widgets/note_dialog.dart` | Create/Edit dialog (type, color, pin, reminder + repeat, emote, photo strip + layout picker) |
-| `lib/widgets/note_views.dart` | Sticky card (paper sheet, edge-to-edge sketch, framed or bare photo print), the photo layouts (grid / pile / collage), list tile, night shade |
-| `lib/widgets/photo_viewer.dart` | Full-screen photo pager (swipe, pinch to zoom) |
+| `lib/widgets/note_dialog.dart` | Create/Edit dialog (type, color, pin, reminder + repeat, emote, photo tile) |
+| `lib/widgets/note_views.dart` | Sticky card (paper sheet, edge-to-edge sketch, framed photo print), the animated card turn, list tile, night shade |
+| `lib/widgets/photo_viewer.dart` | Full-screen photo (pinch / double-tap to zoom) |
 | `lib/widgets/action_sheet.dart` | Bottom action sheet that sizes to its content (long-press menus) |
 | `lib/widgets/add_note_button.dart` | The sticky-note-with-a-pencil FAB |
 | `lib/widgets/wall_decor.dart` | Procedural stains (CustomPainter) |
 | `lib/widgets/board_bar.dart` · `board_dialog.dart` | Reorderable board tabs with a fixed "+" that keep the active tab in view, and the create / edit board dialog (name, icon, bold / italic / underline) |
 | `lib/widgets/settings_sheet.dart` | Customize sheet (wall, photo, night, font, trash) |
 | `lib/theme.dart` | Walls, fonts, palette (`AppColors`), radii, light + night themes — every control reads its look from here |
-| `lib/util/` | `foldText` (diacritic folding), `stableHash` (deterministic ids/seeds) |
-| `test/*_test.dart` | Widget/unit tests (logic, editor, tidy packing, wall stability under the keyboard, board dialog, camera) + skipped golden generators for screenshots & icon |
+| `lib/util/` | `foldText` (diacritic folding), `stableHash` (deterministic ids/seeds), `angles` (normalising a turn, quarter-turn snapping) |
+| `test/*_test.dart` | Widget/unit tests (logic, editor, wall grips, tidy packing, wall stability under the keyboard, board dialog, camera) + skipped golden generators for screenshots & icon |
 
 Screenshots are produced by the golden generators: remove `skip: true` in
 `test/preview_test.dart` / `test/modes_preview_test.dart`, run

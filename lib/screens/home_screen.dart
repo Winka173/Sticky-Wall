@@ -132,13 +132,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final draft = _notes.draft();
     if (content.imagePath.isNotEmpty) {
       final stored = await _imageService.importSharedImage(content.imagePath);
-      if (stored != null) draft.images = [stored];
+      if (stored != null) draft.imagePath = stored;
     }
     if (!mounted) return;
     if (content.url.isNotEmpty) {
       draft.type = NoteType.link;
       draft.url = content.url;
-    } else if (draft.hasPhotos && content.text.isEmpty) {
+    } else if (draft.hasPhoto && content.text.isEmpty) {
       // A bare picture becomes a print on the wall, not a note about one.
       draft.type = NoteType.photo;
     }
@@ -184,11 +184,11 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(l10n.edit),
           onTap: () => Navigator.pop(context, 'edit'),
         ),
-        if (note.hasPhotos)
+        if (note.hasPhoto)
           ListTile(
-            leading: const Icon(Icons.photo_library_outlined),
-            title: Text(l10n.viewPhotos),
-            onTap: () => Navigator.pop(context, 'photos'),
+            leading: const Icon(Icons.photo_outlined),
+            title: Text(l10n.viewPhoto),
+            onTap: () => Navigator.pop(context, 'photo'),
           ),
         ListTile(
           leading:
@@ -231,8 +231,8 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (action) {
       case 'edit':
         await _openEditor(note, isNew: false);
-      case 'photos':
-        await showPhotoViewer(context, note.images);
+      case 'photo':
+        await showPhotoViewer(context, note.imagePath);
       case 'pin':
         unawaited(HapticFeedback.selectionClick());
         _notes.togglePin(note);
@@ -305,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openEditor(Note note, {required bool isNew}) async {
-    final oldPhotos = List.of(note.images);
+    final oldPhoto = note.imagePath;
     final result = await showNoteDialog(
       context,
       note: note,
@@ -318,12 +318,12 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       _notes.update(result);
     }
-    // Photos taken off the note: drop their files unless another note still
-    // shows them.
-    for (final path in oldPhotos) {
-      if (!result.images.contains(path) && !_notes.photoInUse(path)) {
-        unawaited(ImageService.deleteFile(path));
-      }
+    // A photo taken off (or swapped out of) the note: drop its file unless
+    // another note still shows it.
+    if (oldPhoto.isNotEmpty &&
+        result.imagePath != oldPhoto &&
+        !_notes.photoInUse(oldPhoto)) {
+      unawaited(ImageService.deleteFile(oldPhoto));
     }
   }
 
@@ -1016,6 +1016,7 @@ class _HomeScreenState extends State<HomeScreen> {
         callbacksFor: _callbacks,
         onMove: _notes.moveNote,
         onResize: _notes.resizeNote,
+        onRotate: _notes.rotateNote,
         onBringToFront: _notes.bringToFront,
         onCreateAt: _createAt,
         links: _notes.linksOn(boardId),
@@ -1037,6 +1038,7 @@ class _HomeScreenState extends State<HomeScreen> {
         captureKeys: {for (final n in notes) n.guid: _keyFor(n)},
         isDimmed: (n) => _notes.isFiltering && !_notes.matches(n),
         resetZoomTooltip: _l10n.resetZoom,
+        rotateTooltip: _l10n.rotate,
         emptyHint: _emptyState(wall, tip: _l10n.wallCreateHint),
       );
     }

@@ -181,8 +181,9 @@ List<Note> _wallNotes(List<String> photos) => [
       Note(guid: 'a', content: 'Nhớ tưới cây', boardId: 'default', createdAt: _t(1), colorIndex: 3, emoji: '🌱', x: 0.05, y: 0.02, scale: 1.15),
       Note(guid: 'b', content: '', boardId: 'default', createdAt: _t(2), type: NoteType.drawing, colorIndex: 0, strokes: _smiley(), x: 0.6, y: 0.04),
       Note(guid: 'c', content: 'Ghi chú to', boardId: 'default', createdAt: _t(3), pinned: true, colorIndex: 1, x: 0.06, y: 0.62, scale: 1.5),
-      Note(guid: 'p', content: 'Biển hôm qua', boardId: 'default', createdAt: _t(4), type: NoteType.photo, images: photos, photoLayout: PhotoLayout.stack, x: 0.62, y: 0.3),
-      Note(guid: 'd', content: 'nhỏ', boardId: 'default', createdAt: _t(5), colorIndex: 2, x: 0.45, y: 0.9, scale: 0.8),
+      // Two notes turned by hand: the print and the small note at the bottom.
+      Note(guid: 'p', content: 'Biển hôm qua', boardId: 'default', createdAt: _t(4), type: NoteType.photo, imagePath: photos.first, x: 0.62, y: 0.3, rotation: -0.28),
+      Note(guid: 'd', content: 'nhỏ', boardId: 'default', createdAt: _t(5), colorIndex: 2, x: 0.45, y: 0.9, scale: 0.8, rotation: 0.5),
     ];
 
 void main() {
@@ -196,6 +197,12 @@ void main() {
       links: const [NoteLink('b', 'c'), NoteLink('p', 'd')],
     );
     await _pump(tester, app, photos: photos);
+    // Nudge the print so it is the active note and shows both of its grips:
+    // resize at bottom-right, rotate at bottom-left.
+    await tester.drag(find.text('Biển hôm qua'), const Offset(0, 40));
+    for (var i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 130));
+    }
     await expectLater(
         find.byType(StickyWallApp), matchesGoldenFile('mode_wall.png'));
   });
@@ -248,8 +255,8 @@ void main() {
       Note(guid: 'c', content: 'Học tiếng Anh mỗi ngày,\n30 phút buổi sáng', boardId: 'default', createdAt: _t(3), colorIndex: 2, emoji: '📚'),
       Note(guid: 'd', content: 'Gọi điện cho mẹ', boardId: 'default', createdAt: _t(4), pinned: true, colorIndex: 1, reminderAt: DateTime(2026, 9, 10, 18)),
       Note(guid: 'e', content: 'Bản vẽ ý tưởng', boardId: 'default', createdAt: _t(5), type: NoteType.drawing, colorIndex: 4, strokes: _smiley()),
-      Note(guid: 'p', content: 'Chuyến đi hè', boardId: 'default', createdAt: _t(6), type: NoteType.photo, images: [...photos, photos[0]], photoLayout: PhotoLayout.collage),
-      Note(guid: 'q', content: '', boardId: 'default', createdAt: _t(7), type: NoteType.photo, images: [photos[2]], photoLayout: PhotoLayout.bare),
+      Note(guid: 'p', content: 'Chuyến đi hè', boardId: 'default', createdAt: _t(6), type: NoteType.photo, imagePath: photos[0]),
+      Note(guid: 'q', content: '', boardId: 'default', createdAt: _t(7), type: NoteType.photo, imagePath: photos[2]),
     ]);
     await _pump(tester, app, photos: photos);
     await expectLater(
@@ -265,7 +272,7 @@ void main() {
       Note(guid: 'c', content: 'Học tiếng Anh mỗi ngày', boardId: 'default', createdAt: _t(3), colorIndex: 2, emoji: '📚'),
       Note(guid: 'd', content: 'Gọi điện cho mẹ', boardId: 'default', createdAt: _t(4), pinned: true, colorIndex: 1),
       Note(guid: 'e', content: 'Bản vẽ ý tưởng', boardId: 'default', createdAt: _t(5), type: NoteType.drawing, colorIndex: 4, strokes: _smiley()),
-      Note(guid: 'p', content: 'Biển hôm qua', boardId: 'default', createdAt: _t(6), type: NoteType.photo, images: photos),
+      Note(guid: 'p', content: 'Biển hôm qua', boardId: 'default', createdAt: _t(6), type: NoteType.photo, imagePath: photos.first),
     ]);
     await _pump(tester, app, photos: photos);
     await expectLater(
@@ -305,8 +312,7 @@ void main() {
         boardId: 'default',
         createdAt: _t(1),
         type: NoteType.photo,
-        images: [...photos, photos[0]],
-        photoLayout: PhotoLayout.collage,
+        imagePath: photos[1],
         emoji: '✈️',
       ),
     ]);

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -80,9 +79,9 @@ class _NoteDialogState extends State<_NoteDialog>
     for (final item in _n.checklist) _ItemField(item.text),
   ];
 
-  // Photos copied into the app during this editing session. They are only
-  // kept if the note is saved *with* one of them attached; otherwise they'd
-  // pile up unreferenced in the documents directory.
+  // Photos copied into the app during this editing session (the user may
+  // swap the picture several times). Only the one the note is saved with is
+  // kept; the rest would pile up unreferenced in the documents directory.
   final _addedPhotos = <String>{};
   bool _saved = false;
 
@@ -108,7 +107,7 @@ class _NoteDialogState extends State<_NoteDialog>
   @override
   void dispose() {
     for (final path in _addedPhotos) {
-      if (!_saved || !_n.images.contains(path)) ImageService.deleteFile(path);
+      if (!_saved || _n.imagePath != path) ImageService.deleteFile(path);
     }
     _content.dispose();
     _url.dispose();
@@ -176,7 +175,7 @@ class _NoteDialogState extends State<_NoteDialog>
       case NoteType.drawing:
         if (content.isEmpty && _n.strokes.isEmpty) error = l10n.noteEmpty;
       case NoteType.photo:
-        if (_n.images.isEmpty) error = l10n.photoRequired;
+        if (!_n.hasPhoto) error = l10n.photoRequired;
     }
     if (error != null) {
       _fail(error);
@@ -226,18 +225,15 @@ class _NoteDialogState extends State<_NoteDialog>
     });
   }
 
-  /// Appends photos to the note: any number from the gallery, one from the
-  /// camera.
-  Future<void> _attachPhotos(ImageSource source) async {
+  /// Attaches a photo from the gallery or camera, replacing the current one.
+  Future<void> _attachPhoto(ImageSource source) async {
     try {
-      final service = ImageService();
-      final picked = source == ImageSource.gallery
-          ? await service.pickImages()
-          : [?await service.pickImage(source)];
-      if (picked.isEmpty || !mounted) return;
-      _addedPhotos.addAll(picked);
+      final picked = await ImageService().pickImage(source);
+      if (picked == null || !mounted) return;
+      _discardPhotoIfAdded(_n.imagePath);
+      _addedPhotos.add(picked);
       setState(() {
-        _n.images.addAll(picked);
+        _n.imagePath = picked;
         _error = null;
       });
     } catch (_) {
@@ -245,13 +241,14 @@ class _NoteDialogState extends State<_NoteDialog>
     }
   }
 
-  void _removePhoto(String path) {
-    _discardPhotoIfAdded(path);
-    setState(() => _n.images.remove(path));
+  void _removePhoto() {
+    _discardPhotoIfAdded(_n.imagePath);
+    setState(() => _n.imagePath = '');
   }
 
-  /// A photo attached earlier in this session and now removed can be deleted
-  /// right away; the note's original photos are the caller's business.
+  /// A photo attached earlier in this session and now replaced or removed can
+  /// be deleted right away; the note's original photo is the caller's
+  /// business (it may still be wanted if the edit is cancelled).
   void _discardPhotoIfAdded(String path) {
     if (_addedPhotos.remove(path)) ImageService.deleteFile(path);
   }
@@ -341,11 +338,8 @@ class _NoteDialogState extends State<_NoteDialog>
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (_n.hasPhotos || isPhoto) _photoStrip(l10n),
-                          if (_layoutOptions().length > 1)
-                            _layoutPicker(l10n),
-                          // A bare print has no border to write a caption on.
-                          if (!_n.isBarePhoto) _writingArea(l10n),
+                          if (_n.hasPhoto || isPhoto) _photoTile(l10n),
+                          _writingArea(l10n),
                           if (_n.type == NoteType.link) _urlField(l10n),
                           if (_n.type == NoteType.checklist)
                             _checklistEditor(l10n),
@@ -450,177 +444,61 @@ class _NoteDialogState extends State<_NoteDialog>
     );
   }
 
-  /// The attached photos as a sideways-scrolling strip of thumbnails, each
-  /// with its own remove button, ending in an "add more" tile. Tapping a
-  /// thumbnail opens it full screen. A photo note with nothing attached yet
-  /// shows only the add tile, stretched, as an invitation.
-  Widget _photoStrip(AppLocalizations l10n) {
-    const side = 88.0;
+  /// The attached photo, full width at its own aspect ratio, with a remove
+  /// button in its corner; tapping it opens it full screen. A photo note with
+  /// nothing attached yet shows a stretched "add photo" tile as an invitation.
+  Widget _photoTile(AppLocalizations l10n) {
     final faint = _ink.withValues(alpha: 0.45);
-    final addTile = Tooltip(
-      message: l10n.addPhotos,
-      child: Material(
-        color: _ink.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(6),
-        child: InkWell(
+    if (!_n.hasPhoto) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Material(
+          color: _ink.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(6),
-          onTap: () => _photoMenu(l10n),
-          child: SizedBox(
-            width: _n.hasPhotos ? side : double.infinity,
-            height: side,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_photo_alternate_outlined,
-                    size: 26, color: faint),
-                if (!_n.hasPhotos) ...[
+          child: InkWell(
+            borderRadius: BorderRadius.circular(6),
+            onTap: () => _photoMenu(l10n),
+            child: SizedBox(
+              width: double.infinity,
+              height: 96,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_photo_alternate_outlined,
+                      size: 26, color: faint),
                   const SizedBox(height: 4),
-                  Text(l10n.addPhotos,
+                  Text(l10n.addPhoto,
                       style: TextStyle(fontSize: 13, color: faint)),
                 ],
-              ],
+              ),
             ),
           ),
         ),
-      ),
-    );
-    if (!_n.hasPhotos) {
-      return Padding(
-          padding: const EdgeInsets.only(bottom: 10), child: addTile);
+      );
     }
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: SizedBox(
-        height: side,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          children: [
-            for (final (i, path) in _n.images.indexed)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: GestureDetector(
-                        onTap: () =>
-                            showPhotoViewer(context, _n.images, initial: i),
-                        child: Image.file(
-                          File(ImageService.resolve(path)),
-                          width: side,
-                          height: side,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => const SizedBox(
-                            width: side,
-                            height: side,
-                            child: Center(child: Icon(Icons.broken_image)),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 2,
-                      right: 2,
-                      child: GestureDetector(
-                        onTap: () => _removePhoto(path),
-                        child: Tooltip(
-                          message: l10n.delete,
-                          child: const CircleAvatar(
-                            backgroundColor: Colors.black54,
-                            radius: 11,
-                            child: Icon(Icons.close,
-                                size: 13, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            addTile,
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// The photo arrangements that make sense for this note: the grid, pile
-  /// and collage only differ with two or more photos, and only a print can
-  /// go edge to edge. Fewer than two choices and the picker stays hidden.
-  List<PhotoLayout> _layoutOptions() {
-    final several = _n.images.length > 1;
-    final isPhoto = _n.type == NoteType.photo;
-    return [
-      if (several || isPhoto) PhotoLayout.grid,
-      if (several) ...[PhotoLayout.stack, PhotoLayout.collage],
-      if (isPhoto) PhotoLayout.bare,
-    ];
-  }
-
-  String _layoutLabel(AppLocalizations l10n, PhotoLayout layout) =>
-      switch (layout) {
-        PhotoLayout.grid => l10n.layoutGrid,
-        PhotoLayout.stack => l10n.layoutStack,
-        PhotoLayout.collage => l10n.layoutCollage,
-        PhotoLayout.bare => l10n.layoutBare,
-      };
-
-  /// One tile per arrangement, each a little schematic of it (like the canvas
-  /// paper swatches in the drawing editor), the chosen one ringed in ink.
-  Widget _layoutPicker(AppLocalizations l10n) {
-    final options = _layoutOptions();
-    // A layout that stopped making sense (a bare print turned into a text
-    // note, say) shows as the grid it draws like.
-    final current =
-        options.contains(_n.photoLayout) ? _n.photoLayout : PhotoLayout.grid;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 6,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.only(right: 2),
-            child: Text(l10n.photoLayout,
-                style: TextStyle(
-                    fontSize: 13, color: _ink.withValues(alpha: 0.6))),
+          GestureDetector(
+            onTap: () => showPhotoViewer(context, _n.imagePath),
+            child: NotePhoto(path: _n.imagePath, maxHeight: 220, radius: 6),
           ),
-          for (final layout in options)
-            Tooltip(
-              message: _layoutLabel(l10n, layout),
-              child: GestureDetector(
-                onTap: () {
-                  if (layout == _n.photoLayout) return;
-                  HapticFeedback.selectionClick();
-                  setState(() => _n.photoLayout = layout);
-                },
-                child: Semantics(
-                  button: true,
-                  selected: layout == current,
-                  label: _layoutLabel(l10n, layout),
-                  child: Container(
-                    width: 44,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: printColorOf(context),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: layout == current ? _ink : Colors.black26,
-                        width: layout == current ? 2.5 : 1,
-                      ),
-                    ),
-                    child: CustomPaint(
-                      painter: _LayoutGlyphPainter(
-                        layout: layout,
-                        color: _ink.withValues(alpha: 0.55),
-                      ),
-                    ),
-                  ),
+          Positioned(
+            top: 6,
+            right: 6,
+            child: GestureDetector(
+              onTap: _removePhoto,
+              child: Tooltip(
+                message: l10n.delete,
+                child: const CircleAvatar(
+                  backgroundColor: Colors.black54,
+                  radius: 12,
+                  child: Icon(Icons.close, size: 14, color: Colors.white),
                 ),
               ),
             ),
+          ),
         ],
       ),
     );
@@ -973,15 +851,15 @@ class _NoteDialogState extends State<_NoteDialog>
             ),
           ),
           const SizedBox(width: 6),
-          // A photo note already has its add tile in the strip above.
+          // A photo note already has its add tile above.
           if (!isPhoto)
             IconButton(
-              tooltip: l10n.addPhotos,
+              tooltip: _n.hasPhoto ? l10n.replacePhoto : l10n.addPhoto,
               onPressed: () => _photoMenu(l10n),
-              color: _n.hasPhotos ? _ink : faint,
+              color: _n.hasPhoto ? _ink : faint,
               icon: Icon(
-                _n.hasPhotos
-                    ? Icons.photo_library
+                _n.hasPhoto
+                    ? Icons.photo_camera_back
                     : Icons.photo_camera_back_outlined,
                 size: 22,
               ),
@@ -1035,7 +913,7 @@ class _NoteDialogState extends State<_NoteDialog>
   Future<void> _photoMenu(AppLocalizations l10n) async {
     final source = await showActionSheet<ImageSource>(
       context,
-      title: l10n.addPhotos,
+      title: _n.hasPhoto ? l10n.replacePhoto : l10n.addPhoto,
       children: [
         ListTile(
           leading: const Icon(Icons.photo_library_outlined),
@@ -1049,7 +927,7 @@ class _NoteDialogState extends State<_NoteDialog>
         ),
       ],
     );
-    if (source != null && mounted) await _attachPhotos(source);
+    if (source != null && mounted) await _attachPhoto(source);
   }
 
   Widget _emojiStrip() {
@@ -1182,76 +1060,4 @@ class _RulesPainter extends CustomPainter {
       oldDelegate.firstLine != firstLine ||
       oldDelegate.lineHeight != lineHeight ||
       oldDelegate.color != color;
-}
-
-/// A thumbnail-sized schematic of a [PhotoLayout]: filled blocks standing
-/// for photos, inside a margin that stands for the print's border — except
-/// for the bare layout, whose block fills the tile edge to edge.
-class _LayoutGlyphPainter extends CustomPainter {
-  _LayoutGlyphPainter({required this.layout, required this.color});
-
-  final PhotoLayout layout;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color;
-    final r = const Radius.circular(1.5);
-    void block(Rect rect) =>
-        canvas.drawRRect(RRect.fromRectAndRadius(rect, r), paint);
-
-    const m = 6.0, gap = 2.5;
-    final inner = Rect.fromLTWH(m, m, size.width - 2 * m, size.height - 2 * m);
-    switch (layout) {
-      case PhotoLayout.bare:
-        block(Rect.fromLTWH(1.5, 1.5, size.width - 3, size.height - 3));
-      case PhotoLayout.grid:
-        final w = (inner.width - gap) / 2, h = (inner.height - gap) / 2;
-        for (final (dx, dy) in [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)]) {
-          block(Rect.fromLTWH(
-              inner.left + dx * (w + gap), inner.top + dy * (h + gap), w, h));
-        }
-      case PhotoLayout.collage:
-        final bigW = (inner.width - gap) * 0.62;
-        final smallW = inner.width - gap - bigW;
-        final smallH = (inner.height - gap) / 2;
-        block(Rect.fromLTWH(inner.left, inner.top, bigW, inner.height));
-        for (var i = 0; i < 2; i++) {
-          block(Rect.fromLTWH(inner.left + bigW + gap,
-              inner.top + i * (smallH + gap), smallW, smallH));
-        }
-      case PhotoLayout.stack:
-        // Two tilted snapshots behind a straight one, drawn back to front;
-        // the ones behind are ghosted so the pile reads as depth.
-        final card = Rect.fromCenter(
-            center: inner.center,
-            width: inner.width * 0.82,
-            height: inner.height * 0.86);
-        for (final (angle, alpha) in [(0.34, 0.32), (-0.2, 0.58), (0.0, 1.0)]) {
-          canvas.save();
-          canvas.translate(card.center.dx, card.center.dy);
-          canvas.rotate(angle);
-          canvas.translate(-card.center.dx, -card.center.dy);
-          canvas.drawRRect(
-            RRect.fromRectAndRadius(card, r),
-            Paint()..color = color.withValues(alpha: color.a * alpha),
-          );
-          if (alpha < 1) {
-            // A hairline of paper between snapshots so they don't merge.
-            canvas.drawRRect(
-              RRect.fromRectAndRadius(card, r),
-              Paint()
-                ..color = Colors.white
-                ..style = PaintingStyle.stroke
-                ..strokeWidth = 1,
-            );
-          }
-          canvas.restore();
-        }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_LayoutGlyphPainter oldDelegate) =>
-      oldDelegate.layout != layout || oldDelegate.color != color;
 }

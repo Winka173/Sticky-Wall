@@ -137,21 +137,14 @@
   "takePhoto": "Take a photo",
   "typePhoto": "Photo",
   "caption": "Caption",
-  "addPhotos": "Add photos",
-  "photoRequired": "Add at least one photo",
-  "photoLayout": "Photo layout",
-  "layoutGrid": "Grid",
-  "layoutStack": "Pile",
-  "layoutCollage": "Collage",
-  "layoutBare": "Edge to edge",
+  "addPhoto": "Add photo",
+  "replacePhoto": "Replace photo",
+  "photoRequired": "Add a photo",
   "pinPhotos": "Pin photos on the wall",
   "noteHere": "Sticky note here",
   "photosHere": "Photos here",
-  "viewPhotos": "View photos",
-  "photoCount": "{count, plural, =1{1 photo} other{{count} photos}}",
-  "@photoCount": {
-    "placeholders": { "count": { "type": "int" } }
-  },
+  "viewPhoto": "View photo",
+  "rotate": "Rotate",
   "photosPinned": "{count, plural, =1{1 photo pinned on the wall} other{{count} photos pinned on the wall}}",
   "@photosPinned": {
     "placeholders": { "count": { "type": "int" } }

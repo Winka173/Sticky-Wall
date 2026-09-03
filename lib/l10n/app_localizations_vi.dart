@@ -391,25 +391,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get caption => 'Chú thích';
 
   @override
-  String get addPhotos => 'Thêm ảnh';
+  String get addPhoto => 'Thêm ảnh';
 
   @override
-  String get photoRequired => 'Thêm ít nhất một ảnh';
+  String get replacePhoto => 'Thay ảnh';
 
   @override
-  String get photoLayout => 'Bố cục ảnh';
-
-  @override
-  String get layoutGrid => 'Lưới';
-
-  @override
-  String get layoutStack => 'Chồng ảnh';
-
-  @override
-  String get layoutCollage => 'Ghép ảnh';
-
-  @override
-  String get layoutBare => 'Tràn viền';
+  String get photoRequired => 'Hãy thêm một ảnh';
 
   @override
   String get pinPhotos => 'Ghim ảnh lên tường';
@@ -421,17 +409,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get photosHere => 'Ghim ảnh tại đây';
 
   @override
-  String get viewPhotos => 'Xem ảnh';
+  String get viewPhoto => 'Xem ảnh';
 
   @override
-  String photoCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count ảnh',
-    );
-    return '$_temp0';
-  }
+  String get rotate => 'Xoay';
 
   @override
   String photosPinned(int count) {

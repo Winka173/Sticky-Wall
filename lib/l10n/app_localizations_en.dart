@@ -396,25 +396,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get caption => 'Caption';
 
   @override
-  String get addPhotos => 'Add photos';
+  String get addPhoto => 'Add photo';
 
   @override
-  String get photoRequired => 'Add at least one photo';
+  String get replacePhoto => 'Replace photo';
 
   @override
-  String get photoLayout => 'Photo layout';
-
-  @override
-  String get layoutGrid => 'Grid';
-
-  @override
-  String get layoutStack => 'Pile';
-
-  @override
-  String get layoutCollage => 'Collage';
-
-  @override
-  String get layoutBare => 'Edge to edge';
+  String get photoRequired => 'Add a photo';
 
   @override
   String get pinPhotos => 'Pin photos on the wall';
@@ -426,18 +414,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get photosHere => 'Photos here';
 
   @override
-  String get viewPhotos => 'View photos';
+  String get viewPhoto => 'View photo';
 
   @override
-  String photoCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count photos',
-      one: '1 photo',
-    );
-    return '$_temp0';
-  }
+  String get rotate => 'Rotate';
 
   @override
   String photosPinned(int count) {

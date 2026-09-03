@@ -776,47 +776,23 @@ abstract class AppLocalizations {
   /// **'Caption'**
   String get caption;
 
-  /// No description provided for @addPhotos.
+  /// No description provided for @addPhoto.
   ///
   /// In en, this message translates to:
-  /// **'Add photos'**
-  String get addPhotos;
+  /// **'Add photo'**
+  String get addPhoto;
+
+  /// No description provided for @replacePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace photo'**
+  String get replacePhoto;
 
   /// No description provided for @photoRequired.
   ///
   /// In en, this message translates to:
-  /// **'Add at least one photo'**
+  /// **'Add a photo'**
   String get photoRequired;
-
-  /// No description provided for @photoLayout.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo layout'**
-  String get photoLayout;
-
-  /// No description provided for @layoutGrid.
-  ///
-  /// In en, this message translates to:
-  /// **'Grid'**
-  String get layoutGrid;
-
-  /// No description provided for @layoutStack.
-  ///
-  /// In en, this message translates to:
-  /// **'Pile'**
-  String get layoutStack;
-
-  /// No description provided for @layoutCollage.
-  ///
-  /// In en, this message translates to:
-  /// **'Collage'**
-  String get layoutCollage;
-
-  /// No description provided for @layoutBare.
-  ///
-  /// In en, this message translates to:
-  /// **'Edge to edge'**
-  String get layoutBare;
 
   /// No description provided for @pinPhotos.
   ///
@@ -836,17 +812,17 @@ abstract class AppLocalizations {
   /// **'Photos here'**
   String get photosHere;
 
-  /// No description provided for @viewPhotos.
+  /// No description provided for @viewPhoto.
   ///
   /// In en, this message translates to:
-  /// **'View photos'**
-  String get viewPhotos;
+  /// **'View photo'**
+  String get viewPhoto;
 
-  /// No description provided for @photoCount.
+  /// No description provided for @rotate.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
-  String photoCount(int count);
+  /// **'Rotate'**
+  String get rotate;
 
   /// No description provided for @photosPinned.
   ///
