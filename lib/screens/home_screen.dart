@@ -278,20 +278,35 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Pen, colours, eraser, undo, clear and done, docked at the bottom while
-  /// drawing on the wall.
+  /// drawing on the wall. Compact enough for a 360dp phone in one row.
   Widget _markerBar(WallStyle wall) {
     final l10n = _l10n;
     final text = wall.wallText;
     const widths = [3.0, 6.0, 11.0];
     final nextWidth =
         widths[(widths.indexOf(_marker.width) + 1) % widths.length];
+    Widget tool({
+      required String tooltip,
+      required Widget icon,
+      VoidCallback? onTap,
+      Color? color,
+    }) => IconButton(
+      tooltip: tooltip,
+      onPressed: onTap,
+      icon: icon,
+      iconSize: 21,
+      color: color ?? text,
+      padding: EdgeInsets.zero,
+      visualDensity: VisualDensity.compact,
+      constraints: const BoxConstraints.tightFor(width: 34, height: 34),
+    );
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        padding: const EdgeInsets.fromLTRB(6, 0, 6, 10),
         child: Container(
           decoration: _frosted(wall, radius: 16),
-          padding: const EdgeInsets.fromLTRB(10, 6, 4, 6),
+          padding: const EdgeInsets.fromLTRB(4, 6, 5, 6),
           child: Row(
             children: [
               for (final c in AppColors.markers)
@@ -302,57 +317,53 @@ class _HomeScreenState extends State<HomeScreen> {
                     () => _marker = _marker.copyWith(color: c, eraser: false),
                   ),
                 ),
-              const SizedBox(width: 4),
-              IconButton(
+              const Spacer(),
+              tool(
                 tooltip: l10n.penSize,
-                iconSize: 22,
-                color: text,
-                icon: Icon(
-                  Icons.line_weight,
-                  // The icon weight hints at the current width.
-                  size: 16 + _marker.width,
-                ),
-                onPressed: () => setState(
+                // The icon's weight hints at the current width.
+                icon: Icon(Icons.line_weight, size: 14 + _marker.width),
+                onTap: () => setState(
                   () => _marker = _marker.copyWith(width: nextWidth),
                 ),
               ),
-              IconButton(
+              tool(
                 tooltip: l10n.eraser,
-                iconSize: 22,
-                color: _marker.eraser ? AppColors.accent : text,
                 icon: Icon(
                   _marker.eraser
                       ? Icons.auto_fix_normal
                       : Icons.auto_fix_normal_outlined,
                 ),
-                onPressed: () => setState(
+                color: _marker.eraser ? AppColors.accent : text,
+                onTap: () => setState(
                   () => _marker = _marker.copyWith(eraser: !_marker.eraser),
                 ),
               ),
-              const Spacer(),
-              IconButton(
+              tool(
                 tooltip: l10n.undo,
-                iconSize: 22,
-                color: text,
                 icon: const Icon(Icons.undo),
-                onPressed: _inkPast.isEmpty ? null : _undoInk,
+                onTap: _inkPast.isEmpty ? null : _undoInk,
               ),
-              IconButton(
+              tool(
                 tooltip: l10n.clear,
-                iconSize: 22,
-                color: text,
                 icon: const Icon(Icons.delete_sweep_outlined),
-                onPressed: _wallStrokes.isEmpty ? null : _clearInk,
+                onTap: _wallStrokes.isEmpty ? null : _clearInk,
               ),
-              FilledButton(
-                onPressed: _stopMarking,
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  foregroundColor: AppColors.ink,
-                  minimumSize: const Size(0, 36),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
+              const SizedBox(width: 2),
+              Tooltip(
+                message: l10n.done,
+                child: Material(
+                  color: AppColors.accent,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: _stopMarking,
+                    child: const SizedBox(
+                      width: 34,
+                      height: 34,
+                      child: Icon(Icons.check, size: 20, color: AppColors.ink),
+                    ),
+                  ),
                 ),
-                child: Text(l10n.done),
               ),
             ],
           ),
@@ -1857,11 +1868,11 @@ class _InkDot extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 2),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
-          width: selected ? 30 : 24,
-          height: selected ? 30 : 24,
+          width: selected ? 28 : 22,
+          height: selected ? 28 : 22,
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,

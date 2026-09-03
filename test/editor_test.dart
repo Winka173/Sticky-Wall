@@ -637,7 +637,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Draw on the wall'));
     await tester.pumpAndSettle();
-    expect(find.text('Done'), findsOneWidget);
+    expect(find.byTooltip('Done'), findsOneWidget);
     expect(find.byType(AddNoteButton), findsNothing);
 
     // A line across bare wall.
@@ -670,11 +670,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(notes.currentBoard.strokes.length, 1, reason: 'clear undone');
 
-    await tester.tap(find.text('Done'));
+    await tester.tap(find.byTooltip('Done'));
     await tester.pumpAndSettle();
-    expect(find.text('Done'), findsNothing);
+    expect(find.byTooltip('Done'), findsNothing);
     expect(find.byType(AddNoteButton), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the marker bar fits a narrow phone', (tester) async {
+    tester.view.physicalSize = const Size(360 * 3, 720 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await _pumpApp(tester, viewMode: ViewMode.wall);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Draw on the wall'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Done'), findsOneWidget);
+    expect(tester.takeException(), isNull, reason: 'no overflow');
   });
 
   testWidgets('a label is written on tape and locked from the sheet',
