@@ -30,6 +30,7 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "undo": "Undo",
+  "dropToDelete": "Drop here to delete",
   "trash": "Trash",
   "trashEmpty": "The trash is empty",
   "trashHint": "Notes here are deleted for good after 30 days.",

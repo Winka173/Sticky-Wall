@@ -55,6 +55,7 @@ class NoteCallbacks {
     required this.onTogglePin,
     required this.onToggleItem,
     required this.onLongPress,
+    this.onDoubleTap,
     this.onPinDragStart,
     this.onPinDragUpdate,
     this.onPinDragEnd,
@@ -66,6 +67,10 @@ class NoteCallbacks {
 
   /// Opens the note's action sheet (edit, pin, move, share, delete).
   final VoidCallback onLongPress;
+
+  /// On the wall, zooms the camera onto the note (and back). Null where a
+  /// double tap means nothing — then a single tap needs no wait to be sure.
+  final VoidCallback? onDoubleTap;
 
   /// Dragging *from* the pin (rather than tapping it) pulls a thread out of
   /// it; the wall view uses these to tie two notes together. Positions are
@@ -617,6 +622,7 @@ class StickyNoteCard extends StatelessWidget {
 
     final card = GestureDetector(
       onTap: cb.onEdit,
+      onDoubleTap: cb.onDoubleTap,
       onLongPress: cb.onLongPress,
       child: Stack(
         alignment: Alignment.topCenter,

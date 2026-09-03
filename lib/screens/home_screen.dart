@@ -62,6 +62,18 @@ class _HomeScreenState extends State<HomeScreen> {
   final _camera = WallCamera();
   bool _searching = false;
 
+  // A note dragged up from the wall can land on a board tab: the chips are
+  // found through these keys, and the hovered one is lit through this.
+  final _chipKeys = <String, GlobalKey>{};
+  final _dropTarget = ValueNotifier<String?>(null);
+
+  // The wall's Undo pill: shown for a few seconds after each remembered
+  // wall edit (see NotesController.wallEdits), and after each undo while
+  // more remain.
+  int _seenWallEdits = 0;
+  bool _undoShown = false;
+  Timer? _undoTimer;
+
   // Multi-select: on while the selection bar is up; guids of chosen notes.
   bool _selecting = false;
   final _selected = <String>{};
@@ -98,7 +110,147 @@ class _HomeScreenState extends State<HomeScreen> {
     widget.shareReceiver?.dispose();
     _searchController.dispose();
     _camera.dispose();
+    _dropTarget.dispose();
+    _undoTimer?.cancel();
     super.dispose();
+  }
+
+  // --- Undo (wall) ---------------------------------------------------------
+
+  /// Shows the Undo pill and arms the timer that hides it again. Called
+  /// from build when a new edit is noticed, so it must not set state itself.
+  void _armUndo() {
+    _undoShown = true;
+    _undoTimer?.cancel();
+    _undoTimer = Timer(const Duration(seconds: 6), () {
+      if (mounted) setState(() => _undoShown = false);
+    });
+  }
+
+  void _undoWall() {
+    HapticFeedback.lightImpact();
+    _notes.undoWall();
+    // undoWall notified: the rebuild sees wallEdits unchanged, so re-arm
+    // here while more steps remain.
+    setState(() {
+      if (_notes.canUndoWall) {
+        _armUndo();
+      } else {
+        _undoTimer?.cancel();
+        _undoShown = false;
+      }
+    });
+  }
+
+  Widget _undoPill() {
+    final show = _undoShown && _notes.canUndoWall;
+    return IgnorePointer(
+      ignoring: !show,
+      child: AnimatedSlide(
+        offset: show ? Offset.zero : const Offset(0, -0.8),
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        child: AnimatedOpacity(
+          opacity: show ? 1 : 0,
+          duration: const Duration(milliseconds: 200),
+          child: Material(
+            color: AppColors.overlayDark,
+            borderRadius: BorderRadius.circular(20),
+            elevation: 3,
+            child: InkWell(
+              onTap: _undoWall,
+              borderRadius: BorderRadius.circular(20),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 8, 16, 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.undo, size: 18, color: AppColors.chalk),
+                    const SizedBox(width: 8),
+                    Text(
+                      _l10n.undo,
+                      style: const TextStyle(
+                        color: AppColors.chalk,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- Drops on the board tabs ---------------------------------------------
+
+  /// The board whose tab is under [global], other than the current one.
+  String? _boardAt(Offset global) {
+    for (final board in _notes.boards) {
+      if (board.id == _notes.currentBoardId) continue;
+      final ro = _chipKeys[board.id]?.currentContext?.findRenderObject();
+      if (ro is! RenderBox || !ro.hasSize || !ro.attached) continue;
+      final p = ro.globalToLocal(global);
+      // A little slack all round: the finger is under a card, not a cursor.
+      if (Rect.fromLTWH(
+        -6,
+        -14,
+        ro.size.width + 12,
+        ro.size.height + 28,
+      ).contains(p)) {
+        return board.id;
+      }
+    }
+    return null;
+  }
+
+  void _dragOver(Note note, Offset? global) {
+    final id = global == null ? null : _boardAt(global);
+    if (id == _dropTarget.value) return;
+    if (id != null) HapticFeedback.selectionClick();
+    _dropTarget.value = id;
+  }
+
+  /// A note (or selection) let go somewhere on screen: moves it to the board
+  /// whose tab it landed on. Returns whether it did.
+  bool _dropOnTab(List<Note> notes, Offset global) {
+    _dropTarget.value = null;
+    final id = _boardAt(global);
+    if (id == null) return false;
+    final board = _notes.boards.firstWhere((b) => b.id == id);
+    _notes.moveAllToBoard(notes, id);
+    _exitSelecting();
+    _toast(_l10n.movedToBoard(_boardName(board)));
+    return true;
+  }
+
+  /// Long press on the add button: pick the note type straight away.
+  Future<void> _quickAdd() async {
+    final l10n = _l10n;
+    unawaited(HapticFeedback.mediumImpact());
+    final type = await showActionSheet<NoteType>(
+      context,
+      title: l10n.addNote,
+      children: [
+        for (final (t, icon, label) in [
+          (NoteType.normal, Icons.notes, l10n.typeNormal),
+          (NoteType.link, Icons.link, l10n.typeLink),
+          (NoteType.checklist, Icons.checklist, l10n.typeChecklist),
+          (NoteType.drawing, Icons.brush_outlined, l10n.typeDrawing),
+          (NoteType.photo, Icons.photo_outlined, l10n.typePhoto),
+        ])
+          ListTile(
+            leading: Icon(icon),
+            title: Text(label),
+            onTap: () => Navigator.pop(context, t),
+          ),
+      ],
+    );
+    if (type == null || !mounted) return;
+    await _openEditor(_notes.draft()..type = type, isNew: true);
   }
 
   void _toast(String message) {
@@ -110,11 +262,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void _undoToast(String message, VoidCallback undo) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(message),
-        duration: _kToast,
-        action: SnackBarAction(label: _l10n.undo, onPressed: undo),
-      ));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: _kToast,
+          action: SnackBarAction(label: _l10n.undo, onPressed: undo),
+        ),
+      );
   }
 
   String _boardName(Board board) =>
@@ -152,27 +306,27 @@ class _HomeScreenState extends State<HomeScreen> {
   // --- Note actions --------------------------------------------------------
 
   NoteCallbacks _callbacks(Note note) => NoteCallbacks(
-        onEdit: () {
-          if (_selecting) {
-            _toggleSelected(note);
-          } else {
-            _openEditor(note, isNew: false);
-          }
-        },
-        onTogglePin: () {
-          HapticFeedback.selectionClick();
-          _notes.togglePin(note);
-        },
-        onToggleItem: (i) => _notes.toggleChecklistItem(note, i),
-        onLongPress: () {
-          HapticFeedback.mediumImpact();
-          if (_selecting) {
-            _toggleSelected(note);
-          } else {
-            _showNoteActions(note);
-          }
-        },
-      );
+    onEdit: () {
+      if (_selecting) {
+        _toggleSelected(note);
+      } else {
+        _openEditor(note, isNew: false);
+      }
+    },
+    onTogglePin: () {
+      HapticFeedback.selectionClick();
+      _notes.togglePin(note);
+    },
+    onToggleItem: (i) => _notes.toggleChecklistItem(note, i),
+    onLongPress: () {
+      HapticFeedback.mediumImpact();
+      if (_selecting) {
+        _toggleSelected(note);
+      } else {
+        _showNoteActions(note);
+      }
+    },
+  );
 
   Future<void> _showNoteActions(Note note) async {
     final l10n = _l10n;
@@ -192,8 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () => Navigator.pop(context, 'photo'),
           ),
         ListTile(
-          leading:
-              Icon(note.pinned ? Icons.push_pin : Icons.push_pin_outlined),
+          leading: Icon(note.pinned ? Icons.push_pin : Icons.push_pin_outlined),
           title: Text(note.pinned ? l10n.unpin : l10n.pin),
           onTap: () => Navigator.pop(context, 'pin'),
         ),
@@ -220,10 +373,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const Divider(height: 1),
         ListTile(
-          leading:
-              const Icon(Icons.delete_outline, color: AppColors.deleteIcon),
-          title: Text(l10n.delete,
-              style: const TextStyle(color: AppColors.deleteIcon)),
+          leading: const Icon(
+            Icons.delete_outline,
+            color: AppColors.deleteIcon,
+          ),
+          title: Text(
+            l10n.delete,
+            style: const TextStyle(color: AppColors.deleteIcon),
+          ),
           onTap: () => Navigator.pop(context, 'delete'),
         ),
       ],
@@ -264,8 +421,10 @@ class _HomeScreenState extends State<HomeScreen> {
             leading: board.icon.isEmpty
                 ? const Icon(Icons.dashboard_outlined)
                 : Text(board.icon, style: const TextStyle(fontSize: 22)),
-            title: Text(_boardName(board),
-                style: board.decorate(const TextStyle())),
+            title: Text(
+              _boardName(board),
+              style: board.decorate(const TextStyle()),
+            ),
             onTap: () => Navigator.pop(context, board),
           ),
       ],
@@ -285,17 +444,19 @@ class _HomeScreenState extends State<HomeScreen> {
   /// to share or save. Always the wall layout, whichever view is showing.
   Future<void> _exportBoard() {
     final wall = wallFor(_notes.currentBoard, night: isNight(context));
-    return Navigator.of(context).push(MaterialPageRoute<void>(
-      fullscreenDialog: true,
-      builder: (_) => BoardPosterPage(
-        wall: wall,
-        decor: widget.settings.wallDecor,
-        notes: _notes.boardNotes,
-        links: _notes.linksOn(_notes.currentBoardId),
-        wallSize: _wallHandle.lastSize,
-        imageService: _imageService,
+    return Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => BoardPosterPage(
+          wall: wall,
+          decor: widget.settings.wallDecor,
+          notes: _notes.boardNotes,
+          links: _notes.linksOn(_notes.currentBoardId),
+          wallSize: _wallHandle.lastSize,
+          imageService: _imageService,
+        ),
       ),
-    ));
+    );
   }
 
   Future<void> _captureAndShare(Note note) async {
@@ -306,7 +467,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (bytes != null) {
         await _imageService.sharePng(bytes, subject: _l10n.appTitle);
       }
-    } catch (_) {/* user cancelled / platform unavailable */}
+    } catch (_) {
+      /* user cancelled / platform unavailable */
+    }
   }
 
   Future<void> _captureAndSave(Note note) async {
@@ -419,14 +582,16 @@ class _HomeScreenState extends State<HomeScreen> {
     _undoToast(_l10n.noteDeleted, _notes.undoDelete);
   }
 
-  Future<void> _deleteMany(List<Note> notes) async {
+  Future<void> _deleteMany(List<Note> notes, {bool peel = true}) async {
     if (notes.isEmpty) return;
-    // Peel a handful for the effect; a huge selection just vanishes.
-    final keys = [
-      for (final n in notes.take(8)) _captureKeys[_captureId(n)],
-    ].nonNulls;
-    await Future.wait(keys.map((k) => PeelAway.play(context, k)));
-    if (!mounted) return;
+    if (peel) {
+      // Peel a handful for the effect; a huge selection just vanishes.
+      final keys = [
+        for (final n in notes.take(8)) _captureKeys[_captureId(n)],
+      ].nonNulls;
+      await Future.wait(keys.map((k) => PeelAway.play(context, k)));
+      if (!mounted) return;
+    }
     _notes.trashAll(notes);
     _forgetKeys(notes);
     _exitSelecting();
@@ -486,9 +651,13 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.color,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(
+                l10n.color,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 12,
@@ -544,6 +713,10 @@ class _HomeScreenState extends State<HomeScreen> {
         _lastViewMode = _notes.viewMode;
         final showFabLabel =
             _notes.boardNotes.isEmpty || _notes.viewMode != ViewMode.wall;
+        if (_notes.wallEdits != _seenWallEdits) {
+          _seenWallEdits = _notes.wallEdits;
+          _armUndo();
+        }
 
         return Stack(
           children: [
@@ -554,13 +727,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 duration: const Duration(milliseconds: 450),
                 child: WallBackground(
                   key: ValueKey(
-                      '${wall.id}-${wall.imageFile}-${widget.settings.wallDecor}'),
+                    '${wall.id}-${wall.imageFile}-${widget.settings.wallDecor}',
+                  ),
                   wall: wall,
                   decor: widget.settings.wallDecor,
                   // Only the wall pans; grid and list scroll over a still
                   // background.
-                  camera:
-                      _notes.viewMode == ViewMode.wall ? _camera : null,
+                  camera: _notes.viewMode == ViewMode.wall ? _camera : null,
                 ),
               ),
             ),
@@ -574,14 +747,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? null
                   : AddNoteButton(
                       label: _l10n.addNote,
-                      onPressed: () =>
-                          _openEditor(_notes.draft(), isNew: true),
+                      onPressed: () => _openEditor(_notes.draft(), isNew: true),
+                      onLongPress: _quickAdd,
                       // Shrinks to just the pencil once a free wall has notes
                       // on it, so it covers less of them.
                       extended: showFabLabel,
                     ),
-              bottomNavigationBar:
-                  _selecting ? _selectionBar(wall) : null,
+              bottomNavigationBar: _selecting ? _selectionBar(wall) : null,
               body: SafeArea(
                 // While the keyboard is up the system reports no bottom
                 // padding (the keyboard covers the navigation bar), which
@@ -594,16 +766,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     _buildToolRow(wall),
                     const SizedBox(height: 6),
                     Expanded(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 260),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: _contentTransition,
-                        child: KeyedSubtree(
-                          key: ValueKey(
-                              '${_notes.currentBoardId}:${_notes.viewMode.name}'),
-                          child: _buildContent(wall),
-                        ),
+                      child: Stack(
+                        children: [
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 260),
+                            switchInCurve: Curves.easeOutCubic,
+                            switchOutCurve: Curves.easeInCubic,
+                            transitionBuilder: _contentTransition,
+                            child: KeyedSubtree(
+                              key: ValueKey(
+                                '${_notes.currentBoardId}:${_notes.viewMode.name}',
+                              ),
+                              child: _buildContent(wall),
+                            ),
+                          ),
+                          Positioned(
+                            top: 6,
+                            left: 0,
+                            right: 0,
+                            child: Center(child: _undoPill()),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -626,7 +809,8 @@ class _HomeScreenState extends State<HomeScreen> {
         final v = animation.value;
         // The outgoing tree's animation runs in reverse; it leaves the
         // opposite way the new one arrives.
-        final leaving = animation.status == AnimationStatus.reverse ||
+        final leaving =
+            animation.status == AnimationStatus.reverse ||
             animation.status == AnimationStatus.dismissed;
         final dir = leaving ? -_slideDir : _slideDir;
         return FractionalTranslation(
@@ -637,12 +821,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  BoxDecoration _frosted(WallStyle wall, {double radius = 21}) =>
-      BoxDecoration(
-        color: wall.dark ? const Color(0x26FFFFFF) : const Color(0x14000000),
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: wall.wallTextFaded.withValues(alpha: 0.25)),
-      );
+  BoxDecoration _frosted(WallStyle wall, {double radius = 21}) => BoxDecoration(
+    color: wall.dark ? const Color(0x26FFFFFF) : const Color(0x14000000),
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(color: wall.wallTextFaded.withValues(alpha: 0.25)),
+  );
 
   Widget _buildTitleRow(WallStyle wall) {
     final text = wall.wallText;
@@ -655,40 +838,40 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _selecting
               ? _selectionTitle(wall)
               : _searching
-                  ? _searchField(wall)
-                  : Row(
-                      key: const ValueKey('title'),
-                      children: [
-                        Expanded(
-                          child: Text(
-                            _l10n.appTitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.fade,
-                            softWrap: false,
-                            style: TextStyle(
-                              fontFamily: 'Pacifico',
-                              fontSize: 28,
-                              color: text,
-                              shadows: wall.wallTextShadows,
-                            ),
-                          ),
+              ? _searchField(wall)
+              : Row(
+                  key: const ValueKey('title'),
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _l10n.appTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.fade,
+                        softWrap: false,
+                        style: TextStyle(
+                          fontFamily: 'Pacifico',
+                          fontSize: 28,
+                          color: text,
+                          shadows: wall.wallTextShadows,
                         ),
-                        IconButton(
-                          tooltip: _l10n.search,
-                          icon: Icon(Icons.search, color: text),
-                          onPressed: () => _setSearching(true),
-                        ),
-                        IconButton(
-                          tooltip: _l10n.customize,
-                          icon: Icon(Icons.palette_outlined, color: text),
-                          onPressed: () => showSettingsSheet(
-                            context,
-                            settings: widget.settings,
-                            notes: _notes,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
+                    IconButton(
+                      tooltip: _l10n.search,
+                      icon: Icon(Icons.search, color: text),
+                      onPressed: () => _setSearching(true),
+                    ),
+                    IconButton(
+                      tooltip: _l10n.customize,
+                      icon: Icon(Icons.palette_outlined, color: text),
+                      onPressed: () => showSettingsSheet(
+                        context,
+                        settings: widget.settings,
+                        notes: _notes,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
@@ -716,7 +899,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                    color: text, fontSize: 18, fontWeight: FontWeight.bold),
+                  color: text,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             IconButton(
@@ -768,7 +954,9 @@ class _HomeScreenState extends State<HomeScreen> {
               _BarAction(
                 icon: Icons.delete_outline,
                 label: l10n.delete,
-                color: wall.dark ? const Color(0xFFFF8A80) : AppColors.deleteIcon,
+                color: wall.dark
+                    ? const Color(0xFFFF8A80)
+                    : AppColors.deleteIcon,
                 onTap: any ? () => _deleteMany(notes) : null,
               ),
             ],
@@ -842,7 +1030,17 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.fromLTRB(0, 4, 8, 0),
       child: Row(
         children: [
-          Expanded(child: BoardBar(notes: _notes, textColor: wall.wallText)),
+          Expanded(
+            child: BoardBar(
+              notes: _notes,
+              textColor: wall.wallText,
+              chipKeys: {
+                for (final b in _notes.boards)
+                  b.id: _chipKeys.putIfAbsent(b.id, GlobalKey.new),
+              },
+              dropTarget: _dropTarget,
+            ),
+          ),
           _filterButton(wall),
           if (_notes.viewMode != ViewMode.wall) _sortButton(wall),
           _layoutButton(wall),
@@ -875,8 +1073,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          if (selected)
-            const Icon(Icons.check, size: 18, color: AppColors.ink),
+          if (selected) const Icon(Icons.check, size: 18, color: AppColors.ink),
         ],
       ),
     );
@@ -899,14 +1096,15 @@ class _HomeScreenState extends State<HomeScreen> {
         isLabelVisible: active,
         smallSize: 8,
         backgroundColor: AppColors.accent,
-        child: Icon(active ? Icons.filter_alt : Icons.filter_alt_outlined,
-            color: wall.wallText),
+        child: Icon(
+          active ? Icons.filter_alt : Icons.filter_alt_outlined,
+          color: wall.wallText,
+        ),
       ),
       onSelected: (v) => _notes.typeFilter = v,
       itemBuilder: (context) => [
         for (final (key, label, icon) in options)
-          _menuItem(key, label,
-              icon: icon, selected: _notes.typeFilter == key),
+          _menuItem(key, label, icon: icon, selected: _notes.typeFilter == key),
       ],
     );
   }
@@ -927,25 +1125,28 @@ class _HomeScreenState extends State<HomeScreen> {
           _notes.setSort(byCreated: options[i].$3, ascending: options[i].$4),
       itemBuilder: (context) => [
         for (final (i, o) in options.indexed)
-          _menuItem(i, o.$1,
-              icon: o.$2,
-              selected: _notes.sortByCreated == o.$3 &&
-                  _notes.sortAscending == o.$4),
+          _menuItem(
+            i,
+            o.$1,
+            icon: o.$2,
+            selected:
+                _notes.sortByCreated == o.$3 && _notes.sortAscending == o.$4,
+          ),
       ],
     );
   }
 
   static IconData _layoutIcon(ViewMode mode) => switch (mode) {
-        ViewMode.wall => Icons.dashboard_customize_outlined,
-        ViewMode.grid => Icons.grid_view_rounded,
-        ViewMode.list => Icons.view_agenda_outlined,
-      };
+    ViewMode.wall => Icons.dashboard_customize_outlined,
+    ViewMode.grid => Icons.grid_view_rounded,
+    ViewMode.list => Icons.view_agenda_outlined,
+  };
 
   String _layoutLabel(ViewMode mode) => switch (mode) {
-        ViewMode.wall => _l10n.viewWall,
-        ViewMode.grid => _l10n.viewGrid,
-        ViewMode.list => _l10n.viewList,
-      };
+    ViewMode.wall => _l10n.viewWall,
+    ViewMode.grid => _l10n.viewGrid,
+    ViewMode.list => _l10n.viewList,
+  };
 
   Widget _layoutButton(WallStyle wall) {
     // Shows the *current* layout and opens a menu, instead of the old cycling
@@ -956,8 +1157,12 @@ class _HomeScreenState extends State<HomeScreen> {
       onSelected: (m) => _notes.viewMode = m,
       itemBuilder: (context) => [
         for (final mode in ViewMode.values)
-          _menuItem(mode, _layoutLabel(mode),
-              icon: _layoutIcon(mode), selected: _notes.viewMode == mode),
+          _menuItem(
+            mode,
+            _layoutLabel(mode),
+            icon: _layoutIcon(mode),
+            selected: _notes.viewMode == mode,
+          ),
       ],
     );
   }
@@ -993,22 +1198,34 @@ class _HomeScreenState extends State<HomeScreen> {
           case 'export':
             _exportBoard();
           case 'trash':
-            Navigator.of(context).push(MaterialPageRoute<void>(
-              builder: (_) => TrashScreen(notes: _notes),
-            ));
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => TrashScreen(notes: _notes),
+              ),
+            );
           case 'lights':
             widget.settings.setNightMode(night ? NightMode.off : NightMode.on);
         }
       },
       itemBuilder: (context) => [
-        _menuItem('photos', l10n.pinPhotos,
-            icon: Icons.add_photo_alternate_outlined),
+        _menuItem(
+          'photos',
+          l10n.pinPhotos,
+          icon: Icons.add_photo_alternate_outlined,
+        ),
         if (_notes.boardNotes.isNotEmpty)
           _menuItem('select', l10n.select, icon: Icons.checklist_rtl),
         if (canTidy) ...[
-          _menuItem('tidy', l10n.tidy, icon: Icons.auto_awesome_mosaic_outlined),
-          _menuItem('tidyColor', l10n.tidyByColor,
-              icon: Icons.palette_outlined),
+          _menuItem(
+            'tidy',
+            l10n.tidy,
+            icon: Icons.auto_awesome_mosaic_outlined,
+          ),
+          _menuItem(
+            'tidyColor',
+            l10n.tidyByColor,
+            icon: Icons.palette_outlined,
+          ),
         ],
         if (_notes.boardNotes.isNotEmpty)
           _menuItem('export', l10n.exportBoard, icon: Icons.image_outlined),
@@ -1037,10 +1254,21 @@ class _HomeScreenState extends State<HomeScreen> {
         notes: notes,
         callbacksFor: _callbacks,
         onMove: _notes.moveNote,
+        onMoveMany: _notes.moveNotes,
         onResize: _notes.resizeNote,
         onRotate: _notes.rotateNote,
         onBringToFront: _notes.bringToFront,
         onCreateAt: _createAt,
+        onTrash: (dropped) => dropped.length == 1
+            ? _delete(dropped.single, peel: false)
+            : _deleteMany(dropped, peel: false),
+        onLasso: (caught) => setState(() {
+          _selected.addAll(caught.map((n) => n.guid));
+        }),
+        onDragOver: _dragOver,
+        onDrop: _dropOnTab,
+        lasso: _selecting,
+        trashLabel: _l10n.dropToDelete,
         links: _notes.linksOn(boardId),
         onConnect: (a, b) {
           if (_notes.connect(a, b)) {
@@ -1073,8 +1301,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     // Grid/list: swipe horizontally to move between boards.
-    final content =
-        _notes.viewMode == ViewMode.grid ? _grid(notes) : _list(notes);
+    final content = _notes.viewMode == ViewMode.grid
+        ? _grid(notes)
+        : _list(notes);
     return GestureDetector(
       onHorizontalDragEnd: (d) {
         final v = d.primaryVelocity ?? 0;
@@ -1169,7 +1398,10 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             _l10n.noMatches,
             style: TextStyle(
-                fontSize: 20, color: faded, shadows: wall.wallTextShadows),
+              fontSize: 20,
+              color: faded,
+              shadows: wall.wallTextShadows,
+            ),
           ),
         ],
       ),
@@ -1259,10 +1491,12 @@ class _BarAction extends StatelessWidget {
             children: [
               Icon(icon, color: c, size: 24),
               const SizedBox(height: 3),
-              Text(label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: c, fontSize: 12.5)),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: c, fontSize: 12.5),
+              ),
             ],
           ),
         ),
@@ -1292,7 +1526,10 @@ class _Swatch extends StatelessWidget {
           border: Border.all(color: Colors.black26),
           boxShadow: const [
             BoxShadow(
-                color: Colors.black26, blurRadius: 3, offset: Offset(0, 1.5)),
+              color: Colors.black26,
+              blurRadius: 3,
+              offset: Offset(0, 1.5),
+            ),
           ],
         ),
         child: auto
@@ -1316,10 +1553,12 @@ class _GhostNotePainter extends CustomPainter {
       ..strokeWidth = 2
       ..color = color;
     final path = Path()
-      ..addRRect(RRect.fromRectAndRadius(
-        (Offset.zero & size).deflate(1.5),
-        const Radius.circular(8),
-      ));
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          (Offset.zero & size).deflate(1.5),
+          const Radius.circular(8),
+        ),
+      );
     for (final metric in path.computeMetrics()) {
       var d = 0.0;
       while (d < metric.length) {

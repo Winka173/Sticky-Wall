@@ -77,10 +77,17 @@ class WallView extends StatefulWidget {
     required this.notes,
     required this.callbacksFor,
     required this.onMove,
+    this.onMoveMany,
     required this.onResize,
     this.onRotate,
     required this.onBringToFront,
     required this.onCreateAt,
+    this.onTrash,
+    this.onLasso,
+    this.onDragOver,
+    this.onDrop,
+    this.lasso = false,
+    this.trashLabel = 'Delete',
     this.links = const [],
     this.onConnect,
     this.onCutLink,
@@ -99,6 +106,10 @@ class WallView extends StatefulWidget {
   final List<Note> notes;
   final NoteCallbacks Function(Note) callbacksFor;
   final void Function(Note note, double x, double y) onMove;
+
+  /// A dragged selection landed: every note with its new position, to be
+  /// applied as one change. Falls back to [onMove] per note when null.
+  final void Function(List<(Note note, double x, double y)> moves)? onMoveMany;
   final void Function(Note note, double scale) onResize;
 
   /// The note was turned with its rotate handle to [angle] radians (clockwise,
@@ -106,6 +117,30 @@ class WallView extends StatefulWidget {
   final void Function(Note note, double angle)? onRotate;
   final void Function(Note note) onBringToFront;
   final void Function(double x, double y) onCreateAt;
+
+  /// Notes dropped on the trash tray at the bottom of the wall. When null
+  /// there is no tray.
+  final void Function(List<Note> notes)? onTrash;
+
+  /// In select mode ([lasso]), the notes a loop drawn on empty wall enclosed.
+  final void Function(List<Note> notes)? onLasso;
+
+  /// A note is being dragged: the finger's screen position, so the screen
+  /// above can light up drop targets outside the wall (board tabs). Null
+  /// once the drag is over.
+  final void Function(Note note, Offset? global)? onDragOver;
+
+  /// A dragged note (or selection) was let go at [global]. Return true to
+  /// take it — it was dropped on a tab — and the wall leaves its position
+  /// alone (the note is on another board now).
+  final bool Function(List<Note> notes, Offset global)? onDrop;
+
+  /// Select mode: a finger drawn round notes on empty wall selects them
+  /// (see [onLasso]), and dragging a selected note takes the selection along.
+  final bool lasso;
+
+  /// Label on the trash tray.
+  final String trashLabel;
 
   /// Threads to draw (both ends must be in [notes]; others are skipped).
   final List<NoteLink> links;
@@ -178,6 +213,30 @@ class _WallViewState extends State<WallView>
 
   String? _draggingGuid;
   Offset _dragTopLeft = Offset.zero;
+  // The finger's own idea of the top-left, before snapping to a guide, and
+  // where the card was when the drag began (the selection follows by the
+  // same distance).
+  Offset _dragRaw = Offset.zero;
+  Offset _dragStart = Offset.zero;
+  // Last finger position on screen, for the tray and the tabs above.
+  Offset? _dragGlobal;
+  bool _overTray = false;
+  final _trayKey = GlobalKey();
+
+  // Alignment guides the dragged card has snapped to, in wall coordinates.
+  double? _guideX;
+  double? _guideY;
+  static const double _snapReach = 6;
+
+  // The rest of a dragged selection (guids), moving by _groupDelta.
+  Set<String> _groupGuids = const {};
+  Offset _groupDelta = Offset.zero;
+
+  // The loop being drawn in select mode, in wall coordinates.
+  List<Offset>? _lasso;
+
+  // The note the camera was last pointed at by a double tap.
+  String? _focusedGuid;
   // Where the finger last was, in wall coordinates. Drag distance is measured
   // there rather than from the gesture's local delta, because the detector
   // sits inside the note's rotation and would otherwise report it turned.
@@ -269,11 +328,40 @@ class _WallViewState extends State<WallView>
   }
 
   void _resetZoom() {
+    _focusedGuid = null;
+    _animateCamera(Matrix4.identity());
+  }
+
+  void _animateCamera(Matrix4 to) {
     _zoomAnim = Matrix4Tween(
       begin: _tc.value,
-      end: Matrix4.identity(),
+      end: to,
     ).animate(CurvedAnimation(parent: _zoomReset, curve: Curves.easeOutCubic));
     _zoomReset.forward(from: 0);
+  }
+
+  /// Double tap on a note: glides the camera in to frame it; a second double
+  /// tap on the same note (or the reset button) glides back out.
+  void _focusOn(Note note) {
+    if (_focusedGuid == note.guid && !_tc.value.isIdentity()) {
+      _resetZoom();
+      return;
+    }
+    final w = _size.width;
+    final h = _size.height;
+    if (w <= 0 || h <= 0) return;
+    final box = _boxOf(note, w, h);
+    final zoom = math
+        .min(w / (box.width + 48), h / (box.height + 48))
+        .clamp(1.2, 2.4);
+    final c = box.center;
+    final to = Matrix4.identity()
+      ..translateByDouble(w / 2 - zoom * c.dx, h / 2 - zoom * c.dy, 0, 1)
+      ..scaleByDouble(zoom, zoom, 1, 1);
+    HapticFeedback.selectionClick();
+    _focusedGuid = note.guid;
+    _setActive(note.guid);
+    _animateCamera(to);
   }
 
   /// Tells the camera where the wall viewport sits on screen, so the
@@ -302,7 +390,21 @@ class _WallViewState extends State<WallView>
   Offset _topLeftOf(Note note, double w, double h) {
     if (_draggingGuid == note.guid) return _dragTopLeft;
     final scale = _resizingGuid == note.guid ? _resizeScale : note.scale;
-    return Offset(note.x * _rangeX(w, scale), note.y * _rangeY(h));
+    final base = Offset(note.x * _rangeX(w, scale), note.y * _rangeY(h));
+    return _groupGuids.contains(note.guid) ? base + _groupDelta : base;
+  }
+
+  /// The card's footprint on the wall (paper plus pin inset), upright.
+  Rect _boxOf(Note note, double w, double h) {
+    final scale = _resizingGuid == note.guid ? _resizeScale : note.scale;
+    final width = _cardWidth * scale;
+    final tl = _topLeftOf(note, w, h);
+    return Rect.fromLTWH(
+      tl.dx,
+      tl.dy,
+      width,
+      _paperHeight(note, width) + _pinInset,
+    );
   }
 
   /// The angle a note is drawn at right now, in radians.
@@ -644,7 +746,10 @@ class _WallViewState extends State<WallView>
               maxScale: 3,
               boundaryMargin: const EdgeInsets.all(320),
               // Re-measure right before a gesture, when it matters most.
-              onInteractionStart: (_) => _reportOrigin(),
+              onInteractionStart: (_) {
+                _focusedGuid = null;
+                _reportOrigin();
+              },
               child: SizedBox(
                 key: _wallKey,
                 width: w,
@@ -659,6 +764,19 @@ class _WallViewState extends State<WallView>
                         onDoubleTap: _resetZoom,
                         onLongPressStart: (d) =>
                             _createAt(d.localPosition, w, h),
+                        // In select mode a finger on bare wall draws a lasso
+                        // (the wall itself pans with two fingers meanwhile).
+                        onPanStart: widget.lasso
+                            ? (d) => setState(() => _lasso = [d.localPosition])
+                            : null,
+                        onPanUpdate: widget.lasso
+                            ? (d) =>
+                                  setState(() => _lasso?.add(d.localPosition))
+                            : null,
+                        onPanEnd: widget.lasso ? (_) => _finishLasso() : null,
+                        onPanCancel: widget.lasso
+                            ? () => setState(() => _lasso = null)
+                            : null,
                       ),
                     ),
                     if (widget.notes.isEmpty && widget.emptyHint != null)
@@ -676,6 +794,20 @@ class _WallViewState extends State<WallView>
                       ),
                     for (final (i, note) in widget.notes.indexed)
                       _positioned(note, i, w, h),
+                    if (_guideX != null || _guideY != null)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: CustomPaint(
+                            painter: _GuidePainter(x: _guideX, y: _guideY),
+                          ),
+                        ),
+                      ),
+                    if (_lasso != null)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: CustomPaint(painter: _LassoPainter(_lasso!)),
+                        ),
+                      ),
                     // Threads lie over the paper, like real yarn over pins.
                     // The painter only claims taps landing on a thread, so
                     // the notes beneath stay fully interactive.
@@ -725,11 +857,125 @@ class _WallViewState extends State<WallView>
                 ),
               ),
             ),
+            // Drop a dragged note here to delete it. Slides up while a drag
+            // is under way; leaves room for the add button on the right.
+            if (widget.onTrash != null && !widget.still)
+              Positioned(
+                left: 16,
+                right: 92,
+                bottom: 12,
+                child: _DropTray(
+                  key: _trayKey,
+                  shown: _draggingGuid != null && _pinchGuid == null,
+                  armed: _overTray,
+                  label: widget.trashLabel,
+                ),
+              ),
             if (_probes.isNotEmpty) _tidyProbes(),
           ],
         );
       },
     );
+  }
+
+  // --- Lasso -----------------------------------------------------------
+
+  void _finishLasso() {
+    final loop = _lasso;
+    setState(() => _lasso = null);
+    if (loop == null || loop.length < 3) return;
+    final w = _size.width;
+    final h = _size.height;
+    final caught = [
+      for (final note in widget.notes)
+        if (!(widget.isDimmed?.call(note) ?? false) &&
+            _inside(loop, _boxOf(note, w, h).center))
+          note,
+    ];
+    if (caught.isEmpty) return;
+    HapticFeedback.selectionClick();
+    widget.onLasso?.call(caught);
+  }
+
+  /// Whether [p] lies inside the polygon [loop] (even-odd rule).
+  static bool _inside(List<Offset> loop, Offset p) {
+    var inside = false;
+    for (var i = 0, j = loop.length - 1; i < loop.length; j = i++) {
+      final a = loop[i];
+      final b = loop[j];
+      if ((a.dy > p.dy) != (b.dy > p.dy) &&
+          p.dx < (b.dx - a.dx) * (p.dy - a.dy) / (b.dy - a.dy) + a.dx) {
+        inside = !inside;
+      }
+    }
+    return inside;
+  }
+
+  // --- Snapping ---------------------------------------------------------
+
+  /// Nudges a dragged card onto the nearest alignment within reach — an
+  /// edge or centre line of a neighbour, or the wall's centre line — and
+  /// records the guide(s) to draw. Returns the snapped top-left.
+  Offset _snap(Note note, Offset raw) {
+    final w = _size.width;
+    final h = _size.height;
+    final scale = _resizingGuid == note.guid ? _resizeScale : note.scale;
+    final width = _cardWidth * scale;
+    final height = _paperHeight(note, width) + _pinInset;
+    final xs = [raw.dx, raw.dx + width / 2, raw.dx + width];
+    final ys = [raw.dy, raw.dy + height / 2, raw.dy + height];
+    double? dx;
+    double? dy;
+    double? gx;
+    double? gy;
+    void tryX(double target) {
+      for (final x in xs) {
+        final d = target - x;
+        if (d.abs() <= _snapReach && (dx == null || d.abs() < dx!.abs())) {
+          dx = d;
+          gx = target;
+        }
+      }
+    }
+
+    void tryY(double target) {
+      for (final y in ys) {
+        final d = target - y;
+        if (d.abs() <= _snapReach && (dy == null || d.abs() < dy!.abs())) {
+          dy = d;
+          gy = target;
+        }
+      }
+    }
+
+    tryX(w / 2);
+    for (final other in widget.notes) {
+      if (other.guid == note.guid || _groupGuids.contains(other.guid)) continue;
+      if (widget.isDimmed?.call(other) ?? false) continue;
+      final box = _boxOf(other, w, h);
+      tryX(box.left);
+      tryX(box.center.dx);
+      tryX(box.right);
+      tryY(box.top);
+      tryY(box.center.dy);
+      tryY(box.bottom);
+    }
+    if ((gx != null && gx != _guideX) || (gy != null && gy != _guideY)) {
+      HapticFeedback.selectionClick();
+    }
+    _guideX = gx;
+    _guideY = gy;
+    return raw + Offset(dx ?? 0, dy ?? 0);
+  }
+
+  bool _hitTray(Offset global) {
+    final ro = _trayKey.currentContext?.findRenderObject();
+    if (ro is! RenderBox || !ro.hasSize) return false;
+    final p = ro.globalToLocal(global);
+    return p.dx >= 0 &&
+        p.dy >= 0 &&
+        p.dx <= ro.size.width &&
+        p.dy <= ro.size.height;
   }
 
   // --- One or two fingers on a note ------------------------------------
@@ -741,14 +987,26 @@ class _WallViewState extends State<WallView>
     if (d.pointerCount == 1) HapticFeedback.mediumImpact();
     widget.onBringToFront(note);
     final scale = note.scale;
+    final w = _size.width;
+    final h = _size.height;
     setState(() {
       _draggingGuid = note.guid;
       _activeGuid = note.guid;
-      _dragTopLeft = Offset(
-        note.x * _rangeX(_size.width, scale),
-        note.y * _rangeY(_size.height),
-      );
+      _dragStart = Offset(note.x * _rangeX(w, scale), note.y * _rangeY(h));
+      _dragTopLeft = _dragRaw = _dragStart;
       _dragFinger = _toWall(d.focalPoint);
+      _dragGlobal = d.focalPoint;
+      _guideX = _guideY = null;
+      _overTray = false;
+      // In select mode a selected note takes the rest of the selection along.
+      _groupGuids = widget.lasso && widget.selected.contains(note.guid)
+          ? {
+              for (final n in widget.notes)
+                if (n.guid != note.guid && widget.selected.contains(n.guid))
+                  n.guid,
+            }
+          : const {};
+      _groupDelta = Offset.zero;
       if (d.pointerCount < 2) return;
       final width = _cardWidth * scale;
       _pinchGuid = note.guid;
@@ -770,9 +1028,22 @@ class _WallViewState extends State<WallView>
     if (_draggingGuid != note.guid) return;
     final finger = _toWall(d.focalPoint);
     setState(() {
-      _dragTopLeft += finger - _dragFinger;
+      _dragRaw += finger - _dragFinger;
       _dragFinger = finger;
-      if (d.pointerCount < 2 || _pinchGuid != note.guid) return;
+      _dragGlobal = d.focalPoint;
+      if (d.pointerCount < 2 || _pinchGuid != note.guid) {
+        // One finger: the card snaps to its neighbours, the selection comes
+        // along, and the tray / tabs learn where the finger is.
+        _dragTopLeft = _snap(note, _dragRaw);
+        _groupDelta = _dragTopLeft - _dragStart;
+        final over = widget.onTrash != null && _hitTray(d.focalPoint);
+        if (over != _overTray) HapticFeedback.selectionClick();
+        _overTray = over;
+        widget.onDragOver?.call(note, d.focalPoint);
+        return;
+      }
+      _guideX = _guideY = null;
+      _overTray = false;
 
       if (_rotatingGuid == note.guid) {
         if (!_twisting && d.rotation.abs() > _twistSlop) _twisting = true;
@@ -798,27 +1069,69 @@ class _WallViewState extends State<WallView>
       // Grow about the centre, so the card swells under the fingers rather
       // than away from its top-left corner.
       final grow = (next - _resizeScale) * _cardWidth;
-      _dragTopLeft -= Offset(grow / 2, grow * _pinchRatio / 2);
+      _dragRaw -= Offset(grow / 2, grow * _pinchRatio / 2);
+      _dragTopLeft = _dragRaw;
       _resizeScale = next;
     });
   }
 
   /// Commits whatever the fingers changed. Also called when a finger is
-  /// added or lifted mid-gesture; the restart that follows picks the note up
-  /// again from these committed values, so nothing jumps.
-  void _noteEnd(Note note) {
+  /// added or lifted mid-gesture ([d] still counts pointers then); the
+  /// restart that follows picks the note up again from these committed
+  /// values, so nothing jumps. Only a real release can drop the note on the
+  /// tray or a tab.
+  void _noteEnd(Note note, ScaleEndDetails d) {
     if (_draggingGuid != note.guid) return;
     final pinching = _pinchGuid == note.guid;
     final scale = pinching ? _resizeScale : note.scale;
-    widget.onMove(
+    final w = _size.width;
+    final h = _size.height;
+    final byGuid = {for (final n in widget.notes) n.guid: n};
+    final group = [
       note,
-      _dragTopLeft.dx / _rangeX(_size.width, scale),
-      _dragTopLeft.dy / _rangeY(_size.height),
-    );
-    if (pinching && _twisting) widget.onRotate?.call(note, _rotateAngle);
-    if (pinching && scale != note.scale) widget.onResize(note, scale);
+      for (final g in _groupGuids)
+        if (byGuid[g] != null) byGuid[g]!,
+    ];
+    final released = d.pointerCount == 0;
+    final global = _dragGlobal;
+
+    var taken = false;
+    if (released && !pinching && global != null) {
+      if (_overTray && widget.onTrash != null) {
+        HapticFeedback.mediumImpact();
+        widget.onTrash!(group);
+        taken = true;
+      } else if (widget.onDrop?.call(group, global) ?? false) {
+        taken = true;
+      }
+    }
+    if (!taken) {
+      final moves = [
+        for (final n in group)
+          (
+            n,
+            _topLeftOf(n, w, h).dx / _rangeX(w, n == note ? scale : n.scale),
+            _topLeftOf(n, w, h).dy / _rangeY(h),
+          ),
+      ];
+      if (moves.length > 1 && widget.onMoveMany != null) {
+        widget.onMoveMany!(moves);
+      } else {
+        for (final (n, x, y) in moves) {
+          widget.onMove(n, x, y);
+        }
+      }
+      if (pinching && _twisting) widget.onRotate?.call(note, _rotateAngle);
+      if (pinching && scale != note.scale) widget.onResize(note, scale);
+    }
+    if (released) widget.onDragOver?.call(note, null);
     setState(() {
       _draggingGuid = null;
+      _groupGuids = const {};
+      _groupDelta = Offset.zero;
+      _guideX = _guideY = null;
+      _overTray = false;
+      _dragGlobal = null;
       if (pinching) {
         _pinchGuid = null;
         _twisting = false;
@@ -897,13 +1210,13 @@ class _WallViewState extends State<WallView>
     final active = _activeGuid == note.guid;
     final dimmed = widget.isDimmed?.call(note) ?? false;
     final scale = resizing ? _resizeScale : note.scale;
-    final maxLeft = _rangeX(w, scale);
-    final maxTop = _rangeY(h);
     final threading = _threadFrom != null;
     final over = _threadOver == note.guid;
 
-    final left = dragging ? _dragTopLeft.dx : note.x * maxLeft;
-    final top = dragging ? _dragTopLeft.dy : note.y * maxTop;
+    final grouped = _groupGuids.contains(note.guid);
+    final tl = _topLeftOf(note, w, h);
+    final left = tl.dx;
+    final top = tl.dy;
 
     final base = widget.callbacksFor(note);
     final canThread = widget.onConnect != null && !dimmed;
@@ -919,6 +1232,9 @@ class _WallViewState extends State<WallView>
         _setActive(note.guid);
         base.onLongPress();
       },
+      // Not in select mode: there a tap must toggle at once, not wait to
+      // see whether a second one follows.
+      onDoubleTap: widget.still || widget.lasso ? null : () => _focusOn(note),
       onPinDragStart: canThread ? (g) => _threadStart(note, g) : null,
       onPinDragUpdate: canThread ? _threadUpdate : null,
       onPinDragEnd: canThread ? _threadEnd : null,
@@ -930,7 +1246,7 @@ class _WallViewState extends State<WallView>
       key: ValueKey(note.guid),
       // Instant while the finger is down; on release the note settles into
       // its clamped spot instead of jumping there. Tidying flies slower.
-      duration: dragging || resizing
+      duration: dragging || resizing || grouped
           ? Duration.zero
           : Duration(milliseconds: _settling ? 560 : 200),
       curve: _settling ? Curves.easeInOutCubic : Curves.easeOutCubic,
@@ -959,7 +1275,7 @@ class _WallViewState extends State<WallView>
                       >(_NoteGestureRecognizer.new, (r) {
                         r.onStart = (d) => _noteStart(note, d);
                         r.onUpdate = (d) => _noteUpdate(note, d);
-                        r.onEnd = (_) => _noteEnd(note);
+                        r.onEnd = (d) => _noteEnd(note, d);
                       }),
                 },
                 child: AnimatedScale(
@@ -1027,6 +1343,152 @@ class _WallViewState extends State<WallView>
                     ],
                   ),
                 ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Faint dashed lines where a dragged card has snapped into line with a
+/// neighbour (or the wall's centre).
+class _GuidePainter extends CustomPainter {
+  const _GuidePainter({this.x, this.y});
+
+  final double? x;
+  final double? y;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final shadow = Paint()
+      ..color = const Color(0x66000000)
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+    final line = Paint()
+      ..color = AppColors.accent
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round;
+    void dashed(Offset a, Offset b) {
+      final length = (b - a).distance;
+      final dir = (b - a) / length;
+      for (var d = 0.0; d < length; d += 14) {
+        final p = a + dir * d;
+        final q = a + dir * math.min(d + 8, length);
+        canvas.drawLine(p, q, shadow);
+        canvas.drawLine(p, q, line);
+      }
+    }
+
+    if (x != null) dashed(Offset(x!, 0), Offset(x!, size.height));
+    if (y != null) dashed(Offset(0, y!), Offset(size.width, y!));
+  }
+
+  @override
+  bool shouldRepaint(_GuidePainter old) => old.x != x || old.y != y;
+}
+
+/// The loop drawn round notes in select mode.
+class _LassoPainter extends CustomPainter {
+  const _LassoPainter(this.points);
+
+  final List<Offset> points;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.length < 2) return;
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (final p in points.skip(1)) {
+      path.lineTo(p.dx, p.dy);
+    }
+    canvas.drawPath(
+      path..close(),
+      Paint()..color = AppColors.accent.withValues(alpha: 0.14),
+    );
+    final stroke = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(path, stroke..color = const Color(0x66000000));
+    canvas.drawPath(
+      path,
+      stroke
+        ..color = AppColors.accent
+        ..strokeWidth = 1.5,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_LassoPainter old) =>
+      old.points.length != points.length ||
+      (points.isNotEmpty && old.points.last != points.last);
+}
+
+/// The tray a dragged note can be dropped into to delete it. Slides in from
+/// below the wall while a drag is under way and turns red under the finger.
+class _DropTray extends StatelessWidget {
+  const _DropTray({
+    super.key,
+    required this.shown,
+    required this.armed,
+    required this.label,
+  });
+
+  final bool shown;
+  final bool armed;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: AnimatedSlide(
+        offset: shown ? Offset.zero : const Offset(0, 1.4),
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        child: AnimatedOpacity(
+          opacity: shown ? 1 : 0,
+          duration: const Duration(milliseconds: 160),
+          child: AnimatedScale(
+            scale: armed ? 1.04 : 1,
+            duration: const Duration(milliseconds: 120),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              height: 60,
+              decoration: BoxDecoration(
+                color: armed ? AppColors.deleteIcon : AppColors.overlayDark,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.chalk.withValues(alpha: armed ? 0.9 : 0.4),
+                  width: 1.5,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black38,
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    armed ? Icons.delete : Icons.delete_outline,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

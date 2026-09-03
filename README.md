@@ -79,13 +79,23 @@ then taken well beyond it.
   put **two fingers on a note**: twist to turn it, pinch to resize it about
   its centre (each with a small dead band so one does not bleed into the
   other) — two fingers on one card always act on the card, never on the
-  wall. **Pinch to zoom / pan** the whole board — the wall texture and its stains
+  wall. While you drag, **alignment guides** appear and the card snaps into
+  line with a neighbour's edge or centre (or the wall's centre line) when it
+  comes within a few pixels; drag a note onto the **tray** that slides up
+  from the bottom to delete it, or up onto a **board tab** to move it to
+  that board (the tab lights up). **Double-tap** a note to glide the camera
+  in on it, and again to glide back out. **Pinch to zoom / pan** the whole
+  board — the wall texture and its stains
   travel with the notes, only the lighting stays put (double-tap or the
   reset button snaps back); **long-press** empty space (the empty-wall tip
   included) to stick a note or a batch of photo prints there
 - **Threads** — drag from one note's pin to another to tie a red yarn thread
   between them — photo prints included; the thread stays tied to the pin
   however the note is turned; tap a thread to cut it (Undo re-ties it)
+- **Undo on the wall** — every move, turn, resize, tidy and drag to another
+  board is remembered (40 steps); an *Undo* pill appears for a few seconds
+  after each change. Nudges of one note in quick succession fold into one
+  step, and a dragged selection moves — and undoes — as a whole
 - **Export the board** (⋮ → *Export board as image*) — a full-screen
   preview of the wall with its notes and threads and nothing else: no
   header, toolbar, grips or button. **Share** it or **save** it to the
@@ -98,7 +108,9 @@ then taken well beyond it.
   instead of a card's; when full-size cards will not fit, they shrink to
   three columns
 - The **add-note button** is a little sticky note with a pencil, at home on
-  any wall; in grid / list and on an empty wall it grows a "New note" label
+  any wall; in grid / list and on an empty wall it grows a "New note" label.
+  **Long-press** it to pick the note type (text, link, to-do, drawing,
+  photo) straight away
 - **Grid** — masonry layout; the column count follows the screen width
   (2 on phones, up to 6 on tablets / desktop)
 - **List** — compact rows, swipe-to-delete
@@ -106,7 +118,9 @@ then taken well beyond it.
   count, and a type filter; on the wall, notes that don't match are dimmed in
   place rather than removed. Grid/list add a sort menu (newest, oldest, A–Z,
   Z–A)
-- **Multi-select** (⋮ → Select, or long-press → Select) with a bottom action
+- **Multi-select** (⋮ → Select, or long-press → Select): on the wall, draw a
+  **lasso** round notes with a finger to add them, and drag any selected
+  note to move the whole selection; with a bottom action
   bar: pin / unpin, recolor, move to another board, delete — all at once
 
 **Trash**

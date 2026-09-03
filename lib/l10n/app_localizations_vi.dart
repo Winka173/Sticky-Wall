@@ -97,6 +97,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get undo => 'Hoàn tác';
 
   @override
+  String get dropToDelete => 'Thả vào đây để xóa';
+
+  @override
   String get trash => 'Thùng rác';
 
   @override

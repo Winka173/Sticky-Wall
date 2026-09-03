@@ -260,6 +260,12 @@ abstract class AppLocalizations {
   /// **'Undo'**
   String get undo;
 
+  /// No description provided for @dropToDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop here to delete'**
+  String get dropToDelete;
+
   /// No description provided for @trash.
   ///
   /// In en, this message translates to:

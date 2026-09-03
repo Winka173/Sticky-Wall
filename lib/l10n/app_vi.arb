@@ -27,6 +27,7 @@
   "noteDeleted": "Đã chuyển vào thùng rác",
   "notesDeleted": "{count, plural, other{Đã chuyển {count} ghi chú vào thùng rác}}",
   "undo": "Hoàn tác",
+  "dropToDelete": "Thả vào đây để xóa",
   "trash": "Thùng rác",
   "trashEmpty": "Thùng rác trống",
   "trashHint": "Ghi chú ở đây sẽ tự xóa hẳn sau 30 ngày.",

@@ -276,6 +276,113 @@ void main() {
     });
   });
 
+  group('wall undo', () {
+    test('moving, resizing and turning can be undone, newest first', () async {
+      final c = await _controller(notes: [_note('1', 'x')]);
+      final note = c.boardNotes.single;
+      var t = DateTime(2026, 9, 3, 12);
+      c.clock = () => t;
+      expect(c.canUndoWall, false);
+      expect(c.undoWall(), isNull);
+
+      c.moveNote(note, 0.7, 0.2);
+      t = t.add(const Duration(seconds: 5));
+      c.resizeNote(note, 1.5);
+      t = t.add(const Duration(seconds: 5));
+      c.rotateNote(note, 0.4);
+      expect(c.wallEdits, 3);
+      expect(c.nextWallUndo, WallEditKind.rotate);
+
+      expect(c.undoWall(), WallEditKind.rotate);
+      expect(note.rotation, isNull);
+      expect(c.undoWall(), WallEditKind.resize);
+      expect(note.scale, 1.0);
+      expect(c.undoWall(), WallEditKind.move);
+      expect(note.x, 0.5);
+      expect(note.y, 0.5);
+      expect(c.canUndoWall, false);
+    });
+
+    test('quick nudges of one note fold into a single step', () async {
+      final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
+      final a = c.boardNotes[0];
+      final b = c.boardNotes[1];
+      var t = DateTime(2026, 9, 3, 12);
+      c.clock = () => t;
+      // A drag committed in phases: one finger, then two, then a turn.
+      c.moveNote(a, 0.6, 0.5);
+      t = t.add(const Duration(milliseconds: 400));
+      c.moveNote(a, 0.7, 0.5);
+      t = t.add(const Duration(milliseconds: 400));
+      c.rotateNote(a, 0.3);
+      expect(c.wallEdits, 3, reason: 'each change still shows the pill');
+      // Another note, then the same note again after a pause: new steps.
+      c.moveNote(b, 0.1, 0.1);
+      t = t.add(const Duration(seconds: 3));
+      c.moveNote(a, 0.9, 0.9);
+      expect(c.undoWall(), WallEditKind.move);
+      expect(a.x, 0.7);
+      expect(c.undoWall(), WallEditKind.move);
+      expect(b.x, 0.5);
+      expect(c.undoWall(), WallEditKind.rotate);
+      expect(a.x, 0.5, reason: 'all three phases undone together');
+      expect(a.rotation, isNull);
+      expect(c.canUndoWall, false);
+    });
+
+    test('a tidy and a move to another board undo as a whole', () async {
+      final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
+      final notes = c.boardNotes;
+      c.rotateNote(notes[0], 1.0);
+      c.arrange([(notes[0], 0.1, 0.1, 0.8), (notes[1], 0.6, 0.1, 0.8)]);
+      expect(notes[0].rotation, isNull);
+      expect(c.undoWall(), WallEditKind.tidy);
+      expect(notes[0].rotation, closeTo(1.0, 1e-9));
+      expect(notes[0].x, 0.5);
+      expect(notes[1].scale, 1.0);
+
+      final work = c.addBoard('Work');
+      c.selectBoard('default');
+      c.moveAllToBoard([notes[0], notes[1]], work.id);
+      expect(c.boardNotes, isEmpty);
+      expect(c.undoWall(), WallEditKind.moveBoard);
+      expect(c.boardNotes.length, 2);
+      expect(notes[0].x, 0.5, reason: 'back where it was, too');
+    });
+
+    test('unchanged values and purged notes leave no trace', () async {
+      final c = await _controller(notes: [_note('1', 'x')]);
+      final note = c.boardNotes.single;
+      c.moveNote(note, 0.5, 0.5);
+      c.resizeNote(note, 1.0);
+      c.rotateNote(note, null);
+      c.moveNotes([(note, 0.5, 0.5)]);
+      expect(c.canUndoWall, false);
+
+      c.moveNote(note, 0.2, 0.2);
+      c.delete(note);
+      c.purge(note);
+      expect(c.undoWall(), WallEditKind.move, reason: 'the step is spent');
+      expect(c.allNotes, isEmpty);
+    });
+
+    test('the stack is capped', () async {
+      final c = await _controller(notes: [_note('1', 'x')]);
+      final note = c.boardNotes.single;
+      var t = DateTime(2026);
+      c.clock = () => t;
+      for (var i = 1; i <= NotesController.wallUndoLimit + 10; i++) {
+        t = t.add(const Duration(seconds: 10));
+        c.moveNote(note, (i % 10) / 10, 0.1);
+      }
+      var steps = 0;
+      while (c.undoWall() != null) {
+        steps++;
+      }
+      expect(steps, NotesController.wallUndoLimit);
+    });
+  });
+
   group('threads', () {
     test('connect / disconnect / linksOn', () async {
       final c = await _controller(

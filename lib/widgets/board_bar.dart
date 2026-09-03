@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 
@@ -12,12 +13,29 @@ import 'board_dialog.dart';
 ///
 /// Tapping a chip switches boards; tapping the *selected* chip opens the
 /// manage sheet — the little chevron on it is the hint that it does more.
-/// Long-press and drag a chip to reorder boards.
+/// Long-press and drag a chip to reorder boards. A note dragged up from the
+/// wall can be dropped on a chip to move it to that board: the screen above
+/// finds the chips through [chipKeys] and names the hovered one in
+/// [dropTarget], which lights up.
 class BoardBar extends StatefulWidget {
-  const BoardBar({super.key, required this.notes, required this.textColor});
+  const BoardBar({
+    super.key,
+    required this.notes,
+    required this.textColor,
+    this.chipKeys,
+    this.dropTarget,
+  });
 
   final NotesController notes;
   final Color textColor;
+
+  /// A key per board id, placed on that board's chip.
+  final Map<String, GlobalKey>? chipKeys;
+
+  /// The board id a dragged note is hovering over, if any.
+  final ValueListenable<String?>? dropTarget;
+
+  static final _noTarget = ValueNotifier<String?>(null);
 
   @override
   State<BoardBar> createState() => _BoardBarState();
@@ -53,8 +71,9 @@ class _BoardBarState extends State<BoardBar> {
     if (id == _revealedBoard && width == _revealedWidth) return;
     _revealedBoard = id;
     _revealedWidth = width;
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _scrollToSelected(approach: true));
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _scrollToSelected(approach: true),
+    );
   }
 
   void _scrollToSelected({required bool approach}) {
@@ -67,12 +86,14 @@ class _BoardBarState extends State<BoardBar> {
       // proportionally along the strip — and finish once it exists.
       if (!approach) return;
       final boards = widget.notes.boards;
-      final index =
-          boards.indexWhere((b) => b.id == widget.notes.currentBoardId);
+      final index = boards.indexWhere(
+        (b) => b.id == widget.notes.currentBoardId,
+      );
       if (index < 0 || boards.length < 2) return;
       position.jumpTo(position.maxScrollExtent * index / (boards.length - 1));
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => _scrollToSelected(approach: false));
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _scrollToSelected(approach: false),
+      );
       return;
     }
     const gap = 8.0;
@@ -110,48 +131,57 @@ class _BoardBarState extends State<BoardBar> {
           // they fit, and only becomes a fixed trailing button once the
           // strip has to scroll.
           Flexible(
-            child: LayoutBuilder(builder: (context, constraints) {
-              _revealSelected(constraints.maxWidth);
-              return ReorderableListView.builder(
-                scrollController: _scroll,
-                scrollDirection: Axis.horizontal,
-                shrinkWrap: true,
-                padding: const EdgeInsets.only(left: 16),
-                buildDefaultDragHandles: false,
-                onReorderItem: notes.reorderBoards,
-                proxyDecorator: (child, _, animation) => AnimatedBuilder(
-                  animation: animation,
-                  child: child,
-                  builder: (context, child) => Transform.scale(
-                    scale: 1 +
-                        0.08 * Curves.easeInOut.transform(animation.value),
-                    child: Material(color: Colors.transparent, child: child),
-                  ),
-                ),
-                itemCount: boards.length,
-                itemBuilder: (context, index) {
-                  final board = boards[index];
-                  final selected = board.id == notes.currentBoardId;
-                  return Padding(
-                    key: ValueKey('board-${board.id}'),
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ReorderableDelayedDragStartListener(
-                      key: selected ? _selectedKey : null,
-                      index: index,
-                      child: _BoardChip(
-                        board: board,
-                        label: _displayName(l10n, board),
-                        selected: selected,
-                        textColor: textColor,
-                        onTap: () => selected
-                            ? _manage(context, l10n, board)
-                            : notes.selectBoard(board.id),
-                      ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                _revealSelected(constraints.maxWidth);
+                return ReorderableListView.builder(
+                  scrollController: _scroll,
+                  scrollDirection: Axis.horizontal,
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.only(left: 16),
+                  buildDefaultDragHandles: false,
+                  onReorderItem: notes.reorderBoards,
+                  proxyDecorator: (child, _, animation) => AnimatedBuilder(
+                    animation: animation,
+                    child: child,
+                    builder: (context, child) => Transform.scale(
+                      scale:
+                          1 +
+                          0.08 * Curves.easeInOut.transform(animation.value),
+                      child: Material(color: Colors.transparent, child: child),
                     ),
-                  );
-                },
-              );
-            }),
+                  ),
+                  itemCount: boards.length,
+                  itemBuilder: (context, index) {
+                    final board = boards[index];
+                    final selected = board.id == notes.currentBoardId;
+                    return Padding(
+                      key: ValueKey('board-${board.id}'),
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ReorderableDelayedDragStartListener(
+                        key: selected ? _selectedKey : null,
+                        index: index,
+                        child: ValueListenableBuilder<String?>(
+                          valueListenable:
+                              widget.dropTarget ?? BoardBar._noTarget,
+                          builder: (context, hovered, _) => _BoardChip(
+                            key: widget.chipKeys?[board.id],
+                            board: board,
+                            label: _displayName(l10n, board),
+                            selected: selected,
+                            highlighted: hovered == board.id,
+                            textColor: textColor,
+                            onTap: () => selected
+                                ? _manage(context, l10n, board)
+                                : notes.selectBoard(board.id),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
           // Outside the scrolling strip, so it never hides behind the tabs
           // when their names are long or there are many of them.
@@ -181,14 +211,18 @@ class _BoardBarState extends State<BoardBar> {
   }
 
   Future<void> _manage(
-      BuildContext context, AppLocalizations l10n, Board board) async {
+    BuildContext context,
+    AppLocalizations l10n,
+    Board board,
+  ) async {
     final action = await showActionSheet<String>(
       context,
       title: board.icon.isEmpty
           ? _displayName(l10n, board)
           : '${board.icon} ${_displayName(l10n, board)}',
       titleStyle: board.decorate(
-          const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
       children: [
         ListTile(
           leading: const Icon(Icons.edit_outlined),
@@ -197,10 +231,14 @@ class _BoardBarState extends State<BoardBar> {
         ),
         if (widget.notes.boards.length > 1)
           ListTile(
-            leading:
-                const Icon(Icons.delete_outline, color: AppColors.deleteIcon),
-            title: Text(l10n.deleteBoard,
-                style: const TextStyle(color: AppColors.deleteIcon)),
+            leading: const Icon(
+              Icons.delete_outline,
+              color: AppColors.deleteIcon,
+            ),
+            title: Text(
+              l10n.deleteBoard,
+              style: const TextStyle(color: AppColors.deleteIcon),
+            ),
             onTap: () => Navigator.pop(context, 'delete'),
           ),
       ],
@@ -225,11 +263,13 @@ class _BoardBarState extends State<BoardBar> {
           content: Text(l10n.deleteBoardConfirm(_displayName(l10n, board))),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(l10n.cancel)),
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.cancel),
+            ),
             FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(l10n.delete)),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l10n.delete),
+            ),
           ],
         ),
       );
@@ -242,16 +282,21 @@ class _BoardBarState extends State<BoardBar> {
 /// the current board. Tap to switch, long-press to edit / delete.
 class _BoardChip extends StatelessWidget {
   const _BoardChip({
+    super.key,
     required this.board,
     required this.label,
     required this.selected,
     required this.textColor,
     required this.onTap,
+    this.highlighted = false,
   });
 
   final Board board;
   final String label;
   final bool selected;
+
+  /// A dragged note is hovering over the chip: drawn as a drop target.
+  final bool highlighted;
   final Color textColor;
   final VoidCallback onTap;
 
@@ -260,49 +305,68 @@ class _BoardChip extends StatelessWidget {
     final icon = board.icon;
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: EdgeInsets.fromLTRB(
-            icon.isEmpty ? 16 : 12, 6, selected ? 10 : 16, 6),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ? textColor.withValues(alpha: 0.18) : null,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: textColor.withValues(alpha: selected ? 0.9 : 0.35),
-            width: selected ? 1.5 : 1,
+      child: AnimatedScale(
+        scale: highlighted ? 1.08 : 1,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutBack,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: EdgeInsets.fromLTRB(
+            icon.isEmpty ? 16 : 12,
+            6,
+            selected ? 10 : 16,
+            6,
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Text(icon, style: const TextStyle(fontSize: 16)),
-              ),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 160),
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: board.decorate(TextStyle(
-                  color: textColor,
-                  fontSize: 16,
-                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                  // The underline is drawn in the text color by default; on
-                  // a dark wall that is the chalk, which is what we want.
-                  decorationColor: textColor,
-                )),
-              ),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: highlighted
+                ? AppColors.accent.withValues(alpha: 0.45)
+                : selected
+                ? textColor.withValues(alpha: 0.18)
+                : null,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: highlighted
+                  ? AppColors.accent
+                  : textColor.withValues(alpha: selected ? 0.9 : 0.35),
+              width: highlighted || selected ? 1.5 : 1,
             ),
-            if (selected)
-              Padding(
-                padding: const EdgeInsets.only(left: 2),
-                child: Icon(Icons.expand_more, size: 18, color: textColor),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: Text(icon, style: const TextStyle(fontSize: 16)),
+                ),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 160),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: board.decorate(
+                    TextStyle(
+                      color: textColor,
+                      fontSize: 16,
+                      fontWeight: selected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      // The underline is drawn in the text color by default; on
+                      // a dark wall that is the chalk, which is what we want.
+                      decorationColor: textColor,
+                    ),
+                  ),
+                ),
               ),
-          ],
+              if (selected)
+                Padding(
+                  padding: const EdgeInsets.only(left: 2),
+                  child: Icon(Icons.expand_more, size: 18, color: textColor),
+                ),
+            ],
+          ),
         ),
       ),
     );

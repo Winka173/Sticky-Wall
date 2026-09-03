@@ -12,6 +12,7 @@ import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
 import 'package:sticky_wall/widgets/add_note_button.dart';
 import 'package:sticky_wall/widgets/board_poster.dart';
+import 'package:sticky_wall/widgets/drawing_canvas.dart';
 import 'package:sticky_wall/widgets/note_views.dart';
 
 Future<NotesController> _pumpApp(WidgetTester tester,
@@ -35,6 +36,19 @@ Future<void> _openEditor(WidgetTester tester) async {
 }
 
 Finder get _saveButton => find.byIcon(Icons.check);
+
+/// Drags a wall note by exactly [by]. A note's gesture only starts once the
+/// finger has travelled the pan slop, and the travel up to that point is not
+/// applied, so the slop is spent on a first move before the real one.
+Future<void> _dragNote(WidgetTester tester, Finder note, Offset by) async {
+  final g = await tester.startGesture(tester.getCenter(note));
+  await g.moveBy(const Offset(0, 40));
+  await tester.pump();
+  await g.moveBy(by);
+  await tester.pump();
+  await g.up();
+  await tester.pumpAndSettle();
+}
 
 void main() {
   testWidgets('saving an empty note shows an inline error and stays open',
@@ -356,6 +370,207 @@ void main() {
     expect(find.byTooltip('Share as image'), findsOneWidget);
     expect(find.byTooltip('Save image'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a dragged note snaps into line with a neighbour', (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(guid: 'a', content: 'Aa', createdAt: DateTime(2026), boardId: 'default', x: 0.2, y: 0.2),
+      Note(guid: 'b', content: 'Bb', createdAt: DateTime(2026), boardId: 'default', x: 0.5, y: 0.5),
+    ]);
+    final a = notes.boardNotes[0];
+    final b = notes.boardNotes[1];
+    // The wall is 800 wide: a card's travel range is 800 - 168.
+    final wall = tester.getRect(find.byType(InteractiveViewer));
+    final rangeX = wall.width - 168;
+    final leftA = a.x * rangeX;
+    final leftB = b.x * rangeX;
+
+    final g = await tester.startGesture(tester.getCenter(find.text('Bb')));
+    await g.moveBy(const Offset(0, 40)); // past the pan slop; not yet moved
+    await tester.pump();
+    // Land 4px right of A's left edge: inside the snap reach.
+    await g.moveBy(Offset(leftA + 4 - leftB, 0));
+    await tester.pump();
+    await g.up();
+    await tester.pumpAndSettle();
+    expect(b.x, closeTo(a.x, 1e-6), reason: 'snapped onto the shared edge');
+    expect(b.y, 0.5, reason: 'the slop-eating first move does not count');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('double-tapping a note zooms the wall onto it and back',
+      (tester) async {
+    await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(guid: 'a', content: 'Focus me', createdAt: DateTime(2026), boardId: 'default', x: 0.3, y: 0.3),
+    ]);
+    double resetOpacity() => tester
+        .widget<AnimatedOpacity>(find.ancestor(
+          of: find.byIcon(Icons.center_focus_strong),
+          matching: find.byType(AnimatedOpacity),
+        ).first)
+        .opacity;
+    expect(resetOpacity(), 0, reason: 'camera at rest: no reset button');
+
+    await tester.tap(find.text('Focus me'));
+    await tester.pump(const Duration(milliseconds: 80));
+    await tester.tap(find.text('Focus me'));
+    await tester.pumpAndSettle();
+    expect(resetOpacity(), 1, reason: 'zoomed in');
+    expect(find.byType(TextField), findsNothing, reason: 'no editor opened');
+
+    await tester.tap(find.text('Focus me'));
+    await tester.pump(const Duration(milliseconds: 80));
+    await tester.tap(find.text('Focus me'));
+    await tester.pumpAndSettle();
+    expect(resetOpacity(), 0, reason: 'back out');
+  });
+
+  testWidgets('a lasso drawn round notes in select mode picks them up',
+      (tester) async {
+    await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(guid: 'a', content: 'Aa', createdAt: DateTime(2026), boardId: 'default', x: 0.1, y: 0.1),
+      Note(guid: 'b', content: 'Bb', createdAt: DateTime(2026), boardId: 'default', x: 0.6, y: 0.45),
+    ]);
+    await tester.longPress(find.text('Aa'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Select notes'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 selected'), findsOneWidget);
+
+    // A loop just outside B's card, starting on bare wall.
+    final box = tester
+        .getRect(find.ancestor(of: find.text('Bb'), matching: find.byType(NoteTurn)))
+        .inflate(24);
+    final g = await tester.startGesture(box.topLeft);
+    for (final p in [box.topRight, box.bottomRight, box.bottomLeft, box.topLeft]) {
+      await g.moveTo(p);
+      await tester.pump();
+    }
+    await g.up();
+    await tester.pumpAndSettle();
+    expect(find.text('2 selected'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('dragging a selected note takes the whole selection along',
+      (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(guid: 'a', content: 'Aa', createdAt: DateTime(2026), boardId: 'default', x: 0.1, y: 0.1),
+      Note(guid: 'b', content: 'Bb', createdAt: DateTime(2026), boardId: 'default', x: 0.6, y: 0.6),
+    ]);
+    final a = notes.boardNotes[0];
+    final b = notes.boardNotes[1];
+    await tester.longPress(find.text('Aa'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Select notes'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Bb')); // adds B to the selection
+    await tester.pumpAndSettle();
+    expect(find.text('2 selected'), findsOneWidget);
+
+    final wall = tester.getRect(find.byType(InteractiveViewer));
+    final rangeY = wall.height - 80;
+    final g = await tester.startGesture(tester.getCenter(find.text('Aa')));
+    await g.moveBy(const Offset(0, 40));
+    await tester.pump();
+    await g.moveBy(const Offset(0, 50));
+    await tester.pump();
+    await g.up();
+    await tester.pumpAndSettle();
+    expect(a.y, closeTo(0.1 + 50 / rangeY, 1e-6));
+    expect(b.y, closeTo(0.6 + 50 / rangeY, 1e-6), reason: 'came along');
+    expect(a.x, 0.1);
+    expect(b.x, 0.6);
+    // One Undo step puts both back.
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(a.y, 0.1);
+    expect(b.y, 0.6);
+  });
+
+  testWidgets('dropping a dragged note on the tray deletes it', (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(guid: 'a', content: 'Bin me', createdAt: DateTime(2026), boardId: 'default', x: 0.5, y: 0.3),
+    ]);
+    final g = await tester.startGesture(tester.getCenter(find.text('Bin me')));
+    await g.moveBy(const Offset(0, 40));
+    await tester.pumpAndSettle(); // the tray slides in
+    expect(find.text('Drop here to delete'), findsOneWidget);
+    final tray = tester.getRect(find.text('Drop here to delete'));
+    await g.moveTo(tray.center);
+    await tester.pump();
+    await g.up();
+    await tester.pumpAndSettle();
+    expect(notes.boardNotes, isEmpty);
+    expect(notes.trashCount, 1);
+    expect(find.text('Moved to trash'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('dropping a dragged note on a board tab moves it there',
+      (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(guid: 'a', content: 'Tab me', createdAt: DateTime(2026), boardId: 'default', x: 0.5, y: 0.3),
+    ]);
+    final work = notes.addBoard('Work');
+    notes.selectBoard('default');
+    await tester.pumpAndSettle();
+    final note = notes.boardNotes.single;
+
+    final g = await tester.startGesture(tester.getCenter(find.text('Tab me')));
+    await g.moveBy(const Offset(0, 40));
+    await tester.pump();
+    await g.moveTo(tester.getCenter(find.text('Work')));
+    await tester.pump();
+    await g.up();
+    await tester.pumpAndSettle();
+    expect(note.boardId, work.id);
+    expect(notes.boardNotes, isEmpty);
+    expect(find.textContaining('Moved to'), findsOneWidget);
+    // Undo brings it back to this board.
+    await tester.tap(find.text('Undo').last);
+    await tester.pumpAndSettle();
+    expect(note.boardId, 'default');
+  });
+
+  testWidgets('long-pressing the add button offers the note types',
+      (tester) async {
+    await _pumpApp(tester, viewMode: ViewMode.wall);
+    await tester.longPress(find.byType(AddNoteButton));
+    await tester.pumpAndSettle();
+    for (final label in ['Text', 'Link', 'To-do list', 'Drawing', 'Photo']) {
+      expect(find.text(label), findsOneWidget);
+    }
+    await tester.tap(find.text('Drawing'));
+    await tester.pumpAndSettle();
+    expect(find.byType(DrawingEditor), findsOneWidget);
+  });
+
+  testWidgets('the Undo pill puts a moved note back', (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(guid: 'a', content: 'Oops', createdAt: DateTime(2026), boardId: 'default', x: 0.5, y: 0.3),
+    ]);
+    final note = notes.boardNotes.single;
+    double pillOpacity() => tester
+        .widget<AnimatedOpacity>(find
+            .ancestor(
+                of: find.text('Undo'), matching: find.byType(AnimatedOpacity))
+            .first)
+        .opacity;
+    expect(pillOpacity(), 0, reason: 'nothing to undo yet');
+    await _dragNote(tester, find.text('Oops'), const Offset(0, 100));
+    expect(note.y, isNot(0.3));
+    expect(pillOpacity(), 1);
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(note.y, 0.3);
+    expect(pillOpacity(), 0, reason: 'nothing left to undo: the pill is gone');
+    // Left alone, the pill also times out.
+    await _dragNote(tester, find.text('Oops'), const Offset(0, 100));
+    expect(pillOpacity(), 1);
+    await tester.pump(const Duration(seconds: 7));
+    await tester.pumpAndSettle();
+    expect(pillOpacity(), 0);
   });
 
   testWidgets('long-pressing empty wall offers a note or photos there',

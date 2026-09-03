@@ -14,6 +14,44 @@ import 'reminder_service.dart';
 /// Removes a stored file that no note or board refers to any more.
 typedef FileRemover = void Function(String stored);
 
+/// What a wall Undo step puts back — named so the UI can say what it undoes.
+enum WallEditKind { move, resize, rotate, tidy, moveBoard }
+
+/// Where a note sat before a wall edit, so Undo can put it back.
+class _Placement {
+  _Placement(this.note)
+    : x = note.x,
+      y = note.y,
+      scale = note.scale,
+      rotation = note.rotation,
+      boardId = note.boardId;
+
+  final Note note;
+  final double x;
+  final double y;
+  final double scale;
+  final double? rotation;
+  final String boardId;
+
+  /// Puts the note back — onto its old board too, unless that is gone.
+  void restore(List<Board> boards) {
+    note
+      ..x = x
+      ..y = y
+      ..scale = scale
+      ..rotation = rotation;
+    if (boards.any((b) => b.id == boardId)) note.boardId = boardId;
+  }
+}
+
+class _WallEdit {
+  _WallEdit(this.kind, this.before, this.at);
+
+  WallEditKind kind;
+  final List<_Placement> before;
+  DateTime at;
+}
+
 /// Owns the boards, notes, threads and list/view state, persists every change
 /// through [NoteStorage], and notifies the UI to rebuild.
 ///
@@ -26,8 +64,8 @@ class NotesController extends ChangeNotifier {
     this._reminders, {
     FileRemover? deletePhoto,
     FileRemover? deleteWallImage,
-  })  : _deletePhoto = deletePhoto ?? _noop,
-        _deleteWallImage = deleteWallImage ?? _noop {
+  }) : _deletePhoto = deletePhoto ?? _noop,
+       _deleteWallImage = deleteWallImage ?? _noop {
     _load();
   }
 
@@ -55,6 +93,13 @@ class NotesController extends ChangeNotifier {
 
   // The most recently trashed note(s), kept so a Snackbar can undo it.
   List<Note> _lastDeleted = const [];
+
+  // Wall edits that can be undone, oldest first (see _rememberWall).
+  final _wallUndo = <_WallEdit>[];
+  int _wallEdits = 0;
+
+  /// The clock wall edits are stamped with; tests swap in a fixed one.
+  DateTime Function() clock = DateTime.now;
 
   void _load() {
     _boards
@@ -92,9 +137,11 @@ class NotesController extends ChangeNotifier {
     // Housekeeping that only needs to happen once per launch.
     final now = DateTime.now();
     final expired = _notes
-        .where((n) =>
-            n.deletedAt != null &&
-            now.difference(n.deletedAt!) > trashRetention)
+        .where(
+          (n) =>
+              n.deletedAt != null &&
+              now.difference(n.deletedAt!) > trashRetention,
+        )
         .toList();
     var changed = false;
     for (final note in expired) {
@@ -112,12 +159,14 @@ class NotesController extends ChangeNotifier {
   List<Board> get boards => List.unmodifiable(_boards);
   String get currentBoardId => _currentBoardId;
 
-  Board get currentBoard =>
-      _boards.firstWhere((b) => b.id == _currentBoardId,
-          orElse: () => _boards.first);
+  Board get currentBoard => _boards.firstWhere(
+    (b) => b.id == _currentBoardId,
+    orElse: () => _boards.first,
+  );
 
-  int get currentBoardIndex =>
-      _boards.indexWhere((b) => b.id == _currentBoardId).clamp(0, _boards.length - 1);
+  int get currentBoardIndex => _boards
+      .indexWhere((b) => b.id == _currentBoardId)
+      .clamp(0, _boards.length - 1);
 
   void selectBoard(String id) {
     if (id == _currentBoardId) return;
@@ -290,11 +339,9 @@ class NotesController extends ChangeNotifier {
     if (!matchesType) return false;
     final search = foldText(_search.trim());
     if (search.isEmpty) return true;
-    final haystack = foldText([
-      note.content,
-      note.url,
-      ...note.checklist.map((i) => i.text),
-    ].join(' '));
+    final haystack = foldText(
+      [note.content, note.url, ...note.checklist.map((i) => i.text)].join(' '),
+    );
     return haystack.contains(search);
   }
 
@@ -320,20 +367,22 @@ class NotesController extends ChangeNotifier {
   // --- Note mutations ------------------------------------------------------
 
   Note _newNoteAt(double x, double y) => Note(
-        guid: _uuid.v4(),
-        content: '',
-        createdAt: DateTime.now(),
-        boardId: _currentBoardId,
-        x: x,
-        y: y,
-      );
+    guid: _uuid.v4(),
+    content: '',
+    createdAt: DateTime.now(),
+    boardId: _currentBoardId,
+    x: x,
+    y: y,
+  );
 
   /// Builds a blank note positioned near the wall center with a small random
   /// offset, so several new notes don't stack exactly.
   Note draft() {
     final rng = math.Random();
-    return _newNoteAt(0.30 + rng.nextDouble() * 0.30,
-        0.28 + rng.nextDouble() * 0.30);
+    return _newNoteAt(
+      0.30 + rng.nextDouble() * 0.30,
+      0.28 + rng.nextDouble() * 0.30,
+    );
   }
 
   Note draftAt(double x, double y) => _newNoteAt(x, y);
@@ -360,12 +409,13 @@ class NotesController extends ChangeNotifier {
       // Each print sits a little right and below the previous one; a long
       // batch wraps back so nothing ends up off the wall.
       final step = i % 6;
-      final note = _newNoteAt(
-        (baseX + step * 0.06).clamp(0.0, 1.0),
-        (baseY + step * 0.05).clamp(0.0, 1.0),
-      )
-        ..type = NoteType.photo
-        ..imagePath = file;
+      final note =
+          _newNoteAt(
+              (baseX + step * 0.06).clamp(0.0, 1.0),
+              (baseY + step * 0.05).clamp(0.0, 1.0),
+            )
+            ..type = NoteType.photo
+            ..imagePath = file;
       _notes.add(note);
       created.add(note);
     }
@@ -441,8 +491,9 @@ class NotesController extends ChangeNotifier {
   }
 
   /// Notes in the trash, most recently deleted first.
-  List<Note> get trashed => _notes.where((n) => n.isTrashed).toList()
-    ..sort((a, b) => b.deletedAt!.compareTo(a.deletedAt!));
+  List<Note> get trashed =>
+      _notes.where((n) => n.isTrashed).toList()
+        ..sort((a, b) => b.deletedAt!.compareTo(a.deletedAt!));
 
   int get trashCount => _notes.where((n) => n.isTrashed).length;
 
@@ -488,21 +539,21 @@ class NotesController extends ChangeNotifier {
       path.isNotEmpty && _notes.any((n) => n.imagePath == path);
 
   /// Moves a note onto another board, dropping it near the center there.
-  void moveToBoard(Note note, String boardId) => moveAllToBoard([note], boardId);
+  void moveToBoard(Note note, String boardId) =>
+      moveAllToBoard([note], boardId);
 
   void moveAllToBoard(List<Note> notes, String boardId) {
     if (_boards.every((b) => b.id != boardId)) return;
+    final moving = notes.where((n) => n.boardId != boardId).toList();
+    if (moving.isEmpty) return;
+    _rememberWall(WallEditKind.moveBoard, moving);
     final rng = math.Random();
-    var changed = false;
-    for (final note in notes) {
-      if (note.boardId == boardId) continue;
+    for (final note in moving) {
       note
         ..boardId = boardId
         ..x = 0.25 + rng.nextDouble() * 0.3
         ..y = 0.2 + rng.nextDouble() * 0.3;
-      changed = true;
     }
-    if (!changed) return;
     _persistNotes();
     notifyListeners();
   }
@@ -547,10 +598,12 @@ class NotesController extends ChangeNotifier {
   /// Returns whether anything moved.
   bool _sweepCompleted(Duration after, DateTime now) {
     final done = _notes
-        .where((n) =>
-            !n.isTrashed &&
-            n.completedAt != null &&
-            now.difference(n.completedAt!) > after)
+        .where(
+          (n) =>
+              !n.isTrashed &&
+              n.completedAt != null &&
+              now.difference(n.completedAt!) > after,
+        )
         .toList();
     for (final note in done) {
       note.deletedAt = now;
@@ -569,9 +622,32 @@ class NotesController extends ChangeNotifier {
 
   /// Updates a note's fractional wall position and brings it to the front.
   void moveNote(Note note, double x, double y) {
-    note.x = x.clamp(0.0, 1.0);
-    note.y = y.clamp(0.0, 1.0);
+    final nx = x.clamp(0.0, 1.0);
+    final ny = y.clamp(0.0, 1.0);
+    if (nx != note.x || ny != note.y) {
+      _rememberWall(WallEditKind.move, [note]);
+      note
+        ..x = nx
+        ..y = ny;
+    }
     _bringToFront(note);
+    _persistNotes();
+    notifyListeners();
+  }
+
+  /// Moves several notes at once — a dragged selection — as one Undo step.
+  void moveNotes(List<(Note note, double x, double y)> moves) {
+    final changed = [
+      for (final (note, x, y) in moves)
+        if (x.clamp(0.0, 1.0) != note.x || y.clamp(0.0, 1.0) != note.y) note,
+    ];
+    if (changed.isEmpty) return;
+    _rememberWall(WallEditKind.move, changed);
+    for (final (note, x, y) in moves) {
+      note
+        ..x = x.clamp(0.0, 1.0)
+        ..y = y.clamp(0.0, 1.0);
+    }
     _persistNotes();
     notifyListeners();
   }
@@ -580,6 +656,9 @@ class NotesController extends ChangeNotifier {
   /// tidied note also loses any turn the user gave it: neat rows want the
   /// cards straight (their slight hand-stuck tilt comes back on its own).
   void arrange(List<(Note, double x, double y, double scale)> placements) {
+    _rememberWall(WallEditKind.tidy, [
+      for (final (note, _, _, _) in placements) note,
+    ]);
     for (final (note, x, y, scale) in placements) {
       note
         ..x = x.clamp(0.0, 1.0)
@@ -597,7 +676,10 @@ class NotesController extends ChangeNotifier {
   }
 
   void resizeNote(Note note, double scale) {
-    note.scale = scale.clamp(0.5, 3.0);
+    final s = scale.clamp(0.5, 3.0);
+    if (s == note.scale) return;
+    _rememberWall(WallEditKind.resize, [note]);
+    note.scale = s;
     _persistNotes();
     notifyListeners();
   }
@@ -606,9 +688,71 @@ class NotesController extends ChangeNotifier {
   /// tilt with null. Stored in (-π, π] so a card spun round and round does
   /// not accumulate turns.
   void rotateNote(Note note, double? angle) {
-    note.rotation = angle == null ? null : normalizeAngle(angle);
+    final r = angle == null ? null : normalizeAngle(angle);
+    if (r == note.rotation) return;
+    _rememberWall(WallEditKind.rotate, [note]);
+    note.rotation = r;
     _persistNotes();
     notifyListeners();
+  }
+
+  // --- Undo (wall) ---------------------------------------------------------
+
+  /// How many wall edits are kept for Undo. Deleting has its own Undo on the
+  /// snackbar (see [undoDelete]); this covers moving, turning, resizing,
+  /// tidying and dragging notes onto another board.
+  static const wallUndoLimit = 40;
+
+  /// Nudges of one note in quick succession — a drag committed in phases as
+  /// fingers came and went, a turn followed by a resize — fold into a single
+  /// step, so Undo takes the note back to where the hand first took it.
+  static const wallUndoMergeWindow = Duration(milliseconds: 1500);
+
+  /// Bumps every time a wall edit is remembered, so the UI can show its Undo
+  /// affordance for a moment after each change.
+  int get wallEdits => _wallEdits;
+
+  bool get canUndoWall => _wallUndo.isNotEmpty;
+
+  /// What [undoWall] would revert next, or null when there is nothing.
+  WallEditKind? get nextWallUndo => _wallUndo.lastOrNull?.kind;
+
+  void _rememberWall(WallEditKind kind, List<Note> notes) {
+    if (notes.isEmpty) return;
+    final now = clock();
+    final last = _wallUndo.lastOrNull;
+    const solo = {WallEditKind.move, WallEditKind.resize, WallEditKind.rotate};
+    if (last != null &&
+        notes.length == 1 &&
+        last.before.length == 1 &&
+        last.before.single.note == notes.single &&
+        solo.contains(kind) &&
+        solo.contains(last.kind) &&
+        now.difference(last.at) < wallUndoMergeWindow) {
+      // The older snapshot already holds where the note started.
+      last
+        ..kind = kind
+        ..at = now;
+    } else {
+      _wallUndo.add(
+        _WallEdit(kind, [for (final n in notes) _Placement(n)], now),
+      );
+      if (_wallUndo.length > wallUndoLimit) _wallUndo.removeAt(0);
+    }
+    _wallEdits++;
+  }
+
+  /// Reverts the latest wall edit and returns what it was, or null when
+  /// there is nothing to undo. Notes purged since are left alone.
+  WallEditKind? undoWall() {
+    if (_wallUndo.isEmpty) return null;
+    final edit = _wallUndo.removeLast();
+    for (final placement in edit.before) {
+      if (_notes.contains(placement.note)) placement.restore(_boards);
+    }
+    _persistNotes();
+    notifyListeners();
+    return edit.kind;
   }
 
   void _bringToFront(Note note) {

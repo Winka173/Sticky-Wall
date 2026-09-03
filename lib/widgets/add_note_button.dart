@@ -16,11 +16,16 @@ class AddNoteButton extends StatelessWidget {
     super.key,
     required this.label,
     required this.onPressed,
+    this.onLongPress,
     this.extended = true,
   });
 
   final String label;
   final VoidCallback onPressed;
+
+  /// A long press offers the note types directly, skipping the editor's
+  /// type row.
+  final VoidCallback? onLongPress;
   final bool extended;
 
   /// Same slight tilt the wall gives its notes.
@@ -46,6 +51,7 @@ class AddNoteButton extends StatelessWidget {
               type: MaterialType.transparency,
               child: InkWell(
                 onTap: onPressed,
+                onLongPress: onLongPress,
                 splashColor: AppColors.ink.withValues(alpha: 0.12),
                 highlightColor: AppColors.ink.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(AppRadii.paper),
