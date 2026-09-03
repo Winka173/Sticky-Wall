@@ -391,6 +391,39 @@ class AppLocalizationsVi extends AppLocalizations {
   String get typePhoto => 'Ảnh';
 
   @override
+  String get typeLabel => 'Nhãn';
+
+  @override
+  String get labelHint => 'Tên cột hoặc khu vực…';
+
+  @override
+  String get lockInPlace => 'Khóa vị trí';
+
+  @override
+  String get unlock => 'Mở khóa';
+
+  @override
+  String get thread => 'Dây';
+
+  @override
+  String get yarnColor => 'Màu len';
+
+  @override
+  String get threadLabelHint => 'Ghi lên dây…';
+
+  @override
+  String get threadArrow => 'Mũi tên';
+
+  @override
+  String get cutThread => 'Cắt dây';
+
+  @override
+  String get drawOnWall => 'Vẽ lên tường';
+
+  @override
+  String get done => 'Xong';
+
+  @override
   String get caption => 'Chú thích';
 
   @override

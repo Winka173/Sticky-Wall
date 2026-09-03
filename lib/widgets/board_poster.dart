@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/draw_stroke.dart';
 import '../models/note.dart';
 import '../services/image_service.dart';
 import '../theme.dart';
@@ -23,6 +24,7 @@ class BoardPosterPage extends StatefulWidget {
     required this.decor,
     required this.notes,
     required this.links,
+    this.strokes = const [],
     required this.wallSize,
     required this.imageService,
   });
@@ -33,6 +35,9 @@ class BoardPosterPage extends StatefulWidget {
   final bool decor;
   final List<Note> notes;
   final List<NoteLink> links;
+
+  /// Marker strokes drawn on this wall.
+  final List<DrawStroke> strokes;
 
   /// The live wall's layout size. Notes sit at fractions of that range, so
   /// the poster reproduces it to put every card where it is on screen. Zero
@@ -172,6 +177,7 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
                                 onBringToFront: (_) {},
                                 onCreateAt: (_, _) {},
                                 links: widget.links,
+                                strokes: widget.strokes,
                                 captureKeys: _paperKeys,
                                 still: true,
                               ),

@@ -22,7 +22,8 @@ abstract final class PeelAway {
     final ui.Image image;
     try {
       image = await box.toImage(
-          pixelRatio: MediaQuery.devicePixelRatioOf(context));
+        pixelRatio: MediaQuery.devicePixelRatioOf(context),
+      );
     } catch (_) {
       return;
     }
@@ -31,7 +32,9 @@ abstract final class PeelAway {
       return;
     }
     final rect = MatrixUtils.transformRect(
-        box.getTransformTo(null), Offset.zero & box.size);
+      box.getTransformTo(null),
+      Offset.zero & box.size,
+    );
 
     late OverlayEntry entry;
     entry = OverlayEntry(
@@ -67,14 +70,12 @@ class _PeelSnapshot extends StatefulWidget {
 
 class _PeelSnapshotState extends State<_PeelSnapshot>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: PeelAway.duration,
-  )
-    ..addStatusListener((s) {
-      if (s == AnimationStatus.completed) widget.onDone();
-    })
-    ..forward();
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: PeelAway.duration)
+        ..addStatusListener((s) {
+          if (s == AnimationStatus.completed) widget.onDone();
+        })
+        ..forward();
 
   @override
   void dispose() {

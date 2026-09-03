@@ -19,7 +19,10 @@ class SharedContent {
 
   bool get isEmpty => text.isEmpty && url.isEmpty && imagePath.isEmpty;
 
-  static final _urlPattern = RegExp(r'https?://[^\s<>"]+', caseSensitive: false);
+  static final _urlPattern = RegExp(
+    r'https?://[^\s<>"]+',
+    caseSensitive: false,
+  );
 
   /// Splits shared text into the first link and everything else, so
   /// "Check this out https://…" becomes a link note titled "Check this out".
@@ -79,13 +82,16 @@ class ShareReceiver {
     }
 
     try {
-      ReceiveSharingIntent.instance.getInitialMedia().then((files) {
-        deliver(files);
-        // Otherwise the same payload would come back after a hot restart.
-        ReceiveSharingIntent.instance.reset();
-      }).catchError((Object e) {
-        debugPrint('Share intent unavailable: $e');
-      });
+      ReceiveSharingIntent.instance
+          .getInitialMedia()
+          .then((files) {
+            deliver(files);
+            // Otherwise the same payload would come back after a hot restart.
+            ReceiveSharingIntent.instance.reset();
+          })
+          .catchError((Object e) {
+            debugPrint('Share intent unavailable: $e');
+          });
       _sub = ReceiveSharingIntent.instance.getMediaStream().listen(
         deliver,
         onError: (Object e) => debugPrint('Share stream error: $e'),

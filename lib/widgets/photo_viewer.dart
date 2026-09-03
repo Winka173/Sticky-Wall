@@ -9,21 +9,24 @@ import '../services/image_service.dart';
 /// tap to close. [path] is a stored reference (see `ImageService.resolve`).
 Future<void> showPhotoViewer(BuildContext context, String path) {
   if (path.isEmpty) return Future.value();
-  return Navigator.of(context).push(PageRouteBuilder<void>(
-    opaque: false,
-    barrierColor: Colors.black,
-    transitionDuration: const Duration(milliseconds: 220),
-    reverseTransitionDuration: const Duration(milliseconds: 180),
-    pageBuilder: (_, _, _) => PhotoViewer(path: path),
-    transitionsBuilder: (_, animation, _, child) => FadeTransition(
-      opacity: animation,
-      child: ScaleTransition(
-        scale: Tween(begin: 0.94, end: 1.0).animate(
-            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-        child: child,
+  return Navigator.of(context).push(
+    PageRouteBuilder<void>(
+      opaque: false,
+      barrierColor: Colors.black,
+      transitionDuration: const Duration(milliseconds: 220),
+      reverseTransitionDuration: const Duration(milliseconds: 180),
+      pageBuilder: (_, _, _) => PhotoViewer(path: path),
+      transitionsBuilder: (_, animation, _, child) => FadeTransition(
+        opacity: animation,
+        child: ScaleTransition(
+          scale: Tween(begin: 0.94, end: 1.0).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+          ),
+          child: child,
+        ),
       ),
     ),
-  ));
+  );
 }
 
 /// The full-screen viewer itself; see [showPhotoViewer].
@@ -79,8 +82,11 @@ class _PhotoViewerState extends State<PhotoViewer> {
                 child: Image.file(
                   File(ImageService.resolve(widget.path)),
                   fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) => const Icon(Icons.broken_image,
-                      size: 64, color: Colors.white54),
+                  errorBuilder: (_, _, _) => const Icon(
+                    Icons.broken_image,
+                    size: 64,
+                    color: Colors.white54,
+                  ),
                 ),
               ),
             ),

@@ -776,6 +776,72 @@ abstract class AppLocalizations {
   /// **'Photo'**
   String get typePhoto;
 
+  /// No description provided for @typeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get typeLabel;
+
+  /// No description provided for @labelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Column or section name…'**
+  String get labelHint;
+
+  /// No description provided for @lockInPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock in place'**
+  String get lockInPlace;
+
+  /// No description provided for @unlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get unlock;
+
+  /// No description provided for @thread.
+  ///
+  /// In en, this message translates to:
+  /// **'Thread'**
+  String get thread;
+
+  /// No description provided for @yarnColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Yarn color'**
+  String get yarnColor;
+
+  /// No description provided for @threadLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write on the thread…'**
+  String get threadLabelHint;
+
+  /// No description provided for @threadArrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrowhead'**
+  String get threadArrow;
+
+  /// No description provided for @cutThread.
+  ///
+  /// In en, this message translates to:
+  /// **'Cut thread'**
+  String get cutThread;
+
+  /// No description provided for @drawOnWall.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw on the wall'**
+  String get drawOnWall;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
   /// No description provided for @caption.
   ///
   /// In en, this message translates to:

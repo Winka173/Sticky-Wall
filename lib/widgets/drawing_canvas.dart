@@ -220,10 +220,9 @@ class _DrawingEditorState extends State<DrawingEditor> {
     _future.clear();
   }
 
-  void _restore(List<DrawStroke> strokes) =>
-      widget.strokes
-        ..clear()
-        ..addAll(strokes);
+  void _restore(List<DrawStroke> strokes) => widget.strokes
+    ..clear()
+    ..addAll(strokes);
 
   void _undo() {
     if (_past.isEmpty) return;
@@ -269,11 +268,13 @@ class _DrawingEditorState extends State<DrawingEditor> {
     switch (_tool) {
       case _Tool.pen:
         _mutate(() {
-          widget.strokes.add(DrawStroke(
-            color: _color,
-            width: _width,
-            points: [_norm(e.localPosition)],
-          ));
+          widget.strokes.add(
+            DrawStroke(
+              color: _color,
+              width: _width,
+              points: [_norm(e.localPosition)],
+            ),
+          );
         });
       case _Tool.eraser:
         _erased = false;
@@ -362,10 +363,8 @@ class _DrawingEditorState extends State<DrawingEditor> {
                   gestures: <Type, GestureRecognizerFactory>{
                     EagerGestureRecognizer:
                         GestureRecognizerFactoryWithHandlers<
-                            EagerGestureRecognizer>(
-                      EagerGestureRecognizer.new,
-                      (_) {},
-                    ),
+                          EagerGestureRecognizer
+                        >(EagerGestureRecognizer.new, (_) {}),
                   },
                   child: Listener(
                     behavior: HitTestBehavior.opaque,
@@ -449,9 +448,9 @@ class _DrawingEditorState extends State<DrawingEditor> {
           tooltip: l10n.eraser,
           icon: Icons.auto_fix_normal_outlined,
           active: _tool == _Tool.eraser,
-          onPressed: () => setState(() => _tool = _tool == _Tool.eraser
-              ? _Tool.pen
-              : _Tool.eraser),
+          onPressed: () => setState(
+            () => _tool = _tool == _Tool.eraser ? _Tool.pen : _Tool.eraser,
+          ),
         ),
         const SizedBox(width: 6),
         _ToolButton(
@@ -495,11 +494,11 @@ class _CanvasPanel extends StatelessWidget {
   final ValueChanged<DrawCanvas> onChanged;
 
   String _patternLabel(CanvasPattern p) => switch (p) {
-        CanvasPattern.plain => l10n.patternPlain,
-        CanvasPattern.ruled => l10n.patternRuled,
-        CanvasPattern.grid => l10n.patternGrid,
-        CanvasPattern.dots => l10n.patternDots,
-      };
+    CanvasPattern.plain => l10n.patternPlain,
+    CanvasPattern.ruled => l10n.patternRuled,
+    CanvasPattern.grid => l10n.patternGrid,
+    CanvasPattern.dots => l10n.patternDots,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -508,8 +507,10 @@ class _CanvasPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.canvasSection,
-              style: const TextStyle(fontSize: 13, color: AppColors.inkSoft)),
+          Text(
+            l10n.canvasSection,
+            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+          ),
           const SizedBox(height: 4),
           // Guide patterns on one line, paper tones on the next, so neither
           // set breaks mid-row on a narrow sheet.

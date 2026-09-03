@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart' show ImageSource;
 
 import '../l10n/app_localizations.dart';
 import '../models/board.dart';
+import '../models/draw_stroke.dart';
 import '../models/note.dart';
 import '../models/view_mode.dart';
 import '../services/image_service.dart';
@@ -73,6 +74,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int _seenWallEdits = 0;
   bool _undoShown = false;
   Timer? _undoTimer;
+
+  // Marker mode: drawing on the wall with the current pen, and the stroke
+  // lists as they were before each change, for Undo.
+  bool _marking = false;
+  WallMarker _marker = const WallMarker();
+  final _inkPast = <List<DrawStroke>>[];
 
   // Multi-select: on while the selection bar is up; guids of chosen notes.
   bool _selecting = false;
@@ -227,6 +234,155 @@ class _HomeScreenState extends State<HomeScreen> {
     return true;
   }
 
+  // --- Marker mode ---------------------------------------------------------
+
+  void _startMarking(WallStyle wall) {
+    _exitSelecting();
+    setState(() {
+      _marking = true;
+      _inkPast.clear();
+      // Ink on a light wall, chalk on a dark one.
+      _marker = WallMarker(
+        color: wall.dark ? AppColors.markers.last : AppColors.markers.first,
+      );
+    });
+  }
+
+  void _stopMarking() => setState(() {
+    _marking = false;
+    _inkPast.clear();
+  });
+
+  List<DrawStroke> get _wallStrokes => _notes.currentBoard.strokes;
+
+  void _inkBegin() {
+    _inkPast.add(List.of(_wallStrokes));
+    if (_inkPast.length > 40) _inkPast.removeAt(0);
+  }
+
+  void _undoInk() {
+    if (_inkPast.isEmpty) return;
+    HapticFeedback.lightImpact();
+    _wallStrokes
+      ..clear()
+      ..addAll(_inkPast.removeLast());
+    _notes.saveWallStrokes();
+  }
+
+  void _clearInk() {
+    if (_wallStrokes.isEmpty) return;
+    HapticFeedback.lightImpact();
+    _inkBegin();
+    _wallStrokes.clear();
+    _notes.saveWallStrokes();
+  }
+
+  /// Pen, colours, eraser, undo, clear and done, docked at the bottom while
+  /// drawing on the wall.
+  Widget _markerBar(WallStyle wall) {
+    final l10n = _l10n;
+    final text = wall.wallText;
+    const widths = [3.0, 6.0, 11.0];
+    final nextWidth =
+        widths[(widths.indexOf(_marker.width) + 1) % widths.length];
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        child: Container(
+          decoration: _frosted(wall, radius: 16),
+          padding: const EdgeInsets.fromLTRB(10, 6, 4, 6),
+          child: Row(
+            children: [
+              for (final c in AppColors.markers)
+                _InkDot(
+                  color: Color(c),
+                  selected: !_marker.eraser && _marker.color == c,
+                  onTap: () => setState(
+                    () => _marker = _marker.copyWith(color: c, eraser: false),
+                  ),
+                ),
+              const SizedBox(width: 4),
+              IconButton(
+                tooltip: l10n.penSize,
+                iconSize: 22,
+                color: text,
+                icon: Icon(
+                  Icons.line_weight,
+                  // The icon weight hints at the current width.
+                  size: 16 + _marker.width,
+                ),
+                onPressed: () => setState(
+                  () => _marker = _marker.copyWith(width: nextWidth),
+                ),
+              ),
+              IconButton(
+                tooltip: l10n.eraser,
+                iconSize: 22,
+                color: _marker.eraser ? AppColors.accent : text,
+                icon: Icon(
+                  _marker.eraser
+                      ? Icons.auto_fix_normal
+                      : Icons.auto_fix_normal_outlined,
+                ),
+                onPressed: () => setState(
+                  () => _marker = _marker.copyWith(eraser: !_marker.eraser),
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                tooltip: l10n.undo,
+                iconSize: 22,
+                color: text,
+                icon: const Icon(Icons.undo),
+                onPressed: _inkPast.isEmpty ? null : _undoInk,
+              ),
+              IconButton(
+                tooltip: l10n.clear,
+                iconSize: 22,
+                color: text,
+                icon: const Icon(Icons.delete_sweep_outlined),
+                onPressed: _wallStrokes.isEmpty ? null : _clearInk,
+              ),
+              FilledButton(
+                onPressed: _stopMarking,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: AppColors.ink,
+                  minimumSize: const Size(0, 36),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                ),
+                child: Text(l10n.done),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- Threads ---------------------------------------------------------------
+
+  /// A tap on a thread: pick its yarn colour, write on it, give it an
+  /// arrowhead, or cut it.
+  Future<void> _editThread(NoteLink link) async {
+    final l10n = _l10n;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _ThreadSheet(
+        link: link,
+        notes: _notes,
+        onCut: (cut) {
+          Navigator.pop(context);
+          unawaited(HapticFeedback.lightImpact());
+          _notes.disconnect(cut);
+          _undoToast(l10n.threadCut, () => _notes.restoreLink(cut));
+        },
+      ),
+    );
+  }
+
   /// Long press on the add button: pick the note type straight away.
   Future<void> _quickAdd() async {
     final l10n = _l10n;
@@ -241,6 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
           (NoteType.checklist, Icons.checklist, l10n.typeChecklist),
           (NoteType.drawing, Icons.brush_outlined, l10n.typeDrawing),
           (NoteType.photo, Icons.photo_outlined, l10n.typePhoto),
+          (NoteType.label, Icons.label_outline, l10n.typeLabel),
         ])
           ListTile(
             leading: Icon(icon),
@@ -351,6 +508,11 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () => Navigator.pop(context, 'pin'),
         ),
         ListTile(
+          leading: Icon(note.locked ? Icons.lock_open : Icons.lock_outline),
+          title: Text(note.locked ? l10n.unlock : l10n.lockInPlace),
+          onTap: () => Navigator.pop(context, 'lock'),
+        ),
+        ListTile(
           leading: const Icon(Icons.checklist_rtl),
           title: Text(l10n.select),
           onTap: () => Navigator.pop(context, 'select'),
@@ -394,6 +556,9 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'pin':
         unawaited(HapticFeedback.selectionClick());
         _notes.togglePin(note);
+      case 'lock':
+        unawaited(HapticFeedback.selectionClick());
+        _notes.toggleLock(note);
       case 'select':
         _startSelecting(note);
       case 'move':
@@ -452,6 +617,7 @@ class _HomeScreenState extends State<HomeScreen> {
           decor: widget.settings.wallDecor,
           notes: _notes.boardNotes,
           links: _notes.linksOn(_notes.currentBoardId),
+          strokes: _notes.currentBoard.strokes,
           wallSize: _wallHandle.lastSize,
           imageService: _imageService,
         ),
@@ -717,6 +883,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _seenWallEdits = _notes.wallEdits;
           _armUndo();
         }
+        // Marker mode belongs to the wall; leaving it ends the session.
+        if (_notes.viewMode != ViewMode.wall) _marking = false;
 
         return Stack(
           children: [
@@ -743,7 +911,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // squash the wall underneath would make every note slide about
               // behind the barrier while you type.
               resizeToAvoidBottomInset: false,
-              floatingActionButton: _selecting
+              floatingActionButton: _selecting || _marking
                   ? null
                   : AddNoteButton(
                       label: _l10n.addNote,
@@ -753,7 +921,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       // on it, so it covers less of them.
                       extended: showFabLabel,
                     ),
-              bottomNavigationBar: _selecting ? _selectionBar(wall) : null,
+              bottomNavigationBar: _selecting
+                  ? _selectionBar(wall)
+                  : _marking
+                  ? _markerBar(wall)
+                  : null,
               body: SafeArea(
                 // While the keyboard is up the system reports no bottom
                 // padding (the keyboard covers the navigation bar), which
@@ -1089,6 +1261,7 @@ class _HomeScreenState extends State<HomeScreen> {
       (2, l10n.typeChecklist, Icons.checklist),
       (3, l10n.typeDrawing, Icons.brush_outlined),
       (4, l10n.typePhoto, Icons.photo_outlined),
+      (5, l10n.typeLabel, Icons.label_outline),
     ];
     return PopupMenuButton<int>(
       tooltip: l10n.type,
@@ -1197,6 +1370,8 @@ class _HomeScreenState extends State<HomeScreen> {
             _wallHandle.tidy(byColor: true);
           case 'export':
             _exportBoard();
+          case 'draw':
+            _startMarking(wall);
           case 'trash':
             Navigator.of(context).push(
               MaterialPageRoute<void>(
@@ -1227,6 +1402,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icons.palette_outlined,
           ),
         ],
+        if (onWall) _menuItem('draw', l10n.drawOnWall, icon: Icons.gesture),
         if (_notes.boardNotes.isNotEmpty)
           _menuItem('export', l10n.exportBoard, icon: Icons.image_outlined),
         _menuItem(
@@ -1269,6 +1445,12 @@ class _HomeScreenState extends State<HomeScreen> {
         onDrop: _dropOnTab,
         lasso: _selecting,
         trashLabel: _l10n.dropToDelete,
+        onThreadTap: _editThread,
+        strokes: _notes.currentBoard.strokes,
+        marking: _marking,
+        marker: _marker,
+        onInkBegin: _inkBegin,
+        onInkChanged: _notes.saveWallStrokes,
         links: _notes.linksOn(boardId),
         onConnect: (a, b) {
           if (_notes.connect(a, b)) {
@@ -1505,13 +1687,19 @@ class _BarAction extends StatelessWidget {
   }
 }
 
-/// A paper-color choice in the bulk recolor sheet.
+/// A colour choice in a sheet (paper colours, yarn colours).
 class _Swatch extends StatelessWidget {
-  const _Swatch({required this.color, required this.onTap, this.auto = false});
+  const _Swatch({
+    required this.color,
+    required this.onTap,
+    this.auto = false,
+    this.selected = false,
+  });
 
   final Color color;
   final VoidCallback onTap;
   final bool auto;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
@@ -1523,7 +1711,9 @@ class _Swatch extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.black26),
+          border: selected
+              ? Border.all(color: AppColors.ink, width: 3)
+              : Border.all(color: Colors.black26),
           boxShadow: const [
             BoxShadow(
               color: Colors.black26,
@@ -1535,6 +1725,159 @@ class _Swatch extends StatelessWidget {
         child: auto
             ? const Icon(Icons.auto_awesome, size: 20, color: AppColors.ink)
             : null,
+      ),
+    );
+  }
+}
+
+/// The sheet a tapped thread opens: yarn colour, a label to hang on it, an
+/// arrowhead, and the scissors. Changes apply as they are made.
+class _ThreadSheet extends StatefulWidget {
+  const _ThreadSheet({
+    required this.link,
+    required this.notes,
+    required this.onCut,
+  });
+
+  final NoteLink link;
+  final NotesController notes;
+  final void Function(NoteLink link) onCut;
+
+  @override
+  State<_ThreadSheet> createState() => _ThreadSheetState();
+}
+
+class _ThreadSheetState extends State<_ThreadSheet> {
+  late NoteLink _link = widget.link;
+  late final _label = TextEditingController(text: widget.link.label);
+
+  @override
+  void dispose() {
+    _label.dispose();
+    super.dispose();
+  }
+
+  void _apply(NoteLink next) {
+    setState(() => _link = next);
+    widget.notes.updateLink(next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          12,
+          20,
+          16 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.thread,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.yarnColor,
+              style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                for (final c in AppColors.yarns)
+                  _Swatch(
+                    color: Color(c),
+                    selected: (_link.color ?? AppColors.yarns.first) == c,
+                    onTap: () => _apply(_link.copyWith(color: c)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _label,
+              maxLength: 24,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                hintText: l10n.threadLabelHint,
+                prefixIcon: const Icon(Icons.sell_outlined),
+                counterText: '',
+                isDense: true,
+              ),
+              onChanged: (v) => _apply(_link.copyWith(label: v.trim())),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: const Icon(Icons.arrow_right_alt),
+              title: Text(l10n.threadArrow),
+              value: _link.arrow,
+              onChanged: (v) => _apply(_link.copyWith(arrow: v)),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                icon: const Icon(
+                  Icons.content_cut,
+                  color: AppColors.deleteIcon,
+                ),
+                label: Text(
+                  l10n.cutThread,
+                  style: const TextStyle(color: AppColors.deleteIcon),
+                ),
+                onPressed: () => widget.onCut(_link),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One marker colour in the drawing bar.
+class _InkDot extends StatelessWidget {
+  const _InkDot({
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 3),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          width: selected ? 30 : 24,
+          height: selected ? 30 : 24,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: selected ? AppColors.accent : Colors.black26,
+              width: selected ? 3 : 1,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 3,
+                offset: Offset(0, 1.5),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

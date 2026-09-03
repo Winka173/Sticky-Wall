@@ -396,6 +396,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get typePhoto => 'Photo';
 
   @override
+  String get typeLabel => 'Label';
+
+  @override
+  String get labelHint => 'Column or section name…';
+
+  @override
+  String get lockInPlace => 'Lock in place';
+
+  @override
+  String get unlock => 'Unlock';
+
+  @override
+  String get thread => 'Thread';
+
+  @override
+  String get yarnColor => 'Yarn color';
+
+  @override
+  String get threadLabelHint => 'Write on the thread…';
+
+  @override
+  String get threadArrow => 'Arrowhead';
+
+  @override
+  String get cutThread => 'Cut thread';
+
+  @override
+  String get drawOnWall => 'Draw on the wall';
+
+  @override
+  String get done => 'Done';
+
+  @override
   String get caption => 'Caption';
 
   @override

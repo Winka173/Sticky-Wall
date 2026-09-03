@@ -125,7 +125,8 @@ class NoteStorage {
   Future<void> setViewMode(ViewMode mode) =>
       _prefs.setString(_viewModeKey, mode.name);
 
-  /// -1 = All, 0 = Normal, 1 = Link, 2 = Checklist, 3 = Drawing.
+  /// -1 = All, 0 = Normal, 1 = Link, 2 = Checklist, 3 = Drawing, 4 = Photo,
+  /// 5 = Label.
   int get typeFilter => _prefs.getInt(_filterKey) ?? -1;
   Future<void> setTypeFilter(int value) => _prefs.setInt(_filterKey, value);
 

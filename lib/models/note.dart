@@ -6,7 +6,10 @@ import 'draw_stroke.dart';
 /// [photo] is a picture pinned straight on the wall — a photo print rather
 /// than a sheet of paper, with an optional caption. It is still a [Note], so
 /// dragging, resizing, threads, boards and the trash all work the same.
-enum NoteType { normal, link, checklist, drawing, photo }
+///
+/// [label] is a strip of tape with a word or two on it — a heading for a
+/// column or corner of a planning board. No pin, no body: just the name.
+enum NoteType { normal, link, checklist, drawing, photo, label }
 
 /// How often a reminder fires again after its first time.
 enum ReminderRepeat { none, daily, weekly, monthly }
@@ -19,9 +22,9 @@ class ChecklistItem {
   bool done;
 
   factory ChecklistItem.fromJson(Map<String, dynamic> json) => ChecklistItem(
-        text: json['text'] as String? ?? '',
-        done: json['done'] as bool? ?? false,
-      );
+    text: json['text'] as String? ?? '',
+    done: json['done'] as bool? ?? false,
+  );
 
   Map<String, dynamic> toJson() => {'text': text, 'done': done};
 }
@@ -52,11 +55,12 @@ class Note {
     this.y = 0.5,
     this.scale = 1.0,
     this.rotation,
+    this.locked = false,
     this.deletedAt,
     this.completedAt,
-  })  : type = type ?? (url.isEmpty ? NoteType.normal : NoteType.link),
-        checklist = checklist ?? [],
-        strokes = strokes ?? [];
+  }) : type = type ?? (url.isEmpty ? NoteType.normal : NoteType.link),
+       checklist = checklist ?? [],
+       strokes = strokes ?? [];
 
   final String guid;
   String content;
@@ -105,6 +109,11 @@ class Note {
   /// note is pinned (see `noteAngle`).
   double? rotation;
 
+  /// Held in place on the wall: it cannot be dragged, turned or resized, and
+  /// a tidy-up flows the other notes around it. For headings and anything
+  /// else that must not be nudged by accident.
+  bool locked;
+
   /// Which board this note lives on.
   String boardId;
 
@@ -133,8 +142,13 @@ class Note {
       next = switch (repeat) {
         ReminderRepeat.daily => next.add(const Duration(days: 1)),
         ReminderRepeat.weekly => next.add(const Duration(days: 7)),
-        ReminderRepeat.monthly =>
-          DateTime(next.year, next.month + 1, first.day, next.hour, next.minute),
+        ReminderRepeat.monthly => DateTime(
+          next.year,
+          next.month + 1,
+          first.day,
+          next.hour,
+          next.minute,
+        ),
         ReminderRepeat.none => next,
       };
     }
@@ -164,13 +178,15 @@ class Note {
   factory Note.fromJson(Map<String, dynamic> json) {
     final url = json['url'] as String? ?? '';
     final typeName = json['type'] as String?;
-    final type = NoteType.values
+    final type =
+        NoteType.values
             .where((t) => t.name == typeName)
             .cast<NoteType?>()
             .firstOrNull ??
         (url.isEmpty ? NoteType.normal : NoteType.link);
     final repeatName = json['repeat'] as String?;
-    final repeat = ReminderRepeat.values
+    final repeat =
+        ReminderRepeat.values
             .where((r) => r.name == repeatName)
             .cast<ReminderRepeat?>()
             .firstOrNull ??
@@ -201,6 +217,7 @@ class Note {
       y: (json['y'] as num?)?.toDouble() ?? 0.5,
       scale: (json['scale'] as num?)?.toDouble() ?? 1.0,
       rotation: (json['rotation'] as num?)?.toDouble(),
+      locked: json['locked'] as bool? ?? false,
       boardId: json['boardId'] as String? ?? 'default',
       deletedAt: _date(json['deletedAt']),
       completedAt: _date(json['completedAt']),
@@ -208,44 +225,85 @@ class Note {
   }
 
   Map<String, dynamic> toJson() => {
-        'guid': guid,
-        'content': content,
-        'url': url,
-        'type': type.name,
-        'emoji': emoji,
-        'colorIndex': colorIndex,
-        'pinned': pinned,
-        'reminderAt': reminderAt?.toIso8601String(),
-        'repeat': repeat.name,
-        'checklist': checklist.map((i) => i.toJson()).toList(),
-        'strokes': strokes.map((s) => s.toJson()).toList(),
-        'canvas': canvas.toJson(),
-        'imagePath': imagePath,
-        'createdAt': createdAt.toIso8601String(),
-        'x': x,
-        'y': y,
-        'scale': scale,
-        'rotation': rotation,
-        'boardId': boardId,
-        'deletedAt': deletedAt?.toIso8601String(),
-        'completedAt': completedAt?.toIso8601String(),
-      };
+    'guid': guid,
+    'content': content,
+    'url': url,
+    'type': type.name,
+    'emoji': emoji,
+    'colorIndex': colorIndex,
+    'pinned': pinned,
+    'reminderAt': reminderAt?.toIso8601String(),
+    'repeat': repeat.name,
+    'checklist': checklist.map((i) => i.toJson()).toList(),
+    'strokes': strokes.map((s) => s.toJson()).toList(),
+    'canvas': canvas.toJson(),
+    'imagePath': imagePath,
+    'createdAt': createdAt.toIso8601String(),
+    'x': x,
+    'y': y,
+    'scale': scale,
+    'rotation': rotation,
+    'locked': locked,
+    'boardId': boardId,
+    'deletedAt': deletedAt?.toIso8601String(),
+    'completedAt': completedAt?.toIso8601String(),
+  };
 }
 
-/// A piece of red yarn tied between two pins on the wall. Unordered: the same
-/// pair is one link whichever end you started from.
+/// A piece of yarn tied between two pins on the wall. Unordered for the
+/// purpose of identity: the same pair is one link whichever end you started
+/// from — but [arrow] points from [a] to [b].
 class NoteLink {
-  const NoteLink(this.a, this.b);
+  const NoteLink(
+    this.a,
+    this.b, {
+    this.color,
+    this.label = '',
+    this.arrow = false,
+  });
 
   final String a;
   final String b;
+
+  /// ARGB yarn colour, or null for the classic red.
+  final int? color;
+
+  /// A word or two written on a paper tag hung from the middle of the thread.
+  final String label;
+
+  /// Whether the [b] end carries an arrowhead (a dependency, a flow).
+  final bool arrow;
 
   bool connects(String guid) => a == guid || b == guid;
 
   bool same(String x, String y) => (a == x && b == y) || (a == y && b == x);
 
-  factory NoteLink.fromJson(Map<String, dynamic> json) =>
-      NoteLink(json['a'] as String, json['b'] as String);
+  NoteLink copyWith({
+    int? color,
+    bool clearColor = false,
+    String? label,
+    bool? arrow,
+  }) => NoteLink(
+    a,
+    b,
+    color: clearColor ? null : (color ?? this.color),
+    label: label ?? this.label,
+    arrow: arrow ?? this.arrow,
+  );
 
-  Map<String, dynamic> toJson() => {'a': a, 'b': b};
+  factory NoteLink.fromJson(Map<String, dynamic> json) => NoteLink(
+    json['a'] as String,
+    json['b'] as String,
+    color: json['color'] as int?,
+    label: json['label'] as String? ?? '',
+    arrow: json['arrow'] as bool? ?? false,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'a': a,
+    'b': b,
+    if (color != null) 'color': color,
+    if (label.isNotEmpty) 'label': label,
+    if (arrow) 'arrow': true,
+  };
 }

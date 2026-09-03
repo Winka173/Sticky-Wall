@@ -33,11 +33,16 @@ then taken well beyond it.
 ## Features
 
 **Notes**
-- Five types: **Normal** (multi-line text), **Link** (label + URL),
+- Six types: **Normal** (multi-line text), **Link** (label + URL),
   **Checklist** (tickable items with done-count), **Drawing** (freehand
   sketch with a color/size pen and eraser, on a canvas whose **paper tone**
-  and **guide pattern** — plain, ruled, grid, dots — you pick) and **Photo**
-  (a print pinned straight on the wall, see below)
+  and **guide pattern** — plain, ruled, grid, dots — you pick), **Photo**
+  (a print pinned straight on the wall, see below) and **Label** (a strip
+  of tape with a word or two on it — the heading of a column or corner of a
+  planning board; no pin, no body)
+- **Lock in place** (long-press → Lock) holds a note where it is: it cannot
+  be dragged, turned or resized, a tidy-up flows the other notes beneath
+  it, and a small padlock marks it on the card
 - A sketch *is* its card: the canvas runs edge to edge with no margin or
   adhesive strip, and a title / emote / reminder — if any — sits on a small
   label strip beneath it in the note's paper color
@@ -89,9 +94,17 @@ then taken well beyond it.
   travel with the notes, only the lighting stays put (double-tap or the
   reset button snaps back); **long-press** empty space (the empty-wall tip
   included) to stick a note or a batch of photo prints there
-- **Threads** — drag from one note's pin to another to tie a red yarn thread
+- **Threads** — drag from one note's pin to another to tie a yarn thread
   between them — photo prints included; the thread stays tied to the pin
-  however the note is turned; tap a thread to cut it (Undo re-ties it)
+  however the note is turned. **Tap a thread** for its sheet: pick the
+  **yarn colour** (seven, classic red first), **write on it** (a paper tag
+  hangs from the middle), give it an **arrowhead** for a dependency or a
+  flow, or **cut** it (Undo re-ties it exactly as it was)
+- **Draw on the wall** (⋮ → *Draw on the wall*) — marker mode: a finger
+  draws straight on the wall, behind the notes, in five colours and three
+  widths, with an eraser, undo and clear; two fingers still zoom. Strokes
+  are stored with the board (as fractions of the wall, like the notes) and
+  come along in the export
 - **Undo on the wall** — every move, turn, resize, tidy and drag to another
   board is remembered (40 steps); an *Undo* pill appears for a few seconds
   after each change. Nudges of one note in quick succession fold into one
@@ -242,7 +255,7 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 
 | Path | Purpose |
 |---|---|
-| `lib/models/` | `Note` (+ `NoteType`, `ReminderRepeat`, `NoteLink`), `ChecklistItem`, `Board` (name, icon, formatting), `DrawStroke` / `DrawCanvas`, `ViewMode` |
+| `lib/models/` | `Note` (+ `NoteType`, `ReminderRepeat`, `NoteLink` with yarn colour / label / arrow), `ChecklistItem`, `Board` (name, icon, formatting, marker strokes), `DrawStroke` / `DrawCanvas`, `ViewMode` |
 | `lib/services/note_storage.dart` | JSON persistence via `shared_preferences` (notes, boards, threads, settings) |
 | `lib/services/notes_controller.dart` | Boards + notes + CRUD, trash & retention, bulk actions, threads, tidy |
 | `lib/services/settings_controller.dart` | Font / language / stains / night mode & schedule |
@@ -254,13 +267,13 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/services/widget_service.dart` | Push pinned notes to the home-screen widget |
 | `lib/screens/home_screen.dart` | Header, board bar, toolbar, the three views, multi-select |
 | `lib/screens/trash_screen.dart` | Trash: restore / delete forever / empty |
-| `lib/widgets/wall_view.dart` | Free drag-and-drop canvas, resize / rotate grips, two-finger twist / pinch, threads, measured tidy animation |
+| `lib/widgets/wall_view.dart` | Free drag-and-drop canvas, resize / rotate grips, two-finger twist / pinch, snap guides, lasso, drop tray, marker mode, threads, measured tidy animation |
 | `lib/widgets/wall_background.dart` | Wall texture or custom photo + scrim, stains, vignette |
 | `lib/widgets/board_poster.dart` | Board export: full-screen preview of wall + notes + threads, share / save as PNG |
 | `lib/widgets/peel_away.dart` | "Peel off the wall" delete animation |
 | `lib/widgets/drawing_canvas.dart` | Freehand drawing editor (pen, eraser, paper tone + guide pattern) and the painters that draw a sketch anywhere |
 | `lib/widgets/note_dialog.dart` | Create/Edit dialog (type, color, pin, reminder + repeat, emote, photo tile) |
-| `lib/widgets/note_views.dart` | Sticky card (paper sheet, edge-to-edge sketch, framed photo print), the animated card turn, list tile, night shade |
+| `lib/widgets/note_views.dart` | Sticky card (paper sheet, edge-to-edge sketch, framed photo print, tape label), the animated card turn, list tile, night shade |
 | `lib/widgets/photo_viewer.dart` | Full-screen photo (pinch / double-tap to zoom) |
 | `lib/widgets/action_sheet.dart` | Bottom action sheet that sizes to its content (long-press menus) |
 | `lib/widgets/add_note_button.dart` | The sticky-note-with-a-pencil FAB |

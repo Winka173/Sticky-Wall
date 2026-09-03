@@ -515,7 +515,7 @@ void main() {
     expect(note.boardId, work.id);
     expect(notes.boardNotes, isEmpty);
     expect(find.textContaining('Moved to'), findsOneWidget);
-    // Undo brings it back to this board.
+    // Undo (the pill, not the snackbar's) brings it back to this board.
     await tester.tap(find.text('Undo').last);
     await tester.pumpAndSettle();
     expect(note.boardId, 'default');
@@ -559,6 +559,145 @@ void main() {
     await tester.pump(const Duration(seconds: 7));
     await tester.pumpAndSettle();
     expect(pillOpacity(), 0);
+  });
+
+  testWidgets('a locked note stays put, and a tidy flows the rest beneath it',
+      (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(guid: 'h', content: 'This week', type: NoteType.label, createdAt: DateTime(2026), boardId: 'default', x: 0.05, y: 0.02, locked: true),
+      Note(guid: 'a', content: 'Aa', createdAt: DateTime(2026), boardId: 'default', x: 0.5, y: 0.5),
+      Note(guid: 'b', content: 'Bb', createdAt: DateTime(2026), boardId: 'default', x: 0.7, y: 0.8),
+    ]);
+    final head = notes.boardNotes[0];
+    await _dragNote(tester, find.text('This week'), const Offset(60, 120));
+    expect(head.x, 0.05, reason: 'locked: the drag does nothing');
+    expect(head.y, 0.02);
+    expect(find.byIcon(Icons.lock), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tidy up'));
+    await tester.pumpAndSettle();
+    expect(head.x, 0.05, reason: 'tidy leaves it where it is');
+    expect(head.y, 0.02);
+    final wall = tester.getRect(find.byType(InteractiveViewer));
+    final rangeY = wall.height - 80;
+    final headBottom = tester
+        .getRect(find.ancestor(of: find.text('This week'), matching: find.byType(NoteTurn)))
+        .bottom - wall.top;
+    for (final n in notes.boardNotes.skip(1)) {
+      expect(n.y * rangeY, greaterThan(headBottom - 1),
+          reason: 'rows start under the heading');
+    }
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a tap on a thread opens its sheet: arrow, label, cut, undo',
+      (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(guid: 'a', content: 'Aa', createdAt: DateTime(2026), boardId: 'default', x: 0.1, y: 0.1),
+      Note(guid: 'b', content: 'Bb', createdAt: DateTime(2026), boardId: 'default', x: 0.7, y: 0.7),
+    ]);
+    notes.connect('a', 'b');
+    await tester.pumpAndSettle();
+
+    Rect card(String text) => tester.getRect(
+        find.ancestor(of: find.text(text), matching: find.byType(NoteTurn)));
+    // Pins sit 14px under the top edge, centred; the yarn sags between them.
+    final pa = card('Aa').topCenter + const Offset(0, 14);
+    final pb = card('Bb').topCenter + const Offset(0, 14);
+    final sag = math.min(30.0, (pa - pb).distance * 0.12);
+    await tester.tapAt((pa + pb) / 2 + Offset(0, sag / 2));
+    await tester.pumpAndSettle();
+    expect(find.text('Thread'), findsOneWidget);
+
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pumpAndSettle();
+    expect(notes.links.single.arrow, true);
+    await tester.enterText(find.byType(TextField), 'blocks');
+    await tester.pumpAndSettle();
+    expect(notes.links.single.label, 'blocks');
+
+    await tester.tap(find.text('Cut thread'));
+    await tester.pumpAndSettle();
+    expect(notes.links, isEmpty);
+    await tester.tap(find.widgetWithText(SnackBarAction, 'Undo'));
+    await tester.pumpAndSettle();
+    expect(notes.links.single.label, 'blocks', reason: 'tied back as it was');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('marker mode draws on the wall; undo, clear and done work',
+      (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(guid: 'a', content: 'Aa', createdAt: DateTime(2026), boardId: 'default', x: 0.1, y: 0.1),
+    ]);
+    final note = notes.boardNotes.single;
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Draw on the wall'));
+    await tester.pumpAndSettle();
+    expect(find.text('Done'), findsOneWidget);
+    expect(find.byType(AddNoteButton), findsNothing);
+
+    // A line across bare wall.
+    final g = await tester.startGesture(const Offset(300, 400));
+    await g.moveBy(const Offset(120, 40));
+    await tester.pump();
+    await g.moveBy(const Offset(80, -30));
+    await tester.pump();
+    await g.up();
+    await tester.pumpAndSettle();
+    expect(notes.currentBoard.strokes.length, 1);
+    expect(notes.currentBoard.strokes.single.points.length, 3);
+
+    // A line over a note draws too — the note is left alone.
+    final g2 = await tester.startGesture(tester.getCenter(find.text('Aa')));
+    await g2.moveBy(const Offset(90, 0));
+    await tester.pump();
+    await g2.up();
+    await tester.pumpAndSettle();
+    expect(notes.currentBoard.strokes.length, 2);
+    expect(note.x, 0.1);
+
+    await tester.tap(find.byTooltip('Undo'));
+    await tester.pumpAndSettle();
+    expect(notes.currentBoard.strokes.length, 1);
+    await tester.tap(find.byTooltip('Clear'));
+    await tester.pumpAndSettle();
+    expect(notes.currentBoard.strokes, isEmpty);
+    await tester.tap(find.byTooltip('Undo'));
+    await tester.pumpAndSettle();
+    expect(notes.currentBoard.strokes.length, 1, reason: 'clear undone');
+
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(find.text('Done'), findsNothing);
+    expect(find.byType(AddNoteButton), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a label is written on tape and locked from the sheet',
+      (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall);
+    await tester.longPress(find.byType(AddNoteButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Label'));
+    await tester.pumpAndSettle();
+    expect(find.text('Column or section name…'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).first, 'Backlog');
+    await tester.tap(_saveButton);
+    await tester.pumpAndSettle();
+    final label = notes.boardNotes.single;
+    expect(label.type, NoteType.label);
+    expect(find.text('Backlog'), findsOneWidget);
+
+    await tester.longPress(find.text('Backlog'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Lock in place'));
+    await tester.pumpAndSettle();
+    expect(label.locked, true);
+    expect(find.byIcon(Icons.lock), findsOneWidget);
   });
 
   testWidgets('long-pressing empty wall offers a note or photos there',

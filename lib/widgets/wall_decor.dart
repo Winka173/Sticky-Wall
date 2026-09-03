@@ -48,8 +48,10 @@ class _WallDecorPainter extends CustomPainter {
     // Roughly one mark per 180×180 patch. The sheet can be far larger than
     // the screen (it is dragged around behind the notes), so the cap is
     // generous; it only guards against absurd sizes.
-    final count =
-        (size.width * size.height / (180 * 180)).round().clamp(10, 320);
+    final count = (size.width * size.height / (180 * 180)).round().clamp(
+      10,
+      320,
+    );
 
     for (var i = 0; i < count; i++) {
       final at = Offset(
@@ -143,8 +145,7 @@ class _WallDecorPainter extends CustomPainter {
   /// A paint splatter: central blob plus satellite droplets.
   void _splatter(Canvas canvas, math.Random rng, Offset c) {
     // Half the splatters are colored paint, half plain grime.
-    final base =
-        rng.nextBool() ? _paints[rng.nextInt(_paints.length)] : _dirt;
+    final base = rng.nextBool() ? _paints[rng.nextInt(_paints.length)] : _dirt;
     final color = base.withValues(alpha: _alpha(rng, 0.14, 0.22));
 
     canvas.drawCircle(c, 3 + rng.nextDouble() * 4, Paint()..color = color);

@@ -11,30 +11,27 @@ class DrawStroke {
   final List<Offset> points;
 
   factory DrawStroke.fromJson(Map<String, dynamic> json) => DrawStroke(
-        color: json['color'] as int? ?? 0xFF000000,
-        width: (json['width'] as num?)?.toDouble() ?? 3.0,
-        points: [
-          for (final p in (json['points'] as List<dynamic>? ?? const []))
-            Offset(
-              ((p as Map<String, dynamic>)['x'] as num).toDouble(),
-              (p['y'] as num).toDouble(),
-            ),
-        ],
-      );
+    color: json['color'] as int? ?? 0xFF000000,
+    width: (json['width'] as num?)?.toDouble() ?? 3.0,
+    points: [
+      for (final p in (json['points'] as List<dynamic>? ?? const []))
+        Offset(
+          ((p as Map<String, dynamic>)['x'] as num).toDouble(),
+          (p['y'] as num).toDouble(),
+        ),
+    ],
+  );
 
   Map<String, dynamic> toJson() => {
-        'color': color,
-        'width': width,
-        'points': [
-          for (final p in points) {'x': p.dx, 'y': p.dy},
-        ],
-      };
+    'color': color,
+    'width': width,
+    'points': [
+      for (final p in points) {'x': p.dx, 'y': p.dy},
+    ],
+  };
 
-  DrawStroke copy() => DrawStroke(
-        color: color,
-        width: width,
-        points: List<Offset>.from(points),
-      );
+  DrawStroke copy() =>
+      DrawStroke(color: color, width: width, points: List<Offset>.from(points));
 }
 
 /// The faint guide pattern printed on a drawing canvas.
@@ -70,17 +67,16 @@ class DrawCanvas {
   /// should be light instead of dark.
   bool get isDark => Color(color).computeLuminance() < 0.35;
 
-  DrawCanvas copyWith({int? color, CanvasPattern? pattern}) => DrawCanvas(
-        color: color ?? this.color,
-        pattern: pattern ?? this.pattern,
-      );
+  DrawCanvas copyWith({int? color, CanvasPattern? pattern}) =>
+      DrawCanvas(color: color ?? this.color, pattern: pattern ?? this.pattern);
 
   factory DrawCanvas.fromJson(Map<String, dynamic>? json) {
     if (json == null) return const DrawCanvas();
     final name = json['pattern'] as String?;
     return DrawCanvas(
       color: json['color'] as int? ?? defaultColor,
-      pattern: CanvasPattern.values
+      pattern:
+          CanvasPattern.values
               .where((p) => p.name == name)
               .cast<CanvasPattern?>()
               .firstOrNull ??

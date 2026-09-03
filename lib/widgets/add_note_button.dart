@@ -69,8 +69,11 @@ class AddNoteButton extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.edit_outlined,
-                            size: 26, color: AppColors.ink),
+                        const Icon(
+                          Icons.edit_outlined,
+                          size: 26,
+                          color: AppColors.ink,
+                        ),
                         if (extended) ...[
                           const SizedBox(width: 10),
                           Text(
@@ -120,8 +123,9 @@ class _PaperPainter extends CustomPainter {
 
     // The sheet, minus the corner that curls up.
     final sheet = Path()
-      ..addRRect(RRect.fromRectAndRadius(
-          rect, const Radius.circular(AppRadii.paper)));
+      ..addRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(AppRadii.paper)),
+      );
     final cut = Path()
       ..moveTo(w, h - _fold)
       ..lineTo(w, h)
@@ -141,10 +145,7 @@ class _PaperPainter extends CustomPainter {
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color.lerp(color, Colors.white, 0.10)!,
-            color,
-          ],
+          colors: [Color.lerp(color, Colors.white, 0.10)!, color],
         ).createShader(rect),
     );
 

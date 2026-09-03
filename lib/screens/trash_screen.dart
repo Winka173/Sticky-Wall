@@ -32,12 +32,15 @@ class TrashScreen extends StatelessWidget {
                 backgroundColor: Colors.transparent,
                 foregroundColor: text,
                 elevation: 0,
-                title: Text(l10n.trash,
-                    style: TextStyle(
-                        fontFamily: 'Pacifico',
-                        fontSize: 26,
-                        color: text,
-                        shadows: wall.wallTextShadows)),
+                title: Text(
+                  l10n.trash,
+                  style: TextStyle(
+                    fontFamily: 'Pacifico',
+                    fontSize: 26,
+                    color: text,
+                    shadows: wall.wallTextShadows,
+                  ),
+                ),
                 actions: [
                   if (trashed.isNotEmpty)
                     IconButton(
@@ -61,7 +64,8 @@ class TrashScreen extends StatelessWidget {
                           ScaffoldMessenger.of(context)
                             ..hideCurrentSnackBar()
                             ..showSnackBar(
-                                SnackBar(content: Text(l10n.restored)));
+                              SnackBar(content: Text(l10n.restored)),
+                            );
                         },
                         onPurge: () => notes.purge(trashed[i]),
                       ),
@@ -74,18 +78,22 @@ class TrashScreen extends StatelessWidget {
   }
 
   Future<void> _confirmEmpty(
-      BuildContext context, AppLocalizations l10n) async {
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         content: Text(l10n.emptyTrashConfirm(notes.trashCount)),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(l10n.cancel)),
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(l10n.deleteForever)),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.deleteForever),
+          ),
         ],
       ),
     );
@@ -129,7 +137,8 @@ class _TrashTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final ml = MaterialLocalizations.of(context);
     final deleted = note.deletedAt!;
-    final when = '${ml.formatShortMonthDay(deleted)} '
+    final when =
+        '${ml.formatShortMonthDay(deleted)} '
         '${ml.formatTimeOfDay(TimeOfDay.fromDateTime(deleted))}';
     final scale = Theme.of(context).extension<NoteTextScale>()?.scale ?? 1;
     final expiring = daysLeft <= 3;
@@ -153,16 +162,19 @@ class _TrashTile extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 16 * scale,
-                        height: 1.3,
-                        color: AppColors.ink),
+                      fontSize: 16 * scale,
+                      height: 1.3,
+                      color: AppColors.ink,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     '${l10n.deletedOn(when)} · ${l10n.daysLeft(daysLeft)}',
                     style: TextStyle(
                       fontSize: 12.5,
-                      color: expiring ? AppColors.deleteIcon : AppColors.inkSoft,
+                      color: expiring
+                          ? AppColors.deleteIcon
+                          : AppColors.inkSoft,
                       fontWeight: expiring ? FontWeight.bold : null,
                     ),
                   ),
@@ -173,14 +185,18 @@ class _TrashTile extends StatelessWidget {
               children: [
                 IconButton(
                   tooltip: l10n.restore,
-                  icon: const Icon(Icons.restore_from_trash_outlined,
-                      color: AppColors.ink),
+                  icon: const Icon(
+                    Icons.restore_from_trash_outlined,
+                    color: AppColors.ink,
+                  ),
                   onPressed: onRestore,
                 ),
                 IconButton(
                   tooltip: l10n.deleteForever,
-                  icon: const Icon(Icons.delete_forever_outlined,
-                      color: AppColors.deleteIcon),
+                  icon: const Icon(
+                    Icons.delete_forever_outlined,
+                    color: AppColors.deleteIcon,
+                  ),
                   onPressed: onPurge,
                 ),
               ],
@@ -210,18 +226,26 @@ class _Empty extends StatelessWidget {
           children: [
             Icon(Icons.delete_outline, size: 44, color: faded),
             const SizedBox(height: 12),
-            Text(l10n.trashEmpty,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 22, color: faded, shadows: wall.wallTextShadows)),
+            Text(
+              l10n.trashEmpty,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 22,
+                color: faded,
+                shadows: wall.wallTextShadows,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text(l10n.trashHint,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 15,
-                    height: 1.35,
-                    color: faded.withValues(alpha: 0.75),
-                    shadows: wall.wallTextShadows)),
+            Text(
+              l10n.trashHint,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                height: 1.35,
+                color: faded.withValues(alpha: 0.75),
+                shadows: wall.wallTextShadows,
+              ),
+            ),
           ],
         ),
       ),

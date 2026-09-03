@@ -31,19 +31,18 @@ class SampleNotes {
       NoteType type = NoteType.normal,
       List<ChecklistItem>? checklist,
       List<DrawStroke>? strokes,
-    }) =>
-        Note(
-          guid: uuid.v4(),
-          content: content,
-          createdAt: now.subtract(Duration(minutes: 5 - i)),
-          boardId: boardId,
-          type: type,
-          colorIndex: color,
-          x: x,
-          y: y,
-          checklist: checklist,
-          strokes: strokes,
-        );
+    }) => Note(
+      guid: uuid.v4(),
+      content: content,
+      createdAt: now.subtract(Duration(minutes: 5 - i)),
+      boardId: boardId,
+      type: type,
+      colorIndex: color,
+      x: x,
+      y: y,
+      checklist: checklist,
+      strokes: strokes,
+    );
 
     // x/y are fractions of the free travel (wall minus one card), so two
     // columns need x near 0 and near 1 to sit apart on a phone-width wall.
@@ -89,14 +88,22 @@ class SampleNotes {
     const red = 0xFFC62828;
     const w = 4.0;
 
-    List<Offset> arc(double cx, double cy, double r, double from, double to,
-        {int steps = 24}) {
+    List<Offset> arc(
+      double cx,
+      double cy,
+      double r,
+      double from,
+      double to, {
+      int steps = 24,
+    }) {
       return [
         for (var i = 0; i <= steps; i++)
           () {
             final t = from + (to - from) * i / steps;
             return Offset(
-                cx + r * math.cos(t), cy + r * kDrawingAspect * math.sin(t));
+              cx + r * math.cos(t),
+              cy + r * kDrawingAspect * math.sin(t),
+            );
           }(),
       ];
     }
@@ -108,7 +115,8 @@ class SampleNotes {
           () {
             final t = i / steps * 2 * math.pi;
             final x = 16 * math.pow(math.sin(t), 3).toDouble();
-            final y = 13 * math.cos(t) -
+            final y =
+                13 * math.cos(t) -
                 5 * math.cos(2 * t) -
                 2 * math.cos(3 * t) -
                 math.cos(4 * t);
@@ -120,12 +128,17 @@ class SampleNotes {
     const cx = 0.3, cy = 0.5;
     return [
       // Face outline, two dash eyes, smile.
-      DrawStroke(color: ink, width: w, points: arc(cx, cy, 0.2, 0, 2 * math.pi)),
+      DrawStroke(
+        color: ink,
+        width: w,
+        points: arc(cx, cy, 0.2, 0, 2 * math.pi),
+      ),
       for (final dx in [-0.07, 0.07])
-        DrawStroke(color: ink, width: w + 1, points: [
-          Offset(cx + dx, cy - 0.13),
-          Offset(cx + dx, cy - 0.08),
-        ]),
+        DrawStroke(
+          color: ink,
+          width: w + 1,
+          points: [Offset(cx + dx, cy - 0.13), Offset(cx + dx, cy - 0.08)],
+        ),
       DrawStroke(
         color: ink,
         width: w,

@@ -12,8 +12,10 @@ import 'wall_view.dart' show WallCamera;
 /// switched to chalk-on-dark when the lights are off.
 WallStyle wallFor(Board board, {required bool night}) {
   final wall = board.hasWallImage
-      ? WallStyle.photo(ImageService.resolveWall(board.wallImage),
-          dark: board.wallImageDark)
+      ? WallStyle.photo(
+          ImageService.resolveWall(board.wallImage),
+          dark: board.wallImageDark,
+        )
       : walls[board.wallIndex % walls.length];
   return night ? wall.atNight : wall;
 }

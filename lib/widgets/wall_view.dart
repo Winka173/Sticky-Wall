@@ -4,9 +4,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../models/draw_stroke.dart';
 import '../models/note.dart';
 import '../theme.dart';
 import '../util/angles.dart';
+import 'drawing_canvas.dart';
 import 'note_views.dart';
 
 /// Where a note should go after "tidy up": fractional position plus size.
@@ -62,6 +64,28 @@ class WallCamera extends ChangeNotifier {
   }
 }
 
+/// What a finger draws with in marker mode (see [WallView.marking]).
+class WallMarker {
+  const WallMarker({
+    this.color = 0xFF3B372F,
+    this.width = 4,
+    this.eraser = false,
+  });
+
+  /// ARGB colour of new strokes.
+  final int color;
+  final double width;
+
+  /// Rubbing out instead of drawing.
+  final bool eraser;
+
+  WallMarker copyWith({int? color, double? width, bool? eraser}) => WallMarker(
+    color: color ?? this.color,
+    width: width ?? this.width,
+    eraser: eraser ?? this.eraser,
+  );
+}
+
 /// The free-form "wall": notes sit at absolute positions, can be dragged,
 /// resized and turned, and the whole board can be pinched to zoom / panned.
 /// Red threads can be tied between pins by dragging from one pin to another
@@ -88,6 +112,12 @@ class WallView extends StatefulWidget {
     this.onDrop,
     this.lasso = false,
     this.trashLabel = 'Delete',
+    this.onThreadTap,
+    this.strokes = const [],
+    this.marking = false,
+    this.marker = const WallMarker(),
+    this.onInkBegin,
+    this.onInkChanged,
     this.links = const [],
     this.onConnect,
     this.onCutLink,
@@ -141,6 +171,23 @@ class WallView extends StatefulWidget {
 
   /// Label on the trash tray.
   final String trashLabel;
+
+  /// A thread was tapped. When null, a tap cuts the thread ([onCutLink]).
+  final void Function(NoteLink link)? onThreadTap;
+
+  /// Marker strokes drawn straight on the wall, behind the notes (see
+  /// `Board.strokes`). Mutated in place while [marking].
+  final List<DrawStroke> strokes;
+
+  /// Marker mode: a finger on the wall draws (or erases) instead of touching
+  /// the notes; two fingers still zoom.
+  final bool marking;
+  final WallMarker marker;
+
+  /// A stroke (or erase) is about to change [strokes] — the moment to keep a
+  /// copy for Undo — and [strokes] has changed and wants writing down.
+  final VoidCallback? onInkBegin;
+  final VoidCallback? onInkChanged;
 
   /// Threads to draw (both ends must be in [notes]; others are skipped).
   final List<NoteLink> links;
@@ -237,6 +284,14 @@ class _WallViewState extends State<WallView>
 
   // The note the camera was last pointed at by a double tap.
   String? _focusedGuid;
+
+  // Marker mode: the finger drawing, every finger down (a second one turns
+  // the touch into a pinch and cancels the line), and whether the erase in
+  // progress has taken anything yet.
+  int? _inkPointer;
+  final _inkDown = <int>{};
+  bool _inkBlocked = false;
+  bool _erased = false;
   // Where the finger last was, in wall coordinates. Drag distance is measured
   // there rather than from the gesture's local delta, because the detector
   // sits inside the note's rotation and would otherwise report it turned.
@@ -550,7 +605,9 @@ class _WallViewState extends State<WallView>
     return out;
   }
 
-  void _cutAt(Offset local, double w, double h) {
+  /// A tap on a thread: opens its styling (colour, label, arrow) when the
+  /// screen above offers that, else cuts it.
+  void _threadTapAt(Offset local, double w, double h) {
     _Thread? best;
     var bestD = 14.0;
     for (final t in _threads(w, h)) {
@@ -561,9 +618,89 @@ class _WallViewState extends State<WallView>
         best = t;
       }
     }
-    if (best?.link != null) {
-      HapticFeedback.lightImpact();
-      widget.onCutLink?.call(best!.link!);
+    final link = best?.link;
+    if (link == null) return;
+    HapticFeedback.lightImpact();
+    if (widget.onThreadTap != null) {
+      widget.onThreadTap!(link);
+    } else {
+      widget.onCutLink?.call(link);
+    }
+  }
+
+  // --- Marker mode ----------------------------------------------------------
+
+  Offset _inkNorm(Offset local) => Offset(
+    (local.dx / _size.width).clamp(0.0, 1.0),
+    (local.dy / _size.height).clamp(0.0, 1.0),
+  );
+
+  void _inkStart(PointerDownEvent e) {
+    _inkDown.add(e.pointer);
+    if (_inkPointer != null) {
+      // A second finger: this is a pinch, not a line. Drop the line begun.
+      if (!widget.marker.eraser && widget.strokes.isNotEmpty) {
+        widget.strokes.removeLast();
+      }
+      _inkPointer = null;
+      _inkBlocked = true;
+      setState(() {});
+      return;
+    }
+    if (_inkBlocked) return;
+    _inkPointer = e.pointer;
+    _erased = false;
+    widget.onInkBegin?.call();
+    if (widget.marker.eraser) {
+      _eraseAt(e.localPosition);
+    } else {
+      setState(() {
+        widget.strokes.add(
+          DrawStroke(
+            color: widget.marker.color,
+            width: widget.marker.width,
+            points: [_inkNorm(e.localPosition)],
+          ),
+        );
+      });
+    }
+  }
+
+  void _inkMove(PointerMoveEvent e) {
+    if (e.pointer != _inkPointer) return;
+    if (widget.marker.eraser) {
+      _eraseAt(e.localPosition);
+    } else if (widget.strokes.isNotEmpty) {
+      setState(() => widget.strokes.last.points.add(_inkNorm(e.localPosition)));
+    }
+  }
+
+  void _inkEnd(PointerEvent e) {
+    _inkDown.remove(e.pointer);
+    if (e.pointer == _inkPointer) {
+      _inkPointer = null;
+      if (!widget.marker.eraser || _erased) widget.onInkChanged?.call();
+    }
+    if (_inkDown.isEmpty) _inkBlocked = false;
+  }
+
+  /// Removes every stroke passing within a fingertip of [local].
+  void _eraseAt(Offset local) {
+    final w = _size.width;
+    final h = _size.height;
+    final before = widget.strokes.length;
+    widget.strokes.removeWhere((s) {
+      final reach = 14 + s.width / 2;
+      for (final p in s.points) {
+        final dx = p.dx * w - local.dx;
+        final dy = p.dy * h - local.dy;
+        if (dx * dx + dy * dy <= reach * reach) return true;
+      }
+      return false;
+    });
+    if (widget.strokes.length != before) {
+      _erased = true;
+      setState(() {});
     }
   }
 
@@ -617,9 +754,18 @@ class _WallViewState extends State<WallView>
   void _finishTidy() {
     final probes = _probes;
     if (!mounted || probes.isEmpty) return;
-    final notes = List<Note>.of(widget.notes);
     final w = _size.width;
     final h = _size.height;
+    // Locked notes (headings, mostly) stay where they are; the rows start
+    // beneath the lowest of them.
+    final notes = [
+      for (final n in widget.notes)
+        if (!n.locked) n,
+    ];
+    var top0 = 4.0;
+    for (final n in widget.notes) {
+      if (n.locked) top0 = math.max(top0, _boxOf(n, w, h).bottom + _tidyRowGap);
+    }
 
     // Reading order first; then, if asked, grouped by paper color.
     notes.sort((a, b) {
@@ -649,7 +795,7 @@ class _WallViewState extends State<WallView>
       final cw = _cardWidth * s;
       final left0 = math.max(0.0, (w - cols * cw - (cols - 1) * _tidyGap) / 2);
       final out = <Placement>[];
-      var top = 4.0;
+      var top = top0;
       for (var i = 0; i < notes.length; i += cols) {
         final row = notes.sublist(i, math.min(i + cols, notes.length));
         var rowH = 0.0;
@@ -742,6 +888,8 @@ class _WallViewState extends State<WallView>
             InteractiveViewer(
               transformationController: _tc,
               clipBehavior: widget.still ? Clip.none : Clip.hardEdge,
+              // One finger draws in marker mode; two still zoom.
+              panEnabled: !widget.marking,
               minScale: 0.6,
               maxScale: 3,
               boundaryMargin: const EdgeInsets.all(320),
@@ -779,6 +927,15 @@ class _WallViewState extends State<WallView>
                             : null,
                       ),
                     ),
+                    // Marker strokes lie on the wall itself, under the paper.
+                    if (widget.strokes.isNotEmpty)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: CustomPaint(
+                            painter: StrokePainter(widget.strokes),
+                          ),
+                        ),
+                      ),
                     if (widget.notes.isEmpty && widget.emptyHint != null)
                       Positioned.fill(
                         child: GestureDetector(
@@ -815,15 +972,30 @@ class _WallViewState extends State<WallView>
                       Positioned.fill(
                         child: GestureDetector(
                           behavior: HitTestBehavior.deferToChild,
-                          onTapUp: widget.onCutLink == null
+                          onTapUp:
+                              widget.onCutLink == null &&
+                                  widget.onThreadTap == null
                               ? null
-                              : (d) => _cutAt(d.localPosition, w, h),
+                              : (d) => _threadTapAt(d.localPosition, w, h),
                           child: CustomPaint(
                             painter: _ThreadPainter(
                               threads,
                               highlight: _threadOver != null,
+                              tagStyle: DefaultTextStyle.of(context).style,
                             ),
                           ),
+                        ),
+                      ),
+                    // Marker mode: the finger draws on the wall and the
+                    // notes under it are left alone.
+                    if (widget.marking)
+                      Positioned.fill(
+                        child: Listener(
+                          behavior: HitTestBehavior.opaque,
+                          onPointerDown: _inkStart,
+                          onPointerMove: _inkMove,
+                          onPointerUp: _inkEnd,
+                          onPointerCancel: _inkEnd,
                         ),
                       ),
                   ],
@@ -984,6 +1156,12 @@ class _WallViewState extends State<WallView>
   /// restarts the gesture then, see _noteEnd). One finger begins a drag; a
   /// second one starts a twist / pinch from the note's current turn and size.
   void _noteStart(Note note, ScaleStartDetails d) {
+    if (note.locked) {
+      // Held in place: nothing to drag, turn or resize — but it is the note
+      // in hand, so its (lock) state shows.
+      _setActive(note.guid);
+      return;
+    }
     if (d.pointerCount == 1) HapticFeedback.mediumImpact();
     widget.onBringToFront(note);
     final scale = note.scale;
@@ -1220,7 +1398,7 @@ class _WallViewState extends State<WallView>
 
     final base = widget.callbacksFor(note);
     final canThread = widget.onConnect != null && !dimmed;
-    final grips = active && !threading && !widget.still;
+    final grips = active && !threading && !widget.still && !note.locked;
     final cb = NoteCallbacks(
       onEdit: () {
         _setActive(note.guid);
@@ -1534,6 +1712,15 @@ class _Thread {
     ..moveTo(a.dx, a.dy)
     ..quadraticBezierTo(control.dx, control.dy, b.dx, b.dy);
 
+  /// The yarn's colour: the link's own, or the classic red.
+  Color get color => Color(link?.color ?? AppColors.yarns.first);
+
+  /// The point a fraction [t] along the curve.
+  Offset pointAt(double t) {
+    final c = control;
+    return a * ((1 - t) * (1 - t)) + c * (2 * (1 - t) * t) + b * (t * t);
+  }
+
   /// Distance from [p] to the curve, sampled — plenty for a fingertip.
   double distanceTo(Offset p) {
     var best = double.infinity;
@@ -1547,15 +1734,21 @@ class _Thread {
   }
 }
 
-/// Draws the red threads tied between pins, sagging slightly like real
-/// string, plus the one currently being dragged out.
+/// Draws the threads tied between pins, sagging slightly like real string,
+/// each in its own yarn colour, with an arrowhead and a paper tag where the
+/// link asks for them — plus the one currently being dragged out.
 class _ThreadPainter extends CustomPainter {
-  const _ThreadPainter(this.threads, {this.highlight = false});
+  const _ThreadPainter(
+    this.threads, {
+    this.highlight = false,
+    this.tagStyle = const TextStyle(),
+  });
 
   final List<_Thread> threads;
   final bool highlight;
 
-  static const _yarn = Color(0xFFC62828);
+  /// Style for the words on a tag — the app's own face, sized down.
+  final TextStyle tagStyle;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1578,6 +1771,7 @@ class _ThreadPainter extends CustomPainter {
     for (final t in threads) {
       final path = t.path;
       final alpha = t.faded ? 0.3 : (t.live && !highlight ? 0.75 : 1.0);
+      final color = t.color.withValues(alpha: alpha);
       canvas.save();
       canvas.translate(1.5, 2.5);
       canvas.drawPath(
@@ -1585,7 +1779,7 @@ class _ThreadPainter extends CustomPainter {
         shadow..color = Color.fromRGBO(0, 0, 0, 0.33 * alpha),
       );
       canvas.restore();
-      canvas.drawPath(path, yarn..color = _yarn.withValues(alpha: alpha));
+      canvas.drawPath(path, yarn..color = color);
       canvas.save();
       canvas.translate(0, -0.6);
       canvas.drawPath(
@@ -1594,10 +1788,73 @@ class _ThreadPainter extends CustomPainter {
       );
       canvas.restore();
       // Little knot where the yarn is wound round each pin.
-      final knot = Paint()..color = _yarn.withValues(alpha: alpha);
+      final knot = Paint()..color = color;
       canvas.drawCircle(t.a, 3.2, knot);
       if (!t.live) canvas.drawCircle(t.b, 3.2, knot);
+
+      final link = t.link;
+      if (link == null) continue;
+      if (link.arrow) _arrowhead(canvas, t, knot);
+      if (link.label.isNotEmpty) _tag(canvas, t, alpha);
     }
+  }
+
+  /// A small filled head just short of the [b] knot, along the yarn.
+  void _arrowhead(Canvas canvas, _Thread t, Paint paint) {
+    final tip = t.b;
+    final back = t.pointAt(0.9);
+    final dir = tip - back;
+    if (dir.distance < 1) return;
+    final u = dir / dir.distance;
+    final n = Offset(-u.dy, u.dx);
+    final base = tip - u * 13;
+    final head = Path()
+      ..moveTo(tip.dx, tip.dy)
+      ..lineTo(base.dx + n.dx * 5.5, base.dy + n.dy * 5.5)
+      ..lineTo(base.dx - n.dx * 5.5, base.dy - n.dy * 5.5)
+      ..close();
+    canvas.drawPath(head, paint);
+  }
+
+  /// A paper tag hung from the middle of the thread, with the label on it.
+  void _tag(Canvas canvas, _Thread t, double alpha) {
+    final text = TextPainter(
+      text: TextSpan(
+        text: t.link!.label,
+        style: tagStyle.copyWith(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+          color: AppColors.ink.withValues(alpha: alpha),
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+      ellipsis: '…',
+    )..layout(maxWidth: 120);
+    final mid = t.pointAt(0.5);
+    final rect = Rect.fromCenter(
+      center: mid + const Offset(0, 6),
+      width: text.width + 14,
+      height: text.height + 7,
+    );
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(4));
+    canvas.drawRRect(
+      rrect.shift(const Offset(1, 2)),
+      Paint()..color = Color.fromRGBO(0, 0, 0, 0.25 * alpha),
+    );
+    canvas.drawRRect(
+      rrect,
+      Paint()..color = AppColors.paper.withValues(alpha: alpha),
+    );
+    canvas.drawRRect(
+      rrect,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..color = t.color.withValues(alpha: 0.6 * alpha),
+    );
+    text.paint(canvas, Offset(rect.left + 7, rect.top + 3.5));
+    text.dispose();
   }
 
   @override
@@ -1616,7 +1873,14 @@ class _ThreadPainter extends CustomPainter {
 
   static bool _sameEnds(List<_Thread> x, List<_Thread> y) {
     for (var i = 0; i < x.length; i++) {
-      if (x[i].a != y[i].a || x[i].b != y[i].b || x[i].faded != y[i].faded) {
+      final p = x[i];
+      final q = y[i];
+      if (p.a != q.a ||
+          p.b != q.b ||
+          p.faded != q.faded ||
+          p.link?.color != q.link?.color ||
+          p.link?.label != q.link?.label ||
+          p.link?.arrow != q.link?.arrow) {
         return false;
       }
     }

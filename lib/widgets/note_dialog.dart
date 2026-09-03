@@ -14,9 +14,30 @@ import 'note_views.dart';
 import 'photo_viewer.dart';
 
 const _emojiChoices = [
-  '😀', '😂', '🥰', '😎', '🤔', '😢', '😡', '😴',
-  '🎉', '❤️', '⭐', '🔥', '✅', '📌', '💡', '📞',
-  '🛒', '💪', '📚', '⏰', '🍀', '🎁', '☕', '✈️',
+  '😀',
+  '😂',
+  '🥰',
+  '😎',
+  '🤔',
+  '😢',
+  '😡',
+  '😴',
+  '🎉',
+  '❤️',
+  '⭐',
+  '🔥',
+  '✅',
+  '📌',
+  '💡',
+  '📞',
+  '🛒',
+  '💪',
+  '📚',
+  '⏰',
+  '🍀',
+  '🎁',
+  '☕',
+  '✈️',
 ];
 
 /// Opens the note editor — styled as the sticky note itself, so writing feels
@@ -161,21 +182,24 @@ class _NoteDialogState extends State<_NoteDialog>
       case NoteType.link:
         if (url.isEmpty) {
           error = l10n.linkRequired;
-        } else if (widget.existing.any((o) =>
-            o.guid != _n.guid &&
-            o.type == NoteType.link &&
-            _urlKey(o.url) == _urlKey(url))) {
+        } else if (widget.existing.any(
+          (o) =>
+              o.guid != _n.guid &&
+              o.type == NoteType.link &&
+              _urlKey(o.url) == _urlKey(url),
+        )) {
           error = l10n.duplicateExists;
         }
       case NoteType.checklist:
-        if (content.isEmpty &&
-            _n.checklist.every((i) => i.text.isEmpty)) {
+        if (content.isEmpty && _n.checklist.every((i) => i.text.isEmpty)) {
           error = l10n.noteEmpty;
         }
       case NoteType.drawing:
         if (content.isEmpty && _n.strokes.isEmpty) error = l10n.noteEmpty;
       case NoteType.photo:
         if (!_n.hasPhoto) error = l10n.photoRequired;
+      case NoteType.label:
+        if (content.isEmpty) error = l10n.contentRequired;
     }
     if (error != null) {
       _fail(error);
@@ -183,8 +207,7 @@ class _NoteDialogState extends State<_NoteDialog>
     }
 
     // An untitled link shows its address on the card.
-    _n.content =
-        content.isEmpty && _n.type == NoteType.link ? url : content;
+    _n.content = content.isEmpty && _n.type == NoteType.link ? url : content;
     _n.url = _n.type == NoteType.link ? url : '';
     if (_n.type == NoteType.checklist) {
       _n.checklist.removeWhere((i) => i.text.isEmpty);
@@ -220,8 +243,13 @@ class _NoteDialogState extends State<_NoteDialog>
     );
     if (time == null || !mounted) return;
     setState(() {
-      _n.reminderAt =
-          DateTime(date.year, date.month, date.day, time.hour, time.minute);
+      _n.reminderAt = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
     });
   }
 
@@ -364,8 +392,8 @@ class _NoteDialogState extends State<_NoteDialog>
                             child: _showEmoji
                                 ? _emojiStrip()
                                 : _showColors
-                                    ? _colorRow()
-                                    : const SizedBox(width: double.infinity),
+                                ? _colorRow()
+                                : const SizedBox(width: double.infinity),
                           ),
                         ],
                       ),
@@ -408,8 +436,9 @@ class _NoteDialogState extends State<_NoteDialog>
       padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: const BoxDecoration(
         color: Color(0x2EFFFFFF),
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppRadii.paper)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadii.paper),
+        ),
       ),
       child: Row(
         children: [
@@ -464,11 +493,16 @@ class _NoteDialogState extends State<_NoteDialog>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_photo_alternate_outlined,
-                      size: 26, color: faint),
+                  Icon(
+                    Icons.add_photo_alternate_outlined,
+                    size: 26,
+                    color: faint,
+                  ),
                   const SizedBox(height: 4),
-                  Text(l10n.addPhoto,
-                      style: TextStyle(fontSize: 13, color: faint)),
+                  Text(
+                    l10n.addPhoto,
+                    style: TextStyle(fontSize: 13, color: faint),
+                  ),
                 ],
               ),
             ),
@@ -510,6 +544,7 @@ class _NoteDialogState extends State<_NoteDialog>
   Widget _writingArea(AppLocalizations l10n) {
     final isNormal = _n.type == NoteType.normal;
     final isPhoto = _n.type == NoteType.photo;
+    final isLabel = _n.type == NoteType.label;
     final style = noteBodyStyle(context);
     final lineHeight = style.fontSize! * style.height!;
     final strut = StrutStyle(
@@ -529,19 +564,18 @@ class _NoteDialogState extends State<_NoteDialog>
       keyboardType: isNormal ? TextInputType.multiline : TextInputType.text,
       textInputAction: isNormal
           ? TextInputAction.newline
-          : _n.type == NoteType.drawing || isPhoto
-              ? TextInputAction.done
-              : TextInputAction.next,
+          : _n.type == NoteType.drawing || isPhoto || isLabel
+          ? TextInputAction.done
+          : TextInputAction.next,
       onSubmitted: isNormal
           ? null
           : (_) => switch (_n.type) {
-                NoteType.link => _urlFocus.requestFocus(),
-                NoteType.checklist => (_items.isEmpty
-                        ? _newItemFocus
-                        : _items.first.focus)
+              NoteType.link => _urlFocus.requestFocus(),
+              NoteType.checklist =>
+                (_items.isEmpty ? _newItemFocus : _items.first.focus)
                     .requestFocus(),
-                _ => null,
-              },
+              _ => null,
+            },
       decoration: InputDecoration(
         border: InputBorder.none,
         isDense: true,
@@ -549,11 +583,17 @@ class _NoteDialogState extends State<_NoteDialog>
         hintText: isNormal
             ? l10n.contentHint
             : isPhoto
-                ? l10n.caption
-                : l10n.title,
+            ? l10n.caption
+            : isLabel
+            ? l10n.labelHint
+            : l10n.title,
         hintStyle: style.copyWith(color: _ink.withValues(alpha: 0.35)),
       ),
-      maxLines: isNormal ? null : isPhoto ? 2 : 1,
+      maxLines: isNormal
+          ? null
+          : isPhoto || isLabel
+          ? 2
+          : 1,
       minLines: isNormal ? 5 : 1,
     );
 
@@ -565,8 +605,9 @@ class _NoteDialogState extends State<_NoteDialog>
       strutStyle: strut,
       textDirection: TextDirection.ltr,
     )..layout();
-    final baseline =
-        probe.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+    final baseline = probe.computeDistanceToActualBaseline(
+      TextBaseline.alphabetic,
+    );
     probe.dispose();
 
     return Stack(
@@ -595,14 +636,19 @@ class _NoteDialogState extends State<_NoteDialog>
               padding: const EdgeInsets.only(top: 6),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline,
-                      size: 16, color: AppColors.deleteIcon),
+                  const Icon(
+                    Icons.error_outline,
+                    size: 16,
+                    color: AppColors.deleteIcon,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       _error!,
                       style: const TextStyle(
-                          fontSize: 14, color: AppColors.deleteIcon),
+                        fontSize: 14,
+                        color: AppColors.deleteIcon,
+                      ),
                     ),
                   ),
                 ],
@@ -619,8 +665,11 @@ class _NoteDialogState extends State<_NoteDialog>
         children: [
           Padding(
             padding: const EdgeInsets.only(right: 6),
-            child:
-                Icon(Icons.link, size: 18, color: _ink.withValues(alpha: 0.6)),
+            child: Icon(
+              Icons.link,
+              size: 18,
+              color: _ink.withValues(alpha: 0.6),
+            ),
           ),
           Expanded(
             child: TextField(
@@ -637,7 +686,9 @@ class _NoteDialogState extends State<_NoteDialog>
                 isDense: true,
                 hintText: l10n.link,
                 hintStyle: TextStyle(
-                    fontSize: 16, color: _ink.withValues(alpha: 0.35)),
+                  fontSize: 16,
+                  color: _ink.withValues(alpha: 0.35),
+                ),
               ),
             ),
           ),
@@ -647,7 +698,10 @@ class _NoteDialogState extends State<_NoteDialog>
   }
 
   Widget _checklistEditor(AppLocalizations l10n) {
-    final itemStyle = TextStyle(fontSize: 17 * noteFontScale(context), color: _ink);
+    final itemStyle = TextStyle(
+      fontSize: 17 * noteFontScale(context),
+      color: _ink,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -674,10 +728,11 @@ class _NoteDialogState extends State<_NoteDialog>
                     _n.checklist[i].text = v;
                     _clearError();
                   },
-                  onSubmitted: (_) => (i + 1 < _items.length
-                          ? _items[i + 1].focus
-                          : _newItemFocus)
-                      .requestFocus(),
+                  onSubmitted: (_) =>
+                      (i + 1 < _items.length
+                              ? _items[i + 1].focus
+                              : _newItemFocus)
+                          .requestFocus(),
                   style: itemStyle.copyWith(
                     decoration: _n.checklist[i].done
                         ? TextDecoration.lineThrough
@@ -707,7 +762,11 @@ class _NoteDialogState extends State<_NoteDialog>
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Icon(Icons.add, size: 20, color: _ink.withValues(alpha: 0.5)),
+              child: Icon(
+                Icons.add,
+                size: 20,
+                color: _ink.withValues(alpha: 0.5),
+              ),
             ),
             Expanded(
               child: TextField(
@@ -725,8 +784,9 @@ class _NoteDialogState extends State<_NoteDialog>
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   hintText: l10n.addItem,
-                  hintStyle:
-                      itemStyle.copyWith(color: _ink.withValues(alpha: 0.35)),
+                  hintStyle: itemStyle.copyWith(
+                    color: _ink.withValues(alpha: 0.35),
+                  ),
                 ),
               ),
             ),
@@ -782,7 +842,10 @@ class _NoteDialogState extends State<_NoteDialog>
               ),
               child: Text(
                 repeatLabel(l10n, _n.repeat),
-                style: TextStyle(fontSize: 13, color: _ink.withValues(alpha: 0.8)),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: _ink.withValues(alpha: 0.8),
+                ),
               ),
             ),
           ),
@@ -793,8 +856,11 @@ class _NoteDialogState extends State<_NoteDialog>
               _n.reminderAt = null;
               _n.repeat = ReminderRepeat.none;
             }),
-            child: Icon(Icons.close,
-                size: 16, color: _ink.withValues(alpha: 0.5)),
+            child: Icon(
+              Icons.close,
+              size: 16,
+              color: _ink.withValues(alpha: 0.5),
+            ),
           ),
         ],
       ),
@@ -810,9 +876,11 @@ class _NoteDialogState extends State<_NoteDialog>
       (NoteType.checklist, Icons.checklist, l10n.typeChecklist),
       (NoteType.drawing, Icons.brush_outlined, l10n.typeDrawing),
       (NoteType.photo, Icons.photo_outlined, l10n.typePhoto),
+      (NoteType.label, Icons.label_outline, l10n.typeLabel),
     ];
     final faint = _ink.withValues(alpha: 0.45);
     final isPhoto = _n.type == NoteType.photo;
+    final isLabel = _n.type == NoteType.label;
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -841,9 +909,11 @@ class _NoteDialogState extends State<_NoteDialog>
                           borderRadius: BorderRadius.circular(16),
                           color: _n.type == t ? _ink : Colors.transparent,
                         ),
-                        child: Icon(icon,
-                            size: 19,
-                            color: _n.type == t ? AppColors.chalk : faint),
+                        child: Icon(
+                          icon,
+                          size: 19,
+                          color: _n.type == t ? AppColors.chalk : faint,
+                        ),
                       ),
                     ),
                   ),
@@ -864,15 +934,17 @@ class _NoteDialogState extends State<_NoteDialog>
                 size: 22,
               ),
             ),
-          IconButton(
-            tooltip: l10n.reminder,
-            onPressed: _pickReminder,
-            color: _n.reminderAt == null ? faint : _ink,
-            icon: Icon(
-              _n.reminderAt == null ? Icons.alarm_add : Icons.alarm_on,
-              size: 22,
+          // A label is a heading, not something to be reminded of.
+          if (!isLabel)
+            IconButton(
+              tooltip: l10n.reminder,
+              onPressed: _pickReminder,
+              color: _n.reminderAt == null ? faint : _ink,
+              icon: Icon(
+                _n.reminderAt == null ? Icons.alarm_add : Icons.alarm_on,
+                size: 22,
+              ),
             ),
-          ),
           IconButton(
             tooltip: l10n.emote,
             onPressed: () => setState(() {
@@ -1021,8 +1093,11 @@ class _NoteDialogState extends State<_NoteDialog>
               ),
             ),
             child: auto
-                ? Icon(Icons.auto_awesome,
-                    size: 13, color: _ink.withValues(alpha: 0.7))
+                ? Icon(
+                    Icons.auto_awesome,
+                    size: 13,
+                    color: _ink.withValues(alpha: 0.7),
+                  )
                 : null,
           ),
         ),

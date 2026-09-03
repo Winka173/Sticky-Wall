@@ -35,7 +35,9 @@ Future<void> main() async {
 
   if (firstRun) {
     final sample = SampleNotes.build(
-        _localizationsFor(settings.localeOverride), notes.currentBoardId);
+      _localizationsFor(settings.localeOverride),
+      notes.currentBoardId,
+    );
     notes.seed(sample.notes, links: sample.links);
     // The samples teach wall gestures (and one is tied to another by a
     // thread), so a fresh install opens on the wall rather than the grid.
@@ -61,11 +63,13 @@ Future<void> main() async {
   settings.addListener(syncWidget);
   syncWidget();
 
-  runApp(StickyWallApp(
-    settings: settings,
-    notes: notes,
-    shareReceiver: ShareReceiver(),
-  ));
+  runApp(
+    StickyWallApp(
+      settings: settings,
+      notes: notes,
+      shareReceiver: ShareReceiver(),
+    ),
+  );
 }
 
 /// Resolves strings outside the widget tree (for the home-screen widget):
@@ -73,10 +77,12 @@ Future<void> main() async {
 AppLocalizations _localizationsFor(Locale? override) {
   final device = PlatformDispatcher.instance.locale;
   final candidate = override ?? Locale(device.languageCode);
-  final supported = AppLocalizations.supportedLocales
-      .any((l) => l.languageCode == candidate.languageCode);
+  final supported = AppLocalizations.supportedLocales.any(
+    (l) => l.languageCode == candidate.languageCode,
+  );
   return lookupAppLocalizations(
-      supported ? Locale(candidate.languageCode) : const Locale('en'));
+    supported ? Locale(candidate.languageCode) : const Locale('en'),
+  );
 }
 
 /// Root widget: builds the paper theme from the chosen font and night mode,
@@ -126,6 +132,8 @@ class _NoScrollbarBehavior extends MaterialScrollBehavior {
 
   @override
   Widget buildScrollbar(
-          BuildContext context, Widget child, ScrollableDetails details) =>
-      child;
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) => child;
 }

@@ -6,8 +6,22 @@ import '../theme.dart';
 
 /// Emoji offered as board icons.
 const boardIcons = [
-  '🏠', '💼', '📚', '🎯', '🛒', '✈️', '💡', '🎨',
-  '🍳', '💪', '🎵', '🌱', '❤️', '⭐', '📌', '🧠',
+  '🏠',
+  '💼',
+  '📚',
+  '🎯',
+  '🛒',
+  '✈️',
+  '💡',
+  '🎨',
+  '🍳',
+  '💪',
+  '🎵',
+  '🌱',
+  '❤️',
+  '⭐',
+  '📌',
+  '🧠',
 ];
 
 /// Everything the board dialog asks for: how the tab should read.
@@ -72,11 +86,12 @@ class _BoardDialogState extends State<_BoardDialog> {
 
   /// The formatting as it would be stored, applied to [base].
   TextStyle _styled(TextStyle base) => base.copyWith(
-        fontWeight: _format.contains(_Format.bold) ? FontWeight.bold : null,
-        fontStyle: _format.contains(_Format.italic) ? FontStyle.italic : null,
-        decoration:
-            _format.contains(_Format.underline) ? TextDecoration.underline : null,
-      );
+    fontWeight: _format.contains(_Format.bold) ? FontWeight.bold : null,
+    fontStyle: _format.contains(_Format.italic) ? FontStyle.italic : null,
+    decoration: _format.contains(_Format.underline)
+        ? TextDecoration.underline
+        : null,
+  );
 
   void _save() {
     Navigator.pop(context, (
@@ -119,8 +134,10 @@ class _BoardDialogState extends State<_BoardDialog> {
                     textCapitalization: TextCapitalization.sentences,
                     maxLength: _maxNameLength,
                     // Live preview: the field is written the way the tab is.
-                    style: _styled(theme.textTheme.bodyLarge ??
-                        const TextStyle(color: AppColors.ink)),
+                    style: _styled(
+                      theme.textTheme.bodyLarge ??
+                          const TextStyle(color: AppColors.ink),
+                    ),
                     decoration: InputDecoration(
                       labelText: l10n.boardName,
                       hintText: _isNew ? null : l10n.defaultBoardName,
@@ -174,9 +191,13 @@ class _BoardDialogState extends State<_BoardDialog> {
                   _IconChoice(
                     selected: _icon.isEmpty,
                     onTap: () => setState(() => _icon = ''),
-                    child: Text(l10n.none,
-                        style: const TextStyle(
-                            fontSize: 14, color: AppColors.ink)),
+                    child: Text(
+                      l10n.none,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.ink,
+                      ),
+                    ),
                   ),
                   for (final e in boardIcons)
                     Padding(
@@ -200,10 +221,7 @@ class _BoardDialogState extends State<_BoardDialog> {
           onPressed: () => Navigator.pop(context),
           child: Text(l10n.cancel),
         ),
-        FilledButton(
-          onPressed: canSave ? _save : null,
-          child: Text(l10n.save),
-        ),
+        FilledButton(onPressed: canSave ? _save : null, child: Text(l10n.save)),
       ],
     );
   }

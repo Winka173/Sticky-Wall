@@ -35,6 +35,28 @@ abstract class AppColors {
   /// so a picture dims exactly as much as the paper next to it.
   static const nightShade = Color(0x617A6A4A);
 
+  /// Yarn a thread can be tied with, classic red first (ARGB ints, since
+  /// they are stored on the link).
+  static const yarns = [
+    0xFFC62828, // red
+    0xFFEF6C00, // orange
+    0xFFF9A825, // gold
+    0xFF2E7D32, // green
+    0xFF1565C0, // blue
+    0xFF6A1B9A, // purple
+    0xFF3B372F, // ink
+  ];
+
+  /// Marker colours for drawing straight on the wall: ink first, chalk last
+  /// (for dark walls).
+  static const markers = [
+    0xFF3B372F, // ink
+    0xFFD32F2F, // red
+    0xFF1E63C6, // blue
+    0xFF2E7D32, // green
+    0xFFFDFBF3, // chalk
+  ];
+
   /// Pastel sticky-note paper colors.
   static const notePapers = [
     Color(0xFFFFF59D), // yellow
@@ -74,9 +96,8 @@ Color paperColorOf(BuildContext context, int? colorIndex, String guid) {
 
 /// The border colour of a photo print, dimmed with the lights off like the
 /// note paper is.
-Color printColorOf(BuildContext context) => isNight(context)
-    ? nightPaper(AppColors.printPaper)
-    : AppColors.printPaper;
+Color printColorOf(BuildContext context) =>
+    isNight(context) ? nightPaper(AppColors.printPaper) : AppColors.printPaper;
 
 /// Whether the current theme is the "lights off" one.
 bool isNight(BuildContext context) =>
@@ -89,10 +110,10 @@ double noteFontScale(BuildContext context) =>
 /// The one text style for note body text — used by both the editor and the
 /// cards, so what you write is exactly what lands on the wall.
 TextStyle noteBodyStyle(BuildContext context) => TextStyle(
-      color: AppColors.ink,
-      fontSize: 18 * noteFontScale(context),
-      height: 1.4,
-    );
+  color: AppColors.ink,
+  fontSize: 18 * noteFontScale(context),
+  height: 1.4,
+);
 
 /// A wall the notes are stuck on: a seamless CC0 texture (ambientCG) plus a
 /// scrim overlay tuned so text keeps enough contrast against the texture.
@@ -109,12 +130,12 @@ class WallStyle {
   /// photo gets a smoky scrim and chalk writing; a light one a milky scrim
   /// and ink — either way the picture stays visible but never fights text.
   factory WallStyle.photo(String path, {required bool dark}) => WallStyle(
-        id: 'photo',
-        asset: '',
-        overlay: dark ? const Color(0x6B000000) : const Color(0x73FFFFFF),
-        dark: dark,
-        imageFile: path,
-      );
+    id: 'photo',
+    asset: '',
+    overlay: dark ? const Color(0x6B000000) : const Color(0x73FFFFFF),
+    dark: dark,
+    imageFile: path,
+  );
 
   /// Stable identifier, also used to pick the localized display name.
   final String id;
@@ -134,12 +155,12 @@ class WallStyle {
   /// The same wall with the lights off: whatever the texture, text turns to
   /// chalk because the room is dark.
   WallStyle get atNight => WallStyle(
-        id: id,
-        asset: asset,
-        overlay: overlay,
-        dark: true,
-        imageFile: imageFile,
-      );
+    id: id,
+    asset: asset,
+    overlay: overlay,
+    dark: true,
+    imageFile: imageFile,
+  );
 
   Color get wallText => dark ? AppColors.chalk : AppColors.ink;
 
@@ -149,7 +170,7 @@ class WallStyle {
   /// Soft shadow gives the "chalk/marker on wall" depth on dark walls.
   List<Shadow> get wallTextShadows => dark
       ? const [
-          Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))
+          Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1)),
         ]
       : const [];
 }
@@ -273,7 +294,12 @@ const fontChoices = [
   // Neat, rounded schoolbook handwriting.
   FontChoice(id: 'mali', family: 'Mali', label: 'Mali'),
   // Bold marker strokes.
-  FontChoice(id: 'sriracha', family: 'Sriracha', label: 'Sriracha', scale: 0.95),
+  FontChoice(
+    id: 'sriracha',
+    family: 'Sriracha',
+    label: 'Sriracha',
+    scale: 0.95,
+  ),
   // Quick, scratchy ballpoint notes.
   FontChoice(id: 'mynerve', family: 'Mynerve', label: 'Mynerve', scale: 1.05),
   // Bubbly, playful lettering.
@@ -297,10 +323,8 @@ const fontChoices = [
 ];
 
 /// The font with the given [FontChoice.id], or the default one.
-FontChoice fontChoiceById(String id) => fontChoices.firstWhere(
-      (f) => f.id == id,
-      orElse: () => fontChoices.first,
-    );
+FontChoice fontChoiceById(String id) =>
+    fontChoices.firstWhere((f) => f.id == id, orElse: () => fontChoices.first);
 
 /// Exposes the selected font's optical scale to widgets that set explicit
 /// font sizes (note text).
@@ -374,8 +398,8 @@ ThemeData buildAppTheme(FontChoice font, {bool night = false}) {
 
   /// [onOff] for the picker slots typed as a plain [Color].
   Color stateColor(Color selected, Color rest) => WidgetStateColor.resolveWith(
-        (s) => s.contains(WidgetState.selected) ? selected : rest,
-      );
+    (s) => s.contains(WidgetState.selected) ? selected : rest,
+  );
 
   return base.copyWith(
     extensions: [NoteTextScale(font.scale), NightMood(night)],
@@ -575,8 +599,10 @@ ThemeData buildAppTheme(FontChoice font, {bool night = false}) {
       dialBackgroundColor: AppColors.ink.withValues(alpha: 0.08),
       dialHandColor: AppColors.ink,
       dialTextColor: stateColor(AppColors.chalk, AppColors.ink),
-      hourMinuteColor:
-          stateColor(AppColors.accent, AppColors.ink.withValues(alpha: 0.08)),
+      hourMinuteColor: stateColor(
+        AppColors.accent,
+        AppColors.ink.withValues(alpha: 0.08),
+      ),
       hourMinuteTextColor: AppColors.ink,
       dayPeriodColor: stateColor(AppColors.accent, Colors.transparent),
       dayPeriodTextColor: AppColors.ink,

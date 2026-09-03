@@ -130,13 +130,15 @@ Future<StickyWallApp> _app({
   required ViewMode mode,
   required List<Note> notes,
   List<NoteLink> links = const [],
+  List<DrawStroke> strokes = const [],
   int wallIndex = 0,
   NightMode night = NightMode.off,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final storage = await NoteStorage.create();
-  await storage
-      .saveBoards([Board(id: 'default', name: '', wallIndex: wallIndex)]);
+  await storage.saveBoards([
+    Board(id: 'default', name: '', wallIndex: wallIndex, strokes: List.of(strokes)),
+  ]);
   await storage.saveNotes(notes);
   await storage.saveLinks(links);
   await storage.setViewMode(mode);
@@ -184,7 +186,24 @@ List<Note> _wallNotes(List<String> photos) => [
       // Two notes turned by hand: the print and the small note at the bottom.
       Note(guid: 'p', content: 'Biển hôm qua', boardId: 'default', createdAt: _t(4), type: NoteType.photo, imagePath: photos.first, x: 0.62, y: 0.3, rotation: -0.28),
       Note(guid: 'd', content: 'nhỏ', boardId: 'default', createdAt: _t(5), colorIndex: 2, x: 0.45, y: 0.9, scale: 0.8, rotation: 0.5),
+      // A heading on tape, held in place.
+      Note(guid: 'l', content: 'Tuần này', boardId: 'default', createdAt: _t(6), type: NoteType.label, colorIndex: 4, emoji: '📌', x: 0.62, y: 0.74, locked: true),
     ];
+
+/// Threads for the wall golden: the sketch to the big note (blue, labelled,
+/// with an arrowhead) and the print to the small one (classic red).
+const _wallLinks = [
+  NoteLink('b', 'c', color: 0xFF1565C0, label: 'kế hoạch', arrow: true),
+  NoteLink('p', 'd'),
+];
+
+/// A marker stroke on the wall: a loose underline beneath the top row.
+final _wallStrokes = [
+  DrawStroke(color: 0xFF3B372F, width: 5, points: const [
+    Offset(0.04, 0.40), Offset(0.12, 0.415), Offset(0.22, 0.405),
+    Offset(0.33, 0.42), Offset(0.42, 0.41),
+  ]),
+];
 
 void main() {
   testWidgets('mode wall features', skip: true, (tester) async {
@@ -193,16 +212,19 @@ void main() {
     final app = await _app(
       mode: ViewMode.wall,
       notes: _wallNotes(photos),
-      // Red threads: the sketch to the big note, the print to the small one.
-      links: const [NoteLink('b', 'c'), NoteLink('p', 'd')],
+      links: _wallLinks,
+      strokes: _wallStrokes,
     );
     await _pump(tester, app, photos: photos);
     // Nudge the print so it is the active note and shows both of its grips:
-    // resize at bottom-right, rotate at bottom-left.
+    // resize at bottom-right, rotate at bottom-left. Then let the Undo pill
+    // the nudge raised time out, so it does not sit over the top row.
     await tester.drag(find.text('Biển hôm qua'), const Offset(0, 40));
     for (var i = 0; i < 4; i++) {
       await tester.pump(const Duration(milliseconds: 130));
     }
+    await tester.pump(const Duration(seconds: 7));
+    await tester.pump(const Duration(milliseconds: 300));
     await expectLater(
         find.byType(StickyWallApp), matchesGoldenFile('mode_wall.png'));
   });
@@ -360,7 +382,8 @@ void main() {
     final app = await _app(
       mode: ViewMode.wall,
       notes: _wallNotes(photos),
-      links: const [NoteLink('b', 'c'), NoteLink('p', 'd')],
+      links: _wallLinks,
+      strokes: _wallStrokes,
     );
     await _pump(tester, app, photos: photos);
     await tester.tap(find.byIcon(Icons.more_vert));

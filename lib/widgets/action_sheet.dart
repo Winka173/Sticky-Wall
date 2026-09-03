@@ -29,9 +29,12 @@ Future<T?> showActionSheet<T>(
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
                   child: Text(
                     title,
-                    style: titleStyle ??
+                    style:
+                        titleStyle ??
                         const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
               ...children,

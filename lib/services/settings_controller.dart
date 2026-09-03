@@ -11,13 +11,13 @@ export 'note_storage.dart' show NightMode;
 /// Persists through [NoteStorage] and notifies listeners so the app rebuilds.
 class SettingsController extends ChangeNotifier {
   SettingsController(this._storage)
-      : _fontId = _storage.fontId,
-        _languageCode = _storage.languageCode,
-        _wallDecor = _storage.wallDecor,
-        _nightMode = _storage.nightMode,
-        _nightStart = _storage.nightStart,
-        _nightEnd = _storage.nightEnd,
-        _autoTrashDone = _storage.autoTrashDone {
+    : _fontId = _storage.fontId,
+      _languageCode = _storage.languageCode,
+      _wallDecor = _storage.wallDecor,
+      _nightMode = _storage.nightMode,
+      _nightStart = _storage.nightStart,
+      _nightEnd = _storage.nightEnd,
+      _autoTrashDone = _storage.autoTrashDone {
     _watchClock();
   }
 
@@ -61,12 +61,12 @@ class SettingsController extends ChangeNotifier {
 
   /// What `MaterialApp.themeMode` should be for the current setting.
   ThemeMode get themeMode => switch (_nightMode) {
-        NightMode.off => ThemeMode.light,
-        NightMode.on => ThemeMode.dark,
-        NightMode.system => ThemeMode.system,
-        NightMode.schedule =>
-          scheduledNightAt(DateTime.now()) ? ThemeMode.dark : ThemeMode.light,
-      };
+    NightMode.off => ThemeMode.light,
+    NightMode.on => ThemeMode.dark,
+    NightMode.system => ThemeMode.system,
+    NightMode.schedule =>
+      scheduledNightAt(DateTime.now()) ? ThemeMode.dark : ThemeMode.light,
+  };
 
   void setFontId(String id) {
     _fontId = id;

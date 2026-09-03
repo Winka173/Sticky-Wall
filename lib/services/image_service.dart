@@ -75,8 +75,10 @@ class ImageService {
   /// Picks one photo for a note. Returns the stored reference, or null when
   /// the user cancelled.
   Future<String?> pickImage(ImageSource source) async {
-    final picked =
-        await _picker.pickImage(source: source, maxWidth: _maxPhotoEdge);
+    final picked = await _picker.pickImage(
+      source: source,
+      maxWidth: _maxPhotoEdge,
+    );
     if (picked == null) return null;
     return _import(picked.path);
   }
@@ -166,8 +168,10 @@ class ImageService {
   }
 
   /// Rasterizes a RepaintBoundary (a rendered note) to PNG bytes.
-  static Future<Uint8List?> capture(RenderRepaintBoundary boundary,
-      {double pixelRatio = 3.0}) async {
+  static Future<Uint8List?> capture(
+    RenderRepaintBoundary boundary, {
+    double pixelRatio = 3.0,
+  }) async {
     final image = await boundary.toImage(pixelRatio: pixelRatio);
     final data = await image.toByteData(format: ui.ImageByteFormat.png);
     return data?.buffer.asUint8List();

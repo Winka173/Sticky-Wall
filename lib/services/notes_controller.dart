@@ -334,6 +334,7 @@ class NotesController extends ChangeNotifier {
       2 => note.type == NoteType.checklist,
       3 => note.type == NoteType.drawing,
       4 => note.type == NoteType.photo,
+      5 => note.type == NoteType.label,
       _ => true,
     };
     if (!matchesType) return false;
@@ -559,6 +560,26 @@ class NotesController extends ChangeNotifier {
   }
 
   void togglePin(Note note) => pinAll([note], !note.pinned);
+
+  /// Holds a note in place on the wall (or lets it go again).
+  void toggleLock(Note note) => lockAll([note], !note.locked);
+
+  void lockAll(List<Note> notes, bool locked) {
+    for (final note in notes) {
+      note.locked = locked;
+    }
+    _persistNotes();
+    notifyListeners();
+  }
+
+  // --- Marker strokes on the wall -----------------------------------------
+
+  /// The wall view draws into the current board's stroke list in place; this
+  /// writes the result down and tells everyone.
+  void saveWallStrokes() {
+    _storage.saveBoards(_boards);
+    notifyListeners();
+  }
 
   void pinAll(List<Note> notes, bool pinned) {
     for (final note in notes) {
@@ -795,6 +816,24 @@ class NotesController extends ChangeNotifier {
 
   void disconnect(NoteLink link) {
     _links.removeWhere((l) => l.same(link.a, link.b));
+    _storage.saveLinks(_links);
+    notifyListeners();
+  }
+
+  /// Restyles a thread — colour, label, arrowhead — matched by its two ends.
+  void updateLink(NoteLink link) {
+    final i = _links.indexWhere((l) => l.same(link.a, link.b));
+    if (i == -1) return;
+    _links[i] = link;
+    _storage.saveLinks(_links);
+    notifyListeners();
+  }
+
+  /// Ties a cut thread back exactly as it was (Undo), unless the pair has
+  /// been tied again meanwhile.
+  void restoreLink(NoteLink link) {
+    if (isLinked(link.a, link.b)) return;
+    _links.add(link);
     _storage.saveLinks(_links);
     notifyListeners();
   }

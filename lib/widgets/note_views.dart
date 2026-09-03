@@ -177,16 +177,18 @@ class _SketchThumb extends StatelessWidget {
 /// The paper a note is drawn on: its colour (dimmed at night; the print white
 /// for a photo), a soft drop shadow that deepens while [raised] (dragging),
 /// and an ink border when [selected].
-BoxDecoration paperDecoration(BuildContext context, Note note,
-    {bool raised = false, bool selected = false}) {
+BoxDecoration paperDecoration(
+  BuildContext context,
+  Note note, {
+  bool raised = false,
+  bool selected = false,
+}) {
   return BoxDecoration(
     color: note.type == NoteType.photo
         ? printColorOf(context)
         : paperColorOf(context, note.colorIndex, note.guid),
     borderRadius: BorderRadius.circular(AppRadii.paper),
-    border: selected
-        ? Border.all(color: AppColors.ink, width: 2.5)
-        : null,
+    border: selected ? Border.all(color: AppColors.ink, width: 2.5) : null,
     boxShadow: [
       BoxShadow(
         color: Colors.black.withValues(alpha: raised ? 0.38 : 0.28),
@@ -250,7 +252,10 @@ class _NotePinState extends State<NotePin> with SingleTickerProviderStateMixin {
           shape: BoxShape.circle,
           boxShadow: const [
             BoxShadow(
-                color: Colors.black38, blurRadius: 3, offset: Offset(1, 2)),
+              color: Colors.black38,
+              blurRadius: 3,
+              offset: Offset(1, 2),
+            ),
           ],
         ),
       ),
@@ -311,7 +316,8 @@ class _ReminderChip extends StatelessWidget {
     // A repeating reminder is never "overdue" — it just rings again.
     final overdue = !repeats && at.isBefore(DateTime.now());
     final ml = MaterialLocalizations.of(context);
-    final label = '${ml.formatShortMonthDay(at)} '
+    final label =
+        '${ml.formatShortMonthDay(at)} '
         '${ml.formatTimeOfDay(TimeOfDay.fromDateTime(at))}';
     final color = overdue ? AppColors.deleteIcon : const Color(0xFF4E6E4E);
 
@@ -328,8 +334,8 @@ class _ReminderChip extends StatelessWidget {
             repeats
                 ? Icons.repeat
                 : overdue
-                    ? Icons.alarm_on
-                    : Icons.alarm,
+                ? Icons.alarm_on
+                : Icons.alarm,
             size: 13,
             color: color,
           ),
@@ -364,7 +370,11 @@ class _DoneStamp extends StatelessWidget {
             size: 72,
             color: const Color(0xFF2E7D32).withValues(alpha: 0.55),
             shadows: const [
-              Shadow(color: Colors.white54, blurRadius: 2, offset: Offset(0, 1)),
+              Shadow(
+                color: Colors.white54,
+                blurRadius: 2,
+                offset: Offset(0, 1),
+              ),
             ],
           ),
         ),
@@ -396,10 +406,10 @@ class _SelectedBadge extends StatelessWidget {
 
 /// Body style for a link note's URL: blue and underlined.
 TextStyle _linkText(BuildContext context) => noteBodyStyle(context).copyWith(
-      color: AppColors.link,
-      decoration: TextDecoration.underline,
-      decorationColor: AppColors.link,
-    );
+  color: AppColors.link,
+  decoration: TextDecoration.underline,
+  decorationColor: AppColors.link,
+);
 
 /// The body of a note (everything but the pin): type-specific content plus,
 /// when present, an emote and a reminder chip.
@@ -421,8 +431,7 @@ class _NoteBody extends StatelessWidget {
     final showPhoto = note.hasPhoto && note.type != NoteType.photo;
     // A print or sketch without a caption has no text above the footer, so
     // no gap either.
-    final hasText =
-        note.content.isNotEmpty || note.type == NoteType.checklist;
+    final hasText = note.content.isNotEmpty || note.type == NoteType.checklist;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -440,8 +449,7 @@ class _NoteBody extends StatelessWidget {
               if (note.emoji.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(right: 6),
-                  child:
-                      Text(note.emoji, style: const TextStyle(fontSize: 22)),
+                  child: Text(note.emoji, style: const TextStyle(fontSize: 22)),
                 ),
               if (note.reminderAt != null)
                 // Expanded + Align: the chip takes only the width it needs but
@@ -466,10 +474,12 @@ class _NoteBody extends StatelessWidget {
         // The sketch itself is the card (see StickyNoteCard._sketch); this is
         // only the title written on the label strip under it.
         if (note.content.isEmpty) return const SizedBox.shrink();
-        return Text(note.content,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: body.copyWith(fontWeight: FontWeight.bold));
+        return Text(
+          note.content,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: body.copyWith(fontWeight: FontWeight.bold),
+        );
       case NoteType.link:
         return InkWell(
           onTap: () => openNoteUrl(context, note.url),
@@ -486,21 +496,26 @@ class _NoteBody extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (note.content.isNotEmpty)
-              Text(note.content,
-                  style: body.copyWith(fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
-            for (var i = 0;
-                i < note.checklist.length && i < maxContentLines;
-                i++)
+              Text(
+                note.content,
+                style: body.copyWith(fontWeight: FontWeight.bold),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            for (
+              var i = 0;
+              i < note.checklist.length && i < maxContentLines;
+              i++
+            )
               _ChecklistRow(
                 item: note.checklist[i],
                 onTap: () => cb.onToggleItem(i),
               ),
             if (note.checklist.length > maxContentLines)
-              Text('+${note.checklist.length - maxContentLines}…',
-                  style: const TextStyle(
-                      color: AppColors.inkSoft, fontSize: 14)),
+              Text(
+                '+${note.checklist.length - maxContentLines}…',
+                style: const TextStyle(color: AppColors.inkSoft, fontSize: 14),
+              ),
           ],
         );
       case NoteType.normal:
@@ -509,6 +524,13 @@ class _NoteBody extends StatelessWidget {
           maxLines: maxContentLines,
           overflow: TextOverflow.ellipsis,
           style: body,
+        );
+      case NoteType.label:
+        return Text(
+          note.content,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: body.copyWith(fontWeight: FontWeight.bold),
         );
       case NoteType.photo:
         // The caption written under a print; nothing at all when blank.
@@ -613,6 +635,7 @@ class StickyNoteCard extends StatelessWidget {
     Widget paper = switch (note.type) {
       NoteType.photo => _print(context),
       NoteType.drawing => _sketch(context),
+      NoteType.label => _tape(context),
       _ => _sheet(context, done),
     };
     if (done) paper = Opacity(opacity: 0.72, child: paper);
@@ -628,17 +651,32 @@ class StickyNoteCard extends StatelessWidget {
         alignment: Alignment.topCenter,
         clipBehavior: Clip.none,
         children: [
-          Padding(padding: const EdgeInsets.only(top: _pinInset), child: paper),
-          Positioned(
-            top: 0,
-            child: _PinTarget(pinned: note.pinned, cb: cb),
+          Padding(
+            padding: const EdgeInsets.only(top: _pinInset),
+            child: paper,
           ),
+          // Tape is stuck down flat: no pin (so no thread can start from a
+          // label either; one can still end on it).
+          if (note.type != NoteType.label)
+            Positioned(
+              top: 0,
+              child: _PinTarget(pinned: note.pinned, cb: cb),
+            ),
+          if (note.locked)
+            const Positioned(
+              left: 5,
+              top: _pinInset + 4,
+              child: Icon(Icons.lock, size: 12, color: AppColors.inkSoft),
+            ),
           // Sits just inside the corner, on the adhesive strip: a badge
           // hanging over the edge gets sliced off by the wall's viewport
           // when the note is pushed against the screen edge.
           if (selected)
             const Positioned(
-                right: 3, top: _pinInset + 3, child: _SelectedBadge()),
+              right: 3,
+              top: _pinInset + 3,
+              child: _SelectedBadge(),
+            ),
         ],
       ),
     );
@@ -652,8 +690,12 @@ class StickyNoteCard extends StatelessWidget {
       // Fill whatever width the wall/grid grants — the paper is a fixed-size
       // sheet, not something that shrinks to a short line of text.
       width: double.infinity,
-      decoration: paperDecoration(context, note,
-          raised: raised, selected: selected),
+      decoration: paperDecoration(
+        context,
+        note,
+        raised: raised,
+        selected: selected,
+      ),
       child: Stack(
         children: [
           // Adhesive strip along the top, like a real sticky note.
@@ -666,7 +708,8 @@ class StickyNoteCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Color(0x21FFFFFF),
                 borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(AppRadii.paper)),
+                  top: Radius.circular(AppRadii.paper),
+                ),
               ),
             ),
           ),
@@ -695,18 +738,80 @@ class StickyNoteCard extends StatelessWidget {
     );
   }
 
+  /// A label: a strip of tape with a word or two written on it, to name a
+  /// column or a corner of the wall. Stuck down flat — no pin, no adhesive
+  /// strip, no curled corner.
+  Widget _tape(BuildContext context) {
+    final color = paperColorOf(context, note.colorIndex, note.guid);
+    final body = noteBodyStyle(context);
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(2),
+        border: selected ? Border.all(color: AppColors.ink, width: 2.5) : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: raised ? 0.30 : 0.18),
+            blurRadius: raised ? 10 : 4,
+            offset: Offset(1, raised ? 5 : 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(2),
+        child: CustomPaint(
+          painter: const _TapePainter(),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 9, 14, 9),
+            child: Row(
+              children: [
+                if (note.emoji.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Text(
+                      note.emoji,
+                      style: const TextStyle(fontSize: 22),
+                    ),
+                  ),
+                Expanded(
+                  child: Text(
+                    note.content,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: body.copyWith(
+                      fontSize: body.fontSize! * 1.15,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   /// A photo print: the picture at its own aspect ratio inside a narrow white
   /// border, with the caption (and emote / reminder) written underneath like
   /// on the back of a snapshot. No adhesive strip or curled corner — it's
   /// glossy paper.
   Widget _print(BuildContext context) {
-    final hasCaption = note.content.isNotEmpty ||
+    final hasCaption =
+        note.content.isNotEmpty ||
         note.emoji.isNotEmpty ||
         note.reminderAt != null;
     return Container(
       width: double.infinity,
-      decoration: paperDecoration(context, note,
-          raised: raised, selected: selected),
+      decoration: paperDecoration(
+        context,
+        note,
+        raised: raised,
+        selected: selected,
+      ),
       // A touch more room at the top so the pin head lands on the border,
       // not through the picture.
       padding: const EdgeInsets.fromLTRB(6, 10, 6, 6),
@@ -734,18 +839,24 @@ class StickyNoteCard extends StatelessWidget {
   /// strip of the note's sticky paper underneath, like the label under a
   /// framed picture; with none of those the doodle fills the whole card.
   Widget _sketch(BuildContext context) {
-    final hasLabel = note.content.isNotEmpty ||
+    final hasLabel =
+        note.content.isNotEmpty ||
         note.emoji.isNotEmpty ||
         note.reminderAt != null;
     return Container(
       width: double.infinity,
-      decoration: paperDecoration(context, note,
-          raised: raised, selected: selected),
+      decoration: paperDecoration(
+        context,
+        note,
+        raised: raised,
+        selected: selected,
+      ),
       child: ClipRRect(
         // The selection border insets the child, so it clips a hair tighter
         // and tucks under the corners of the frame.
-        borderRadius:
-            BorderRadius.circular(AppRadii.paper - (selected ? 2 : 0)),
+        borderRadius: BorderRadius.circular(
+          AppRadii.paper - (selected ? 2 : 0),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -773,6 +884,32 @@ class StickyNoteCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Faint diagonal stripes, so tape reads as tape and not as a flat colour.
+class _TapePainter extends CustomPainter {
+  const _TapePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final stripe = Paint()
+      ..color = Colors.white.withValues(alpha: 0.16)
+      ..strokeWidth = 3;
+    for (var x = -size.height; x < size.width; x += 9) {
+      canvas.drawLine(
+        Offset(x, size.height),
+        Offset(x + size.height, 0),
+        stripe,
+      );
+    }
+    // The torn ends: a lighter sliver where the tape was pulled off the roll.
+    final end = Paint()..color = Colors.white.withValues(alpha: 0.28);
+    canvas.drawRect(Rect.fromLTWH(0, 0, 3, size.height), end);
+    canvas.drawRect(Rect.fromLTWH(size.width - 3, 0, 3, size.height), end);
+  }
+
+  @override
+  bool shouldRepaint(_TapePainter oldDelegate) => false;
 }
 
 /// Turns a card by [angle] (radians, clockwise) about its centre. The turn is
@@ -818,9 +955,7 @@ class NightShade extends StatelessWidget {
       children: [
         child,
         const Positioned.fill(
-          child: IgnorePointer(
-            child: ColoredBox(color: AppColors.nightShade),
-          ),
+          child: IgnorePointer(child: ColoredBox(color: AppColors.nightShade)),
         ),
       ],
     );
@@ -902,6 +1037,11 @@ class NoteListTile extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 11),
             child: _SelectedBadge(),
           )
+        else if (note.type == NoteType.label)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 13),
+            child: Icon(Icons.label, size: 18, color: AppColors.inkSoft),
+          )
         else
           _PinTarget(pinned: note.pinned, cb: cb),
         if (note.hasPhoto)
@@ -939,18 +1079,37 @@ class NoteListTile extends StatelessWidget {
         // The thumbnail already shows the picture; an uncaptioned print just
         // gets the type name, in soft ink, like an untitled sketch.
         return note.content.isEmpty
-            ? Text(AppLocalizations.of(context)!.typePhoto,
-                style: body.copyWith(color: AppColors.inkSoft))
-            : Text(note.content,
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: body);
+            ? Text(
+                AppLocalizations.of(context)!.typePhoto,
+                style: body.copyWith(color: AppColors.inkSoft),
+              )
+            : Text(
+                note.content,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: body,
+              );
       case NoteType.drawing:
         // The thumbnail already says "sketch"; an untitled one just gets the
         // type name, in soft ink.
         return note.content.isEmpty
-            ? Text(AppLocalizations.of(context)!.typeDrawing,
-                style: body.copyWith(color: AppColors.inkSoft))
-            : Text(note.content,
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: body);
+            ? Text(
+                AppLocalizations.of(context)!.typeDrawing,
+                style: body.copyWith(color: AppColors.inkSoft),
+              )
+            : Text(
+                note.content,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: body,
+              );
+      case NoteType.label:
+        return Text(
+          note.content,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: body.copyWith(fontWeight: FontWeight.bold),
+        );
       case NoteType.link:
         return Wrap(
           spacing: 8,
@@ -959,10 +1118,12 @@ class NoteListTile extends StatelessWidget {
             Text('${note.content}:', style: body),
             InkWell(
               onTap: () => openNoteUrl(context, note.url),
-              child: Text(note.url,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: _linkText(context)),
+              child: Text(
+                note.url,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: _linkText(context),
+              ),
             ),
           ],
         );
@@ -985,8 +1146,12 @@ class NoteListTile extends StatelessWidget {
           ],
         );
       case NoteType.normal:
-        return Text(note.content,
-            maxLines: 2, overflow: TextOverflow.ellipsis, style: body);
+        return Text(
+          note.content,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: body,
+        );
     }
   }
 }

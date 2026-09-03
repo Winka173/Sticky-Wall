@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sticky_wall/models/board.dart';
+import 'package:sticky_wall/models/draw_stroke.dart';
 import 'package:sticky_wall/models/note.dart';
 import 'package:sticky_wall/services/image_service.dart';
 import 'package:sticky_wall/services/note_storage.dart';
@@ -11,7 +13,7 @@ import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
 import 'package:sticky_wall/services/share_service.dart';
-import 'package:sticky_wall/util/stable_hash.dart';
+import 'package:sticky_wall/theme.dart';
 import 'package:sticky_wall/util/text_fold.dart';
 
 final _epoch = DateTime.fromMillisecondsSinceEpoch(0);
@@ -380,6 +382,74 @@ void main() {
         steps++;
       }
       expect(steps, NotesController.wallUndoLimit);
+    });
+  });
+
+  group('labels, locks, yarn and marker strokes', () {
+    test('a label and its lock round-trip; filter 5 keeps labels', () async {
+      final c = await _controller(notes: [
+        _note('1', 'To do', type: NoteType.label)..locked = true,
+        _note('2', 'a task'),
+      ]);
+      final label = c.boardNotes.first;
+      final json = jsonDecode(jsonEncode(label.toJson())) as Map<String, dynamic>;
+      final back = Note.fromJson(json);
+      expect(back.type, NoteType.label);
+      expect(back.locked, true);
+      expect(Note.fromJson(json..remove('locked')).locked, false);
+
+      c.typeFilter = 5;
+      expect(c.visibleNotes.single.guid, '1');
+      c.typeFilter = -1;
+
+      c.toggleLock(label);
+      expect(label.locked, false);
+      c.lockAll(c.boardNotes, true);
+      expect(c.boardNotes.every((n) => n.locked), true);
+    });
+
+    test('a thread keeps its yarn colour, label and arrowhead', () async {
+      SharedPreferences.setMockInitialValues({});
+      final storage = await NoteStorage.create();
+      await storage.saveNotes([_note('1', 'x'), _note('2', 'y')]);
+      final c = NotesController(storage, ReminderService());
+      expect(c.connect('1', '2'), true);
+      final plain = c.links.single;
+      expect(plain.color, isNull);
+      expect(plain.toJson().keys, ['a', 'b'], reason: 'defaults stay out');
+
+      c.updateLink(plain.copyWith(
+          color: AppColors.yarns[4], label: 'blocks', arrow: true));
+      final styled = NotesController(storage, ReminderService()).links.single;
+      expect(styled.color, AppColors.yarns[4]);
+      expect(styled.label, 'blocks');
+      expect(styled.arrow, true);
+      expect(styled.copyWith(clearColor: true).color, isNull);
+
+      // Cut, then tied back exactly as it was; never twice.
+      c.disconnect(styled);
+      expect(c.links, isEmpty);
+      c.restoreLink(styled);
+      c.restoreLink(styled);
+      expect(c.links.single.label, 'blocks');
+      // Restyling a thread that is gone is a no-op.
+      c.updateLink(const NoteLink('1', 'ghost', label: 'nope'));
+      expect(c.links.length, 1);
+    });
+
+    test('marker strokes are saved with their board', () async {
+      SharedPreferences.setMockInitialValues({});
+      final storage = await NoteStorage.create();
+      final c = NotesController(storage, ReminderService());
+      expect(c.currentBoard.toJson().containsKey('strokes'), false);
+      c.currentBoard.strokes.add(DrawStroke(
+          color: 0xFF3B372F, width: 4, points: const [Offset(0.1, 0.2), Offset(0.3, 0.4)]));
+      c.saveWallStrokes();
+      final again = NotesController(storage, ReminderService());
+      final stroke = again.currentBoard.strokes.single;
+      expect(stroke.points.length, 2);
+      expect(stroke.points.last.dy, closeTo(0.4, 1e-9));
+      expect(Board.fromJson(again.currentBoard.toJson()).strokes.length, 1);
     });
   });
 

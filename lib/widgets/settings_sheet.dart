@@ -14,28 +14,28 @@ import 'action_sheet.dart';
 
 /// Localized display name for a bundled wall texture.
 String wallLabel(AppLocalizations l10n, String id) => switch (id) {
-      'cork' => l10n.wallCork,
-      'chalk_green' => l10n.wallChalkGreen,
-      'chalk_black' => l10n.wallChalkBlack,
-      'plaster' => l10n.wallPlaster,
-      'brick' => l10n.wallBrick,
-      'wood' => l10n.wallWood,
-      'kraft' => l10n.wallKraft,
-      'marble' => l10n.wallMarble,
-      'terrazzo' => l10n.wallTerrazzo,
-      'denim' => l10n.wallDenim,
-      'felt' => l10n.wallFelt,
-      'linen' => l10n.wallLinen,
-      _ => id,
-    };
+  'cork' => l10n.wallCork,
+  'chalk_green' => l10n.wallChalkGreen,
+  'chalk_black' => l10n.wallChalkBlack,
+  'plaster' => l10n.wallPlaster,
+  'brick' => l10n.wallBrick,
+  'wood' => l10n.wallWood,
+  'kraft' => l10n.wallKraft,
+  'marble' => l10n.wallMarble,
+  'terrazzo' => l10n.wallTerrazzo,
+  'denim' => l10n.wallDenim,
+  'felt' => l10n.wallFelt,
+  'linen' => l10n.wallLinen,
+  _ => id,
+};
 
 /// Localized label for a lights setting.
 String nightModeLabel(AppLocalizations l10n, NightMode mode) => switch (mode) {
-      NightMode.off => l10n.nightModeOff,
-      NightMode.on => l10n.nightModeOn,
-      NightMode.system => l10n.nightModeSystem,
-      NightMode.schedule => l10n.nightModeSchedule,
-    };
+  NightMode.off => l10n.nightModeOff,
+  NightMode.on => l10n.nightModeOn,
+  NightMode.system => l10n.nightModeSystem,
+  NightMode.schedule => l10n.nightModeSchedule,
+};
 
 /// A whole hour as "HH:00".
 String hourLabel(int hour) => '${hour.toString().padLeft(2, '0')}:00';
@@ -52,8 +52,7 @@ Future<void> showSettingsSheet(
     isScrollControlled: true,
     builder: (context) => ListenableBuilder(
       listenable: Listenable.merge([settings, notes]),
-      builder: (context, _) =>
-          _SettingsSheet(settings: settings, notes: notes),
+      builder: (context, _) => _SettingsSheet(settings: settings, notes: notes),
     ),
   );
 }
@@ -81,8 +80,10 @@ class _SettingsSheet extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         children: [
           Center(
-            child: Text(l10n.customize,
-                style: const TextStyle(fontSize: 24, color: AppColors.ink)),
+            child: Text(
+              l10n.customize,
+              style: const TextStyle(fontSize: 24, color: AppColors.ink),
+            ),
           ),
           const SizedBox(height: 12),
           _SectionTitle(l10n.wallSection),
@@ -120,10 +121,14 @@ class _SettingsSheet extends StatelessWidget {
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text(l10n.wallDecor,
-                style: const TextStyle(fontSize: 16, color: AppColors.ink)),
-            secondary: const Icon(Icons.water_drop_outlined,
-                color: AppColors.ink),
+            title: Text(
+              l10n.wallDecor,
+              style: const TextStyle(fontSize: 16, color: AppColors.ink),
+            ),
+            secondary: const Icon(
+              Icons.water_drop_outlined,
+              color: AppColors.ink,
+            ),
             value: settings.wallDecor,
             onChanged: settings.setWallDecor,
           ),
@@ -135,15 +140,12 @@ class _SettingsSheet extends StatelessWidget {
             children: [
               for (final mode in NightMode.values)
                 ChoiceChip(
-                  avatar: Icon(
-                    switch (mode) {
-                      NightMode.off => Icons.light_mode_outlined,
-                      NightMode.on => Icons.dark_mode_outlined,
-                      NightMode.system => Icons.phone_android_outlined,
-                      NightMode.schedule => Icons.schedule_outlined,
-                    },
-                    size: 18,
-                  ),
+                  avatar: Icon(switch (mode) {
+                    NightMode.off => Icons.light_mode_outlined,
+                    NightMode.on => Icons.dark_mode_outlined,
+                    NightMode.system => Icons.phone_android_outlined,
+                    NightMode.schedule => Icons.schedule_outlined,
+                  }, size: 18),
                   label: Text(nightModeLabel(l10n, mode)),
                   selected: settings.nightMode == mode,
                   onSelected: (_) => settings.setNightMode(mode),
@@ -163,7 +165,9 @@ class _SettingsSheet extends StatelessWidget {
                             label: l10n.nightStart,
                             value: settings.nightStart,
                             onChanged: (h) => settings.setNightHours(
-                                start: h, end: settings.nightEnd),
+                              start: h,
+                              end: settings.nightEnd,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -172,7 +176,9 @@ class _SettingsSheet extends StatelessWidget {
                             label: l10n.nightEnd,
                             value: settings.nightEnd,
                             onChanged: (h) => settings.setNightHours(
-                                start: settings.nightStart, end: h),
+                              start: settings.nightStart,
+                              end: h,
+                            ),
                           ),
                         ),
                       ],
@@ -222,22 +228,30 @@ class _SettingsSheet extends StatelessWidget {
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.delete_outline, color: AppColors.ink),
-            title: Text(l10n.trash,
-                style: const TextStyle(fontSize: 16, color: AppColors.ink)),
+            title: Text(
+              l10n.trash,
+              style: const TextStyle(fontSize: 16, color: AppColors.ink),
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (notes.trashCount > 0)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.ink.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text('${notes.trashCount}',
-                        style: const TextStyle(
-                            fontSize: 13, color: AppColors.ink)),
+                    child: Text(
+                      '${notes.trashCount}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.ink,
+                      ),
+                    ),
                   ),
                 const Icon(Icons.chevron_right, color: AppColors.inkSoft),
               ],
@@ -245,20 +259,27 @@ class _SettingsSheet extends StatelessWidget {
             onTap: () {
               final nav = Navigator.of(context);
               nav.pop();
-              nav.push(MaterialPageRoute<void>(
-                builder: (_) => TrashScreen(notes: notes),
-              ));
+              nav.push(
+                MaterialPageRoute<void>(
+                  builder: (_) => TrashScreen(notes: notes),
+                ),
+              );
             },
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text(l10n.autoTrashDone,
-                style: const TextStyle(fontSize: 16, color: AppColors.ink)),
-            subtitle: Text(l10n.autoTrashDoneHint,
-                style:
-                    const TextStyle(fontSize: 13, color: AppColors.inkSoft)),
-            secondary:
-                const Icon(Icons.task_alt_outlined, color: AppColors.ink),
+            title: Text(
+              l10n.autoTrashDone,
+              style: const TextStyle(fontSize: 16, color: AppColors.ink),
+            ),
+            subtitle: Text(
+              l10n.autoTrashDoneHint,
+              style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+            ),
+            secondary: const Icon(
+              Icons.task_alt_outlined,
+              color: AppColors.ink,
+            ),
             value: settings.autoTrashDone,
             onChanged: (on) {
               settings.setAutoTrashDone(on);
@@ -270,8 +291,8 @@ class _SettingsSheet extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => BackupService()
-                      .share(notes.boards, notes.allNotes),
+                  onPressed: () =>
+                      BackupService().share(notes.boards, notes.allNotes),
                   icon: const Icon(Icons.ios_share),
                   label: Text(l10n.exportData),
                 ),
@@ -292,7 +313,9 @@ class _SettingsSheet extends StatelessWidget {
   }
 
   Future<void> _photoWallFlow(
-      BuildContext context, AppLocalizations l10n) async {
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
     final board = notes.currentBoard;
     if (board.hasWallImage) {
       final action = await showActionSheet<String>(
@@ -380,20 +403,25 @@ class _WallTile extends StatelessWidget {
                   child,
                   if (selected)
                     const Center(
-                      child: Icon(Icons.check_circle,
-                          color: Colors.white, size: 26),
+                      child: Icon(
+                        Icons.check_circle,
+                        color: Colors.white,
+                        size: 26,
+                      ),
                     ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 4),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.ink,
-                  fontWeight:
-                      selected ? FontWeight.bold : FontWeight.normal)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.ink,
+              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
         ],
       ),
     );
@@ -448,8 +476,11 @@ class _PhotoPlaceholder extends StatelessWidget {
         ),
       ),
       child: const Center(
-        child: Icon(Icons.add_photo_alternate_outlined,
-            color: AppColors.ink, size: 30),
+        child: Icon(
+          Icons.add_photo_alternate_outlined,
+          color: AppColors.ink,
+          size: 30,
+        ),
       ),
     );
   }
@@ -473,8 +504,7 @@ class _HourField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<int>(
@@ -540,23 +570,29 @@ class _FontPaper extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(font.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontFamily: font.family,
-                          fontSize: 18 * font.scale,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.ink)),
+                  Text(
+                    font.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: font.family,
+                      fontSize: 18 * font.scale,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.ink,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(preview,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontFamily: font.family,
-                          fontSize: 15 * font.scale,
-                          height: 1.25,
-                          color: AppColors.inkSoft)),
+                  Text(
+                    preview,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: font.family,
+                      fontSize: 15 * font.scale,
+                      height: 1.25,
+                      color: AppColors.inkSoft,
+                    ),
+                  ),
                 ],
               ),
               // A little pin so it reads as a note, not a card.
@@ -573,9 +609,10 @@ class _FontPaper extends StatelessWidget {
                       color: selected ? AppColors.pin : Colors.black38,
                       boxShadow: const [
                         BoxShadow(
-                            color: Colors.black38,
-                            blurRadius: 3,
-                            offset: Offset(0, 1.5)),
+                          color: Colors.black38,
+                          blurRadius: 3,
+                          offset: Offset(0, 1.5),
+                        ),
                       ],
                     ),
                   ),
@@ -585,8 +622,11 @@ class _FontPaper extends StatelessWidget {
                 const Positioned(
                   right: 0,
                   bottom: 0,
-                  child: Icon(Icons.check_circle,
-                      color: AppColors.ink, size: 18),
+                  child: Icon(
+                    Icons.check_circle,
+                    color: AppColors.ink,
+                    size: 18,
+                  ),
                 ),
             ],
           ),
@@ -624,8 +664,10 @@ class _ImportDialogState extends State<_ImportDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(l10n.importReplaceWarning,
-              style: const TextStyle(fontSize: 14, color: AppColors.inkSoft)),
+          Text(
+            l10n.importReplaceWarning,
+            style: const TextStyle(fontSize: 14, color: AppColors.inkSoft),
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: _controller,
@@ -662,11 +704,14 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 8),
-      child: Text(text,
-          style: const TextStyle(
-              fontSize: 16,
-              color: AppColors.ink,
-              fontWeight: FontWeight.bold)),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 16,
+          color: AppColors.ink,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 }
