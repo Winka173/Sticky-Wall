@@ -842,6 +842,18 @@ abstract class AppLocalizations {
   /// **'Save image'**
   String get saveImage;
 
+  /// No description provided for @exportBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Export board as image'**
+  String get exportBoard;
+
+  /// No description provided for @exportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Just the wall, its notes and threads — no toolbars. Share it, or save it to your gallery.'**
+  String get exportHint;
+
   /// No description provided for @imageSaved.
   ///
   /// In en, this message translates to:

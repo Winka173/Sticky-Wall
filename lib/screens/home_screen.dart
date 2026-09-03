@@ -19,6 +19,7 @@ import '../theme.dart';
 import '../widgets/action_sheet.dart';
 import '../widgets/add_note_button.dart';
 import '../widgets/board_bar.dart';
+import '../widgets/board_poster.dart';
 import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
 import '../widgets/peel_away.dart';
@@ -278,6 +279,23 @@ class _HomeScreenState extends State<HomeScreen> {
   RenderRepaintBoundary? _boundaryFor(Note note) {
     final ctx = _captureKeys[_captureId(note)]?.currentContext;
     return ctx?.findRenderObject() as RenderRepaintBoundary?;
+  }
+
+  /// Shows the board as a picture — wall, notes and threads, nothing else —
+  /// to share or save. Always the wall layout, whichever view is showing.
+  Future<void> _exportBoard() {
+    final wall = wallFor(_notes.currentBoard, night: isNight(context));
+    return Navigator.of(context).push(MaterialPageRoute<void>(
+      fullscreenDialog: true,
+      builder: (_) => BoardPosterPage(
+        wall: wall,
+        decor: widget.settings.wallDecor,
+        notes: _notes.boardNotes,
+        links: _notes.linksOn(_notes.currentBoardId),
+        wallSize: _wallHandle.lastSize,
+        imageService: _imageService,
+      ),
+    ));
   }
 
   Future<void> _captureAndShare(Note note) async {
@@ -972,6 +990,8 @@ class _HomeScreenState extends State<HomeScreen> {
           case 'tidyColor':
             HapticFeedback.lightImpact();
             _wallHandle.tidy(byColor: true);
+          case 'export':
+            _exportBoard();
           case 'trash':
             Navigator.of(context).push(MaterialPageRoute<void>(
               builder: (_) => TrashScreen(notes: _notes),
@@ -990,6 +1010,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _menuItem('tidyColor', l10n.tidyByColor,
               icon: Icons.palette_outlined),
         ],
+        if (_notes.boardNotes.isNotEmpty)
+          _menuItem('export', l10n.exportBoard, icon: Icons.image_outlined),
         _menuItem(
           'trash',
           trashCount > 0 ? '${l10n.trash} ($trashCount)' : l10n.trash,

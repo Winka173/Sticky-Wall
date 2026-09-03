@@ -437,6 +437,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveImage => 'Save image';
 
   @override
+  String get exportBoard => 'Export board as image';
+
+  @override
+  String get exportHint =>
+      'Just the wall, its notes and threads — no toolbars. Share it, or save it to your gallery.';
+
+  @override
   String get imageSaved => 'Saved to gallery';
 
   @override

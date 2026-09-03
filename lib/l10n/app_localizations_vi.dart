@@ -431,6 +431,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get saveImage => 'Lưu ảnh';
 
   @override
+  String get exportBoard => 'Xuất tường thành ảnh';
+
+  @override
+  String get exportHint =>
+      'Chỉ có tường, ghi chú và dây — không có thanh công cụ. Chia sẻ, hoặc lưu vào thư viện ảnh.';
+
+  @override
   String get imageSaved => 'Đã lưu vào thư viện';
 
   @override

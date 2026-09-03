@@ -124,6 +124,8 @@
   "photosPinned": "{count, plural, other{Đã ghim {count} ảnh lên tường}}",
   "shareAsImage": "Chia sẻ ảnh",
   "saveImage": "Lưu ảnh",
+  "exportBoard": "Xuất tường thành ảnh",
+  "exportHint": "Chỉ có tường, ghi chú và dây — không có thanh công cụ. Chia sẻ, hoặc lưu vào thư viện ảnh.",
   "imageSaved": "Đã lưu vào thư viện",
   "imageSaveFailed": "Không lưu được ảnh",
   "resetZoom": "Về cỡ gốc",

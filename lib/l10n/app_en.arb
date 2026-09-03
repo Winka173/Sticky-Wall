@@ -151,6 +151,8 @@
   },
   "shareAsImage": "Share as image",
   "saveImage": "Save image",
+  "exportBoard": "Export board as image",
+  "exportHint": "Just the wall, its notes and threads — no toolbars. Share it, or save it to your gallery.",
   "imageSaved": "Saved to gallery",
   "imageSaveFailed": "Could not save image",
   "resetZoom": "Reset zoom",

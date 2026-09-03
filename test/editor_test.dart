@@ -11,6 +11,7 @@ import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
 import 'package:sticky_wall/widgets/add_note_button.dart';
+import 'package:sticky_wall/widgets/board_poster.dart';
 import 'package:sticky_wall/widgets/note_views.dart';
 
 Future<NotesController> _pumpApp(WidgetTester tester,
@@ -266,6 +267,95 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
     expect(note.rotation, 0);
+  });
+
+  testWidgets('two fingers on a wall note twist it round', (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(
+        guid: 't',
+        content: 'Twist me',
+        createdAt: DateTime(2026),
+        boardId: 'default',
+        x: 0.5,
+        y: 0.3,
+      ),
+    ]);
+    final note = notes.boardNotes.single;
+    final c = tester.getCenter(find.text('Twist me'));
+    const r = 30.0;
+    Offset at(double a) => c + Offset(r * math.cos(a), r * math.sin(a));
+
+    // Two fingers either side of the centre, turned together through 0.6
+    // rad while keeping their distance: a pure twist, no pinch.
+    final g1 = await tester.startGesture(at(0));
+    final g2 = await tester.startGesture(at(math.pi));
+    await tester.pump();
+    for (var i = 1; i <= 6; i++) {
+      final a = 0.6 * i / 6;
+      await g1.moveTo(at(a));
+      await g2.moveTo(at(math.pi + a));
+      await tester.pump();
+    }
+    await g1.up();
+    await g2.up();
+    await tester.pumpAndSettle();
+    expect(note.rotation, isNotNull);
+    expect(note.rotation!, closeTo(noteTilt(note) + 0.6, 0.02));
+    expect(note.scale, 1.0, reason: 'the fingers kept their distance');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a pinch on a wall note resizes it', (tester) async {
+    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(
+        guid: 't',
+        content: 'Pinch me',
+        createdAt: DateTime(2026),
+        boardId: 'default',
+        x: 0.5,
+        y: 0.3,
+      ),
+    ]);
+    final note = notes.boardNotes.single;
+    final c = tester.getCenter(find.text('Pinch me'));
+    final g1 = await tester.startGesture(c + const Offset(-20, 0));
+    final g2 = await tester.startGesture(c + const Offset(20, 0));
+    await tester.pump();
+    await g1.moveTo(c + const Offset(-40, 0));
+    await g2.moveTo(c + const Offset(40, 0));
+    await tester.pump();
+    await g1.up();
+    await g2.up();
+    await tester.pumpAndSettle();
+    // Fingers twice as far apart: double the size, less the 4% dead band.
+    expect(note.scale, closeTo(2 / 1.04, 0.02));
+    expect(note.rotation, isNull, reason: 'no twist, no turn');
+  });
+
+  testWidgets('export shows the board alone, ready to share', (tester) async {
+    await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
+      Note(
+        guid: 'a',
+        content: 'Plan A',
+        createdAt: DateTime(2026),
+        boardId: 'default',
+      ),
+    ]);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export board as image'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BoardPosterPage), findsOneWidget);
+    // The note is on the poster (the home wall behind is offstage); none of
+    // the app's own controls are.
+    expect(find.text('Plan A'), findsOneWidget);
+    expect(find.byType(AddNoteButton), findsNothing);
+    expect(find.byIcon(Icons.rotate_right), findsNothing);
+    expect(find.byIcon(Icons.open_in_full), findsNothing);
+    expect(find.byTooltip('Share as image'), findsOneWidget);
+    expect(find.byTooltip('Save image'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('long-pressing empty wall offers a note or photos there',

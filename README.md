@@ -14,6 +14,10 @@ then taken well beyond it.
 |---|---|---|---|
 | ![Night](screenshots/night.png) | ![Trash](screenshots/trash.png) | ![Photo editor](screenshots/photo_editor.png) | ![Drawing](screenshots/drawing.png) |
 
+| Board export (share / save) | Customize sheet |
+|---|---|
+| ![Export](screenshots/export.png) | ![Settings](screenshots/settings.png) |
+
 | Green chalkboard | Black chalkboard | Painted wall | Brick |
 |---|---|---|---|
 | ![Green](screenshots/preview_chalk_green.png) | ![Black](screenshots/preview_chalk_black.png) | ![Plaster](screenshots/preview_plaster.png) | ![Brick](screenshots/preview_brick.png) |
@@ -71,14 +75,23 @@ then taken well beyond it.
   — the card turns about its centre under your finger, clicks into place
   (with a tick of haptics) when it comes within a few degrees of upright or
   a quarter turn, and a tap on that grip squares it up again. Grips react
-  after a few pixels, not the usual pan slop, so they never feel stuck.
-  **Pinch to zoom / pan** the whole board — the wall texture and its stains
+  after a few pixels, not the usual pan slop, so they never feel stuck. Or
+  put **two fingers on a note**: twist to turn it, pinch to resize it about
+  its centre (each with a small dead band so one does not bleed into the
+  other) — two fingers on one card always act on the card, never on the
+  wall. **Pinch to zoom / pan** the whole board — the wall texture and its stains
   travel with the notes, only the lighting stays put (double-tap or the
   reset button snaps back); **long-press** empty space (the empty-wall tip
   included) to stick a note or a batch of photo prints there
 - **Threads** — drag from one note's pin to another to tie a red yarn thread
   between them — photo prints included; the thread stays tied to the pin
   however the note is turned; tap a thread to cut it (Undo re-ties it)
+- **Export the board** (⋮ → *Export board as image*) — a full-screen
+  preview of the wall with its notes and threads and nothing else: no
+  header, toolbar, grips or button. **Share** it or **save** it to the
+  gallery as a PNG at 3× resolution, laid out exactly as on screen (with a
+  margin so a turned card at the edge is not cut off) — the board as a plan
+  you can send around
 - **Tidy up** (⋮ menu) flies every note into a neat grid (squaring up any
   you had turned), or groups them **by color**. Rows are packed from the cards' real rendered heights (an
   offstage measuring pass), so short and long notes sit a pin's length apart
@@ -227,8 +240,9 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/services/widget_service.dart` | Push pinned notes to the home-screen widget |
 | `lib/screens/home_screen.dart` | Header, board bar, toolbar, the three views, multi-select |
 | `lib/screens/trash_screen.dart` | Trash: restore / delete forever / empty |
-| `lib/widgets/wall_view.dart` | Free drag-and-drop canvas, resize / rotate grips, threads, measured tidy animation |
+| `lib/widgets/wall_view.dart` | Free drag-and-drop canvas, resize / rotate grips, two-finger twist / pinch, threads, measured tidy animation |
 | `lib/widgets/wall_background.dart` | Wall texture or custom photo + scrim, stains, vignette |
+| `lib/widgets/board_poster.dart` | Board export: full-screen preview of wall + notes + threads, share / save as PNG |
 | `lib/widgets/peel_away.dart` | "Peel off the wall" delete animation |
 | `lib/widgets/drawing_canvas.dart` | Freehand drawing editor (pen, eraser, paper tone + guide pattern) and the painters that draw a sketch anywhere |
 | `lib/widgets/note_dialog.dart` | Create/Edit dialog (type, color, pin, reminder + repeat, emote, photo tile) |

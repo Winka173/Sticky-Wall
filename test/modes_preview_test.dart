@@ -354,6 +354,27 @@ void main() {
         find.byType(StickyWallApp), matchesGoldenFile('drawing.png'));
   });
 
+  testWidgets('board export', skip: true, (tester) async {
+    await _fonts();
+    final photos = (await tester.runAsync(_makePhotos))!;
+    final app = await _app(
+      mode: ViewMode.wall,
+      notes: _wallNotes(photos),
+      links: const [NoteLink('b', 'c'), NoteLink('p', 'd')],
+    );
+    await _pump(tester, app, photos: photos);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    for (var i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 130));
+    }
+    await tester.tap(find.text('Xuất tường thành ảnh'));
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 130));
+    }
+    await expectLater(
+        find.byType(StickyWallApp), matchesGoldenFile('export.png'));
+  });
+
   testWidgets('settings sheet', skip: true, (tester) async {
     await _fonts();
     final photos = (await tester.runAsync(_makePhotos))!;

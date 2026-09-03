@@ -17,6 +17,11 @@ typedef Placement = (Note note, double x, double y, double scale);
 class WallHandle {
   _WallViewState? _state;
 
+  /// The wall's most recent layout size, kept after the wall itself is gone
+  /// (another layout is showing) so a board export can lay notes out over
+  /// the same range. Zero until the wall has been laid out once.
+  Size lastSize = Size.zero;
+
   /// Arranges the current board's notes into neat rows, animated. With
   /// [byColor] notes of the same paper color are grouped together; otherwise
   /// they keep their reading order (pinned first, then top-to-bottom).
@@ -62,8 +67,10 @@ class WallCamera extends ChangeNotifier {
 /// Red threads can be tied between pins by dragging from one pin to another
 /// note.
 ///
-/// Gestures on empty wall: long-press sticks a new note right there, a tap
-/// deselects the active note, a double-tap resets the zoom.
+/// Gestures on a note: one finger drags it; two fingers twist it round and
+/// pinch it larger or smaller. Gestures on empty wall: long-press sticks a
+/// new note right there, a tap deselects the active note, a double-tap resets
+/// the zoom.
 class WallView extends StatefulWidget {
   const WallView({
     super.key,
@@ -86,6 +93,7 @@ class WallView extends StatefulWidget {
     this.isDimmed,
     this.resetZoomTooltip = 'Reset zoom',
     this.rotateTooltip = 'Rotate',
+    this.still = false,
   });
 
   final List<Note> notes;
@@ -132,6 +140,11 @@ class WallView extends StatefulWidget {
 
   final String resetZoomTooltip;
   final String rotateTooltip;
+
+  /// A still render of the board (the export): complete on its first frame
+  /// with no entrance animation, no grips, and cards turned near the edge
+  /// left to overhang rather than clipped.
+  final bool still;
 
   @override
   State<WallView> createState() => _WallViewState();
@@ -184,6 +197,19 @@ class _WallViewState extends State<WallView>
   double _rotateGrip = 0;
   double _rotateBase = 0;
   bool _rotateSnapped = false;
+
+  // Two fingers on a note: its turn follows the twist and its size the pinch
+  // (see _noteUpdate). A twist only takes hold past a few degrees so a plain
+  // pinch does not wobble the card, and a pinch only counts past a few
+  // percent so a twist does not creep in size. [_pinchGuid] is the note the
+  // two fingers are on; [_pinchRatio] its paper's height over its width, so
+  // it can grow about its centre rather than from its corner.
+  static const double _twistSlop = 0.04;
+  static const double _pinchSlop = 0.04;
+  String? _pinchGuid;
+  bool _twisting = false;
+  double _pinchBase = 1;
+  double _pinchRatio = 0.9;
 
   // The note showing its resize handle (last touched); null hides all.
   String? _activeGuid;
@@ -243,8 +269,10 @@ class _WallViewState extends State<WallView>
   }
 
   void _resetZoom() {
-    _zoomAnim = Matrix4Tween(begin: _tc.value, end: Matrix4.identity())
-        .animate(CurvedAnimation(parent: _zoomReset, curve: Curves.easeOutCubic));
+    _zoomAnim = Matrix4Tween(
+      begin: _tc.value,
+      end: Matrix4.identity(),
+    ).animate(CurvedAnimation(parent: _zoomReset, curve: Curves.easeOutCubic));
     _zoomReset.forward(from: 0);
   }
 
@@ -319,7 +347,8 @@ class _WallViewState extends State<WallView>
 
   /// The paper's rendered box, when the screen above gave us capture keys.
   RenderBox? _paperBox(Note note) {
-    final ro = widget.captureKeys?[note.guid]?.currentContext?.findRenderObject();
+    final ro = widget.captureKeys?[note.guid]?.currentContext
+        ?.findRenderObject();
     return ro is RenderBox && ro.hasSize && ro.attached ? ro : null;
   }
 
@@ -333,15 +362,21 @@ class _WallViewState extends State<WallView>
       if (box != null) {
         final p = box.globalToLocal(global);
         // Generous on top so dropping onto the pin itself counts too.
-        if (p.dx >= 0 && p.dx <= box.size.width &&
-            p.dy >= -_pinInset * 2 && p.dy <= box.size.height) {
+        if (p.dx >= 0 &&
+            p.dx <= box.size.width &&
+            p.dy >= -_pinInset * 2 &&
+            p.dy <= box.size.height) {
           return note;
         }
         continue;
       }
       final tl = _topLeftOf(note, _size.width, _size.height);
-      final rect = Rect.fromLTWH(tl.dx, tl.dy, _cardWidth * note.scale,
-          _cardWidth * note.scale * 0.9 + _pinInset);
+      final rect = Rect.fromLTWH(
+        tl.dx,
+        tl.dy,
+        _cardWidth * note.scale,
+        _cardWidth * note.scale * 0.9 + _pinInset,
+      );
       if (rect.contains(local)) return note;
     }
     return null;
@@ -398,9 +433,12 @@ class _WallViewState extends State<WallView>
       final a = byGuid[link.a];
       final b = byGuid[link.b];
       if (a == null || b == null) continue;
-      final dimmed = (widget.isDimmed?.call(a) ?? false) ||
+      final dimmed =
+          (widget.isDimmed?.call(a) ?? false) ||
           (widget.isDimmed?.call(b) ?? false);
-      out.add(_Thread(_pinOf(a, w, h), _pinOf(b, w, h), link: link, faded: dimmed));
+      out.add(
+        _Thread(_pinOf(a, w, h), _pinOf(b, w, h), link: link, faded: dimmed),
+      );
     }
     final from = _threadFrom == null ? null : byGuid[_threadFrom];
     final to = _threadTo;
@@ -453,8 +491,8 @@ class _WallViewState extends State<WallView>
     // centered, so it only eats into the margins.
     final probes = <(double, int)>[];
     for (var cols = 1; cols <= 64; cols++) {
-      final fit = (w - 2 * _tidyMargin - (cols - 1) * _tidyGap) /
-          (cols * _cardWidth);
+      final fit =
+          (w - 2 * _tidyMargin - (cols - 1) * _tidyGap) / (cols * _cardWidth);
       if (fit < _minScale - 0.02) break;
       final s = fit.clamp(_minScale, 1.0);
       // Same scale, more columns: strictly better.
@@ -562,8 +600,10 @@ class _WallViewState extends State<WallView>
                     note: note,
                     cb: _noCallbacks,
                     maxContentLines: 6,
-                    captureKey:
-                        _probeKeys.putIfAbsent((s, note.guid), GlobalKey.new),
+                    captureKey: _probeKeys.putIfAbsent((
+                      s,
+                      note.guid,
+                    ), GlobalKey.new),
                   ),
                 ),
           ],
@@ -588,6 +628,7 @@ class _WallViewState extends State<WallView>
         final w = constraints.maxWidth;
         final h = constraints.maxHeight;
         _size = Size(w, h);
+        widget.handle?.lastSize = _size;
         final threads = _threads(w, h);
         // Our screen position is only known once laid out.
         if (widget.camera != null) {
@@ -598,6 +639,7 @@ class _WallViewState extends State<WallView>
           children: [
             InteractiveViewer(
               transformationController: _tc,
+              clipBehavior: widget.still ? Clip.none : Clip.hardEdge,
               minScale: 0.6,
               maxScale: 3,
               boundaryMargin: const EdgeInsets.all(320),
@@ -645,8 +687,10 @@ class _WallViewState extends State<WallView>
                               ? null
                               : (d) => _cutAt(d.localPosition, w, h),
                           child: CustomPaint(
-                            painter: _ThreadPainter(threads,
-                                highlight: _threadOver != null),
+                            painter: _ThreadPainter(
+                              threads,
+                              highlight: _threadOver != null,
+                            ),
                           ),
                         ),
                       ),
@@ -687,6 +731,112 @@ class _WallViewState extends State<WallView>
       },
     );
   }
+
+  // --- One or two fingers on a note ------------------------------------
+
+  /// The finger(s) landed, or their number changed (the recognizer ends and
+  /// restarts the gesture then, see _noteEnd). One finger begins a drag; a
+  /// second one starts a twist / pinch from the note's current turn and size.
+  void _noteStart(Note note, ScaleStartDetails d) {
+    if (d.pointerCount == 1) HapticFeedback.mediumImpact();
+    widget.onBringToFront(note);
+    final scale = note.scale;
+    setState(() {
+      _draggingGuid = note.guid;
+      _activeGuid = note.guid;
+      _dragTopLeft = Offset(
+        note.x * _rangeX(_size.width, scale),
+        note.y * _rangeY(_size.height),
+      );
+      _dragFinger = _toWall(d.focalPoint);
+      if (d.pointerCount < 2) return;
+      final width = _cardWidth * scale;
+      _pinchGuid = note.guid;
+      _pinchBase = scale;
+      _pinchRatio = _paperHeight(note, width) / width;
+      _twisting = false;
+      _resizingGuid = note.guid;
+      _resizeScale = scale;
+      if (widget.onRotate != null) {
+        _rotatingGuid = note.guid;
+        _rotateBase = noteAngle(note);
+        _rotateAngle = _rotateBase;
+        _rotateSnapped = false;
+      }
+    });
+  }
+
+  void _noteUpdate(Note note, ScaleUpdateDetails d) {
+    if (_draggingGuid != note.guid) return;
+    final finger = _toWall(d.focalPoint);
+    setState(() {
+      _dragTopLeft += finger - _dragFinger;
+      _dragFinger = finger;
+      if (d.pointerCount < 2 || _pinchGuid != note.guid) return;
+
+      if (_rotatingGuid == note.guid) {
+        if (!_twisting && d.rotation.abs() > _twistSlop) _twisting = true;
+        if (_twisting) {
+          final free = normalizeAngle(_rotateBase + d.rotation);
+          final angle = snapQuarterTurns(free);
+          final snapped = angle != free;
+          if (snapped && !_rotateSnapped) HapticFeedback.selectionClick();
+          _rotateAngle = angle;
+          _rotateSnapped = snapped;
+        }
+      }
+
+      // Past the dead band the size follows the pinch continuously (no jump
+      // as it takes hold).
+      final s = d.scale;
+      final factor = s > 1 + _pinchSlop
+          ? s / (1 + _pinchSlop)
+          : s < 1 - _pinchSlop
+          ? s / (1 - _pinchSlop)
+          : 1.0;
+      final next = (_pinchBase * factor).clamp(_minScale, _maxScale);
+      // Grow about the centre, so the card swells under the fingers rather
+      // than away from its top-left corner.
+      final grow = (next - _resizeScale) * _cardWidth;
+      _dragTopLeft -= Offset(grow / 2, grow * _pinchRatio / 2);
+      _resizeScale = next;
+    });
+  }
+
+  /// Commits whatever the fingers changed. Also called when a finger is
+  /// added or lifted mid-gesture; the restart that follows picks the note up
+  /// again from these committed values, so nothing jumps.
+  void _noteEnd(Note note) {
+    if (_draggingGuid != note.guid) return;
+    final pinching = _pinchGuid == note.guid;
+    final scale = pinching ? _resizeScale : note.scale;
+    widget.onMove(
+      note,
+      _dragTopLeft.dx / _rangeX(_size.width, scale),
+      _dragTopLeft.dy / _rangeY(_size.height),
+    );
+    if (pinching && _twisting) widget.onRotate?.call(note, _rotateAngle);
+    if (pinching && scale != note.scale) widget.onResize(note, scale);
+    setState(() {
+      _draggingGuid = null;
+      if (pinching) {
+        _pinchGuid = null;
+        _twisting = false;
+        _resizingGuid = null;
+        _rotatingGuid = null;
+      }
+    });
+  }
+
+  /// The staggered entrance, unless this wall is a still render.
+  Widget _appear(int index, Widget child) => widget.still
+      ? child
+      : NoteAppear(
+          delay: Duration(milliseconds: 25 * math.min(index, 12)),
+          child: child,
+        );
+
+  // --- The rotate grip --------------------------------------------------
 
   double _bearing(Offset finger) =>
       math.atan2(finger.dy - _rotateCenter.dy, finger.dx - _rotateCenter.dx);
@@ -757,7 +907,7 @@ class _WallViewState extends State<WallView>
 
     final base = widget.callbacksFor(note);
     final canThread = widget.onConnect != null && !dimmed;
-    final grips = active && !threading;
+    final grips = active && !threading && !widget.still;
     final cb = NoteCallbacks(
       onEdit: () {
         _setActive(note.guid);
@@ -799,30 +949,18 @@ class _WallViewState extends State<WallView>
           child: AnimatedOpacity(
             opacity: dimmed ? 0.22 : 1,
             duration: const Duration(milliseconds: 200),
-            child: NoteAppear(
-              delay: Duration(milliseconds: 25 * math.min(index, 12)),
-              child: GestureDetector(
-                onPanStart: (d) {
-                  HapticFeedback.mediumImpact();
-                  widget.onBringToFront(note);
-                  setState(() {
-                    _draggingGuid = note.guid;
-                    _activeGuid = note.guid;
-                    _dragTopLeft = Offset(note.x * maxLeft, note.y * maxTop);
-                    _dragFinger = _toWall(d.globalPosition);
-                  });
-                },
-                onPanUpdate: (d) {
-                  final finger = _toWall(d.globalPosition);
-                  setState(() {
-                    _dragTopLeft += finger - _dragFinger;
-                    _dragFinger = finger;
-                  });
-                },
-                onPanEnd: (_) {
-                  widget.onMove(note, _dragTopLeft.dx / maxLeft,
-                      _dragTopLeft.dy / maxTop);
-                  setState(() => _draggingGuid = null);
+            child: _appear(
+              index,
+              RawGestureDetector(
+                gestures: {
+                  _NoteGestureRecognizer:
+                      GestureRecognizerFactoryWithHandlers<
+                        _NoteGestureRecognizer
+                      >(_NoteGestureRecognizer.new, (r) {
+                        r.onStart = (d) => _noteStart(note, d);
+                        r.onUpdate = (d) => _noteUpdate(note, d);
+                        r.onEnd = (_) => _noteEnd(note);
+                      }),
                 },
                 child: AnimatedScale(
                   // Lifts while dragged; also swells a touch when a thread is
@@ -841,35 +979,36 @@ class _WallViewState extends State<WallView>
                         captureKey: widget.captureKeys?[note.guid],
                         rotated: false,
                       ),
-                      Positioned(
-                        right: -8,
-                        bottom: -8,
-                        child: _Grip(
-                          visible: grips,
-                          engaged: resizing,
-                          icon: Icons.open_in_full,
-                          onPanStart: (_) {
-                            HapticFeedback.selectionClick();
-                            setState(() {
-                              _resizingGuid = note.guid;
-                              _resizeScale = note.scale;
-                            });
-                          },
-                          // The grip's local delta is in the card's own
-                          // frame, so "away from the centre" grows the note
-                          // whichever way it is turned.
-                          onPanUpdate: (d) => setState(() {
-                            final dx = (d.delta.dx + d.delta.dy) / 2;
-                            _resizeScale = (_resizeScale + dx / _cardWidth)
-                                .clamp(_minScale, _maxScale);
-                          }),
-                          onPanEnd: () {
-                            widget.onResize(note, _resizeScale);
-                            setState(() => _resizingGuid = null);
-                          },
+                      if (!widget.still)
+                        Positioned(
+                          right: -8,
+                          bottom: -8,
+                          child: _Grip(
+                            visible: grips,
+                            engaged: resizing,
+                            icon: Icons.open_in_full,
+                            onPanStart: (_) {
+                              HapticFeedback.selectionClick();
+                              setState(() {
+                                _resizingGuid = note.guid;
+                                _resizeScale = note.scale;
+                              });
+                            },
+                            // The grip's local delta is in the card's own
+                            // frame, so "away from the centre" grows the note
+                            // whichever way it is turned.
+                            onPanUpdate: (d) => setState(() {
+                              final dx = (d.delta.dx + d.delta.dy) / 2;
+                              _resizeScale = (_resizeScale + dx / _cardWidth)
+                                  .clamp(_minScale, _maxScale);
+                            }),
+                            onPanEnd: () {
+                              widget.onResize(note, _resizeScale);
+                              setState(() => _resizingGuid = null);
+                            },
+                          ),
                         ),
-                      ),
-                      if (widget.onRotate != null)
+                      if (!widget.still && widget.onRotate != null)
                         Positioned(
                           left: -8,
                           bottom: -8,
@@ -899,7 +1038,13 @@ class _WallViewState extends State<WallView>
 
 /// One piece of yarn between two points on the wall.
 class _Thread {
-  const _Thread(this.a, this.b, {this.link, this.live = false, this.faded = false});
+  const _Thread(
+    this.a,
+    this.b, {
+    this.link,
+    this.live = false,
+    this.faded = false,
+  });
 
   final Offset a;
   final Offset b;
@@ -968,12 +1113,18 @@ class _ThreadPainter extends CustomPainter {
       final alpha = t.faded ? 0.3 : (t.live && !highlight ? 0.75 : 1.0);
       canvas.save();
       canvas.translate(1.5, 2.5);
-      canvas.drawPath(path, shadow..color = Color.fromRGBO(0, 0, 0, 0.33 * alpha));
+      canvas.drawPath(
+        path,
+        shadow..color = Color.fromRGBO(0, 0, 0, 0.33 * alpha),
+      );
       canvas.restore();
       canvas.drawPath(path, yarn..color = _yarn.withValues(alpha: alpha));
       canvas.save();
       canvas.translate(0, -0.6);
-      canvas.drawPath(path, sheen..color = Color.fromRGBO(255, 255, 255, 0.4 * alpha));
+      canvas.drawPath(
+        path,
+        sheen..color = Color.fromRGBO(255, 255, 255, 0.4 * alpha),
+      );
       canvas.restore();
       // Little knot where the yarn is wound round each pin.
       final knot = Paint()..color = _yarn.withValues(alpha: alpha);
@@ -1006,6 +1157,23 @@ class _ThreadPainter extends CustomPainter {
   }
 }
 
+/// The gesture on a note: one finger drags it, two turn and resize it. A
+/// stock [ScaleGestureRecognizer] only claims the gesture once the fingers
+/// have moved apart or their midpoint has travelled the pan slop — a clean
+/// twist does neither, so it would never begin. Two fingers on one card can
+/// mean nothing else, so this claims them the moment the second one lands
+/// (a lone finger still waits for the slop, leaving taps and long-presses
+/// to the card).
+class _NoteGestureRecognizer extends ScaleGestureRecognizer {
+  @override
+  void handleEvent(PointerEvent event) {
+    super.handleEvent(event);
+    if (event is PointerDownEvent && pointerCount >= 2) {
+      resolve(GestureDisposition.accepted);
+    }
+  }
+}
+
 /// The drag of a corner grip. A plain pan waits for the finger to travel the
 /// pan slop (36px) before it counts, and a grip that far behind the finger
 /// feels stuck — this one takes the gesture after a few pixels, since there is
@@ -1020,8 +1188,9 @@ class _GripDragRecognizer extends PanGestureRecognizer {
 
   @override
   bool hasSufficientGlobalDistanceToAccept(
-          PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop) =>
-      globalDistanceMoved.abs() > _slop;
+    PointerDeviceKind pointerDeviceKind,
+    double? deviceTouchSlop,
+  ) => globalDistanceMoved.abs() > _slop;
 }
 
 /// A corner grip — the resize handle at bottom-right, the rotate handle at
@@ -1058,19 +1227,19 @@ class _Grip extends StatelessWidget {
         if (onTap != null)
           TapGestureRecognizer:
               GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
-            TapGestureRecognizer.new,
-            (r) => r.onTap = onTap,
-          ),
+                TapGestureRecognizer.new,
+                (r) => r.onTap = onTap,
+              ),
         _GripDragRecognizer:
             GestureRecognizerFactoryWithHandlers<_GripDragRecognizer>(
-          _GripDragRecognizer.new,
-          (r) {
-            r.onStart = onPanStart;
-            r.onUpdate = onPanUpdate;
-            r.onEnd = (_) => onPanEnd();
-            r.onCancel = onPanEnd;
-          },
-        ),
+              _GripDragRecognizer.new,
+              (r) {
+                r.onStart = onPanStart;
+                r.onUpdate = onPanUpdate;
+                r.onEnd = (_) => onPanEnd();
+                r.onCancel = onPanEnd;
+              },
+            ),
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
@@ -1083,7 +1252,10 @@ class _Grip extends StatelessWidget {
           border: Border.all(color: AppColors.chalk, width: 1.5),
           boxShadow: const [
             BoxShadow(
-                color: Colors.black38, blurRadius: 4, offset: Offset(0, 2)),
+              color: Colors.black38,
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
           ],
         ),
         child: Icon(icon, size: 13, color: Colors.white),
