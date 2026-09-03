@@ -195,7 +195,11 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
                 value: 'pdf',
                 child: Row(
                   children: [
-                    const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                    const Icon(
+                      Icons.picture_as_pdf_outlined,
+                      size: 18,
+                      color: AppColors.ink,
+                    ),
                     const SizedBox(width: 10),
                     Text(l10n.sharePdf),
                   ],
@@ -206,7 +210,11 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
                   value: 'widget',
                   child: Row(
                     children: [
-                      const Icon(Icons.widgets_outlined, size: 18),
+                      const Icon(
+                        Icons.widgets_outlined,
+                        size: 18,
+                        color: AppColors.ink,
+                      ),
                       const SizedBox(width: 10),
                       Text(l10n.putOnHomeScreen),
                     ],
