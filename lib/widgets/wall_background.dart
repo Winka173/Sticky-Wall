@@ -6,7 +6,7 @@ import '../models/board.dart';
 import '../services/image_service.dart';
 import '../theme.dart';
 import 'wall_decor.dart';
-import 'wall_view.dart' show WallCamera;
+import 'wall_view.dart' show WallCamera, WallView;
 
 /// The wall a board shows right now: its bundled texture or its own photo,
 /// switched to chalk-on-dark when the lights are off.
@@ -47,7 +47,7 @@ class WallBackground extends StatelessWidget {
   /// pan boundary (320) at its smallest zoom (0.6), plus the header above the
   /// wall viewport at that zoom, rounded up generously. Off-screen paint is
   /// clipped away, so the extra costs nothing.
-  static const double _bleed = 900;
+  static const double _bleed = WallView.pad + 900;
 
   static const _fallbackTexture = 3; // plaster
 

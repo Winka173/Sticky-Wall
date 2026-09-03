@@ -648,7 +648,7 @@ class NotesController extends ChangeNotifier {
 
   /// How far outside the home area (0..1) a note may sit, in fractions of
   /// it: the wall has a margin all round the screen (see `WallView.pad`).
-  static const double wallSpill = 1.0;
+  static const double wallSpill = 4.0;
 
   static double _onWall(double v) => v.clamp(-wallSpill, 1 + wallSpill);
 

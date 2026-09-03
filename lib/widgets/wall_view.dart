@@ -106,8 +106,10 @@ class WallMarker {
 /// new note right there, a tap deselects the active note, a double-tap resets
 /// the zoom.
 class WallView extends StatefulWidget {
-  /// Extra wall beyond each edge of the resting view, in logical pixels.
-  static const double pad = 360;
+  /// Extra wall beyond each edge of the resting view, in logical pixels:
+  /// well over two screens each way, so wherever the wall can be panned to,
+  /// a note can be parked there.
+  static const double pad = 1000;
 
   const WallView({
     super.key,
@@ -938,9 +940,11 @@ class _WallViewState extends State<WallView>
               panEnabled: !widget.marking,
               minScale: 0.6,
               maxScale: 3,
-              // The content already carries its margin (see WallView.pad);
-              // a little slack lets a zoomed-out wall float free of the edges.
-              boundaryMargin: const EdgeInsets.all(120),
+              // No slack beyond the content: everything the camera can show
+              // is wall, so a dragged note never runs out of wall under the
+              // finger (the content is far bigger than the viewport at the
+              // smallest zoom, so the viewport is always covered).
+              boundaryMargin: EdgeInsets.zero,
               // Re-measure right before a gesture, when it matters most.
               onInteractionStart: (_) {
                 _focusedGuid = null;

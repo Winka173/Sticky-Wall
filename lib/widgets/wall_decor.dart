@@ -50,7 +50,7 @@ class _WallDecorPainter extends CustomPainter {
     // generous; it only guards against absurd sizes.
     final count = (size.width * size.height / (180 * 180)).round().clamp(
       10,
-      320,
+      700,
     );
 
     for (var i = 0; i < count; i++) {
