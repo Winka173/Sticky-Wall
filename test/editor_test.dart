@@ -12,6 +12,7 @@ import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
 import 'package:sticky_wall/widgets/add_note_button.dart';
+import 'package:sticky_wall/widgets/board_bar.dart';
 import 'package:sticky_wall/widgets/board_poster.dart';
 import 'package:sticky_wall/widgets/drawing_canvas.dart';
 import 'package:sticky_wall/widgets/note_views.dart';
@@ -748,7 +749,11 @@ void main() {
     expect(find.text('2 selected'), findsOneWidget);
 
     final wall = tester.getRect(find.byType(InteractiveViewer));
-    final rangeY = wall.height - HomeScreen.wallHeaderHeight - 80;
+    final rangeY =
+        wall.height -
+        HomeScreen.wallHeaderHeight -
+        HomeScreen.wallFooterHeight -
+        80;
     await _dragNote(tester, find.text('Aa'), const Offset(0, 50));
     expect(a.y, closeTo(0.1 + 50 / rangeY, 1e-6));
     expect(b.y, closeTo(0.6 + 50 / rangeY, 1e-6), reason: 'came along');
@@ -933,7 +938,11 @@ void main() {
     expect(head.x, 0.05, reason: 'tidy leaves it where it is');
     expect(head.y, 0.02);
     final wall = tester.getRect(find.byType(InteractiveViewer));
-    final rangeY = wall.height - HomeScreen.wallHeaderHeight - 80;
+    final rangeY =
+        wall.height -
+        HomeScreen.wallHeaderHeight -
+        HomeScreen.wallFooterHeight -
+        80;
     final headBottom =
         tester
             .getRect(
@@ -1251,6 +1260,50 @@ void main() {
       expect(notes.boardNotes.single.content, 'Twin');
     },
   );
+
+  testWidgets('board tabs own the top row; tools sit in a pill at the bottom', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Aa',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.2,
+          y: 0.2,
+        ),
+      ],
+    );
+    notes.addBoard('Work');
+    notes.addBoard('Home');
+    notes.selectBoard('default');
+    await tester.pumpAndSettle();
+
+    final screen = tester.getRect(find.byType(Scaffold));
+    final tabs = tester.getRect(find.byType(BoardBar));
+    expect(tabs.right, greaterThan(screen.right - 16), reason: 'full width');
+    expect(tabs.top, lessThan(HomeScreen.wallHeaderHeight));
+
+    final more = tester.getRect(find.byIcon(Icons.more_vert));
+    final pen = tester.getRect(find.byIcon(Icons.gesture));
+    expect(more.bottom, greaterThan(screen.bottom - 80), reason: 'at bottom');
+    expect(pen.center.dy, closeTo(more.center.dy, 1), reason: 'same pill');
+    expect(more.top, greaterThan(tabs.bottom), reason: 'not in the header');
+
+    // Grid and list keep the pill too, with sort in place of the pen.
+    notes.viewMode = ViewMode.grid;
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.gesture), findsNothing);
+    expect(find.byIcon(Icons.swap_vert), findsOneWidget);
+    expect(
+      tester.getRect(find.byIcon(Icons.more_vert)).bottom,
+      greaterThan(screen.bottom - 80),
+    );
+  });
 
   testWidgets('the camera button hides at rest, offers fit, then reset', (
     tester,

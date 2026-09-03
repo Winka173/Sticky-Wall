@@ -69,6 +69,10 @@ then taken well beyond it.
   markup into the text (`**bold**`, `*italic*`, `- item`) and the card
   renders it; search, the trash and the widget read the words without the
   markers
+- **Layout**: the title row has search and Customize; the second row is the
+  board tabs, full width; the tools — type filter, pen (wall) or sort
+  (grid/list), layout switcher and the ⋮ menu — sit in a pill at the bottom
+  left, thumb-side, opposite the add button
 - **Long-press** a note for Edit / Pin / Lock / **View photo** /
   **Duplicate** / **Move** or **Copy to another board** / Share / Save /
   Select / Delete. **Share** renders the note as an

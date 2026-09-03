@@ -58,7 +58,8 @@ void main() {
     // pans.
     final wallRect = tester.getRect(find.byType(InteractiveViewer));
     await tester.dragFrom(
-      wallRect.bottomLeft + const Offset(40, -60),
+      // Clear of the tool pill that sits in the bottom-left corner.
+      wallRect.bottomLeft + const Offset(40, -140),
       const Offset(-60, -40),
     );
     await tester.pumpAndSettle();
@@ -87,7 +88,8 @@ void main() {
 
     final wallRect = tester.getRect(find.byType(InteractiveViewer));
     await tester.dragFrom(
-      wallRect.bottomLeft + const Offset(40, -60),
+      // Clear of the tool pill that sits in the bottom-left corner.
+      wallRect.bottomLeft + const Offset(40, -140),
       const Offset(-60, -40),
     );
     await tester.pumpAndSettle();

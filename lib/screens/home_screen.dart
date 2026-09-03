@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -45,6 +46,10 @@ class HomeScreen extends StatefulWidget {
   /// rows float over it), so the wall is told to keep its resting view clear
   /// of it; grid and list simply start below it.
   static const double wallHeaderHeight = 54 + 52 + 6;
+
+  /// Height the floating tool pill (and its margin) takes at the bottom of
+  /// the wall: the resting view and the drop tray stay above it.
+  static const double wallFooterHeight = 64;
 
   const HomeScreen({
     super.key,
@@ -957,7 +962,10 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         _lastViewMode = _notes.viewMode;
         final onWall = _notes.viewMode == ViewMode.wall;
-        final showFabLabel = _notes.boardNotes.isEmpty || !onWall;
+        // The tool pill sits bottom-left; on narrow phones an extended FAB
+        // next to it would not fit, so the label only shows on wide screens.
+        final wide = MediaQuery.sizeOf(context).width >= 420;
+        final showFabLabel = (_notes.boardNotes.isEmpty || !onWall) && wide;
         if (_notes.wallEdits != _seenWallEdits) {
           _seenWallEdits = _notes.wallEdits;
           _armUndo();
@@ -1081,6 +1089,48 @@ class _HomeScreenState extends State<HomeScreen> {
                       right: 0,
                       child: Center(child: _undoPill()),
                     ),
+                    // The same breath of shade along the bottom, behind the
+                    // tool pill and the add button.
+                    if (onWall)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height:
+                            HomeScreen.wallFooterHeight +
+                            MediaQuery.viewPaddingOf(context).bottom +
+                            28,
+                        child: IgnorePointer(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  (wall.dark ? Colors.black : Colors.white)
+                                      .withValues(alpha: 0.32),
+                                  (wall.dark ? Colors.black : Colors.white)
+                                      .withValues(alpha: 0),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    // Tools live in a pill at the bottom, thumb-side, so the
+                    // top row is all board tabs. It stays through selection
+                    // (the ⋮ menu exports the selection) and only yields to
+                    // the marker bar, which has its own tools.
+                    if (!_marking)
+                      Positioned(
+                        left: 12,
+                        bottom:
+                            12 +
+                            (onWall
+                                ? MediaQuery.viewPaddingOf(context).bottom
+                                : 0),
+                        child: _toolPill(wall),
+                      ),
                   ],
                 ),
               ),
@@ -1113,8 +1163,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  BoxDecoration _frosted(WallStyle wall, {double radius = 21}) => BoxDecoration(
-    color: wall.dark ? const Color(0x26FFFFFF) : const Color(0x14000000),
+  /// The translucent chip look. [strong] is for controls that float over the
+  /// notes themselves (the tool pill): enough fill that icons stay readable
+  /// with a busy photo passing underneath.
+  BoxDecoration _frosted(
+    WallStyle wall, {
+    double radius = 21,
+    bool strong = false,
+  }) => BoxDecoration(
+    color: strong
+        ? (wall.dark ? const Color(0x8C000000) : const Color(0xB8FFFFFF))
+        : (wall.dark ? const Color(0x26FFFFFF) : const Color(0x14000000)),
     borderRadius: BorderRadius.circular(radius),
     border: Border.all(color: wall.wallTextFaded.withValues(alpha: 0.25)),
   );
@@ -1324,36 +1383,55 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// The second header row is the board strip alone, full width; the tools
+  /// are in [_toolPill] at the bottom.
   Widget _buildToolRow(WallStyle wall) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 4, 8, 0),
       child: SizedBox(
         height: 48,
-        child: Row(
-          children: [
-            Expanded(
-              child: BoardBar(
-                notes: _notes,
-                textColor: wall.wallText,
-                chipKeys: {
-                  for (final b in _notes.boards)
-                    b.id: _chipKeys.putIfAbsent(b.id, GlobalKey.new),
-                },
-                dropTarget: _dropTarget,
-              ),
-            ),
-            _filterButton(wall),
-            if (_notes.viewMode == ViewMode.wall)
-              IconButton(
-                tooltip: _l10n.drawOnWall,
-                icon: Icon(Icons.gesture, color: wall.wallText),
-                onPressed: _marking ? null : () => _startMarking(wall),
-              )
-            else
-              _sortButton(wall),
-            _layoutButton(wall),
-            _moreButton(wall),
-          ],
+        child: BoardBar(
+          notes: _notes,
+          textColor: wall.wallText,
+          chipKeys: {
+            for (final b in _notes.boards)
+              b.id: _chipKeys.putIfAbsent(b.id, GlobalKey.new),
+          },
+          dropTarget: _dropTarget,
+        ),
+      ),
+    );
+  }
+
+  /// Filter, pen (wall) or sort (grid/list), layout and the more menu, in a
+  /// frosted pill bottom-left, opposite the add button.
+  Widget _toolPill(WallStyle wall) {
+    // Real frosted glass: whatever note drifts underneath turns into a soft
+    // smear, so the icons stay crisp without an opaque slab on the wall.
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: _frosted(wall, radius: 24, strong: true),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _filterButton(wall),
+              if (_notes.viewMode == ViewMode.wall)
+                IconButton(
+                  tooltip: _l10n.drawOnWall,
+                  icon: Icon(Icons.gesture, color: wall.wallText),
+                  onPressed: _marking ? null : () => _startMarking(wall),
+                )
+              else
+                _sortButton(wall),
+              _layoutButton(wall),
+              _moreButton(wall),
+            ],
+          ),
         ),
       ),
     );
@@ -1620,7 +1698,9 @@ class _HomeScreenState extends State<HomeScreen> {
         // The wall fills the body: notes pan under the header rows and the
         // system bar, while its resting view stays between them.
         topInset: HomeScreen.wallHeaderHeight,
-        bottomInset: MediaQuery.viewPaddingOf(context).bottom,
+        bottomInset:
+            MediaQuery.viewPaddingOf(context).bottom +
+            HomeScreen.wallFooterHeight,
       );
     }
 

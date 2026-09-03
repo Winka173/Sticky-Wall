@@ -423,6 +423,7 @@ class _WallViewState extends State<WallView>
   @override
   void didUpdateWidget(WallView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.notes.length != widget.notes.length) _remeasurePasses = 0;
     if (oldWidget.topInset != widget.topInset ||
         oldWidget.camera != widget.camera) {
       _tellCameraHome();
@@ -462,13 +463,33 @@ class _WallViewState extends State<WallView>
     final h = _size.height;
     if (w <= 0 || h <= 0) return true;
     final view = Rect.fromLTWH(0, widget.topInset, w, h).inflate(2);
+    _unmeasured = 0;
     for (final note in widget.notes) {
+      if (_paperBox(note) == null) _unmeasured++;
       final r = MatrixUtils.transformRect(m, _boxOf(note, w, h));
       if (!view.contains(r.topLeft) || !view.contains(r.bottomRight)) {
         return false;
       }
     }
     return true;
+  }
+
+  /// Cards counted by [_allInView] whose height was still a guess (not laid
+  /// out yet), and how many follow-up passes have been spent on that. The
+  /// camera button reads the guess on the first frame; one rebuild after
+  /// layout puts the real heights under it.
+  int _unmeasured = 0;
+  int _remeasurePasses = 0;
+  bool _remeasureQueued = false;
+
+  void _remeasureSoon() {
+    if (_unmeasured == 0 || _remeasureQueued || _remeasurePasses >= 2) return;
+    _remeasureQueued = true;
+    _remeasurePasses++;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _remeasureQueued = false;
+      if (mounted) setState(() {});
+    });
   }
 
   /// Frames every note — and the home area — in the viewport, zooming out as
@@ -1142,6 +1163,7 @@ class _WallViewState extends State<WallView>
                   builder: (context, m, _) {
                     final atHome = m == _home;
                     final fit = !_allInView(m);
+                    _remeasureSoon();
                     final show = fit || !atHome;
                     // Swapping children (rather than fading one) keeps the
                     // hidden state free of a tooltip and a hit target.
