@@ -1,8 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Note reminders (flutter_local_notifications). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Exact alarms are user-granted; when denied the reminder falls back to
+         an inexact one (see ReminderService). USE_EXACT_ALARM is deliberately
+         absent: Google Play reserves it for alarm-clock and calendar apps. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <!-- Saving a note image to the gallery (gal) on older Android. -->
     <uses-permission

@@ -341,6 +341,66 @@ The widget's code is in `ios/StickyWidget/` (SwiftUI + WidgetKit, reading the
 The Dart side needs nothing more: `WidgetService.init()` sets the app group
 at start-up, and the picture is saved into the group container.
 
+## Releasing to Google Play
+
+What the repo already has: a release build type that minifies and shrinks
+(`android/app/build.gradle.kts`, rules in `proguard-rules.pro`), version
+name and code taken from `pubspec.yaml`'s `version:`, the store icon and
+feature graphic in `store/`, phone screenshots in `screenshots/`, and the
+privacy policy in [PRIVACY.md](PRIVACY.md).
+
+What only you can do, once:
+
+1. **Upload key.** Create it and keep it out of the repo (`android/.gitignore`
+   already ignores it):
+
+   ```powershell
+   keytool -genkey -v -keystore $env:USERPROFILE\sticky-wall-upload.jks `
+     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+
+   Then write `android/key.properties`:
+
+   ```properties
+   storeFile=C:/Users/<you>/sticky-wall-upload.jks
+   storePassword=...
+   keyAlias=upload
+   keyPassword=...
+   ```
+
+   Without this file release builds are signed with the debug key, which
+   Play rejects.
+
+2. **Build the bundle** (bump `version:` in `pubspec.yaml` first — Play needs
+   a higher build number every upload):
+
+   ```powershell
+   flutter build appbundle --release --obfuscate --split-debug-info=build/symbols
+   ```
+
+   The bundle lands in `build/app/outputs/bundle/release/app-release.aab`.
+   If the build ends with "failed to strip debug symbols", `flutter doctor`
+   is missing the Android cmdline-tools or licences; fix that and rebuild, or
+   the bundle ships larger than it needs to.
+
+3. **Play Console.** Create the app, upload the bundle to a testing track,
+   then fill in *App content*: privacy policy URL (publish PRIVACY.md — the
+   raw GitHub URL or GitHub Pages both work), Data safety (no data collected
+   or shared; everything stays on the device), content rating questionnaire,
+   target audience (not designed for children), ads (none), app access (no
+   login). The listing needs `store/icon_512.png`, `store/feature_graphic_1024x500.png`
+   and at least two screenshots from `screenshots/`.
+
+   Personal developer accounts created after November 2023 must run a closed
+   test with at least 12 testers for 14 days before production is unlocked.
+
+Permissions worth knowing when you fill in the forms: notifications and
+`SCHEDULE_EXACT_ALARM` for reminders (user-granted; the app falls back to
+inexact alarms when denied), `RECEIVE_BOOT_COMPLETED` to re-arm reminders
+after a reboot, and `WRITE_EXTERNAL_STORAGE` only up to Android 10 for
+*Save image*. `USE_EXACT_ALARM` is deliberately not requested: Play limits
+it to alarm-clock and calendar apps.
+
 ## Assets & credits
 
 - Wall textures: [ambientCG](https://ambientcg.com) — Cork004,
