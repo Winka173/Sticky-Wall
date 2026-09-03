@@ -476,6 +476,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportBoard => 'Export board as image';
 
   @override
+  String get exportWholeWall => 'Whole wall';
+
+  @override
+  String get exportVisible => 'Part in view';
+
+  @override
+  String get exportAllNotes => 'All notes';
+
+  @override
+  String exportSelectedNotes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected',
+      one: '1 selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharePdf => 'Share as PDF';
+
+  @override
+  String get putOnHomeScreen => 'Show on the home-screen widget';
+
+  @override
+  String get widgetUpdated => 'Home-screen widget updated';
+
+  @override
+  String get widgetUpdateFailed => 'Could not update the widget';
+
+  @override
+  String get bullets => 'Bullet list';
+
+  @override
   String get exportHint =>
       'Just the wall, its notes and threads — no toolbars. Share it, or save it to your gallery.';
 

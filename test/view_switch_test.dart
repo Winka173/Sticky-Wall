@@ -31,8 +31,9 @@ void main() {
     (ViewMode.list, ViewMode.wall),
     (ViewMode.wall, ViewMode.grid),
   ]) {
-    testWidgets('switching $from -> $to mid-transition does not throw',
-        (tester) async {
+    testWidgets('switching $from -> $to mid-transition does not throw', (
+      tester,
+    ) async {
       final (app, notes) = await _app(from);
       await tester.pumpWidget(app);
       await tester.pumpAndSettle();

@@ -33,18 +33,22 @@ Future<void> loadPreviewFonts() async {
     // Synchronous on purpose: real file I/O never completes under the test
     // binding's fake async clock.
     final bytes = icons.readAsBytesSync();
-    await (FontLoader('MaterialIcons')
-          ..addFont(Future.value(ByteData.sublistView(bytes))))
-        .load();
+    await (FontLoader(
+      'MaterialIcons',
+    )..addFont(Future.value(ByteData.sublistView(bytes)))).load();
   }
 }
 
 /// The icon font from the SDK that is running this test, when it is there.
 File? _materialIconsFile() {
-  final root = Platform.environment['FLUTTER_ROOT'] ??
+  final root =
+      Platform.environment['FLUTTER_ROOT'] ??
       // `flutter test` runs the Dart VM out of the SDK's cache.
       File(Platform.resolvedExecutable).parent.parent.parent.parent.path;
-  for (final name in ['materialicons-regular.otf', 'MaterialIcons-Regular.otf']) {
+  for (final name in [
+    'materialicons-regular.otf',
+    'MaterialIcons-Regular.otf',
+  ]) {
     final f = File('$root/bin/cache/artifacts/material_fonts/$name');
     if (f.existsSync()) return f;
   }

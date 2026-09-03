@@ -11,12 +11,12 @@ import 'package:sticky_wall/services/settings_controller.dart';
 final _epoch = DateTime.fromMillisecondsSinceEpoch(0);
 
 Note _note(String guid, String content, {String url = ''}) => Note(
-      guid: guid,
-      content: content,
-      url: url,
-      createdAt: _epoch,
-      boardId: 'default',
-    );
+  guid: guid,
+  content: content,
+  url: url,
+  createdAt: _epoch,
+  boardId: 'default',
+);
 
 Future<StickyWallApp> _buildApp({List<Note> notes = const []}) async {
   final storage = await NoteStorage.create();
@@ -36,10 +36,14 @@ void main() {
 
   testWidgets('renders saved normal and link notes', (tester) async {
     SharedPreferences.setMockInitialValues({});
-    await tester.pumpWidget(await _buildApp(notes: [
-      _note('1', 'hello world'),
-      _note('2', 'Flutter docs', url: 'https://docs.flutter.dev'),
-    ]));
+    await tester.pumpWidget(
+      await _buildApp(
+        notes: [
+          _note('1', 'hello world'),
+          _note('2', 'Flutter docs', url: 'https://docs.flutter.dev'),
+        ],
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('hello world'), findsOneWidget);
@@ -50,10 +54,12 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final storage = await NoteStorage.create();
     await storage.setLanguageCode('vi');
-    await tester.pumpWidget(StickyWallApp(
-      settings: SettingsController(storage),
-      notes: NotesController(storage, ReminderService()),
-    ));
+    await tester.pumpWidget(
+      StickyWallApp(
+        settings: SettingsController(storage),
+        notes: NotesController(storage, ReminderService()),
+      ),
+    );
     await tester.pump();
 
     expect(find.text('Thêm ghi chú'), findsOneWidget);
@@ -92,26 +98,31 @@ void main() {
     expect(round.checklist.single.done, true);
   });
 
-  test('drawing canvas survives a JSON round-trip and defaults when absent',
-      () {
-    final note = Note(
-      guid: 'e',
-      content: '',
-      createdAt: _epoch,
-      boardId: 'default',
-      type: NoteType.drawing,
-      canvas: const DrawCanvas(color: 0xFF2E3A36, pattern: CanvasPattern.grid),
-    );
-    final round = Note.fromJson(note.toJson());
-    expect(round.canvas.color, 0xFF2E3A36);
-    expect(round.canvas.pattern, CanvasPattern.grid);
-    expect(round.canvas.isDark, true);
+  test(
+    'drawing canvas survives a JSON round-trip and defaults when absent',
+    () {
+      final note = Note(
+        guid: 'e',
+        content: '',
+        createdAt: _epoch,
+        boardId: 'default',
+        type: NoteType.drawing,
+        canvas: const DrawCanvas(
+          color: 0xFF2E3A36,
+          pattern: CanvasPattern.grid,
+        ),
+      );
+      final round = Note.fromJson(note.toJson());
+      expect(round.canvas.color, 0xFF2E3A36);
+      expect(round.canvas.pattern, CanvasPattern.grid);
+      expect(round.canvas.isDark, true);
 
-    // Notes saved before canvases existed load with the plain default paper.
-    final legacy = note.toJson()..remove('canvas');
-    expect(Note.fromJson(legacy).canvas, const DrawCanvas());
-    expect(const DrawCanvas().isDark, false);
-  });
+      // Notes saved before canvases existed load with the plain default paper.
+      final legacy = note.toJson()..remove('canvas');
+      expect(Note.fromJson(legacy).canvas, const DrawCanvas());
+      expect(const DrawCanvas().isDark, false);
+    },
+  );
 
   test('controller adds, deletes and undoes a note', () async {
     SharedPreferences.setMockInitialValues({});

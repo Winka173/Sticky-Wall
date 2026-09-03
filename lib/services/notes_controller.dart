@@ -7,6 +7,7 @@ import '../models/board.dart';
 import '../models/note.dart';
 import '../models/view_mode.dart';
 import '../util/angles.dart';
+import '../util/rich_note.dart';
 import '../util/text_fold.dart';
 import 'note_storage.dart';
 import 'reminder_service.dart';
@@ -341,7 +342,11 @@ class NotesController extends ChangeNotifier {
     final search = foldText(_search.trim());
     if (search.isEmpty) return true;
     final haystack = foldText(
-      [note.content, note.url, ...note.checklist.map((i) => i.text)].join(' '),
+      [
+        plainNoteText(note.content),
+        note.url,
+        ...note.checklist.map((i) => i.text),
+      ].join(' '),
     );
     return haystack.contains(search);
   }

@@ -470,6 +470,40 @@ class AppLocalizationsVi extends AppLocalizations {
   String get exportBoard => 'Xuất tường thành ảnh';
 
   @override
+  String get exportWholeWall => 'Cả tường';
+
+  @override
+  String get exportVisible => 'Phần đang xem';
+
+  @override
+  String get exportAllNotes => 'Mọi ghi chú';
+
+  @override
+  String exportSelectedNotes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count đã chọn',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharePdf => 'Chia sẻ PDF';
+
+  @override
+  String get putOnHomeScreen => 'Đưa lên widget màn hình chính';
+
+  @override
+  String get widgetUpdated => 'Đã cập nhật widget màn hình chính';
+
+  @override
+  String get widgetUpdateFailed => 'Không cập nhật được widget';
+
+  @override
+  String get bullets => 'Gạch đầu dòng';
+
+  @override
   String get exportHint =>
       'Chỉ có tường, ghi chú và dây — không có thanh công cụ. Chia sẻ, hoặc lưu vào thư viện ảnh.';
 

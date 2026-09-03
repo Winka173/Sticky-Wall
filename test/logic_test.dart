@@ -26,16 +26,15 @@ Note _note(
   String image = '',
   NoteType? type,
   DateTime? createdAt,
-}) =>
-    Note(
-      guid: guid,
-      content: content,
-      url: url,
-      type: type,
-      imagePath: image,
-      createdAt: createdAt ?? _epoch,
-      boardId: board,
-    );
+}) => Note(
+  guid: guid,
+  content: content,
+  url: url,
+  type: type,
+  imagePath: image,
+  createdAt: createdAt ?? _epoch,
+  boardId: board,
+);
 
 Future<NotesController> _controller({
   List<Note> notes = const [],
@@ -54,10 +53,18 @@ void main() {
     });
 
     test('matches ignores accents on either side', () async {
-      final c = await _controller(notes: [
-        _note('1', 'Tưới cây'),
-        _note('2', 'Đi chợ', type: NoteType.checklist),
-      ]);
+      final c = await _controller(
+        notes: [
+          _note('1', '**Tưới** cây'),
+          _note('2', 'Đi chợ', type: NoteType.checklist),
+        ],
+      );
+      c.search = 'tuoi cay';
+      expect(
+        c.visibleNotes.map((n) => n.guid),
+        ['1'],
+        reason: 'the bold markers do not split the words',
+      );
       c.search = 'tuoi';
       expect(c.visibleNotes.map((n) => n.guid), ['1']);
       c.search = 'ĐI';
@@ -71,11 +78,13 @@ void main() {
 
   group('NotesController', () {
     test('setSort orders by date or title in both directions', () async {
-      final c = await _controller(notes: [
-        _note('a', 'banana', createdAt: DateTime(2026, 1, 2)),
-        _note('b', 'apple', createdAt: DateTime(2026, 1, 3)),
-        _note('c', 'cherry', createdAt: DateTime(2026, 1, 1)),
-      ]);
+      final c = await _controller(
+        notes: [
+          _note('a', 'banana', createdAt: DateTime(2026, 1, 2)),
+          _note('b', 'apple', createdAt: DateTime(2026, 1, 3)),
+          _note('c', 'cherry', createdAt: DateTime(2026, 1, 1)),
+        ],
+      );
       c.setSort(byCreated: true, ascending: false);
       expect(c.visibleNotes.map((n) => n.guid), ['b', 'a', 'c']);
       c.setSort(byCreated: true, ascending: true);
@@ -87,10 +96,12 @@ void main() {
     });
 
     test('pinned notes always sort first', () async {
-      final c = await _controller(notes: [
-        _note('a', 'a', createdAt: DateTime(2026, 1, 3)),
-        _note('b', 'b', createdAt: DateTime(2026, 1, 1)),
-      ]);
+      final c = await _controller(
+        notes: [
+          _note('a', 'a', createdAt: DateTime(2026, 1, 3)),
+          _note('b', 'b', createdAt: DateTime(2026, 1, 1)),
+        ],
+      );
       c.setSort(byCreated: true, ascending: false);
       c.togglePin(c.boardNotes.firstWhere((n) => n.guid == 'b'));
       expect(c.visibleNotes.first.guid, 'b');
@@ -116,8 +127,7 @@ void main() {
       expect(c.boardNotes.single.boardId, 'default');
     });
 
-    test('delete moves to the trash; undo and restore bring it back',
-        () async {
+    test('delete moves to the trash; undo and restore bring it back', () async {
       final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
       final n1 = c.boardNotes[0];
       final n2 = c.boardNotes[1];
@@ -171,7 +181,9 @@ void main() {
       final fresh = _note('fresh', 'y')
         ..deletedAt = DateTime.now().subtract(const Duration(days: 2));
       final c = await _controller(
-          notes: [old, fresh, _note('live', 'z')], deletePhoto: removed.add);
+        notes: [old, fresh, _note('live', 'z')],
+        deletePhoto: removed.add,
+      );
       expect(c.allNotes.map((n) => n.guid), ['fresh', 'live']);
       expect(c.trashed.single.guid, 'fresh');
       expect(c.daysLeft(c.trashed.single), 28);
@@ -190,19 +202,23 @@ void main() {
       expect(c.canUndo, false);
     });
 
-    test('restore falls back to the first board when its board is gone',
-        () async {
-      final c = await _controller(
-          notes: [_note('1', 'x', board: 'gone')..deletedAt = DateTime.now()]);
-      final note = c.trashed.single;
-      c.restore(note);
-      expect(note.boardId, 'default');
-      expect(c.boardNotes.single.guid, '1');
-    });
+    test(
+      'restore falls back to the first board when its board is gone',
+      () async {
+        final c = await _controller(
+          notes: [_note('1', 'x', board: 'gone')..deletedAt = DateTime.now()],
+        );
+        final note = c.trashed.single;
+        c.restore(note);
+        expect(note.boardId, 'default');
+        expect(c.boardNotes.single.guid, '1');
+      },
+    );
 
     test('bulk actions: pinAll, recolor, moveAllToBoard', () async {
       final c = await _controller(
-          notes: [_note('1', 'x'), _note('2', 'y'), _note('3', 'z')]);
+        notes: [_note('1', 'x'), _note('2', 'y'), _note('3', 'z')],
+      );
       final all = c.boardNotes;
       c.pinAll(all, true);
       expect(all.every((n) => n.pinned), true);
@@ -242,25 +258,33 @@ void main() {
       expect(notes[1].scale, 3);
     });
 
-    test('rotateNote stores the turn in (-π, π] and null restores the tilt',
-        () async {
-      final c = await _controller(notes: [_note('1', 'x')]);
-      final note = c.boardNotes.single;
-      c.rotateNote(note, 0.4);
-      expect(note.rotation, closeTo(0.4, 1e-9));
-      c.rotateNote(note, 3 * math.pi + 0.5);
-      expect(note.rotation, closeTo(-math.pi + 0.5, 1e-9));
-      c.rotateNote(note, -math.pi);
-      expect(note.rotation, closeTo(math.pi, 1e-9), reason: 'half turn is +π');
-      c.rotateNote(note, null);
-      expect(note.rotation, isNull);
-    });
+    test(
+      'rotateNote stores the turn in (-π, π] and null restores the tilt',
+      () async {
+        final c = await _controller(notes: [_note('1', 'x')]);
+        final note = c.boardNotes.single;
+        c.rotateNote(note, 0.4);
+        expect(note.rotation, closeTo(0.4, 1e-9));
+        c.rotateNote(note, 3 * math.pi + 0.5);
+        expect(note.rotation, closeTo(-math.pi + 0.5, 1e-9));
+        c.rotateNote(note, -math.pi);
+        expect(
+          note.rotation,
+          closeTo(math.pi, 1e-9),
+          reason: 'half turn is +π',
+        );
+        c.rotateNote(note, null);
+        expect(note.rotation, isNull);
+      },
+    );
 
     test('a finished checklist is stamped and swept after a day', () async {
-      final c = await _controller(notes: [
-        _note('1', 'list', type: NoteType.checklist)
-          ..checklist = [ChecklistItem(text: 'a'), ChecklistItem(text: 'b')],
-      ]);
+      final c = await _controller(
+        notes: [
+          _note('1', 'list', type: NoteType.checklist)
+            ..checklist = [ChecklistItem(text: 'a'), ChecklistItem(text: 'b')],
+        ],
+      );
       final note = c.boardNotes.single;
       c.toggleChecklistItem(note, 0);
       expect(note.completedAt, isNull);
@@ -387,12 +411,15 @@ void main() {
 
   group('labels, locks, yarn and marker strokes', () {
     test('a label and its lock round-trip; filter 5 keeps labels', () async {
-      final c = await _controller(notes: [
-        _note('1', 'To do', type: NoteType.label)..locked = true,
-        _note('2', 'a task'),
-      ]);
+      final c = await _controller(
+        notes: [
+          _note('1', 'To do', type: NoteType.label)..locked = true,
+          _note('2', 'a task'),
+        ],
+      );
       final label = c.boardNotes.first;
-      final json = jsonDecode(jsonEncode(label.toJson())) as Map<String, dynamic>;
+      final json =
+          jsonDecode(jsonEncode(label.toJson())) as Map<String, dynamic>;
       final back = Note.fromJson(json);
       expect(back.type, NoteType.label);
       expect(back.locked, true);
@@ -418,8 +445,9 @@ void main() {
       expect(plain.color, isNull);
       expect(plain.toJson().keys, ['a', 'b'], reason: 'defaults stay out');
 
-      c.updateLink(plain.copyWith(
-          color: AppColors.yarns[4], label: 'blocks', arrow: true));
+      c.updateLink(
+        plain.copyWith(color: AppColors.yarns[4], label: 'blocks', arrow: true),
+      );
       final styled = NotesController(storage, ReminderService()).links.single;
       expect(styled.color, AppColors.yarns[4]);
       expect(styled.label, 'blocks');
@@ -442,8 +470,13 @@ void main() {
       final storage = await NoteStorage.create();
       final c = NotesController(storage, ReminderService());
       expect(c.currentBoard.toJson().containsKey('strokes'), false);
-      c.currentBoard.strokes.add(DrawStroke(
-          color: 0xFF3B372F, width: 4, points: const [Offset(0.1, 0.2), Offset(0.3, 0.4)]));
+      c.currentBoard.strokes.add(
+        DrawStroke(
+          color: 0xFF3B372F,
+          width: 4,
+          points: const [Offset(0.1, 0.2), Offset(0.3, 0.4)],
+        ),
+      );
       c.saveWallStrokes();
       final again = NotesController(storage, ReminderService());
       final stroke = again.currentBoard.strokes.single;
@@ -456,7 +489,8 @@ void main() {
   group('threads', () {
     test('connect / disconnect / linksOn', () async {
       final c = await _controller(
-          notes: [_note('1', 'x'), _note('2', 'y'), _note('3', 'z')]);
+        notes: [_note('1', 'x'), _note('2', 'y'), _note('3', 'z')],
+      );
       expect(c.connect('1', '2'), true);
       expect(c.connect('2', '1'), false, reason: 'already tied');
       expect(c.connect('1', '1'), false, reason: 'no self-loops');
@@ -477,7 +511,8 @@ void main() {
 
     test('purging a note cuts its threads; trashing keeps them', () async {
       final c = await _controller(
-          notes: [_note('1', 'x'), _note('2', 'y'), _note('3', 'z')]);
+        notes: [_note('1', 'x'), _note('2', 'y'), _note('3', 'z')],
+      );
       c.connect('1', '2');
       c.connect('2', '3');
       final n2 = c.boardNotes[1];
@@ -491,8 +526,7 @@ void main() {
       expect(c.links, isEmpty);
     });
 
-    test('links survive a reload and replaceAll drops dangling ones',
-        () async {
+    test('links survive a reload and replaceAll drops dangling ones', () async {
       SharedPreferences.setMockInitialValues({});
       final storage = await NoteStorage.create();
       await storage.saveNotes([_note('1', 'x'), _note('2', 'y')]);
@@ -527,29 +561,38 @@ void main() {
       expect(Note.fromJson(json..['images'] = <String>[]).imagePath, '');
       // A present imagePath wins over the old list.
       expect(
-          Note.fromJson(json
+        Note.fromJson(
+          json
             ..['imagePath'] = 'mine.jpg'
-            ..['images'] = ['other.jpg']).imagePath,
-          'mine.jpg');
+            ..['images'] = ['other.jpg'],
+        ).imagePath,
+        'mine.jpg',
+      );
     });
 
-    test('addPhotos pins one print per file, cascading from the spot',
-        () async {
-      final c = await _controller();
-      final created = c.addPhotos(['a.jpg', 'b.jpg', 'c.jpg'], x: 0.2, y: 0.3);
-      expect(created.length, 3);
-      expect(c.boardNotes.length, 3);
-      for (final (i, n) in created.indexed) {
-        expect(n.type, NoteType.photo);
-        expect(n.imagePath, '${'abc'[i]}.jpg');
-        expect(n.boardId, 'default');
-      }
-      expect(created[0].x, closeTo(0.2, 1e-9));
-      expect(created[1].x, greaterThan(created[0].x));
-      expect(created[1].y, greaterThan(created[0].y));
-      expect(c.addPhotos([]), isEmpty);
-      expect(c.boardNotes.length, 3);
-    });
+    test(
+      'addPhotos pins one print per file, cascading from the spot',
+      () async {
+        final c = await _controller();
+        final created = c.addPhotos(
+          ['a.jpg', 'b.jpg', 'c.jpg'],
+          x: 0.2,
+          y: 0.3,
+        );
+        expect(created.length, 3);
+        expect(c.boardNotes.length, 3);
+        for (final (i, n) in created.indexed) {
+          expect(n.type, NoteType.photo);
+          expect(n.imagePath, '${'abc'[i]}.jpg');
+          expect(n.boardId, 'default');
+        }
+        expect(created[0].x, closeTo(0.2, 1e-9));
+        expect(created[1].x, greaterThan(created[0].x));
+        expect(created[1].y, greaterThan(created[0].y));
+        expect(c.addPhotos([]), isEmpty);
+        expect(c.boardNotes.length, 3);
+      },
+    );
 
     test('a print can be tied to a note with a thread', () async {
       final c = await _controller(notes: [_note('n', 'text')]);
@@ -567,29 +610,31 @@ void main() {
       expect(c.visibleNotes.single.guid, 'n');
     });
 
-    test('purging a note deletes its photo unless another note shows it',
-        () async {
-      final removed = <String>[];
-      final c = await _controller(
-        notes: [
-          _note('1', 'x', image: 'shared.jpg'),
-          _note('2', 'y', image: 'shared.jpg'),
-          _note('3', 'z', image: 'own.jpg'),
-        ],
-        deletePhoto: removed.add,
-      );
-      final n1 = c.boardNotes[0];
-      final n3 = c.boardNotes[2];
-      c.delete(n1);
-      c.purge(n1);
-      expect(removed, isEmpty, reason: 'note 2 still shows shared.jpg');
-      expect(c.photoInUse('shared.jpg'), true);
-      c.delete(n3);
-      c.purge(n3);
-      expect(removed, ['own.jpg']);
-      expect(c.photoInUse('own.jpg'), false);
-      expect(c.photoInUse(''), false);
-    });
+    test(
+      'purging a note deletes its photo unless another note shows it',
+      () async {
+        final removed = <String>[];
+        final c = await _controller(
+          notes: [
+            _note('1', 'x', image: 'shared.jpg'),
+            _note('2', 'y', image: 'shared.jpg'),
+            _note('3', 'z', image: 'own.jpg'),
+          ],
+          deletePhoto: removed.add,
+        );
+        final n1 = c.boardNotes[0];
+        final n3 = c.boardNotes[2];
+        c.delete(n1);
+        c.purge(n1);
+        expect(removed, isEmpty, reason: 'note 2 still shows shared.jpg');
+        expect(c.photoInUse('shared.jpg'), true);
+        c.delete(n3);
+        c.purge(n3);
+        expect(removed, ['own.jpg']);
+        expect(c.photoInUse('own.jpg'), false);
+        expect(c.photoInUse(''), false);
+      },
+    );
   });
 
   group('first run', () {
@@ -621,13 +666,18 @@ void main() {
       final daily = _note('1', 'x')
         ..reminderAt = first
         ..repeat = ReminderRepeat.daily;
-      expect(daily.nextReminder(DateTime(2026, 1, 20, 12)),
-          DateTime(2026, 1, 21, 9, 30));
-      expect(daily.nextReminder(DateTime(2026, 1, 20, 8)),
-          DateTime(2026, 1, 20, 9, 30));
+      expect(
+        daily.nextReminder(DateTime(2026, 1, 20, 12)),
+        DateTime(2026, 1, 21, 9, 30),
+      );
+      expect(
+        daily.nextReminder(DateTime(2026, 1, 20, 8)),
+        DateTime(2026, 1, 20, 9, 30),
+      );
 
       final weekly = _note('2', 'x')
-        ..reminderAt = first // a Thursday
+        ..reminderAt =
+            first // a Thursday
         ..repeat = ReminderRepeat.weekly;
       final next = weekly.nextReminder(DateTime(2026, 2, 1))!;
       expect(next.weekday, first.weekday);
@@ -643,8 +693,10 @@ void main() {
       final next = monthly.nextReminder(DateTime(2026, 2, 1))!;
       expect(next.isAfter(DateTime(2026, 2, 1)), true);
       expect(next.hour, 8);
-      expect(monthly.nextReminder(DateTime(2026, 4, 1)),
-          DateTime(2026, 5, 1, 8)); // Apr 31 → May 1
+      expect(
+        monthly.nextReminder(DateTime(2026, 4, 1)),
+        DateTime(2026, 5, 1, 8),
+      ); // Apr 31 → May 1
     });
 
     test('round-trips repeat / deletedAt / completedAt through JSON', () {
@@ -654,7 +706,8 @@ void main() {
         ..deletedAt = DateTime(2026, 3, 1)
         ..completedAt = DateTime(2026, 2, 1);
       final back = Note.fromJson(
-          jsonDecode(jsonEncode(n.toJson())) as Map<String, dynamic>);
+        jsonDecode(jsonEncode(n.toJson())) as Map<String, dynamic>,
+      );
       expect(back.repeat, ReminderRepeat.weekly);
       expect(back.deletedAt, DateTime(2026, 3, 1));
       expect(back.completedAt, DateTime(2026, 2, 1));
@@ -665,7 +718,8 @@ void main() {
   group('SharedContent.fromText', () {
     test('splits the first link from the surrounding text', () {
       final c = SharedContent.fromText(
-          'Check this out https://example.com/a?b=1. Great read');
+        'Check this out https://example.com/a?b=1. Great read',
+      );
       expect(c.url, 'https://example.com/a?b=1');
       expect(c.text, 'Check this out Great read');
     });
@@ -737,10 +791,14 @@ void main() {
     test('rebuilds the path from a bare name or a stale absolute path', () {
       ImageService.docsDirForTest = '/docs';
       expect(ImageService.resolve('a.jpg'), '/docs/note_images/a.jpg');
-      expect(ImageService.resolve('/old/container/note_images/a.jpg'),
-          '/docs/note_images/a.jpg');
-      expect(ImageService.resolve(r'C:\old\note_images\a.jpg'),
-          '/docs/note_images/a.jpg');
+      expect(
+        ImageService.resolve('/old/container/note_images/a.jpg'),
+        '/docs/note_images/a.jpg',
+      );
+      expect(
+        ImageService.resolve(r'C:\old\note_images\a.jpg'),
+        '/docs/note_images/a.jpg',
+      );
       expect(ImageService.resolve(''), '');
     });
 
@@ -752,12 +810,17 @@ void main() {
   group('ReminderService.titleFor', () {
     test('uses content, then checklist items, then the app name', () {
       expect(ReminderService.titleFor(_note('1', '  Call mum  ')), 'Call mum');
-      final list = _note('2', '', type: NoteType.checklist)
-        ..checklist = [ChecklistItem(text: 'milk'), ChecklistItem(text: 'eggs')];
+      final list = _note(
+        '2',
+        '',
+        type: NoteType.checklist,
+      )..checklist = [ChecklistItem(text: 'milk'), ChecklistItem(text: 'eggs')];
       expect(ReminderService.titleFor(list), 'milk, eggs');
       expect(ReminderService.titleFor(_note('3', '')), 'Sticky Wall');
-      expect(ReminderService.titleFor(_note('4', 'Gym')..emoji = '💪'),
-          '💪 Gym');
+      expect(
+        ReminderService.titleFor(_note('4', 'Gym')..emoji = '💪'),
+        '💪 Gym',
+      );
     });
   });
 

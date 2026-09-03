@@ -15,17 +15,19 @@ import 'package:sticky_wall/widgets/board_poster.dart';
 import 'package:sticky_wall/widgets/drawing_canvas.dart';
 import 'package:sticky_wall/widgets/note_views.dart';
 
-Future<NotesController> _pumpApp(WidgetTester tester,
-    {List<Note> notes = const [], ViewMode? viewMode}) async {
+Future<NotesController> _pumpApp(
+  WidgetTester tester, {
+  List<Note> notes = const [],
+  ViewMode? viewMode,
+}) async {
   SharedPreferences.setMockInitialValues({});
   final storage = await NoteStorage.create();
   await storage.saveNotes(notes);
   if (viewMode != null) await storage.setViewMode(viewMode);
   final controller = NotesController(storage, ReminderService());
-  await tester.pumpWidget(StickyWallApp(
-    settings: SettingsController(storage),
-    notes: controller,
-  ));
+  await tester.pumpWidget(
+    StickyWallApp(settings: SettingsController(storage), notes: controller),
+  );
   await tester.pumpAndSettle();
   return controller;
 }
@@ -50,8 +52,9 @@ Future<void> _dragNote(WidgetTester tester, Finder note, Offset by) async {
 }
 
 void main() {
-  testWidgets('saving an empty note shows an inline error and stays open',
-      (tester) async {
+  testWidgets('saving an empty note shows an inline error and stays open', (
+    tester,
+  ) async {
     final notes = await _pumpApp(tester);
     await _openEditor(tester);
 
@@ -81,17 +84,21 @@ void main() {
     expect(_saveButton, findsNothing);
   });
 
-  testWidgets('a link already on the wall is rejected, www/scheme ignored',
-      (tester) async {
-    final notes = await _pumpApp(tester, notes: [
-      Note(
-        guid: 'x',
-        content: 'Docs',
-        url: 'https://www.docs.flutter.dev/',
-        createdAt: DateTime(2026),
-        boardId: 'default',
-      ),
-    ]);
+  testWidgets('a link already on the wall is rejected, www/scheme ignored', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      notes: [
+        Note(
+          guid: 'x',
+          content: 'Docs',
+          url: 'https://www.docs.flutter.dev/',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+        ),
+      ],
+    );
     await _openEditor(tester);
 
     await tester.tap(find.byTooltip('Link'));
@@ -109,12 +116,12 @@ void main() {
     await tester.tap(_saveButton);
     await tester.pumpAndSettle();
     expect(notes.boardNotes.length, 2);
-    expect(
-        notes.boardNotes.any((n) => n.content == 'https://dart.dev'), true);
+    expect(notes.boardNotes.any((n) => n.content == 'https://dart.dev'), true);
   });
 
-  testWidgets('checklist keeps a typed-but-unsubmitted item on save',
-      (tester) async {
+  testWidgets('checklist keeps a typed-but-unsubmitted item on save', (
+    tester,
+  ) async {
     final notes = await _pumpApp(tester);
     await _openEditor(tester);
 
@@ -153,18 +160,22 @@ void main() {
     expect(notes.boardNotes, isEmpty);
   });
 
-  testWidgets('a print pinned on the wall shows its caption and actions',
-      (tester) async {
-    final notes = await _pumpApp(tester, notes: [
-      Note(
-        guid: 'p',
-        content: 'Beach day',
-        type: NoteType.photo,
-        imagePath: 'missing.jpg',
-        createdAt: DateTime(2026),
-        boardId: 'default',
-      ),
-    ]);
+  testWidgets('a print pinned on the wall shows its caption and actions', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      notes: [
+        Note(
+          guid: 'p',
+          content: 'Beach day',
+          type: NoteType.photo,
+          imagePath: 'missing.jpg',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+        ),
+      ],
+    );
     expect(notes.boardNotes.single.type, NoteType.photo);
     expect(find.text('Beach day'), findsOneWidget);
 
@@ -177,17 +188,21 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a note with a photo can swap or drop it in the editor',
-      (tester) async {
-    final notes = await _pumpApp(tester, notes: [
-      Note(
-        guid: 'n',
-        content: 'One snap',
-        imagePath: 'a.jpg',
-        createdAt: DateTime(2026),
-        boardId: 'default',
-      ),
-    ]);
+  testWidgets('a note with a photo can swap or drop it in the editor', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      notes: [
+        Note(
+          guid: 'n',
+          content: 'One snap',
+          imagePath: 'a.jpg',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+        ),
+      ],
+    );
     await tester.tap(find.text('One snap'));
     await tester.pumpAndSettle();
 
@@ -206,18 +221,23 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the rotate grip turns a wall note; a tap squares it up',
-      (tester) async {
-    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(
-        guid: 't',
-        content: 'Turn me',
-        createdAt: DateTime(2026),
-        boardId: 'default',
-        x: 0.5,
-        y: 0.3,
-      ),
-    ]);
+  testWidgets('the rotate grip turns a wall note; a tap squares it up', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 't',
+          content: 'Turn me',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.5,
+          y: 0.3,
+        ),
+      ],
+    );
     final note = notes.boardNotes.single;
     expect(find.byIcon(Icons.rotate_right), findsOneWidget);
     // The grips only show up on the note last touched: nudge it (further
@@ -235,7 +255,8 @@ void main() {
     for (var i = 1; i <= 8; i++) {
       final a = from + (math.pi / 4) * i / 8;
       await gesture.moveTo(
-          pivot + Offset(radius * math.cos(a), radius * math.sin(a)));
+        pivot + Offset(radius * math.cos(a), radius * math.sin(a)),
+      );
       await tester.pump();
     }
     await gesture.up();
@@ -251,17 +272,21 @@ void main() {
   });
 
   testWidgets('a turn near a quarter turn clicks into place', (tester) async {
-    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(
-        guid: 't',
-        content: 'Snap me',
-        createdAt: DateTime(2026),
-        boardId: 'default',
-        x: 0.5,
-        y: 0.3,
-        rotation: 0.5,
-      ),
-    ]);
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 't',
+          content: 'Snap me',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.5,
+          y: 0.3,
+          rotation: 0.5,
+        ),
+      ],
+    );
     final note = notes.boardNotes.single;
     await tester.drag(find.text('Snap me'), const Offset(0, 60));
     await tester.pumpAndSettle();
@@ -275,7 +300,8 @@ void main() {
     final gesture = await tester.startGesture(start);
     final a = from - 0.5 - 0.035;
     await gesture.moveTo(
-        pivot + Offset(radius * math.cos(a), radius * math.sin(a)));
+      pivot + Offset(radius * math.cos(a), radius * math.sin(a)),
+    );
     await tester.pump();
     await gesture.up();
     await tester.pumpAndSettle();
@@ -283,16 +309,20 @@ void main() {
   });
 
   testWidgets('two fingers on a wall note twist it round', (tester) async {
-    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(
-        guid: 't',
-        content: 'Twist me',
-        createdAt: DateTime(2026),
-        boardId: 'default',
-        x: 0.5,
-        y: 0.3,
-      ),
-    ]);
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 't',
+          content: 'Twist me',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.5,
+          y: 0.3,
+        ),
+      ],
+    );
     final note = notes.boardNotes.single;
     final c = tester.getCenter(find.text('Twist me'));
     const r = 30.0;
@@ -319,16 +349,20 @@ void main() {
   });
 
   testWidgets('a pinch on a wall note resizes it', (tester) async {
-    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(
-        guid: 't',
-        content: 'Pinch me',
-        createdAt: DateTime(2026),
-        boardId: 'default',
-        x: 0.5,
-        y: 0.3,
-      ),
-    ]);
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 't',
+          content: 'Pinch me',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.5,
+          y: 0.3,
+        ),
+      ],
+    );
     final note = notes.boardNotes.single;
     final c = tester.getCenter(find.text('Pinch me'));
     final g1 = await tester.startGesture(c + const Offset(-20, 0));
@@ -346,14 +380,18 @@ void main() {
   });
 
   testWidgets('export shows the board alone, ready to share', (tester) async {
-    await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(
-        guid: 'a',
-        content: 'Plan A',
-        createdAt: DateTime(2026),
-        boardId: 'default',
-      ),
-    ]);
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Plan A',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+        ),
+      ],
+    );
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Export board as image'));
@@ -371,11 +409,31 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a dragged note snaps into line with a neighbour', (tester) async {
-    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(guid: 'a', content: 'Aa', createdAt: DateTime(2026), boardId: 'default', x: 0.2, y: 0.2),
-      Note(guid: 'b', content: 'Bb', createdAt: DateTime(2026), boardId: 'default', x: 0.5, y: 0.5),
-    ]);
+  testWidgets('a dragged note snaps into line with a neighbour', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Aa',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.2,
+          y: 0.2,
+        ),
+        Note(
+          guid: 'b',
+          content: 'Bb',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.5,
+          y: 0.5,
+        ),
+      ],
+    );
     final a = notes.boardNotes[0];
     final b = notes.boardNotes[1];
     // The wall is 800 wide: a card's travel range is 800 - 168.
@@ -392,16 +450,32 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('double-tapping a note zooms the wall onto it and back',
-      (tester) async {
-    await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(guid: 'a', content: 'Focus me', createdAt: DateTime(2026), boardId: 'default', x: 0.3, y: 0.3),
-    ]);
+  testWidgets('double-tapping a note zooms the wall onto it and back', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Focus me',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.3,
+          y: 0.3,
+        ),
+      ],
+    );
     double resetOpacity() => tester
-        .widget<AnimatedOpacity>(find.ancestor(
-          of: find.byIcon(Icons.center_focus_strong),
-          matching: find.byType(AnimatedOpacity),
-        ).first)
+        .widget<AnimatedOpacity>(
+          find
+              .ancestor(
+                of: find.byIcon(Icons.center_focus_strong),
+                matching: find.byType(AnimatedOpacity),
+              )
+              .first,
+        )
         .opacity;
     expect(resetOpacity(), 0, reason: 'camera at rest: no reset button');
 
@@ -419,12 +493,31 @@ void main() {
     expect(resetOpacity(), 0, reason: 'back out');
   });
 
-  testWidgets('a lasso drawn round notes in select mode picks them up',
-      (tester) async {
-    await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(guid: 'a', content: 'Aa', createdAt: DateTime(2026), boardId: 'default', x: 0.1, y: 0.1),
-      Note(guid: 'b', content: 'Bb', createdAt: DateTime(2026), boardId: 'default', x: 0.6, y: 0.45),
-    ]);
+  testWidgets('a lasso drawn round notes in select mode picks them up', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Aa',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.1,
+          y: 0.1,
+        ),
+        Note(
+          guid: 'b',
+          content: 'Bb',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.6,
+          y: 0.45,
+        ),
+      ],
+    );
     await tester.longPress(find.text('Aa'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Select notes'));
@@ -433,10 +526,17 @@ void main() {
 
     // A loop just outside B's card, starting on bare wall.
     final box = tester
-        .getRect(find.ancestor(of: find.text('Bb'), matching: find.byType(NoteTurn)))
+        .getRect(
+          find.ancestor(of: find.text('Bb'), matching: find.byType(NoteTurn)),
+        )
         .inflate(24);
     final g = await tester.startGesture(box.topLeft);
-    for (final p in [box.topRight, box.bottomRight, box.bottomLeft, box.topLeft]) {
+    for (final p in [
+      box.topRight,
+      box.bottomRight,
+      box.bottomLeft,
+      box.topLeft,
+    ]) {
       await g.moveTo(p);
       await tester.pump();
     }
@@ -446,12 +546,31 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('dragging a selected note takes the whole selection along',
-      (tester) async {
-    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(guid: 'a', content: 'Aa', createdAt: DateTime(2026), boardId: 'default', x: 0.1, y: 0.1),
-      Note(guid: 'b', content: 'Bb', createdAt: DateTime(2026), boardId: 'default', x: 0.6, y: 0.6),
-    ]);
+  testWidgets('dragging a selected note takes the whole selection along', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Aa',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.1,
+          y: 0.1,
+        ),
+        Note(
+          guid: 'b',
+          content: 'Bb',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.6,
+          y: 0.6,
+        ),
+      ],
+    );
     final a = notes.boardNotes[0];
     final b = notes.boardNotes[1];
     await tester.longPress(find.text('Aa'));
@@ -477,9 +596,20 @@ void main() {
   });
 
   testWidgets('dropping a dragged note on the tray deletes it', (tester) async {
-    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(guid: 'a', content: 'Bin me', createdAt: DateTime(2026), boardId: 'default', x: 0.5, y: 0.3),
-    ]);
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Bin me',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.5,
+          y: 0.3,
+        ),
+      ],
+    );
     final g = await tester.startGesture(tester.getCenter(find.text('Bin me')));
     await g.moveBy(const Offset(0, 40));
     await tester.pumpAndSettle(); // the tray slides in
@@ -495,11 +625,23 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('dropping a dragged note on a board tab moves it there',
-      (tester) async {
-    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(guid: 'a', content: 'Tab me', createdAt: DateTime(2026), boardId: 'default', x: 0.5, y: 0.3),
-    ]);
+  testWidgets('dropping a dragged note on a board tab moves it there', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Tab me',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.5,
+          y: 0.3,
+        ),
+      ],
+    );
     final work = notes.addBoard('Work');
     notes.selectBoard('default');
     await tester.pumpAndSettle();
@@ -521,8 +663,9 @@ void main() {
     expect(note.boardId, 'default');
   });
 
-  testWidgets('long-pressing the add button offers the note types',
-      (tester) async {
+  testWidgets('long-pressing the add button offers the note types', (
+    tester,
+  ) async {
     await _pumpApp(tester, viewMode: ViewMode.wall);
     await tester.longPress(find.byType(AddNoteButton));
     await tester.pumpAndSettle();
@@ -535,15 +678,30 @@ void main() {
   });
 
   testWidgets('the Undo pill puts a moved note back', (tester) async {
-    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(guid: 'a', content: 'Oops', createdAt: DateTime(2026), boardId: 'default', x: 0.5, y: 0.3),
-    ]);
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Oops',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.5,
+          y: 0.3,
+        ),
+      ],
+    );
     final note = notes.boardNotes.single;
     double pillOpacity() => tester
-        .widget<AnimatedOpacity>(find
-            .ancestor(
-                of: find.text('Undo'), matching: find.byType(AnimatedOpacity))
-            .first)
+        .widget<AnimatedOpacity>(
+          find
+              .ancestor(
+                of: find.text('Undo'),
+                matching: find.byType(AnimatedOpacity),
+              )
+              .first,
+        )
         .opacity;
     expect(pillOpacity(), 0, reason: 'nothing to undo yet');
     await _dragNote(tester, find.text('Oops'), const Offset(0, 100));
@@ -561,13 +719,41 @@ void main() {
     expect(pillOpacity(), 0);
   });
 
-  testWidgets('a locked note stays put, and a tidy flows the rest beneath it',
-      (tester) async {
-    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(guid: 'h', content: 'This week', type: NoteType.label, createdAt: DateTime(2026), boardId: 'default', x: 0.05, y: 0.02, locked: true),
-      Note(guid: 'a', content: 'Aa', createdAt: DateTime(2026), boardId: 'default', x: 0.5, y: 0.5),
-      Note(guid: 'b', content: 'Bb', createdAt: DateTime(2026), boardId: 'default', x: 0.7, y: 0.8),
-    ]);
+  testWidgets('a locked note stays put, and a tidy flows the rest beneath it', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'h',
+          content: 'This week',
+          type: NoteType.label,
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.05,
+          y: 0.02,
+          locked: true,
+        ),
+        Note(
+          guid: 'a',
+          content: 'Aa',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.5,
+          y: 0.5,
+        ),
+        Note(
+          guid: 'b',
+          content: 'Bb',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.7,
+          y: 0.8,
+        ),
+      ],
+    );
     final head = notes.boardNotes[0];
     await _dragNote(tester, find.text('This week'), const Offset(60, 120));
     expect(head.x, 0.05, reason: 'locked: the drag does nothing');
@@ -582,27 +768,57 @@ void main() {
     expect(head.y, 0.02);
     final wall = tester.getRect(find.byType(InteractiveViewer));
     final rangeY = wall.height - 80;
-    final headBottom = tester
-        .getRect(find.ancestor(of: find.text('This week'), matching: find.byType(NoteTurn)))
-        .bottom - wall.top;
+    final headBottom =
+        tester
+            .getRect(
+              find.ancestor(
+                of: find.text('This week'),
+                matching: find.byType(NoteTurn),
+              ),
+            )
+            .bottom -
+        wall.top;
     for (final n in notes.boardNotes.skip(1)) {
-      expect(n.y * rangeY, greaterThan(headBottom - 1),
-          reason: 'rows start under the heading');
+      expect(
+        n.y * rangeY,
+        greaterThan(headBottom - 1),
+        reason: 'rows start under the heading',
+      );
     }
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a tap on a thread opens its sheet: arrow, label, cut, undo',
-      (tester) async {
-    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(guid: 'a', content: 'Aa', createdAt: DateTime(2026), boardId: 'default', x: 0.1, y: 0.1),
-      Note(guid: 'b', content: 'Bb', createdAt: DateTime(2026), boardId: 'default', x: 0.7, y: 0.7),
-    ]);
+  testWidgets('a tap on a thread opens its sheet: arrow, label, cut, undo', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Aa',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.1,
+          y: 0.1,
+        ),
+        Note(
+          guid: 'b',
+          content: 'Bb',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.7,
+          y: 0.7,
+        ),
+      ],
+    );
     notes.connect('a', 'b');
     await tester.pumpAndSettle();
 
     Rect card(String text) => tester.getRect(
-        find.ancestor(of: find.text(text), matching: find.byType(NoteTurn)));
+      find.ancestor(of: find.text(text), matching: find.byType(NoteTurn)),
+    );
     // Pins sit 14px under the top edge, centred; the yarn sags between them.
     final pa = card('Aa').topCenter + const Offset(0, 14);
     final pb = card('Bb').topCenter + const Offset(0, 14);
@@ -627,11 +843,23 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('marker mode draws on the wall; undo, clear and done work',
-      (tester) async {
-    final notes = await _pumpApp(tester, viewMode: ViewMode.wall, notes: [
-      Note(guid: 'a', content: 'Aa', createdAt: DateTime(2026), boardId: 'default', x: 0.1, y: 0.1),
-    ]);
+  testWidgets('marker mode draws on the wall; undo, clear and done work', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Aa',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.1,
+          y: 0.1,
+        ),
+      ],
+    );
     final note = notes.boardNotes.single;
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
@@ -690,8 +918,9 @@ void main() {
     expect(tester.takeException(), isNull, reason: 'no overflow');
   });
 
-  testWidgets('a label is written on tape and locked from the sheet',
-      (tester) async {
+  testWidgets('a label is written on tape and locked from the sheet', (
+    tester,
+  ) async {
     final notes = await _pumpApp(tester, viewMode: ViewMode.wall);
     await tester.longPress(find.byType(AddNoteButton));
     await tester.pumpAndSettle();
@@ -713,8 +942,108 @@ void main() {
     expect(find.byIcon(Icons.lock), findsOneWidget);
   });
 
-  testWidgets('long-pressing empty wall offers a note or photos there',
-      (tester) async {
+  testWidgets('the format buttons mark the text and the card renders it', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(tester);
+    await _openEditor(tester);
+    await tester.enterText(find.byType(TextField).first, 'milk');
+    final field = tester.widget<TextField>(find.byType(TextField).first);
+    field.controller!.selection = const TextSelection(
+      baseOffset: 0,
+      extentOffset: 4,
+    );
+    await tester.tap(find.byTooltip('Bold'));
+    await tester.pump();
+    expect(field.controller!.text, '**milk**');
+    // Bullets go on every line the selection touches; again takes them off.
+    field.controller!.value = const TextEditingValue(
+      text: 'one\ntwo',
+      selection: TextSelection(baseOffset: 0, extentOffset: 7),
+    );
+    await tester.tap(find.byTooltip('Bullet list'));
+    await tester.pump();
+    expect(field.controller!.text, '- one\n- two');
+    await tester.tap(find.byTooltip('Bullet list'));
+    await tester.pump();
+    expect(field.controller!.text, 'one\ntwo');
+
+    field.controller!.text = 'Buy **milk**';
+    await tester.tap(_saveButton);
+    await tester.pumpAndSettle();
+    expect(notes.boardNotes.single.content, 'Buy **milk**');
+    final rich = tester
+        .widgetList<Text>(find.byType(Text))
+        .firstWhere((t) => t.textSpan?.toPlainText() == 'Buy milk');
+    final bold = (rich.textSpan as TextSpan).children!
+        .cast<TextSpan>()
+        .firstWhere((s) => s.text == 'milk');
+    expect(bold.style?.fontWeight, FontWeight.bold);
+  });
+
+  testWidgets('the export offers the part in view, the selection and a size', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Aa',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.1,
+          y: 0.1,
+        ),
+        Note(
+          guid: 'b',
+          content: 'Bb',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.6,
+          y: 0.5,
+        ),
+      ],
+    );
+    // Zoom in on A (so there is a "part in view") and select A.
+    await tester.tap(find.text('Aa'));
+    await tester.pump(const Duration(milliseconds: 80));
+    await tester.tap(find.text('Aa'));
+    await tester.pumpAndSettle();
+    await tester.longPress(find.text('Aa'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Select notes'));
+    await tester.pumpAndSettle();
+    expect(notes.boardNotes.length, 2);
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export board as image'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BoardPosterPage), findsOneWidget);
+    expect(find.text('Part in view'), findsOneWidget);
+    expect(find.text('1 selected'), findsOneWidget);
+    expect(find.text('3×'), findsOneWidget);
+    // The selection is preselected: only A is on the poster.
+    expect(find.text('Aa'), findsOneWidget);
+    expect(find.text('Bb'), findsNothing);
+    await tester.tap(find.text('All notes'));
+    await tester.pumpAndSettle();
+    expect(find.text('Bb'), findsOneWidget);
+    await tester.tap(find.text('Part in view'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('4×'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('More'));
+    await tester.pumpAndSettle();
+    expect(find.text('Share as PDF'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('long-pressing empty wall offers a note or photos there', (
+    tester,
+  ) async {
     // The free-drag wall is where long-press-to-create lives; the default
     // grid layout has no such spot.
     final notes = await _pumpApp(tester, viewMode: ViewMode.wall);

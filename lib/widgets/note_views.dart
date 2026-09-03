@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../models/note.dart';
 import '../services/image_service.dart';
 import '../theme.dart';
+import '../util/rich_note.dart';
 import 'drawing_canvas.dart';
 
 /// Opens [url] in the browser, defaulting to https when no scheme is given,
@@ -519,11 +520,10 @@ class _NoteBody extends StatelessWidget {
           ],
         );
       case NoteType.normal:
-        return Text(
-          note.content,
+        return Text.rich(
+          TextSpan(style: body, children: noteSpans(note.content, body)),
           maxLines: maxContentLines,
           overflow: TextOverflow.ellipsis,
-          style: body,
         );
       case NoteType.label:
         return Text(
@@ -1146,11 +1146,10 @@ class NoteListTile extends StatelessWidget {
           ],
         );
       case NoteType.normal:
-        return Text(
-          note.content,
+        return Text.rich(
+          TextSpan(style: body, children: noteSpans(note.content, body)),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: body,
         );
     }
   }

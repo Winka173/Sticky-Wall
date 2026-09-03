@@ -18,28 +18,40 @@ import 'package:flutter_test/flutter_test.dart';
 ///  * splash_logo.png – the notes on transparency for the splash screen.
 void main() {
   testWidgets('app_icon', skip: true, (tester) async {
-    await _paint(tester,
-        const _BrandPainter(background: true, notes: true, scale: 1.1),
-        'app_icon.png');
+    await _paint(
+      tester,
+      const _BrandPainter(background: true, notes: true, scale: 1.1),
+      'app_icon.png',
+    );
   });
   testWidgets('app_icon_bg', skip: true, (tester) async {
-    await _paint(tester, const _BrandPainter(background: true, notes: false),
-        'app_icon_bg.png');
+    await _paint(
+      tester,
+      const _BrandPainter(background: true, notes: false),
+      'app_icon_bg.png',
+    );
   });
   testWidgets('app_icon_fg', skip: true, (tester) async {
-    await _paint(tester,
-        const _BrandPainter(background: false, notes: true, scale: 0.7),
-        'app_icon_fg.png');
+    await _paint(
+      tester,
+      const _BrandPainter(background: false, notes: true, scale: 0.7),
+      'app_icon_fg.png',
+    );
   });
   testWidgets('splash_logo', skip: true, (tester) async {
-    await _paint(tester,
-        const _BrandPainter(background: false, notes: true, scale: 0.8),
-        'splash_logo.png');
+    await _paint(
+      tester,
+      const _BrandPainter(background: false, notes: true, scale: 0.8),
+      'splash_logo.png',
+    );
   });
 }
 
 Future<void> _paint(
-    WidgetTester tester, CustomPainter painter, String file) async {
+  WidgetTester tester,
+  CustomPainter painter,
+  String file,
+) async {
   // The test surface defaults to 800×600, which would crop the art.
   tester.view.physicalSize = const Size(1024, 1024);
   tester.view.devicePixelRatio = 1;
@@ -163,7 +175,11 @@ class _BrandPainter extends CustomPainter {
     canvas.translate(center.dx, center.dy);
     canvas.rotate(angle);
 
-    final rect = Rect.fromCenter(center: Offset.zero, width: side, height: side);
+    final rect = Rect.fromCenter(
+      center: Offset.zero,
+      width: side,
+      height: side,
+    );
     const radius = Radius.circular(16);
     const fold = 96.0;
 
@@ -201,7 +217,11 @@ class _BrandPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 24
         ..strokeCap = StrokeCap.round;
-      const lines = [(-150.0, 150.0, -78.0), (-150.0, 90.0, 6.0), (-150.0, 24.0, 90.0)];
+      const lines = [
+        (-150.0, 150.0, -78.0),
+        (-150.0, 90.0, 6.0),
+        (-150.0, 24.0, 90.0),
+      ];
       for (final (x0, x1, y) in lines) {
         final path = Path()
           ..moveTo(x0, y + 4)
@@ -226,15 +246,22 @@ class _BrandPainter extends CustomPainter {
       canvas.drawPath(
         flap,
         Paint()
-          ..shader = LinearGradient(
-            begin: Alignment.bottomRight,
-            end: Alignment.topLeft,
-            colors: [
-              Color.lerp(colors.last, _ink, 0.30)!,
-              Color.lerp(colors.first, _ink, 0.08)!,
-            ],
-          ).createShader(Rect.fromLTWH(rect.right - fold,
-              rect.bottom - fold, fold, fold)),
+          ..shader =
+              LinearGradient(
+                begin: Alignment.bottomRight,
+                end: Alignment.topLeft,
+                colors: [
+                  Color.lerp(colors.last, _ink, 0.30)!,
+                  Color.lerp(colors.first, _ink, 0.08)!,
+                ],
+              ).createShader(
+                Rect.fromLTWH(
+                  rect.right - fold,
+                  rect.bottom - fold,
+                  fold,
+                  fold,
+                ),
+              ),
       );
     }
 
@@ -269,9 +296,9 @@ class _BrandPainter extends CustomPainter {
   }
 
   static Offset _rotate(Offset p, double angle) => Offset(
-        p.dx * math.cos(angle) - p.dy * math.sin(angle),
-        p.dx * math.sin(angle) + p.dy * math.cos(angle),
-      );
+    p.dx * math.cos(angle) - p.dy * math.sin(angle),
+    p.dx * math.sin(angle) + p.dy * math.cos(angle),
+  );
 
   @override
   bool shouldRepaint(_BrandPainter old) =>

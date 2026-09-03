@@ -30,7 +30,9 @@ TextStyle _chipStyle(WidgetTester tester, String label) =>
 
 /// The "+" at the end of the board strip (the empty wall has one too).
 final _addBoard = find.descendant(
-    of: find.byType(BoardBar), matching: find.byIcon(Icons.add));
+  of: find.byType(BoardBar),
+  matching: find.byIcon(Icons.add),
+);
 
 Future<void> _openNewBoard(WidgetTester tester) async {
   await tester.tap(_addBoard);
@@ -72,8 +74,9 @@ void main() {
     expect(style.fontSize, 16);
   });
 
-  testWidgets('new board dialog takes a name, icon and formatting',
-      (tester) async {
+  testWidgets('new board dialog takes a name, icon and formatting', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2220);
     tester.view.devicePixelRatio = 2.75;
     addTearDown(tester.view.reset);
@@ -119,8 +122,9 @@ void main() {
     expect(style.decoration, isNull);
   });
 
-  testWidgets('the selected tab is scrolled into view, and stays there',
-      (tester) async {
+  testWidgets('the selected tab is scrolled into view, and stays there', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2220);
     tester.view.devicePixelRatio = 2.75;
     addTearDown(tester.view.reset);
@@ -144,6 +148,7 @@ void main() {
       final rect = tester.getRect(tab);
       return rect.left >= strip().left && rect.right <= strip().right;
     }
+
     expect(inStrip('Đi'), isFalse);
 
     // Selecting it brings it fully into view without scrolling by hand…
@@ -158,8 +163,9 @@ void main() {
     expect(inStrip('Đi'), isTrue);
   });
 
-  testWidgets('editing a board pre-fills the dialog and keeps changes',
-      (tester) async {
+  testWidgets('editing a board pre-fills the dialog and keeps changes', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2220);
     tester.view.devicePixelRatio = 2.75;
     addTearDown(tester.view.reset);
@@ -174,8 +180,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Chỉnh sửa tường'), findsOneWidget);
-    expect(tester.widget<TextField>(find.byType(TextField)).controller?.text,
-        'Học');
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller?.text,
+      'Học',
+    );
     // Bold came in switched on; add underline, drop the icon.
     await tester.tap(find.byIcon(Icons.format_underlined));
     await tester.tap(find.text('Không có'));

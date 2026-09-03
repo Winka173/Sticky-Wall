@@ -56,11 +56,14 @@ void main() {
     // Drag empty wall: the InteractiveViewer pans.
     final wallCenter = tester.getCenter(find.byType(InteractiveViewer));
     await tester.dragFrom(
-        wallCenter + const Offset(0, 120), const Offset(-60, -40));
+      wallCenter + const Offset(0, 120),
+      const Offset(-60, -40),
+    );
     await tester.pumpAndSettle();
 
-    final viewer =
-        tester.widget<InteractiveViewer>(find.byType(InteractiveViewer));
+    final viewer = tester.widget<InteractiveViewer>(
+      find.byType(InteractiveViewer),
+    );
     final wallMatrix = viewer.transformationController!.value;
     expect(wallMatrix.isIdentity(), isFalse);
     expect(_backgroundTransform(tester)!.transform, wallMatrix);
@@ -73,7 +76,9 @@ void main() {
 
     final wallCenter = tester.getCenter(find.byType(InteractiveViewer));
     await tester.dragFrom(
-        wallCenter + const Offset(0, 120), const Offset(-60, -40));
+      wallCenter + const Offset(0, 120),
+      const Offset(-60, -40),
+    );
     await tester.pumpAndSettle();
     expect(_backgroundTransform(tester)!.transform.isIdentity(), isFalse);
 

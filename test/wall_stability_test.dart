@@ -26,9 +26,28 @@ Future<StickyWallApp> _app() async {
   // Two rows: the second one is where a height change would show.
   await storage.saveNotes([
     Note(guid: 'a', content: 'one', boardId: 'default', createdAt: _t(1)),
-    Note(guid: 'b', content: 'two', boardId: 'default', createdAt: _t(2), x: 0.5),
-    Note(guid: 'c', content: 'three', boardId: 'default', createdAt: _t(3), y: 0.5),
-    Note(guid: 'd', content: 'four', boardId: 'default', createdAt: _t(4), x: 0.5, y: 0.5),
+    Note(
+      guid: 'b',
+      content: 'two',
+      boardId: 'default',
+      createdAt: _t(2),
+      x: 0.5,
+    ),
+    Note(
+      guid: 'c',
+      content: 'three',
+      boardId: 'default',
+      createdAt: _t(3),
+      y: 0.5,
+    ),
+    Note(
+      guid: 'd',
+      content: 'four',
+      boardId: 'default',
+      createdAt: _t(4),
+      x: 0.5,
+      y: 0.5,
+    ),
   ]);
   await storage.setViewMode(ViewMode.wall);
   await storage.setLanguageCode('vi');
@@ -55,8 +74,9 @@ Future<void> _showKeyboard(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('wall holds still while the note editor and keyboard open',
-      (tester) async {
+  testWidgets('wall holds still while the note editor and keyboard open', (
+    tester,
+  ) async {
     _phone(tester);
     await tester.pumpWidget(await _app());
     await tester.pumpAndSettle();
@@ -72,8 +92,9 @@ void main() {
     expect(tester.getRect(find.text('three')), card0);
   });
 
-  testWidgets('wall holds still while the new-board dialog and keyboard open',
-      (tester) async {
+  testWidgets('wall holds still while the new-board dialog and keyboard open', (
+    tester,
+  ) async {
     _phone(tester);
     await tester.pumpWidget(await _app());
     await tester.pumpAndSettle();
@@ -81,8 +102,12 @@ void main() {
     final wall0 = tester.getRect(find.byType(WallView));
     final card0 = tester.getRect(find.text('three'));
 
-    await tester.tap(find.descendant(
-        of: find.byType(BoardBar), matching: find.byIcon(Icons.add)));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(BoardBar),
+        matching: find.byIcon(Icons.add),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Tường mới'), findsOneWidget);
     await _showKeyboard(tester);

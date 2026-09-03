@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +18,7 @@ import '../services/image_service.dart';
 import '../services/notes_controller.dart';
 import '../services/settings_controller.dart';
 import '../services/share_service.dart';
+import '../services/widget_service.dart';
 import '../theme.dart';
 import '../widgets/action_sheet.dart';
 import '../widgets/add_note_button.dart';
@@ -616,10 +619,19 @@ class _HomeScreenState extends State<HomeScreen> {
     return ctx?.findRenderObject() as RenderRepaintBoundary?;
   }
 
+  /// The part of the wall on screen, in wall coordinates — or null when the
+  /// camera is at rest and the whole wall is in view anyway.
+  Rect? get _visibleWallRect {
+    final size = _wallHandle.lastSize;
+    if (!_camera.moved || size.isEmpty) return null;
+    return MatrixUtils.inverseTransformRect(_camera.matrix, Offset.zero & size);
+  }
+
   /// Shows the board as a picture — wall, notes and threads, nothing else —
   /// to share or save. Always the wall layout, whichever view is showing.
   Future<void> _exportBoard() {
     final wall = wallFor(_notes.currentBoard, night: isNight(context));
+    final hasWidget = !kIsWeb && Platform.isAndroid;
     return Navigator.of(context).push(
       MaterialPageRoute<void>(
         fullscreenDialog: true,
@@ -631,6 +643,9 @@ class _HomeScreenState extends State<HomeScreen> {
           strokes: _notes.currentBoard.strokes,
           wallSize: _wallHandle.lastSize,
           imageService: _imageService,
+          viewport: _notes.viewMode == ViewMode.wall ? _visibleWallRect : null,
+          selected: _selecting ? Set.of(_selected) : const {},
+          onShowOnWidget: hasWidget ? WidgetService.showWallImage : null,
         ),
       ),
     );

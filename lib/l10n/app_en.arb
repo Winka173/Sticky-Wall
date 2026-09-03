@@ -164,6 +164,18 @@
   "shareAsImage": "Share as image",
   "saveImage": "Save image",
   "exportBoard": "Export board as image",
+  "exportWholeWall": "Whole wall",
+  "exportVisible": "Part in view",
+  "exportAllNotes": "All notes",
+  "exportSelectedNotes": "{count, plural, =1{1 selected} other{{count} selected}}",
+  "@exportSelectedNotes": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "sharePdf": "Share as PDF",
+  "putOnHomeScreen": "Show on the home-screen widget",
+  "widgetUpdated": "Home-screen widget updated",
+  "widgetUpdateFailed": "Could not update the widget",
+  "bullets": "Bullet list",
   "exportHint": "Just the wall, its notes and threads — no toolbars. Share it, or save it to your gallery.",
   "imageSaved": "Saved to gallery",
   "imageSaveFailed": "Could not save image",

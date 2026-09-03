@@ -920,6 +920,60 @@ abstract class AppLocalizations {
   /// **'Export board as image'**
   String get exportBoard;
 
+  /// No description provided for @exportWholeWall.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole wall'**
+  String get exportWholeWall;
+
+  /// No description provided for @exportVisible.
+  ///
+  /// In en, this message translates to:
+  /// **'Part in view'**
+  String get exportVisible;
+
+  /// No description provided for @exportAllNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'All notes'**
+  String get exportAllNotes;
+
+  /// No description provided for @exportSelectedNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 selected} other{{count} selected}}'**
+  String exportSelectedNotes(int count);
+
+  /// No description provided for @sharePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as PDF'**
+  String get sharePdf;
+
+  /// No description provided for @putOnHomeScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on the home-screen widget'**
+  String get putOnHomeScreen;
+
+  /// No description provided for @widgetUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Home-screen widget updated'**
+  String get widgetUpdated;
+
+  /// No description provided for @widgetUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update the widget'**
+  String get widgetUpdateFailed;
+
+  /// No description provided for @bullets.
+  ///
+  /// In en, this message translates to:
+  /// **'Bullet list'**
+  String get bullets;
+
   /// No description provided for @exportHint.
   ///
   /// In en, this message translates to:

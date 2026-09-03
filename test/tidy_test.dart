@@ -8,12 +8,8 @@ import 'package:sticky_wall/widgets/wall_view.dart';
 
 final _epoch = DateTime.fromMillisecondsSinceEpoch(0);
 
-Note _note(String guid, String content, {double x = 0, double y = 0}) => Note(
-      guid: guid,
-      content: content,
-      createdAt: _epoch,
-      boardId: 'default',
-    )
+Note _note(String guid, String content, {double x = 0, double y = 0}) =>
+    Note(guid: guid, content: content, createdAt: _epoch, boardId: 'default')
       ..x = x
       ..y = y;
 
@@ -86,19 +82,30 @@ void main() {
     // fixed-height guess would get the rows wrong in both directions.
     final notes = [
       _note('a', 'Milk', x: 0.7, y: 0.6),
-      _note('b', 'A much longer note that wraps over several lines on the '
-          'card and keeps going well past what a short note needs, so its '
-          'row has to be taller than the others around it.', x: 0.1, y: 0.1),
+      _note(
+        'b',
+        'A much longer note that wraps over several lines on the '
+            'card and keeps going well past what a short note needs, so its '
+            'row has to be taller than the others around it.',
+        x: 0.1,
+        y: 0.1,
+      ),
       _note('c', 'Call mum', x: 0.4, y: 0.4),
       _note('d', 'Two lines\nof text', x: 0.9, y: 0.2),
-      _note('e', 'Another long one: groceries, then the post office, then '
-          'pick up the parcel, then finally remember to water the plants '
-          'before they give up on me entirely.', x: 0.2, y: 0.8),
+      _note(
+        'e',
+        'Another long one: groceries, then the post office, then '
+            'pick up the parcel, then finally remember to water the plants '
+            'before they give up on me entirely.',
+        x: 0.2,
+        y: 0.8,
+      ),
     ];
     final keys = {for (final n in notes) n.guid: GlobalKey()};
     final handle = WallHandle();
     await tester.pumpWidget(
-        _Host(notes, handle, keys, size: const Size(392, 1400)));
+      _Host(notes, handle, keys, size: const Size(392, 1400)),
+    );
     await tester.pumpAndSettle();
 
     handle.tidy();
@@ -111,15 +118,23 @@ void main() {
     // Two columns fit at full size on a 392-wide wall.
     expect(notes.every((n) => n.scale == 1.0), isTrue);
 
-    final rects = {for (final n in notes) n.guid: _paperRect(tester, keys[n.guid]!)};
+    final rects = {
+      for (final n in notes) n.guid: _paperRect(tester, keys[n.guid]!),
+    };
     final ordered = rects.values.toList()
-      ..sort((a, b) => a.top != b.top ? a.top.compareTo(b.top) : a.left.compareTo(b.left));
+      ..sort(
+        (a, b) =>
+            a.top != b.top ? a.top.compareTo(b.top) : a.left.compareTo(b.left),
+      );
 
     // Nothing overlaps.
     for (var i = 0; i < ordered.length; i++) {
       for (var j = i + 1; j < ordered.length; j++) {
-        expect(ordered[i].overlaps(ordered[j]), isFalse,
-            reason: 'cards $i and $j overlap: ${ordered[i]} vs ${ordered[j]}');
+        expect(
+          ordered[i].overlaps(ordered[j]),
+          isFalse,
+          reason: 'cards $i and $j overlap: ${ordered[i]} vs ${ordered[j]}',
+        );
       }
     }
 
@@ -129,7 +144,9 @@ void main() {
       ..sort();
     expect(rowTops.length, 3);
     for (var i = 1; i < rowTops.length; i++) {
-      final above = ordered.where((r) => r.top.roundToDouble() == rowTops[i - 1]);
+      final above = ordered.where(
+        (r) => r.top.roundToDouble() == rowTops[i - 1],
+      );
       final bottom = above.map((r) => r.bottom).reduce((a, b) => a > b ? a : b);
       final gap = rowTops[i] - bottom;
       expect(gap, greaterThanOrEqualTo(14), reason: 'row $i too close');
@@ -137,7 +154,9 @@ void main() {
     }
   });
 
-  testWidgets('tidy shrinks cards when full size would not fit', (tester) async {
+  testWidgets('tidy shrinks cards when full size would not fit', (
+    tester,
+  ) async {
     final notes = [
       for (var i = 0; i < 8; i++)
         _note('$i', 'Note $i with a line or two of text in it', y: i / 8),
@@ -145,7 +164,8 @@ void main() {
     final keys = {for (final n in notes) n.guid: GlobalKey()};
     final handle = WallHandle();
     await tester.pumpWidget(
-        _Host(notes, handle, keys, size: const Size(392, 520)));
+      _Host(notes, handle, keys, size: const Size(392, 520)),
+    );
     await tester.pumpAndSettle();
 
     handle.tidy();

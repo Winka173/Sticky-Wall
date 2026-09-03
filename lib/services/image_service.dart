@@ -6,6 +6,8 @@ import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 
 /// Photo attachments, wall photos, capturing a note to a PNG, and sharing /
@@ -175,6 +177,39 @@ class ImageService {
     final image = await boundary.toImage(pixelRatio: pixelRatio);
     final data = await image.toByteData(format: ui.ImageByteFormat.png);
     return data?.buffer.asUint8List();
+  }
+
+  /// Wraps a PNG in a one-page PDF the size of the picture (three pixels to
+  /// the point, so a 3× export prints at its logical size).
+  static Future<Uint8List> pdfFromPng(
+    Uint8List png, {
+    bool compress = true,
+  }) async {
+    final decoded = await decodeImageFromList(png);
+    final width = decoded.width / 3;
+    final height = decoded.height / 3;
+    decoded.dispose();
+    final doc = pw.Document(title: 'Sticky Wall', compress: compress);
+    final image = pw.MemoryImage(png);
+    doc.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat(width, height),
+        build: (_) => pw.Image(image, fit: pw.BoxFit.fill),
+      ),
+    );
+    return doc.save();
+  }
+
+  Future<void> sharePdf(Uint8List bytes, {required String subject}) async {
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/sticky-wall.pdf');
+    await file.writeAsBytes(bytes);
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path, mimeType: 'application/pdf')],
+        subject: subject,
+      ),
+    );
   }
 
   Future<void> sharePng(Uint8List bytes, {required String subject}) async {

@@ -610,19 +610,110 @@ class _NoteDialogState extends State<_NoteDialog>
     );
     probe.dispose();
 
-    return Stack(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Positioned.fill(
-          child: CustomPaint(
-            painter: _RulesPainter(
-              firstLine: baseline + 2,
-              lineHeight: lineHeight,
-              color: _ink.withValues(alpha: 0.12),
+        Stack(
+          children: [
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _RulesPainter(
+                  firstLine: baseline + 2,
+                  lineHeight: lineHeight,
+                  color: _ink.withValues(alpha: 0.12),
+                ),
+              ),
             ),
-          ),
+            field,
+          ],
         ),
-        field,
+        _formatRow(l10n),
       ],
+    );
+  }
+
+  // --- formatting -------------------------------------------------------------
+
+  /// Bold, italic and bullets for the text of a normal note. The markers are
+  /// typed into the text (`**bold**`, `*italic*`, `- item`) and the card
+  /// renders them — what you see here is the recipe, the wall the dish.
+  Widget _formatRow(AppLocalizations l10n) {
+    final faint = _ink.withValues(alpha: 0.5);
+    Widget button(String tooltip, IconData icon, VoidCallback onTap) =>
+        IconButton(
+          tooltip: tooltip,
+          icon: Icon(icon, size: 20),
+          color: faint,
+          padding: EdgeInsets.zero,
+          visualDensity: VisualDensity.compact,
+          constraints: const BoxConstraints.tightFor(width: 34, height: 30),
+          onPressed: onTap,
+        );
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
+        children: [
+          button(l10n.bold, Icons.format_bold, () => _wrapSelection('**')),
+          button(l10n.italic, Icons.format_italic, () => _wrapSelection('*')),
+          button(l10n.bullets, Icons.format_list_bulleted, _toggleBullets),
+        ],
+      ),
+    );
+  }
+
+  /// Puts [marker] round the selected text — or, with nothing selected, a
+  /// pair of markers at the cursor, ready to be typed into.
+  void _wrapSelection(String marker) {
+    final value = _content.value;
+    final text = value.text;
+    var sel = value.selection;
+    if (!sel.isValid) sel = TextSelection.collapsed(offset: text.length);
+    final start = sel.start;
+    final end = sel.end;
+    final wrapped = '$marker${text.substring(start, end)}$marker';
+    _content.value = TextEditingValue(
+      text: text.replaceRange(start, end, wrapped),
+      selection: start == end
+          ? TextSelection.collapsed(offset: start + marker.length)
+          : TextSelection(
+              baseOffset: start + marker.length,
+              extentOffset: end + marker.length,
+            ),
+    );
+  }
+
+  /// Puts "- " in front of every line the selection touches, or takes it off
+  /// again when they all have it.
+  void _toggleBullets() {
+    final value = _content.value;
+    final text = value.text;
+    var sel = value.selection;
+    if (!sel.isValid) sel = TextSelection.collapsed(offset: text.length);
+    final lineStart = sel.start == 0
+        ? 0
+        : text.lastIndexOf('\n', sel.start - 1) + 1;
+    var lineEnd = text.indexOf('\n', sel.end);
+    if (lineEnd == -1) lineEnd = text.length;
+    final lines = text.substring(lineStart, lineEnd).split('\n');
+    final bullet = RegExp(r'^(\s*)- ');
+    final all = lines.every(bullet.hasMatch);
+    final next = [
+      for (final l in lines)
+        all
+            ? l.replaceFirstMapped(bullet, (m) => m.group(1)!)
+            : bullet.hasMatch(l)
+            ? l
+            : '- $l',
+    ].join('\n');
+    _content.value = TextEditingValue(
+      text: text.replaceRange(lineStart, lineEnd, next),
+      // Keep the lines selected, so pressing again takes the bullets off.
+      selection: sel.isCollapsed
+          ? TextSelection.collapsed(offset: lineStart + next.length)
+          : TextSelection(
+              baseOffset: lineStart,
+              extentOffset: lineStart + next.length,
+            ),
     );
   }
 

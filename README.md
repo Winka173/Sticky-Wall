@@ -60,7 +60,11 @@ then taken well beyond it.
   drag, resize, turn, tie threads and move it between boards like any note
 - The editor *is* the note: same handwriting, same paper color, faint ruled
   lines under each baseline, Save/Cancel on the adhesive strip so they are
-  never hidden by the keyboard; validation is inline (the paper shakes)
+  never hidden by the keyboard; validation is inline (the paper shakes).
+  Under a text note's field, **bold / italic / bullet** buttons put light
+  markup into the text (`**bold**`, `*italic*`, `- item`) and the card
+  renders it; search, the trash and the widget read the words without the
+  markers
 - **Long-press** a note for Edit / Pin / **View photo** / **Move to another
   board** / Share / Save / Select / Delete. **Share** renders the note as an
   image; **Save** puts it in the photo gallery
@@ -110,11 +114,16 @@ then taken well beyond it.
   after each change. Nudges of one note in quick succession fold into one
   step, and a dragged selection moves — and undoes — as a whole
 - **Export the board** (⋮ → *Export board as image*) — a full-screen
-  preview of the wall with its notes and threads and nothing else: no
-  header, toolbar, grips or button. **Share** it or **save** it to the
-  gallery as a PNG at 3× resolution, laid out exactly as on screen (with a
-  margin so a turned card at the edge is not cut off) — the board as a plan
-  you can send around
+  preview of the wall with its notes, threads and marker strokes and
+  nothing else: no header, toolbar, grips or button. **Share** it, **save**
+  it to the gallery, or **share it as a PDF** (one page the size of the
+  picture); choose the **whole wall or just the part in view** (when
+  zoomed), **all notes or only the selected ones**, and **2× / 3× / 4×**
+  resolution. Laid out exactly as on screen, with a margin so a turned card
+  at the edge is not cut off — the board as a plan you can send around
+- **Home-screen widget** (Android): *Show on the home-screen widget* in the
+  export puts that picture of the board on the widget; until then it lists
+  the current board's pinned notes
 - **Tidy up** (⋮ menu) flies every note into a neat grid (squaring up any
   you had turned), or groups them **by color**. Rows are packed from the cards' real rendered heights (an
   offstage measuring pass), so short and long notes sit a pin's length apart

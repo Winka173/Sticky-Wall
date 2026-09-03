@@ -4,6 +4,7 @@ import '../l10n/app_localizations.dart';
 import '../models/note.dart';
 import '../services/notes_controller.dart';
 import '../theme.dart';
+import '../util/rich_note.dart';
 import '../widgets/note_views.dart';
 import '../widgets/wall_background.dart';
 
@@ -123,12 +124,12 @@ class _TrashTile extends StatelessWidget {
       final items = note.checklist.map((i) => i.text).join(' · ');
       return [head, items].where((s) => s.isNotEmpty).join('\n');
     }
-    if (note.content.trim().isNotEmpty) return note.content;
+    if (note.content.trim().isNotEmpty) return plainNoteText(note.content);
     return switch (note.type) {
       NoteType.link => note.url,
       NoteType.drawing => '✏️',
       NoteType.photo => '📷 ${l10n.typePhoto}',
-      _ => note.content,
+      _ => plainNoteText(note.content),
     };
   }
 
