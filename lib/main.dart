@@ -40,13 +40,16 @@ Future<void> main() async {
     );
     notes.seed(sample.notes, links: sample.links);
     // The samples teach wall gestures (and one is tied to another by a
-    // thread), so a fresh install opens on the wall rather than the grid.
+    // thread), so a fresh install opens on the wall rather than the grid —
+    // where the gesture tips are offered once.
     notes.viewMode = ViewMode.wall;
+    await storage.setTipsPending(true);
   }
 
   // Keep the home-screen widget in sync with the current board's pinned notes
   // (and with the language, so untitled notes get the right placeholder).
   final widgetService = WidgetService();
+  await WidgetService.init();
   void syncWidget() {
     final l10n = _localizationsFor(settings.localeOverride);
     final board = notes.currentBoard;

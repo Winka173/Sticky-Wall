@@ -69,8 +69,9 @@ then taken well beyond it.
   markup into the text (`**bold**`, `*italic*`, `- item`) and the card
   renders it; search, the trash and the widget read the words without the
   markers
-- **Long-press** a note for Edit / Pin / **View photo** / **Move to another
-  board** / Share / Save / Select / Delete. **Share** renders the note as an
+- **Long-press** a note for Edit / Pin / Lock / **View photo** /
+  **Duplicate** / **Move** or **Copy to another board** / Share / Save /
+  Select / Delete. **Share** renders the note as an
   image; **Save** puts it in the photo gallery
 - Delete **peels the note off the wall** and drops it in the **Trash**, with
   an Undo snackbar; in list mode, swipe a row to delete. A link already on
@@ -99,7 +100,9 @@ then taken well beyond it.
   the title and tool rows and the system bar, so a note panned up or down
   stays in view there instead of vanishing at an edge. Drag a note onto the
   **tray** that slides up from the bottom to delete it, or up onto a **board
-  tab** to move it to that board (the tab lights up). **Double-tap** a note to glide the camera
+  tab** to move it to that board (the tab lights up). The **show-everything** button (top right of the
+  wall, also in ⋮) glides the camera out until every note is in view.
+  **Double-tap** a note to glide the camera
   in on it, and again to glide back out. **Pinch to zoom / pan** the whole
   board — the wall texture and its stains
   travel with the notes, only the lighting stays put (double-tap or the
@@ -131,9 +134,11 @@ then taken well beyond it.
   crop frame over the preview. Laid out exactly as on screen, with a margin
   so a turned card at the edge is not cut off — the board as a plan you can
   send around
-- **Home-screen widget** (Android): *Show on the home-screen widget* in the
-  export puts that picture of the board on the widget; until then it lists
-  the current board's pinned notes
+- **Home-screen widget** (Android, and iOS with the extension below): *Show
+  on the home-screen widget* in the export puts that picture of the board on
+  the widget; until then it lists the current board's pinned notes
+- **Gesture tips** (⋮ → *Gesture tips*): a short tour of what fingers can do
+  on the wall, offered once on a fresh install
 - **Tidy up** (⋮ menu) flies every note into a neat grid (squaring up any
   you had turned), or groups them **by color**. Rows are packed from the cards' real rendered heights (an
   offstage measuring pass), so short and long notes sit a pin's length apart
@@ -315,6 +320,26 @@ photos in the fixtures are three small scenes (sunset, dusk, meadow) painted
 with `dart:ui` into temp PNGs at test time (no binary fixtures in the repo);
 they are decoded via `runAsync` *before* the first pump, because an image
 that starts loading inside the fake-async zone never finishes.
+
+## iOS widget
+
+The widget's code is in `ios/StickyWidget/` (SwiftUI + WidgetKit, reading the
+`group.com.winka.stickyWall` app group the app writes to through
+`home_widget`). Xcode has to own the target, so once per checkout:
+
+1. Open `ios/Runner.xcworkspace`; File → New → Target → *Widget Extension*,
+   product name `StickyWidget`, no configuration intent, **uncheck** "Include
+   Live Activity". Delete the generated Swift files and add the three files
+   from `ios/StickyWidget/` to the target instead.
+2. Signing & Capabilities: add the **App Groups** capability to both
+   `Runner` and `StickyWidget` with `group.com.winka.stickyWall`
+   (`Runner/Runner.entitlements` and `StickyWidget/StickyWidget.entitlements`
+   already declare it — point each target's *Code Signing Entitlements* build
+   setting at its file).
+3. Set the extension's deployment target to iOS 16 or later and build.
+
+The Dart side needs nothing more: `WidgetService.init()` sets the app group
+at start-up, and the picture is saved into the group container.
 
 ## Assets & credits
 

@@ -1226,6 +1226,132 @@ abstract class AppLocalizations {
   /// **'Move to another board'**
   String get moveToBoard;
 
+  /// No description provided for @duplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get duplicate;
+
+  /// No description provided for @copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copy;
+
+  /// No description provided for @copyToBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy to another board'**
+  String get copyToBoard;
+
+  /// No description provided for @copiedToBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Copied 1 note to “{name}”} other{Copied {count} notes to “{name}”}}'**
+  String copiedToBoard(int count, String name);
+
+  /// No description provided for @fitAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show everything'**
+  String get fitAll;
+
+  /// No description provided for @gestureTips.
+  ///
+  /// In en, this message translates to:
+  /// **'Gesture tips'**
+  String get gestureTips;
+
+  /// No description provided for @gotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get gotIt;
+
+  /// No description provided for @tipDragTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move, turn, resize'**
+  String get tipDragTitle;
+
+  /// No description provided for @tipDragBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a note with one finger. Put two fingers on it to twist and pinch, or use the grips at its bottom corners: resize on the right, rotate on the left (tap that one to square the note up).'**
+  String get tipDragBody;
+
+  /// No description provided for @tipPinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pins and threads'**
+  String get tipPinTitle;
+
+  /// No description provided for @tipPinBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the pin to keep a note on top. Drag from a pin onto another note to tie a thread; tap a thread to colour it, write on it, add an arrowhead or cut it.'**
+  String get tipPinBody;
+
+  /// No description provided for @tipWallTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The wall'**
+  String get tipWallTitle;
+
+  /// No description provided for @tipWallBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press an empty spot to stick a note or photos there. Pinch to zoom, pan out to the wall’s margins and park notes there. Double-tap a note to zoom in on it; the frame button shows everything.'**
+  String get tipWallBody;
+
+  /// No description provided for @tipDropTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop to delete or move'**
+  String get tipDropTitle;
+
+  /// No description provided for @tipDropBody.
+  ///
+  /// In en, this message translates to:
+  /// **'While dragging, drop a note on the tray at the bottom to delete it, or on a board tab to move it to that board.'**
+  String get tipDropBody;
+
+  /// No description provided for @tipSelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select several'**
+  String get tipSelectTitle;
+
+  /// No description provided for @tipSelectBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press a note → Select. Draw a loop round notes on empty wall to add them, and drag any selected note to move the whole group.'**
+  String get tipSelectBody;
+
+  /// No description provided for @tipDrawTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw on the wall'**
+  String get tipDrawTitle;
+
+  /// No description provided for @tipDrawBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The pen in the toolbar starts marker mode: one finger draws behind the notes, two still zoom. Undo, clear and done sit in the bar below.'**
+  String get tipDrawBody;
+
+  /// No description provided for @tipUndoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get tipUndoTitle;
+
+  /// No description provided for @tipUndoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An Undo pill appears for a few seconds after every move, turn, resize, tidy-up or board change.'**
+  String get tipUndoBody;
+
   /// No description provided for @movedToBoard.
   ///
   /// In en, this message translates to:

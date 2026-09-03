@@ -544,6 +544,68 @@ class NotesController extends ChangeNotifier {
   bool photoInUse(String path) =>
       path.isNotEmpty && _notes.any((n) => n.imagePath == path);
 
+  /// A copy of [note] beside it — a touch down and to the right, on top —
+  /// with its own id, unpinned and unlocked so it can be taken where it is
+  /// wanted. Shares the photo file (the file goes when the last note showing
+  /// it does).
+  Note duplicate(Note note) {
+    final copy = _copyOf(
+      note,
+      boardId: note.boardId,
+      x: (note.x + 0.04).clamp(-wallSpill, 1 + wallSpill),
+      y: (note.y + 0.04).clamp(-wallSpill, 1 + wallSpill),
+    );
+    _notes.add(copy);
+    _persistNotes();
+    _reminders.sync(copy);
+    notifyListeners();
+    return copy;
+  }
+
+  /// Copies notes onto another board, near its middle; the originals stay.
+  /// Returns the copies (empty when the board does not exist).
+  List<Note> copyToBoard(List<Note> notes, String boardId) {
+    if (_boards.every((b) => b.id != boardId)) return const [];
+    final rng = math.Random();
+    final copies = [
+      for (final note in notes)
+        _copyOf(
+          note,
+          boardId: boardId,
+          x: 0.25 + rng.nextDouble() * 0.3,
+          y: 0.2 + rng.nextDouble() * 0.3,
+        ),
+    ];
+    _notes.addAll(copies);
+    _persistNotes();
+    for (final copy in copies) {
+      _reminders.sync(copy);
+    }
+    notifyListeners();
+    return copies;
+  }
+
+  Note _copyOf(
+    Note note, {
+    required String boardId,
+    required double x,
+    required double y,
+  }) {
+    final json = note.toJson()
+      ..['guid'] = _uuid.v4()
+      ..['boardId'] = boardId
+      ..['x'] = x
+      ..['y'] = y
+      ..['createdAt'] = DateTime.now().toIso8601String()
+      ..['pinned'] = false
+      ..['locked'] = false
+      ..remove('deletedAt')
+      ..remove('completedAt');
+    final copy = Note.fromJson(json);
+    _refreshCompleted(copy);
+    return copy;
+  }
+
   /// Moves a note onto another board, dropping it near the center there.
   void moveToBoard(Note note, String boardId) =>
       moveAllToBoard([note], boardId);

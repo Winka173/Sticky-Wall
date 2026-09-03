@@ -24,6 +24,7 @@ import '../widgets/action_sheet.dart';
 import '../widgets/add_note_button.dart';
 import '../widgets/board_bar.dart';
 import '../widgets/board_poster.dart';
+import '../widgets/gesture_tips.dart';
 import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
 import '../widgets/peel_away.dart';
@@ -83,6 +84,9 @@ class _HomeScreenState extends State<HomeScreen> {
   int _seenWallEdits = 0;
   bool _undoShown = false;
   Timer? _undoTimer;
+
+  // The gesture tips are offered once, the first time the wall shows.
+  bool _tipsOffered = false;
 
   // Marker mode: drawing on the wall with the current pen, and the stroke
   // lists as they were before each change, for Undo.
@@ -409,6 +413,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _showTips() async {
+    await showGestureTips(context);
+    widget.settings.markTipsSeen();
+  }
+
   /// Long press on the add button: pick the note type straight away.
   Future<void> _quickAdd() async {
     final l10n = _l10n;
@@ -543,11 +552,22 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(l10n.select),
           onTap: () => Navigator.pop(context, 'select'),
         ),
+        ListTile(
+          leading: const Icon(Icons.content_copy_outlined),
+          title: Text(l10n.duplicate),
+          onTap: () => Navigator.pop(context, 'duplicate'),
+        ),
         if (canMove)
           ListTile(
             leading: const Icon(Icons.drive_file_move_outlined),
             title: Text(l10n.moveToBoard),
             onTap: () => Navigator.pop(context, 'move'),
+          ),
+        if (canMove)
+          ListTile(
+            leading: const Icon(Icons.copy_all_outlined),
+            title: Text(l10n.copyToBoard),
+            onTap: () => Navigator.pop(context, 'copy'),
           ),
         ListTile(
           leading: const Icon(Icons.ios_share),
@@ -587,8 +607,13 @@ class _HomeScreenState extends State<HomeScreen> {
         _notes.toggleLock(note);
       case 'select':
         _startSelecting(note);
+      case 'duplicate':
+        unawaited(HapticFeedback.selectionClick());
+        _notes.duplicate(note);
       case 'move':
         await _moveToBoard([note]);
+      case 'copy':
+        await _copyToBoard([note]);
       case 'share':
         await _captureAndShare(note);
       case 'save':
@@ -598,14 +623,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _moveToBoard(List<Note> notes) async {
-    if (notes.isEmpty) return;
-    final l10n = _l10n;
+  /// Lets the user pick one of the other boards.
+  Future<Board?> _pickBoard(String title) {
     final current = _notes.currentBoardId;
     final targets = _notes.boards.where((b) => b.id != current).toList();
-    final target = await showActionSheet<Board>(
+    return showActionSheet<Board>(
       context,
-      title: l10n.moveToBoard,
+      title: title,
       children: [
         for (final board in targets)
           ListTile(
@@ -620,10 +644,27 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
       ],
     );
+  }
+
+  Future<void> _moveToBoard(List<Note> notes) async {
+    if (notes.isEmpty) return;
+    final l10n = _l10n;
+    final target = await _pickBoard(l10n.moveToBoard);
     if (target == null || !mounted) return;
     _notes.moveAllToBoard(notes, target.id);
     _exitSelecting();
     _toast(l10n.movedToBoard(_boardName(target)));
+  }
+
+  /// Copies the notes onto another board; the originals stay here.
+  Future<void> _copyToBoard(List<Note> notes) async {
+    if (notes.isEmpty) return;
+    final l10n = _l10n;
+    final target = await _pickBoard(l10n.copyToBoard);
+    if (target == null || !mounted) return;
+    final copies = _notes.copyToBoard(notes, target.id);
+    _exitSelecting();
+    _toast(l10n.copiedToBoard(copies.length, _boardName(target)));
   }
 
   RenderRepaintBoundary? _boundaryFor(Note note) {
@@ -923,6 +964,12 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         // Marker mode belongs to the wall; leaving it ends the session.
         if (_notes.viewMode != ViewMode.wall) _marking = false;
+        if (onWall && !_tipsOffered && widget.settings.tipsPending) {
+          _tipsOffered = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _showTips();
+          });
+        }
 
         return Stack(
           children: [
@@ -1189,13 +1236,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: wall.wallText,
                 onTap: any ? _recolorSelected : null,
               ),
-              if (_notes.boards.length > 1)
+              if (_notes.boards.length > 1) ...[
                 _BarAction(
                   icon: Icons.drive_file_move_outlined,
                   label: l10n.move,
                   color: wall.wallText,
                   onTap: any ? () => _moveToBoard(notes) : null,
                 ),
+                _BarAction(
+                  icon: Icons.copy_all_outlined,
+                  label: l10n.copy,
+                  color: wall.wallText,
+                  onTap: any ? () => _copyToBoard(notes) : null,
+                ),
+              ],
               _BarAction(
                 icon: Icons.delete_outline,
                 label: l10n.delete,
@@ -1455,6 +1509,10 @@ class _HomeScreenState extends State<HomeScreen> {
             _exportBoard();
           case 'draw':
             _startMarking(wall);
+          case 'fit':
+            _wallHandle.fitAll();
+          case 'tips':
+            _showTips();
           case 'trash':
             Navigator.of(context).push(
               MaterialPageRoute<void>(
@@ -1486,6 +1544,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         _menuItem('draw', l10n.drawOnWall, icon: Icons.gesture),
+        if (onWall && _notes.boardNotes.isNotEmpty)
+          _menuItem('fit', l10n.fitAll, icon: Icons.fit_screen_outlined),
+        _menuItem('tips', l10n.gestureTips, icon: Icons.lightbulb_outline),
         if (_notes.boardNotes.isNotEmpty)
           _menuItem('export', l10n.exportBoard, icon: Icons.image_outlined),
         _menuItem(
@@ -1553,6 +1614,7 @@ class _HomeScreenState extends State<HomeScreen> {
         captureKeys: {for (final n in notes) n.guid: _keyFor(n, ViewMode.wall)},
         isDimmed: (n) => _notes.isFiltering && !_notes.matches(n),
         resetZoomTooltip: _l10n.resetZoom,
+        fitAllTooltip: _l10n.fitAll,
         rotateTooltip: _l10n.rotate,
         emptyHint: _emptyState(wall, tip: _l10n.wallCreateHint),
         // The wall fills the body: notes pan under the header rows and the

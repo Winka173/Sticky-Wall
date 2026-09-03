@@ -30,6 +30,7 @@ class NoteStorage {
   static const _nightStartKey = 'nightStart';
   static const _nightEndKey = 'nightEnd';
   static const _autoTrashDoneKey = 'autoTrashDone';
+  static const _tipsPendingKey = 'tipsPending';
 
   final SharedPreferences _prefs;
 
@@ -167,4 +168,10 @@ class NoteStorage {
   bool get autoTrashDone => _prefs.getBool(_autoTrashDoneKey) ?? false;
   Future<void> setAutoTrashDone(bool value) =>
       _prefs.setBool(_autoTrashDoneKey, value);
+
+  /// Whether the gesture tips are still owed: set on a fresh install, cleared
+  /// once the sheet has been shown.
+  bool get tipsPending => _prefs.getBool(_tipsPendingKey) ?? false;
+  Future<void> setTipsPending(bool value) =>
+      _prefs.setBool(_tipsPendingKey, value);
 }

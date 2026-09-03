@@ -641,6 +641,84 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moveToBoard => 'Move to another board';
 
   @override
+  String get duplicate => 'Duplicate';
+
+  @override
+  String get copy => 'Copy';
+
+  @override
+  String get copyToBoard => 'Copy to another board';
+
+  @override
+  String copiedToBoard(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Copied $count notes to “$name”',
+      one: 'Copied 1 note to “$name”',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fitAll => 'Show everything';
+
+  @override
+  String get gestureTips => 'Gesture tips';
+
+  @override
+  String get gotIt => 'Got it';
+
+  @override
+  String get tipDragTitle => 'Move, turn, resize';
+
+  @override
+  String get tipDragBody =>
+      'Drag a note with one finger. Put two fingers on it to twist and pinch, or use the grips at its bottom corners: resize on the right, rotate on the left (tap that one to square the note up).';
+
+  @override
+  String get tipPinTitle => 'Pins and threads';
+
+  @override
+  String get tipPinBody =>
+      'Tap the pin to keep a note on top. Drag from a pin onto another note to tie a thread; tap a thread to colour it, write on it, add an arrowhead or cut it.';
+
+  @override
+  String get tipWallTitle => 'The wall';
+
+  @override
+  String get tipWallBody =>
+      'Long-press an empty spot to stick a note or photos there. Pinch to zoom, pan out to the wall’s margins and park notes there. Double-tap a note to zoom in on it; the frame button shows everything.';
+
+  @override
+  String get tipDropTitle => 'Drop to delete or move';
+
+  @override
+  String get tipDropBody =>
+      'While dragging, drop a note on the tray at the bottom to delete it, or on a board tab to move it to that board.';
+
+  @override
+  String get tipSelectTitle => 'Select several';
+
+  @override
+  String get tipSelectBody =>
+      'Long-press a note → Select. Draw a loop round notes on empty wall to add them, and drag any selected note to move the whole group.';
+
+  @override
+  String get tipDrawTitle => 'Draw on the wall';
+
+  @override
+  String get tipDrawBody =>
+      'The pen in the toolbar starts marker mode: one finger draws behind the notes, two still zoom. Undo, clear and done sit in the bar below.';
+
+  @override
+  String get tipUndoTitle => 'Undo';
+
+  @override
+  String get tipUndoBody =>
+      'An Undo pill appears for a few seconds after every move, turn, resize, tidy-up or board change.';
+
+  @override
   String movedToBoard(String name) {
     return 'Moved to “$name”';
   }

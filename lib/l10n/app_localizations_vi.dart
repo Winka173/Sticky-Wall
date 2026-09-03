@@ -634,6 +634,83 @@ class AppLocalizationsVi extends AppLocalizations {
   String get moveToBoard => 'Chuyển sang tường khác';
 
   @override
+  String get duplicate => 'Nhân đôi';
+
+  @override
+  String get copy => 'Sao chép';
+
+  @override
+  String get copyToBoard => 'Sao chép sang tường khác';
+
+  @override
+  String copiedToBoard(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Đã sao chép $count ghi chú sang “$name”',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fitAll => 'Xem toàn cảnh';
+
+  @override
+  String get gestureTips => 'Mẹo cử chỉ';
+
+  @override
+  String get gotIt => 'Đã hiểu';
+
+  @override
+  String get tipDragTitle => 'Kéo, xoay, đổi cỡ';
+
+  @override
+  String get tipDragBody =>
+      'Kéo note bằng một ngón. Đặt hai ngón lên note để xoay và chụm phóng, hoặc dùng hai tay nắm ở góc dưới: bên phải để đổi cỡ, bên trái để xoay (chạm vào đó để thẳng lại).';
+
+  @override
+  String get tipPinTitle => 'Ghim và dây';
+
+  @override
+  String get tipPinBody =>
+      'Chạm ghim để giữ note lên đầu. Kéo từ ghim sang tờ khác để nối dây; chạm vào dây để đổi màu, ghi nhãn, thêm mũi tên hoặc cắt.';
+
+  @override
+  String get tipWallTitle => 'Tường';
+
+  @override
+  String get tipWallBody =>
+      'Nhấn giữ chỗ trống để dán note hoặc ảnh tại đó. Chụm để zoom, pan ra lề tường và đặt note ở đó. Chạm hai lần vào note để zoom vào; nút khung hiện toàn cảnh.';
+
+  @override
+  String get tipDropTitle => 'Thả để xóa hoặc chuyển';
+
+  @override
+  String get tipDropBody =>
+      'Đang kéo, thả note vào khay ở dưới để xóa, hoặc thả lên tab tường để chuyển sang tường đó.';
+
+  @override
+  String get tipSelectTitle => 'Chọn nhiều';
+
+  @override
+  String get tipSelectBody =>
+      'Nhấn giữ note → Chọn. Khoanh một vòng quanh các note trên chỗ trống để chọn thêm; kéo một tờ đang chọn là cả nhóm đi theo.';
+
+  @override
+  String get tipDrawTitle => 'Vẽ lên tường';
+
+  @override
+  String get tipDrawBody =>
+      'Nút bút trên thanh công cụ mở chế độ vẽ: một ngón vẽ phía sau các note, hai ngón vẫn zoom. Hoàn tác, xóa hết và xong nằm ở thanh dưới.';
+
+  @override
+  String get tipUndoTitle => 'Hoàn tác';
+
+  @override
+  String get tipUndoBody =>
+      'Viên Hoàn tác hiện vài giây sau mỗi lần kéo, xoay, đổi cỡ, xếp gọn hay chuyển tường.';
+
+  @override
   String movedToBoard(String name) {
     return 'Đã chuyển sang “$name”';
   }

@@ -221,6 +221,30 @@
     "placeholders": { "name": { "type": "String" } }
   },
   "moveToBoard": "Move to another board",
+  "duplicate": "Duplicate",
+  "copy": "Copy",
+  "copyToBoard": "Copy to another board",
+  "copiedToBoard": "{count, plural, =1{Copied 1 note to “{name}”} other{Copied {count} notes to “{name}”}}",
+  "@copiedToBoard": {
+    "placeholders": { "count": { "type": "int" }, "name": { "type": "String" } }
+  },
+  "fitAll": "Show everything",
+  "gestureTips": "Gesture tips",
+  "gotIt": "Got it",
+  "tipDragTitle": "Move, turn, resize",
+  "tipDragBody": "Drag a note with one finger. Put two fingers on it to twist and pinch, or use the grips at its bottom corners: resize on the right, rotate on the left (tap that one to square the note up).",
+  "tipPinTitle": "Pins and threads",
+  "tipPinBody": "Tap the pin to keep a note on top. Drag from a pin onto another note to tie a thread; tap a thread to colour it, write on it, add an arrowhead or cut it.",
+  "tipWallTitle": "The wall",
+  "tipWallBody": "Long-press an empty spot to stick a note or photos there. Pinch to zoom, pan out to the wall’s margins and park notes there. Double-tap a note to zoom in on it; the frame button shows everything.",
+  "tipDropTitle": "Drop to delete or move",
+  "tipDropBody": "While dragging, drop a note on the tray at the bottom to delete it, or on a board tab to move it to that board.",
+  "tipSelectTitle": "Select several",
+  "tipSelectBody": "Long-press a note → Select. Draw a loop round notes on empty wall to add them, and drag any selected note to move the whole group.",
+  "tipDrawTitle": "Draw on the wall",
+  "tipDrawBody": "The pen in the toolbar starts marker mode: one finger draws behind the notes, two still zoom. Undo, clear and done sit in the bar below.",
+  "tipUndoTitle": "Undo",
+  "tipUndoBody": "An Undo pill appears for a few seconds after every move, turn, resize, tidy-up or board change.",
   "movedToBoard": "Moved to “{name}”",
   "@movedToBoard": {
     "placeholders": { "name": { "type": "String" } }

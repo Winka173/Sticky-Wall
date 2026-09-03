@@ -500,6 +500,50 @@ void main() {
     });
   });
 
+  group('duplicate and copy', () {
+    test('a duplicate sits beside the original with its own id', () async {
+      final c = await _controller(
+        notes: [
+          _note('1', 'Plan', image: 'p.jpg', type: NoteType.checklist)
+            ..checklist = [ChecklistItem(text: 'a', done: true)]
+            ..pinned = true
+            ..locked = true
+            ..rotation = 0.4,
+        ],
+      );
+      final original = c.boardNotes.single;
+      final copy = c.duplicate(original);
+      expect(c.boardNotes.length, 2);
+      expect(copy.guid, isNot(original.guid));
+      expect(copy.content, 'Plan');
+      expect(copy.imagePath, 'p.jpg');
+      expect(copy.checklist.single.done, true);
+      expect(copy.rotation, closeTo(0.4, 1e-9));
+      expect(copy.x, closeTo(0.54, 1e-9));
+      expect(copy.pinned, false, reason: 'a copy is free to move');
+      expect(copy.locked, false);
+      // Ticking the copy leaves the original alone: a deep copy.
+      c.toggleChecklistItem(copy, 0);
+      expect(original.checklist.single.done, true);
+      // The shared photo file lives while either note shows it.
+      c.delete(original);
+      c.purge(original);
+      expect(c.photoInUse('p.jpg'), true);
+    });
+
+    test('copies land on the other board; the originals stay', () async {
+      final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
+      final work = c.addBoard('Work');
+      c.selectBoard('default');
+      final copies = c.copyToBoard(c.boardNotes, work.id);
+      expect(copies.length, 2);
+      expect(c.boardNotes.length, 2, reason: 'originals untouched');
+      c.selectBoard(work.id);
+      expect(c.boardNotes.map((n) => n.content), containsAll(['x', 'y']));
+      expect(c.copyToBoard(copies, 'ghost'), isEmpty);
+    });
+  });
+
   group('threads', () {
     test('connect / disconnect / linksOn', () async {
       final c = await _controller(

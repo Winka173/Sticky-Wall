@@ -49,6 +49,12 @@ class SettingsController extends ChangeNotifier {
   int get nightEnd => _nightEnd;
   bool get autoTrashDone => _autoTrashDone;
 
+  /// The gesture tips have not been shown yet (fresh install).
+  bool get tipsPending => _storage.tipsPending;
+
+  /// The tips were shown; they stay reachable from the more menu.
+  void markTipsSeen() => _storage.setTipsPending(false);
+
   /// Whether the scheduled window covers [now]; the window may wrap past
   /// midnight (21 → 6). Equal start and end means "never".
   bool scheduledNightAt(DateTime now) {

@@ -28,6 +28,9 @@ class WallHandle {
   /// [byColor] notes of the same paper color are grouped together; otherwise
   /// they keep their reading order (pinned first, then top-to-bottom).
   void tidy({bool byColor = false}) => _state?._tidy(byColor: byColor);
+
+  /// Glides the camera out (or in) until every note is in view.
+  void fitAll() => _state?._fitAll();
 }
 
 /// The wall's pan/zoom, shared between [WallView] (which drives it) and the
@@ -150,6 +153,7 @@ class WallView extends StatefulWidget {
     this.emptyHint,
     this.isDimmed,
     this.resetZoomTooltip = 'Reset zoom',
+    this.fitAllTooltip = 'Show everything',
     this.rotateTooltip = 'Rotate',
     this.still = false,
     this.topInset = 0,
@@ -244,6 +248,7 @@ class WallView extends StatefulWidget {
   final bool Function(Note note)? isDimmed;
 
   final String resetZoomTooltip;
+  final String fitAllTooltip;
   final String rotateTooltip;
 
   /// A still render of the board (the export): complete on its first frame
@@ -448,6 +453,30 @@ class _WallViewState extends State<WallView>
       end: to,
     ).animate(CurvedAnimation(parent: _zoomReset, curve: Curves.easeOutCubic));
     _zoomReset.forward(from: 0);
+  }
+
+  /// Frames every note — and the home area — in the viewport, zooming out as
+  /// far as needed (never in past 1:1).
+  void _fitAll() {
+    final w = _size.width;
+    final h = _size.height;
+    if (w <= 0 || h <= 0) return;
+    var bounds = Rect.fromLTWH(_pad, _pad, w, h);
+    for (final note in widget.notes) {
+      bounds = bounds.expandToInclude(_boxOf(note, w, h).inflate(16));
+    }
+    final zoom = math.min(w / bounds.width, h / bounds.height).clamp(0.6, 1.0);
+    final c = bounds.center;
+    final to = Matrix4.identity()
+      ..translateByDouble(
+        w / 2 - zoom * c.dx,
+        widget.topInset + h / 2 - zoom * c.dy,
+        0,
+        1,
+      )
+      ..scaleByDouble(zoom, zoom, 1, 1);
+    _focusedGuid = null;
+    _animateCamera(to);
   }
 
   /// Double tap on a note: glides the camera in to frame it; a second double
@@ -1084,9 +1113,27 @@ class _WallViewState extends State<WallView>
                 ),
               ),
             ),
+            // Show-everything button, always at hand; the reset button sits
+            // under it while the wall is zoomed or panned.
+            if (!widget.still)
+              Positioned(
+                top: 4 + widget.topInset,
+                right: 8,
+                child: Material(
+                  color: AppColors.overlayDark,
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    tooltip: widget.fitAllTooltip,
+                    iconSize: 20,
+                    color: Colors.white,
+                    icon: const Icon(Icons.fit_screen_outlined),
+                    onPressed: _fitAll,
+                  ),
+                ),
+              ),
             // Fixed (un-zoomed) reset button, only while actually zoomed/panned.
             Positioned(
-              top: 4 + widget.topInset,
+              top: 52 + widget.topInset,
               right: 8,
               child: ValueListenableBuilder<Matrix4>(
                 valueListenable: _tc,

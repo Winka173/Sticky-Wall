@@ -1216,6 +1216,118 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+    'a note can be duplicated or copied to another board from its sheet',
+    (tester) async {
+      final notes = await _pumpApp(
+        tester,
+        viewMode: ViewMode.wall,
+        notes: [
+          Note(
+            guid: 'a',
+            content: 'Twin',
+            createdAt: DateTime(2026),
+            boardId: 'default',
+            x: 0.2,
+            y: 0.2,
+          ),
+        ],
+      );
+      final work = notes.addBoard('Work');
+      notes.selectBoard('default');
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Twin'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Duplicate'));
+      await tester.pumpAndSettle();
+      expect(notes.boardNotes.length, 2);
+      expect(find.text('Twin'), findsNWidgets(2));
+
+      // The copy sits on top of the original, a touch down and to the right.
+      await tester.longPress(find.text('Twin').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Copy to another board'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(of: find.byType(ListTile), matching: find.text('Work')),
+      );
+      await tester.pumpAndSettle();
+      expect(notes.boardNotes.length, 2, reason: 'still both here');
+      expect(find.textContaining('Copied 1 note'), findsOneWidget);
+      notes.selectBoard(work.id);
+      await tester.pumpAndSettle();
+      expect(notes.boardNotes.single.content, 'Twin');
+    },
+  );
+
+  testWidgets('the show-everything button frames notes out in the margin', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Near',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.2,
+          y: 0.2,
+        ),
+        Note(
+          guid: 'b',
+          content: 'Far',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 1.6,
+          y: 0.5,
+        ),
+      ],
+    );
+    final wall = tester.getRect(find.byType(InteractiveViewer));
+    // Off to the right, past the screen.
+    expect(tester.getRect(find.text('Far')).left, greaterThan(wall.right));
+    await tester.tap(find.byTooltip('Show everything'));
+    await tester.pumpAndSettle();
+    final far = tester.getRect(find.text('Far'));
+    final near = tester.getRect(find.text('Near'));
+    expect(far.right, lessThan(wall.right));
+    expect(near.left, greaterThan(wall.left));
+    expect(find.byTooltip('Reset zoom'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the gesture tips are offered once and stay in the menu', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final storage = await NoteStorage.create();
+    await storage.setViewMode(ViewMode.wall);
+    await storage.setTipsPending(true);
+    final settings = SettingsController(storage);
+    await tester.pumpWidget(
+      StickyWallApp(
+        settings: settings,
+        notes: NotesController(storage, ReminderService()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Gesture tips'), findsOneWidget);
+    expect(find.text('Pins and threads'), findsOneWidget);
+    await tester.tap(find.text('Got it'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pins and threads'), findsNothing);
+    expect(storage.tipsPending, false);
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Gesture tips'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pins and threads'), findsOneWidget);
+  });
+
   testWidgets('long-pressing empty wall offers a note or photos there', (
     tester,
   ) async {
