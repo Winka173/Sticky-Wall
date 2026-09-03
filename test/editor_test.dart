@@ -409,7 +409,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a dragged note snaps into line with a neighbour', (
+  testWidgets('a note dragged past the edge stops there and follows back', (
     tester,
   ) async {
     final notes = await _pumpApp(
@@ -418,15 +418,7 @@ void main() {
       notes: [
         Note(
           guid: 'a',
-          content: 'Aa',
-          createdAt: DateTime(2026),
-          boardId: 'default',
-          x: 0.2,
-          y: 0.2,
-        ),
-        Note(
-          guid: 'b',
-          content: 'Bb',
+          content: 'Edge',
           createdAt: DateTime(2026),
           boardId: 'default',
           x: 0.5,
@@ -434,20 +426,49 @@ void main() {
         ),
       ],
     );
-    final a = notes.boardNotes[0];
-    final b = notes.boardNotes[1];
-    // The wall is 800 wide: a card's travel range is 800 - 168.
+    final a = notes.boardNotes.single;
     final wall = tester.getRect(find.byType(InteractiveViewer));
     final rangeX = wall.width - 168;
-    final rangeY = wall.height - 80;
-    final leftA = a.x * rangeX;
-    final leftB = b.x * rangeX;
 
-    // Land 4px right of A's left edge: inside the snap reach.
-    await _dragNote(tester, find.text('Bb'), Offset(leftA + 4 - leftB, 40));
-    expect(b.x, closeTo(a.x, 1e-6), reason: 'snapped onto the shared edge');
-    expect(b.y, closeTo(0.5 + 40 / rangeY, 1e-6), reason: 'y just follows');
+    // Far past the right edge: the card waits at the edge (no springing
+    // back on release), and the finger's overshoot is not remembered.
+    await _dragNote(tester, find.text('Edge'), const Offset(2000, 0));
+    expect(a.x, 1.0);
+    final card = find.ancestor(
+      of: find.text('Edge'),
+      matching: find.byType(NoteTurn),
+    );
+    expect(tester.getRect(card).right, closeTo(wall.right, 1.0));
+    await _dragNote(tester, find.text('Edge'), const Offset(-60, 0));
+    expect(a.x, closeTo(1 - 60 / rangeX, 1e-6), reason: 'moves back at once');
+
+    // The same on the left.
+    await _dragNote(tester, find.text('Edge'), const Offset(-3000, 0));
+    expect(a.x, 0.0);
+    await _dragNote(tester, find.text('Edge'), const Offset(60, 0));
+    expect(a.x, closeTo(60 / rangeX, 1e-6));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('drawing on the wall can start from the grid', (tester) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.grid,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Aa',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+        ),
+      ],
+    );
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Draw on the wall'));
+    await tester.pumpAndSettle();
+    expect(notes.viewMode, ViewMode.wall);
+    expect(find.byTooltip('Done'), findsOneWidget);
   });
 
   testWidgets('double-tapping a note zooms the wall onto it and back', (

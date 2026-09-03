@@ -88,11 +88,10 @@ then taken well beyond it.
   put **two fingers on a note**: twist to turn it, pinch to resize it about
   its centre (each with a small dead band so one does not bleed into the
   other) — two fingers on one card always act on the card, never on the
-  wall. While you drag, **alignment guides** appear and the card snaps into
-  line with a neighbour's edge or centre (or the wall's centre line) when it
-  comes within a few pixels; drag a note onto the **tray** that slides up
-  from the bottom to delete it, or up onto a **board tab** to move it to
-  that board (the tab lights up). **Double-tap** a note to glide the camera
+  wall. A dragged card stops at the wall's edge and comes straight back
+  with the finger; drag a note onto the **tray** that slides up from the
+  bottom to delete it, or up onto a **board tab** to move it to that board
+  (the tab lights up). **Double-tap** a note to glide the camera
   in on it, and again to glide back out. **Pinch to zoom / pan** the whole
   board — the wall texture and its stains
   travel with the notes, only the lighting stays put (double-tap or the
@@ -104,7 +103,8 @@ then taken well beyond it.
   **yarn colour** (seven, classic red first), **write on it** (a paper tag
   hangs from the middle), give it an **arrowhead** for a dependency or a
   flow, or **cut** it (Undo re-ties it exactly as it was)
-- **Draw on the wall** (⋮ → *Draw on the wall*) — marker mode: a finger
+- **Draw on the wall** (⋮ → *Draw on the wall*, from any view) — marker
+  mode: a finger
   draws straight on the wall, behind the notes, in five colours and three
   widths, with an eraser, undo and clear; two fingers still zoom. Strokes
   are stored with the board (as fractions of the wall, like the notes) and
@@ -276,7 +276,7 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/services/widget_service.dart` | Push pinned notes to the home-screen widget |
 | `lib/screens/home_screen.dart` | Header, board bar, toolbar, the three views, multi-select |
 | `lib/screens/trash_screen.dart` | Trash: restore / delete forever / empty |
-| `lib/widgets/wall_view.dart` | Free drag-and-drop canvas, resize / rotate grips, two-finger twist / pinch, snap guides, lasso, drop tray, marker mode, threads, measured tidy animation |
+| `lib/widgets/wall_view.dart` | Free drag-and-drop canvas, resize / rotate grips, two-finger twist / pinch, lasso, drop tray, marker mode, threads, measured tidy animation |
 | `lib/widgets/wall_background.dart` | Wall texture or custom photo + scrim, stains, vignette |
 | `lib/widgets/board_poster.dart` | Board export: full-screen preview of wall + notes + threads, share / save as PNG |
 | `lib/widgets/peel_away.dart` | "Peel off the wall" delete animation |

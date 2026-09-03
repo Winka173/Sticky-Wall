@@ -270,11 +270,6 @@ class _WallViewState extends State<WallView>
   bool _overTray = false;
   final _trayKey = GlobalKey();
 
-  // Alignment guides the dragged card has snapped to, in wall coordinates.
-  double? _guideX;
-  double? _guideY;
-  static const double _snapReach = 6;
-
   // The rest of a dragged selection (guids), moving by _groupDelta.
   Set<String> _groupGuids = const {};
   Offset _groupDelta = Offset.zero;
@@ -951,14 +946,6 @@ class _WallViewState extends State<WallView>
                       ),
                     for (final (i, note) in widget.notes.indexed)
                       _positioned(note, i, w, h),
-                    if (_guideX != null || _guideY != null)
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          child: CustomPaint(
-                            painter: _GuidePainter(x: _guideX, y: _guideY),
-                          ),
-                        ),
-                      ),
                     if (_lasso != null)
                       Positioned.fill(
                         child: IgnorePointer(
@@ -1083,61 +1070,15 @@ class _WallViewState extends State<WallView>
     return inside;
   }
 
-  // --- Snapping ---------------------------------------------------------
-
-  /// Nudges a dragged card onto the nearest alignment within reach — an
-  /// edge or centre line of a neighbour, or the wall's centre line — and
-  /// records the guide(s) to draw. Returns the snapped top-left.
-  Offset _snap(Note note, Offset raw) {
-    final w = _size.width;
-    final h = _size.height;
+  /// Keeps a dragged card on the wall: it stops at the edge and comes
+  /// straight back with the finger, instead of running off and springing
+  /// back on release.
+  Offset _onWall(Note note, Offset topLeft) {
     final scale = _resizingGuid == note.guid ? _resizeScale : note.scale;
-    final width = _cardWidth * scale;
-    final height = _paperHeight(note, width) + _pinInset;
-    final xs = [raw.dx, raw.dx + width / 2, raw.dx + width];
-    final ys = [raw.dy, raw.dy + height / 2, raw.dy + height];
-    double? dx;
-    double? dy;
-    double? gx;
-    double? gy;
-    void tryX(double target) {
-      for (final x in xs) {
-        final d = target - x;
-        if (d.abs() <= _snapReach && (dx == null || d.abs() < dx!.abs())) {
-          dx = d;
-          gx = target;
-        }
-      }
-    }
-
-    void tryY(double target) {
-      for (final y in ys) {
-        final d = target - y;
-        if (d.abs() <= _snapReach && (dy == null || d.abs() < dy!.abs())) {
-          dy = d;
-          gy = target;
-        }
-      }
-    }
-
-    tryX(w / 2);
-    for (final other in widget.notes) {
-      if (other.guid == note.guid || _groupGuids.contains(other.guid)) continue;
-      if (widget.isDimmed?.call(other) ?? false) continue;
-      final box = _boxOf(other, w, h);
-      tryX(box.left);
-      tryX(box.center.dx);
-      tryX(box.right);
-      tryY(box.top);
-      tryY(box.center.dy);
-      tryY(box.bottom);
-    }
-    if ((gx != null && gx != _guideX) || (gy != null && gy != _guideY)) {
-      HapticFeedback.selectionClick();
-    }
-    _guideX = gx;
-    _guideY = gy;
-    return raw + Offset(dx ?? 0, dy ?? 0);
+    return Offset(
+      topLeft.dx.clamp(0.0, _rangeX(_size.width, scale)),
+      topLeft.dy.clamp(0.0, _rangeY(_size.height)),
+    );
   }
 
   bool _hitTray(Offset global) {
@@ -1174,7 +1115,6 @@ class _WallViewState extends State<WallView>
       _dragTopLeft = _dragRaw = _dragStart;
       _dragFinger = _toWall(d.focalPoint);
       _dragGlobal = d.focalPoint;
-      _guideX = _guideY = null;
       _overTray = false;
       // In select mode a selected note takes the rest of the selection along.
       _groupGuids = widget.lasso && widget.selected.contains(note.guid)
@@ -1206,13 +1146,13 @@ class _WallViewState extends State<WallView>
     if (_draggingGuid != note.guid) return;
     final finger = _toWall(d.focalPoint);
     setState(() {
-      _dragRaw += finger - _dragFinger;
+      _dragRaw = _onWall(note, _dragRaw + (finger - _dragFinger));
       _dragFinger = finger;
       _dragGlobal = d.focalPoint;
       if (d.pointerCount < 2 || _pinchGuid != note.guid) {
-        // One finger: the card snaps to its neighbours, the selection comes
-        // along, and the tray / tabs learn where the finger is.
-        _dragTopLeft = _snap(note, _dragRaw);
+        // One finger: the card follows, the selection comes along, and the
+        // tray / tabs learn where the finger is.
+        _dragTopLeft = _dragRaw;
         _groupDelta = _dragTopLeft - _dragStart;
         final over = widget.onTrash != null && _hitTray(d.focalPoint);
         if (over != _overTray) HapticFeedback.selectionClick();
@@ -1220,7 +1160,6 @@ class _WallViewState extends State<WallView>
         widget.onDragOver?.call(note, d.focalPoint);
         return;
       }
-      _guideX = _guideY = null;
       _overTray = false;
 
       if (_rotatingGuid == note.guid) {
@@ -1247,9 +1186,12 @@ class _WallViewState extends State<WallView>
       // Grow about the centre, so the card swells under the fingers rather
       // than away from its top-left corner.
       final grow = (next - _resizeScale) * _cardWidth;
-      _dragRaw -= Offset(grow / 2, grow * _pinchRatio / 2);
-      _dragTopLeft = _dragRaw;
       _resizeScale = next;
+      _dragRaw = _onWall(
+        note,
+        _dragRaw - Offset(grow / 2, grow * _pinchRatio / 2),
+      );
+      _dragTopLeft = _dragRaw;
     });
   }
 
@@ -1307,7 +1249,6 @@ class _WallViewState extends State<WallView>
       _draggingGuid = null;
       _groupGuids = const {};
       _groupDelta = Offset.zero;
-      _guideX = _guideY = null;
       _overTray = false;
       _dragGlobal = null;
       if (pinching) {
@@ -1533,43 +1474,6 @@ class _WallViewState extends State<WallView>
       ),
     );
   }
-}
-
-/// Faint dashed lines where a dragged card has snapped into line with a
-/// neighbour (or the wall's centre).
-class _GuidePainter extends CustomPainter {
-  const _GuidePainter({this.x, this.y});
-
-  final double? x;
-  final double? y;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final shadow = Paint()
-      ..color = const Color(0x66000000)
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-    final line = Paint()
-      ..color = AppColors.accent
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.round;
-    void dashed(Offset a, Offset b) {
-      final length = (b - a).distance;
-      final dir = (b - a) / length;
-      for (var d = 0.0; d < length; d += 14) {
-        final p = a + dir * d;
-        final q = a + dir * math.min(d + 8, length);
-        canvas.drawLine(p, q, shadow);
-        canvas.drawLine(p, q, line);
-      }
-    }
-
-    if (x != null) dashed(Offset(x!, 0), Offset(x!, size.height));
-    if (y != null) dashed(Offset(0, y!), Offset(size.width, y!));
-  }
-
-  @override
-  bool shouldRepaint(_GuidePainter old) => old.x != x || old.y != y;
 }
 
 /// The loop drawn round notes in select mode.

@@ -103,10 +103,14 @@ class _HomeScreenState extends State<HomeScreen> {
   NotesController get _notes => widget.notes;
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
 
-  String _captureId(Note note) => '${_notes.viewMode.name}/${note.guid}';
+  String _captureId(Note note, [ViewMode? mode]) =>
+      '${(mode ?? _notes.viewMode).name}/${note.guid}';
 
-  GlobalKey _keyFor(Note note) =>
-      _captureKeys.putIfAbsent(_captureId(note), GlobalKey.new);
+  /// The capture key for [note] in the layout being built. A layout takes
+  /// its [mode] at build time: while two layouts crossfade, the outgoing one
+  /// may still create items lazily, and must not borrow the new mode's keys.
+  GlobalKey _keyFor(Note note, [ViewMode? mode]) =>
+      _captureKeys.putIfAbsent(_captureId(note, mode), GlobalKey.new);
 
   @override
   void initState() {
@@ -241,6 +245,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _startMarking(WallStyle wall) {
     _exitSelecting();
+    // Drawing happens on the wall; from the grid or list, go there first.
+    if (_notes.viewMode != ViewMode.wall) _notes.viewMode = ViewMode.wall;
     setState(() {
       _marking = true;
       _inkPast.clear();
@@ -1428,7 +1434,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icons.palette_outlined,
           ),
         ],
-        if (onWall) _menuItem('draw', l10n.drawOnWall, icon: Icons.gesture),
+        _menuItem('draw', l10n.drawOnWall, icon: Icons.gesture),
         if (_notes.boardNotes.isNotEmpty)
           _menuItem('export', l10n.exportBoard, icon: Icons.image_outlined),
         _menuItem(
@@ -1493,7 +1499,7 @@ class _HomeScreenState extends State<HomeScreen> {
         handle: _wallHandle,
         camera: _camera,
         selected: _selecting ? _selected : const {},
-        captureKeys: {for (final n in notes) n.guid: _keyFor(n)},
+        captureKeys: {for (final n in notes) n.guid: _keyFor(n, ViewMode.wall)},
         isDimmed: (n) => _notes.isFiltering && !_notes.matches(n),
         resetZoomTooltip: _l10n.resetZoom,
         rotateTooltip: _l10n.rotate,
@@ -1529,6 +1535,7 @@ class _HomeScreenState extends State<HomeScreen> {
       Duration(milliseconds: 25 * math.min(index, 12));
 
   Widget _grid(List<Note> notes) {
+    const mode = ViewMode.grid;
     return LayoutBuilder(
       builder: (context, constraints) {
         // ~200 px per column: two on a phone, up to six on a wide tablet or
@@ -1549,7 +1556,7 @@ class _HomeScreenState extends State<HomeScreen> {
               cb: _callbacks(notes[i]),
               selected: _selecting && _selected.contains(notes[i].guid),
               maxContentLines: 8,
-              captureKey: _keyFor(notes[i]),
+              captureKey: _keyFor(notes[i], mode),
             ),
           ),
         );
@@ -1558,6 +1565,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _list(List<Note> notes) {
+    const mode = ViewMode.list;
     return ListView.builder(
       padding: const EdgeInsets.only(top: 4, bottom: 96),
       itemCount: notes.length,
@@ -1569,7 +1577,7 @@ class _HomeScreenState extends State<HomeScreen> {
             note: note,
             cb: _callbacks(note),
             selected: _selecting && _selected.contains(note.guid),
-            captureKey: _keyFor(note),
+            captureKey: _keyFor(note, mode),
           ),
         );
         // No swipe-to-delete while selecting: swipes would fight with taps
