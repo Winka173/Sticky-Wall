@@ -291,7 +291,8 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
       selectedBackgroundColor: AppColors.accent,
       side: BorderSide(color: AppColors.chalk.withValues(alpha: 0.4)),
       visualDensity: VisualDensity.compact,
-      textStyle: const TextStyle(fontSize: 13),
+      // The app's own face, a size down.
+      textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 13),
     );
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
