@@ -267,39 +267,44 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
                           child: SizedBox(
                             width: box.width,
                             height: box.height,
-                            child: Stack(
-                              clipBehavior: Clip.hardEdge,
-                              children: [
-                                Positioned.fill(
-                                  child: WallBackground(
-                                    wall: widget.wall,
-                                    decor: widget.decor,
-                                  ),
-                                ),
-                                // The whole wall, laid out at its live size
-                                // and shifted so the chosen part sits in the
-                                // frame.
-                                Positioned(
-                                  left: _margin - crop.left,
-                                  top: _margin - crop.top,
-                                  width: wall.width,
-                                  height: wall.height,
-                                  child: IgnorePointer(
-                                    child: WallView(
-                                      notes: _notes,
-                                      callbacksFor: (_) => _still,
-                                      onMove: (_, _, _) {},
-                                      onResize: (_, _) {},
-                                      onBringToFront: (_) {},
-                                      onCreateAt: (_, _) {},
-                                      links: widget.links,
-                                      strokes: widget.strokes,
-                                      captureKeys: _paperKeys,
-                                      still: true,
+                            // The wall paints notes parked in its margin
+                            // outside its own box; only the picture's frame
+                            // should show.
+                            child: ClipRect(
+                              child: Stack(
+                                clipBehavior: Clip.hardEdge,
+                                children: [
+                                  Positioned.fill(
+                                    child: WallBackground(
+                                      wall: widget.wall,
+                                      decor: widget.decor,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  // The whole wall, laid out at its live size
+                                  // and shifted so the chosen part sits in the
+                                  // frame.
+                                  Positioned(
+                                    left: _margin - crop.left,
+                                    top: _margin - crop.top,
+                                    width: wall.width,
+                                    height: wall.height,
+                                    child: IgnorePointer(
+                                      child: WallView(
+                                        notes: _notes,
+                                        callbacksFor: (_) => _still,
+                                        onMove: (_, _, _) {},
+                                        onResize: (_, _) {},
+                                        onBringToFront: (_) {},
+                                        onCreateAt: (_, _) {},
+                                        links: widget.links,
+                                        strokes: widget.strokes,
+                                        captureKeys: _paperKeys,
+                                        still: true,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -338,8 +343,11 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
       final width = 168 * n.scale;
       final left = n.x * (wall.width - width);
       final top = n.y * (wall.height - 80);
+      // A card's height is not known until it is laid out; allow a tall one
+      // (a portrait print with its caption) plus a little air.
+      final height = width * (n.type == NoteType.photo ? 1.4 : 1.0) + 14;
       rect = rect.expandToInclude(
-        Rect.fromLTWH(left, top, width, width * 0.9 + 14),
+        Rect.fromLTWH(left - 8, top - 8, width + 16, height + 16),
       );
     }
     return rect;
