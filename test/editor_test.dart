@@ -642,30 +642,21 @@ void main() {
         ),
       ],
     );
-    double resetOpacity() => tester
-        .widget<AnimatedOpacity>(
-          find
-              .ancestor(
-                of: find.byIcon(Icons.center_focus_strong),
-                matching: find.byType(AnimatedOpacity),
-              )
-              .first,
-        )
-        .opacity;
-    expect(resetOpacity(), 0, reason: 'camera at rest: no reset button');
+    final reset = find.byTooltip('Reset zoom');
+    expect(reset, findsNothing, reason: 'camera at rest: no reset button');
 
     await tester.tap(find.text('Focus me'));
     await tester.pump(const Duration(milliseconds: 80));
     await tester.tap(find.text('Focus me'));
     await tester.pumpAndSettle();
-    expect(resetOpacity(), 1, reason: 'zoomed in');
+    expect(reset, findsOneWidget, reason: 'zoomed in');
     expect(find.byType(TextField), findsNothing, reason: 'no editor opened');
 
     await tester.tap(find.text('Focus me'));
     await tester.pump(const Duration(milliseconds: 80));
     await tester.tap(find.text('Focus me'));
     await tester.pumpAndSettle();
-    expect(resetOpacity(), 0, reason: 'back out');
+    expect(reset, findsNothing, reason: 'back out');
   });
 
   testWidgets('a lasso drawn round notes in select mode picks them up', (
@@ -1260,6 +1251,47 @@ void main() {
       expect(notes.boardNotes.single.content, 'Twin');
     },
   );
+
+  testWidgets('the camera button hides at rest, offers fit, then reset', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Near',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.2,
+          y: 0.2,
+        ),
+      ],
+    );
+    // Everything in view, camera at rest: nothing to offer.
+    expect(find.byTooltip('Show everything'), findsNothing);
+    expect(find.byTooltip('Reset zoom'), findsNothing);
+
+    // Pan the wall until the note leaves the screen: "show everything".
+    final wall = tester.getRect(find.byType(InteractiveViewer));
+    final g = await tester.startGesture(wall.center + const Offset(0, 200));
+    await g.moveBy(const Offset(-300, 0));
+    await tester.pump();
+    await g.moveBy(const Offset(-300, 0));
+    await tester.pump();
+    await g.up();
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Show everything'), findsOneWidget);
+    expect(find.byTooltip('Reset zoom'), findsNothing);
+
+    // Fit: the only note sits inside the home area, so "everything" is the
+    // resting view itself — the camera glides home and the button goes.
+    await tester.tap(find.byTooltip('Show everything'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Reset zoom'), findsNothing);
+    expect(find.byTooltip('Show everything'), findsNothing);
+  });
 
   testWidgets('the show-everything button frames notes out in the margin', (
     tester,

@@ -100,8 +100,11 @@ then taken well beyond it.
   the title and tool rows and the system bar, so a note panned up or down
   stays in view there instead of vanishing at an edge. Drag a note onto the
   **tray** that slides up from the bottom to delete it, or up onto a **board
-  tab** to move it to that board (the tab lights up). The **show-everything** button (top right of the
-  wall, also in ⋮) glides the camera out until every note is in view.
+  tab** to move it to that board (the tab lights up). One camera button sits top right of the
+  wall and only when useful: **show everything** (also in ⋮) glides the
+  camera out until every note is in view when some are out of frame, and it
+  turns into **reset** once the wall is panned or zoomed with everything
+  visible.
   **Double-tap** a note to glide the camera
   in on it, and again to glide back out. **Pinch to zoom / pan** the whole
   board — the wall texture and its stains

@@ -455,6 +455,22 @@ class _WallViewState extends State<WallView>
     _zoomReset.forward(from: 0);
   }
 
+  /// Whether every note's card lies inside the visible part of the wall
+  /// (below the header, above the bottom inset) under camera matrix [m].
+  bool _allInView(Matrix4 m) {
+    final w = _size.width;
+    final h = _size.height;
+    if (w <= 0 || h <= 0) return true;
+    final view = Rect.fromLTWH(0, widget.topInset, w, h).inflate(2);
+    for (final note in widget.notes) {
+      final r = MatrixUtils.transformRect(m, _boxOf(note, w, h));
+      if (!view.contains(r.topLeft) || !view.contains(r.bottomRight)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /// Frames every note — and the home area — in the viewport, zooming out as
   /// far as needed (never in past 1:1).
   void _fitAll() {
@@ -1113,51 +1129,48 @@ class _WallViewState extends State<WallView>
                 ),
               ),
             ),
-            // Show-everything button, always at hand; the reset button sits
-            // under it while the wall is zoomed or panned.
+            // One camera button that always offers the useful move: nothing
+            // while the wall rests with every note in view; "show everything"
+            // when some note is out of the frame; "reset" once the view has
+            // been panned or zoomed and everything is visible again.
             if (!widget.still)
               Positioned(
                 top: 4 + widget.topInset,
                 right: 8,
-                child: Material(
-                  color: AppColors.overlayDark,
-                  shape: const CircleBorder(),
-                  child: IconButton(
-                    tooltip: widget.fitAllTooltip,
-                    iconSize: 20,
-                    color: Colors.white,
-                    icon: const Icon(Icons.fit_screen_outlined),
-                    onPressed: _fitAll,
-                  ),
+                child: ValueListenableBuilder<Matrix4>(
+                  valueListenable: _tc,
+                  builder: (context, m, _) {
+                    final atHome = m == _home;
+                    final fit = !_allInView(m);
+                    final show = fit || !atHome;
+                    // Swapping children (rather than fading one) keeps the
+                    // hidden state free of a tooltip and a hit target.
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: !show
+                          ? const SizedBox.shrink(key: ValueKey('none'))
+                          : Material(
+                              key: ValueKey(fit),
+                              color: AppColors.overlayDark,
+                              shape: const CircleBorder(),
+                              child: IconButton(
+                                tooltip: fit
+                                    ? widget.fitAllTooltip
+                                    : widget.resetZoomTooltip,
+                                iconSize: 20,
+                                color: Colors.white,
+                                icon: Icon(
+                                  fit
+                                      ? Icons.fit_screen_outlined
+                                      : Icons.center_focus_strong,
+                                ),
+                                onPressed: fit ? _fitAll : _resetZoom,
+                              ),
+                            ),
+                    );
+                  },
                 ),
               ),
-            // Fixed (un-zoomed) reset button, only while actually zoomed/panned.
-            Positioned(
-              top: 52 + widget.topInset,
-              right: 8,
-              child: ValueListenableBuilder<Matrix4>(
-                valueListenable: _tc,
-                builder: (context, m, child) {
-                  final show = m != _home;
-                  return AnimatedOpacity(
-                    opacity: show ? 1 : 0,
-                    duration: const Duration(milliseconds: 180),
-                    child: IgnorePointer(ignoring: !show, child: child),
-                  );
-                },
-                child: Material(
-                  color: AppColors.overlayDark,
-                  shape: const CircleBorder(),
-                  child: IconButton(
-                    tooltip: widget.resetZoomTooltip,
-                    iconSize: 20,
-                    color: Colors.white,
-                    icon: const Icon(Icons.center_focus_strong),
-                    onPressed: _resetZoom,
-                  ),
-                ),
-              ),
-            ),
             // Drop a dragged note here to delete it. Slides up while a drag
             // is under way; leaves room for the add button on the right.
             if (widget.onTrash != null && !widget.still)
