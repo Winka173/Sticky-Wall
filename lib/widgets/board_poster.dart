@@ -89,6 +89,13 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
   late bool _selectedOnly = widget.selected.isNotEmpty;
   double _pixelRatio = 3;
 
+  // Trimming: the part of the picture that is kept, as fractions of it, and
+  // whether the handles are out.
+  Rect _crop = const Rect.fromLTWH(0, 0, 1, 1);
+  bool _cropping = false;
+
+  bool get _trimmed => _crop != const Rect.fromLTWH(0, 0, 1, 1);
+
   Size _wallSize(BuildContext context) {
     final size = widget.wallSize;
     if (size.width > 0 && size.height > 0) return size;
@@ -103,13 +110,16 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
         ]
       : widget.notes;
 
-  /// Rasterizes the preview. Waits for the frame in flight first so a photo
-  /// that has only just decoded is in the picture.
+  /// Rasterizes the preview (trimmed to the crop when one is set). Waits for
+  /// the frame in flight first so a photo that has only just decoded is in
+  /// the picture.
   Future<Uint8List?> _render() async {
     await WidgetsBinding.instance.endOfFrame;
     final ro = _boundary.currentContext?.findRenderObject();
     if (ro is! RenderRepaintBoundary) return null;
-    return ImageService.capture(ro, pixelRatio: _pixelRatio);
+    final whole = await ImageService.capture(ro, pixelRatio: _pixelRatio);
+    if (whole == null || !_trimmed) return whole;
+    return ImageService.cropPng(whole, _crop);
   }
 
   Future<void> _run(
@@ -164,6 +174,7 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
     final crop = _visibleOnly && widget.viewport != null
         ? widget.viewport!
         : _wholeWall(wall);
+    final box = Size(crop.width + 2 * _margin, crop.height + 2 * _margin);
     final faded = AppColors.chalk.withValues(alpha: 0.7);
 
     return Scaffold(
@@ -174,6 +185,16 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
         elevation: 0,
         title: Text(l10n.exportBoard),
         actions: [
+          IconButton(
+            tooltip: l10n.cropImage,
+            icon: Icon(
+              Icons.crop,
+              color: _cropping || _trimmed ? AppColors.accent : null,
+            ),
+            onPressed: _busy
+                ? null
+                : () => setState(() => _cropping = !_cropping),
+          ),
           IconButton(
             tooltip: l10n.shareAsImage,
             icon: const Icon(Icons.ios_share),
@@ -231,48 +252,65 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: Center(
-                // The preview shrinks to fit the screen; the render below
-                // ignores that and draws the boundary at its own size.
-                child: FittedBox(
-                  child: RepaintBoundary(
-                    key: _boundary,
-                    child: SizedBox(
-                      width: crop.width + 2 * _margin,
-                      height: crop.height + 2 * _margin,
-                      child: Stack(
-                        clipBehavior: Clip.hardEdge,
-                        children: [
-                          Positioned.fill(
-                            child: WallBackground(
-                              wall: widget.wall,
-                              decor: widget.decor,
+                // The preview keeps the picture's proportions and shrinks to
+                // fit the screen; the crop handles lie over it at screen
+                // scale. The render below ignores all that and draws the
+                // boundary at its own size.
+                child: AspectRatio(
+                  aspectRatio: box.width / box.height,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      FittedBox(
+                        child: RepaintBoundary(
+                          key: _boundary,
+                          child: SizedBox(
+                            width: box.width,
+                            height: box.height,
+                            child: Stack(
+                              clipBehavior: Clip.hardEdge,
+                              children: [
+                                Positioned.fill(
+                                  child: WallBackground(
+                                    wall: widget.wall,
+                                    decor: widget.decor,
+                                  ),
+                                ),
+                                // The whole wall, laid out at its live size
+                                // and shifted so the chosen part sits in the
+                                // frame.
+                                Positioned(
+                                  left: _margin - crop.left,
+                                  top: _margin - crop.top,
+                                  width: wall.width,
+                                  height: wall.height,
+                                  child: IgnorePointer(
+                                    child: WallView(
+                                      notes: _notes,
+                                      callbacksFor: (_) => _still,
+                                      onMove: (_, _, _) {},
+                                      onResize: (_, _) {},
+                                      onBringToFront: (_) {},
+                                      onCreateAt: (_, _) {},
+                                      links: widget.links,
+                                      strokes: widget.strokes,
+                                      captureKeys: _paperKeys,
+                                      still: true,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          // The whole wall, laid out at its live size and
-                          // shifted so the chosen part sits in the frame.
-                          Positioned(
-                            left: _margin - crop.left,
-                            top: _margin - crop.top,
-                            width: wall.width,
-                            height: wall.height,
-                            child: IgnorePointer(
-                              child: WallView(
-                                notes: _notes,
-                                callbacksFor: (_) => _still,
-                                onMove: (_, _, _) {},
-                                onResize: (_, _) {},
-                                onBringToFront: (_) {},
-                                onCreateAt: (_, _) {},
-                                links: widget.links,
-                                strokes: widget.strokes,
-                                captureKeys: _paperKeys,
-                                still: true,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                      if (_cropping || _trimmed)
+                        CropFrame(
+                          crop: _crop,
+                          editable: _cropping,
+                          onChanged: (r) => setState(() => _crop = r),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -282,7 +320,7 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 4, 24, 16),
             child: Text(
-              l10n.exportHint,
+              _cropping ? l10n.cropHint : l10n.exportHint,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13.5, height: 1.35, color: faded),
             ),
@@ -324,6 +362,7 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
         spacing: 10,
         runSpacing: 8,
         alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           if (widget.viewport != null)
             SegmentedButton<bool>(
@@ -363,8 +402,247 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
             selected: {_pixelRatio},
             onSelectionChanged: (s) => setState(() => _pixelRatio = s.single),
           ),
+          if (_trimmed)
+            TextButton.icon(
+              style: TextButton.styleFrom(foregroundColor: AppColors.accent),
+              icon: const Icon(Icons.crop_free, size: 18),
+              label: Text(l10n.cropReset),
+              onPressed: () => setState(() {
+                _crop = const Rect.fromLTWH(0, 0, 1, 1);
+              }),
+            ),
         ],
       ),
     );
   }
+}
+
+/// The trimming frame over the export preview: the kept part stays bright,
+/// the rest is dimmed, and while [editable] the corners and edges can be
+/// dragged (or the whole frame moved). [crop] is in fractions of the
+/// picture, so it maps straight onto the rendered PNG whatever the zoom.
+class CropFrame extends StatefulWidget {
+  const CropFrame({
+    super.key,
+    required this.crop,
+    required this.editable,
+    required this.onChanged,
+  });
+
+  final Rect crop;
+  final bool editable;
+  final ValueChanged<Rect> onChanged;
+
+  /// Smallest side the frame may shrink to, as a fraction of the picture.
+  static const double minSide = 0.1;
+
+  @override
+  State<CropFrame> createState() => _CropFrameState();
+}
+
+enum _Grab {
+  move,
+  left,
+  top,
+  right,
+  bottom,
+  topLeft,
+  topRight,
+  bottomLeft,
+  bottomRight,
+}
+
+class _CropFrameState extends State<CropFrame> {
+  _Grab? _grab;
+  Rect _start = Rect.zero;
+  Offset _origin = Offset.zero;
+
+  static const double _reach = 22;
+
+  /// What the finger took hold of: a corner within reach, else an edge, else
+  /// the frame itself (or nothing, outside it).
+  _Grab? _hit(Offset p, Rect frame) {
+    bool near(double a, double b) => (a - b).abs() <= _reach;
+    final l = near(p.dx, frame.left);
+    final r = near(p.dx, frame.right);
+    final t = near(p.dy, frame.top);
+    final b = near(p.dy, frame.bottom);
+    final insideX = p.dx >= frame.left - _reach && p.dx <= frame.right + _reach;
+    final insideY = p.dy >= frame.top - _reach && p.dy <= frame.bottom + _reach;
+    if (l && t) return _Grab.topLeft;
+    if (r && t) return _Grab.topRight;
+    if (l && b) return _Grab.bottomLeft;
+    if (r && b) return _Grab.bottomRight;
+    if (l && insideY) return _Grab.left;
+    if (r && insideY) return _Grab.right;
+    if (t && insideX) return _Grab.top;
+    if (b && insideX) return _Grab.bottom;
+    if (frame.contains(p)) return _Grab.move;
+    return null;
+  }
+
+  Rect _apply(_Grab grab, Offset delta, Size size) {
+    final dx = delta.dx / size.width;
+    final dy = delta.dy / size.height;
+    var l = _start.left;
+    var t = _start.top;
+    var r = _start.right;
+    var b = _start.bottom;
+    const min = CropFrame.minSide;
+    switch (grab) {
+      case _Grab.move:
+        final w = _start.width;
+        final h = _start.height;
+        l = (l + dx).clamp(0.0, 1 - w);
+        t = (t + dy).clamp(0.0, 1 - h);
+        return Rect.fromLTWH(l, t, w, h);
+      case _Grab.left:
+      case _Grab.topLeft:
+      case _Grab.bottomLeft:
+        l = (l + dx).clamp(0.0, r - min);
+      case _Grab.right:
+      case _Grab.topRight:
+      case _Grab.bottomRight:
+        r = (r + dx).clamp(l + min, 1.0);
+      case _Grab.top:
+      case _Grab.bottom:
+        break;
+    }
+    switch (grab) {
+      case _Grab.top:
+      case _Grab.topLeft:
+      case _Grab.topRight:
+        t = (t + dy).clamp(0.0, b - min);
+      case _Grab.bottom:
+      case _Grab.bottomLeft:
+      case _Grab.bottomRight:
+        b = (b + dy).clamp(t + min, 1.0);
+      default:
+        break;
+    }
+    return Rect.fromLTRB(l, t, r, b);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = constraints.biggest;
+        Rect frame() => Rect.fromLTRB(
+          widget.crop.left * size.width,
+          widget.crop.top * size.height,
+          widget.crop.right * size.width,
+          widget.crop.bottom * size.height,
+        );
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onPanStart: !widget.editable
+              ? null
+              : (d) {
+                  _grab = _hit(d.localPosition, frame());
+                  _start = widget.crop;
+                  _origin = d.localPosition;
+                },
+          onPanUpdate: !widget.editable
+              ? null
+              : (d) {
+                  final grab = _grab;
+                  if (grab == null) return;
+                  widget.onChanged(
+                    _apply(grab, d.localPosition - _origin, size),
+                  );
+                },
+          onPanEnd: (_) => _grab = null,
+          onPanCancel: () => _grab = null,
+          child: CustomPaint(
+            painter: _CropPainter(frame(), handles: widget.editable),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CropPainter extends CustomPainter {
+  const _CropPainter(this.frame, {required this.handles});
+
+  final Rect frame;
+  final bool handles;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Dim what is trimmed away.
+    final outside = Path()
+      ..addRect(Offset.zero & size)
+      ..addRect(frame)
+      ..fillType = PathFillType.evenOdd;
+    canvas.drawPath(outside, Paint()..color = const Color(0x99000000));
+    canvas.drawRect(
+      frame,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = AppColors.chalk,
+    );
+    if (!handles) return;
+    // Thirds, as a camera would show them.
+    final thirds = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.7
+      ..color = AppColors.chalk.withValues(alpha: 0.35);
+    for (var i = 1; i < 3; i++) {
+      final x = frame.left + frame.width * i / 3;
+      final y = frame.top + frame.height * i / 3;
+      canvas.drawLine(Offset(x, frame.top), Offset(x, frame.bottom), thirds);
+      canvas.drawLine(Offset(frame.left, y), Offset(frame.right, y), thirds);
+    }
+    // Corner brackets in the accent, thick enough for a thumb.
+    final corner = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round
+      ..color = AppColors.accent;
+    const arm = 18.0;
+    void bracket(Offset c, double sx, double sy) {
+      canvas.drawLine(c, c + Offset(arm * sx, 0), corner);
+      canvas.drawLine(c, c + Offset(0, arm * sy), corner);
+    }
+
+    bracket(frame.topLeft, 1, 1);
+    bracket(frame.topRight, -1, 1);
+    bracket(frame.bottomLeft, 1, -1);
+    bracket(frame.bottomRight, -1, -1);
+    // A short bar on each edge, so edges read as grabbable too.
+    final edge = Paint()
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round
+      ..color = AppColors.accent;
+    const half = 12.0;
+    final cx = frame.center.dx;
+    final cy = frame.center.dy;
+    canvas.drawLine(
+      Offset(cx - half, frame.top),
+      Offset(cx + half, frame.top),
+      edge,
+    );
+    canvas.drawLine(
+      Offset(cx - half, frame.bottom),
+      Offset(cx + half, frame.bottom),
+      edge,
+    );
+    canvas.drawLine(
+      Offset(frame.left, cy - half),
+      Offset(frame.left, cy + half),
+      edge,
+    );
+    canvas.drawLine(
+      Offset(frame.right, cy - half),
+      Offset(frame.right, cy + half),
+      edge,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CropPainter old) =>
+      old.frame != frame || old.handles != handles;
 }

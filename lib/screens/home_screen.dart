@@ -1246,7 +1246,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           _filterButton(wall),
-          if (_notes.viewMode != ViewMode.wall) _sortButton(wall),
+          if (_notes.viewMode == ViewMode.wall)
+            IconButton(
+              tooltip: _l10n.drawOnWall,
+              icon: Icon(Icons.gesture, color: wall.wallText),
+              onPressed: _marking ? null : () => _startMarking(wall),
+            )
+          else
+            _sortButton(wall),
           _layoutButton(wall),
           _moreButton(wall),
         ],

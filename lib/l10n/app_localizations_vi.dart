@@ -379,6 +379,33 @@ class AppLocalizationsVi extends AppLocalizations {
   String get wallLinen => 'Vải lanh tối';
 
   @override
+  String get wallCardboard => 'Bìa các-tông';
+
+  @override
+  String get wallCement => 'Tường xi măng';
+
+  @override
+  String get wallCotton => 'Vải cotton trắng';
+
+  @override
+  String get wallPaper => 'Giấy trắng';
+
+  @override
+  String get wallMoss => 'Rêu cỏ';
+
+  @override
+  String get wallLeather => 'Da đỏ';
+
+  @override
+  String get wallDarkMarble => 'Đá hoa đen';
+
+  @override
+  String get wallDarkWood => 'Ván gỗ tối';
+
+  @override
+  String get wallTiles => 'Gạch ca-rô';
+
+  @override
   String get fontPreview => 'Xin chào! Ghi chú nhanh lên tường.';
 
   @override
@@ -490,6 +517,16 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get sharePdf => 'Chia sẻ PDF';
+
+  @override
+  String get cropImage => 'Cắt bớt';
+
+  @override
+  String get cropHint =>
+      'Kéo các góc hoặc cạnh để cắt bớt phần thừa; kéo bên trong để dời khung.';
+
+  @override
+  String get cropReset => 'Cả ảnh';
 
   @override
   String get putOnHomeScreen => 'Đưa lên widget màn hình chính';

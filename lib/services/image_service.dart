@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -177,6 +178,37 @@ class ImageService {
     final image = await boundary.toImage(pixelRatio: pixelRatio);
     final data = await image.toByteData(format: ui.ImageByteFormat.png);
     return data?.buffer.asUint8List();
+  }
+
+  /// Trims a PNG to [fraction] of it (0..1 on each axis): the export's crop.
+  static Future<Uint8List> cropPng(Uint8List png, Rect fraction) async {
+    final image = await decodeImageFromList(png);
+    try {
+      final src = Rect.fromLTRB(
+        (fraction.left * image.width).roundToDouble(),
+        (fraction.top * image.height).roundToDouble(),
+        (fraction.right * image.width).roundToDouble(),
+        (fraction.bottom * image.height).roundToDouble(),
+      );
+      final w = math.max(1, src.width.round());
+      final h = math.max(1, src.height.round());
+      final recorder = ui.PictureRecorder();
+      Canvas(recorder).drawImageRect(
+        image,
+        src,
+        Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()),
+        Paint(),
+      );
+      final out = await recorder.endRecording().toImage(w, h);
+      try {
+        final data = await out.toByteData(format: ui.ImageByteFormat.png);
+        return data!.buffer.asUint8List();
+      } finally {
+        out.dispose();
+      }
+    } finally {
+      image.dispose();
+    }
   }
 
   /// Wraps a PNG in a one-page PDF the size of the picture (three pixels to

@@ -752,6 +752,60 @@ abstract class AppLocalizations {
   /// **'Dark linen'**
   String get wallLinen;
 
+  /// No description provided for @wallCardboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Cardboard'**
+  String get wallCardboard;
+
+  /// No description provided for @wallCement.
+  ///
+  /// In en, this message translates to:
+  /// **'Cement wall'**
+  String get wallCement;
+
+  /// No description provided for @wallCotton.
+  ///
+  /// In en, this message translates to:
+  /// **'White cotton'**
+  String get wallCotton;
+
+  /// No description provided for @wallPaper.
+  ///
+  /// In en, this message translates to:
+  /// **'White paper'**
+  String get wallPaper;
+
+  /// No description provided for @wallMoss.
+  ///
+  /// In en, this message translates to:
+  /// **'Moss'**
+  String get wallMoss;
+
+  /// No description provided for @wallLeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Red leather'**
+  String get wallLeather;
+
+  /// No description provided for @wallDarkMarble.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark marble'**
+  String get wallDarkMarble;
+
+  /// No description provided for @wallDarkWood.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark planks'**
+  String get wallDarkWood;
+
+  /// No description provided for @wallTiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Checker tiles'**
+  String get wallTiles;
+
   /// No description provided for @fontPreview.
   ///
   /// In en, this message translates to:
@@ -949,6 +1003,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share as PDF'**
   String get sharePdf;
+
+  /// No description provided for @cropImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim'**
+  String get cropImage;
+
+  /// No description provided for @cropHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the corners or edges to trim the picture; drag inside to move the frame.'**
+  String get cropHint;
+
+  /// No description provided for @cropReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole picture'**
+  String get cropReset;
 
   /// No description provided for @putOnHomeScreen.
   ///

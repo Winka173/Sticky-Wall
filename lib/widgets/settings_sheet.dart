@@ -26,6 +26,15 @@ String wallLabel(AppLocalizations l10n, String id) => switch (id) {
   'denim' => l10n.wallDenim,
   'felt' => l10n.wallFelt,
   'linen' => l10n.wallLinen,
+  'cardboard' => l10n.wallCardboard,
+  'cement' => l10n.wallCement,
+  'cotton' => l10n.wallCotton,
+  'paper' => l10n.wallPaper,
+  'moss' => l10n.wallMoss,
+  'leather' => l10n.wallLeather,
+  'dark_marble' => l10n.wallDarkMarble,
+  'dark_wood' => l10n.wallDarkWood,
+  'tiles' => l10n.wallTiles,
   _ => id,
 };
 

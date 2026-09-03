@@ -384,6 +384,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallLinen => 'Dark linen';
 
   @override
+  String get wallCardboard => 'Cardboard';
+
+  @override
+  String get wallCement => 'Cement wall';
+
+  @override
+  String get wallCotton => 'White cotton';
+
+  @override
+  String get wallPaper => 'White paper';
+
+  @override
+  String get wallMoss => 'Moss';
+
+  @override
+  String get wallLeather => 'Red leather';
+
+  @override
+  String get wallDarkMarble => 'Dark marble';
+
+  @override
+  String get wallDarkWood => 'Dark planks';
+
+  @override
+  String get wallTiles => 'Checker tiles';
+
+  @override
   String get fontPreview => 'Hello! A quick note on the wall.';
 
   @override
@@ -497,6 +524,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharePdf => 'Share as PDF';
+
+  @override
+  String get cropImage => 'Trim';
+
+  @override
+  String get cropHint =>
+      'Drag the corners or edges to trim the picture; drag inside to move the frame.';
+
+  @override
+  String get cropReset => 'Whole picture';
 
   @override
   String get putOnHomeScreen => 'Show on the home-screen widget';

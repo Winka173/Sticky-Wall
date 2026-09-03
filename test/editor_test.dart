@@ -446,6 +446,77 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('the toolbar has a pen on the wall that starts marker mode', (
+    tester,
+  ) async {
+    await _pumpApp(tester, viewMode: ViewMode.wall);
+    await tester.tap(find.byTooltip('Draw on the wall'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Done'), findsOneWidget);
+    await tester.tap(find.byTooltip('Done'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Done'), findsNothing);
+  });
+
+  testWidgets('the export can be trimmed with the crop frame', (tester) async {
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Aa',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.1,
+          y: 0.1,
+        ),
+      ],
+    );
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export board as image'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CropFrame), findsNothing);
+    await tester.tap(find.byTooltip('Trim'));
+    await tester.pumpAndSettle();
+    final frame = find.byType(CropFrame);
+    expect(frame, findsOneWidget);
+    expect(
+      find.text('Whole picture'),
+      findsNothing,
+      reason: 'nothing trimmed yet',
+    );
+
+    // Drag the bottom-right corner inwards by a quarter of the picture.
+    final box = tester.getRect(frame);
+    final g = await tester.startGesture(box.bottomRight - const Offset(2, 2));
+    await g.moveBy(Offset(-box.width / 4, -box.height / 4));
+    await tester.pump();
+    await g.up();
+    await tester.pumpAndSettle();
+    final crop = tester.widget<CropFrame>(frame).crop;
+    expect(crop.right, closeTo(0.75, 0.02));
+    expect(crop.bottom, closeTo(0.75, 0.02));
+    expect(crop.left, 0);
+    expect(find.text('Whole picture'), findsOneWidget);
+
+    // Dragging inside moves the frame; the reset puts everything back.
+    final g2 = await tester.startGesture(box.center - const Offset(60, 60));
+    await g2.moveBy(Offset(box.width / 8, 0));
+    await tester.pump();
+    await g2.up();
+    await tester.pumpAndSettle();
+    expect(tester.widget<CropFrame>(frame).crop.left, closeTo(0.125, 0.02));
+    await tester.tap(find.text('Whole picture'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<CropFrame>(frame).crop,
+      const Rect.fromLTWH(0, 0, 1, 1),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('drawing on the wall can start from the grid', (tester) async {
     final notes = await _pumpApp(
       tester,

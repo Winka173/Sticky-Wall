@@ -22,6 +22,10 @@ then taken well beyond it.
 |---|---|---|---|
 | ![Green](screenshots/preview_chalk_green.png) | ![Black](screenshots/preview_chalk_black.png) | ![Plaster](screenshots/preview_plaster.png) | ![Brick](screenshots/preview_brick.png) |
 
+| Cardboard | Cement | Dark planks | Checker tiles |
+|---|---|---|---|
+| ![Cardboard](screenshots/preview_cardboard.png) | ![Cement](screenshots/preview_cement.png) | ![Dark planks](screenshots/preview_dark_wood.png) | ![Tiles](screenshots/preview_tiles.png) |
+
 | Wood | Kraft paper | Marble | Terrazzo |
 |---|---|---|---|
 | ![Wood](screenshots/preview_wood.png) | ![Kraft](screenshots/preview_kraft.png) | ![Marble](screenshots/preview_marble.png) | ![Terrazzo](screenshots/preview_terrazzo.png) |
@@ -105,8 +109,8 @@ then taken well beyond it.
   **yarn colour** (seven, classic red first), **write on it** (a paper tag
   hangs from the middle), give it an **arrowhead** for a dependency or a
   flow, or **cut** it (Undo re-ties it exactly as it was)
-- **Draw on the wall** (⋮ → *Draw on the wall*, from any view) — marker
-  mode: a finger
+- **Draw on the wall** (the pen in the toolbar on the wall, or ⋮ → *Draw on
+  the wall* from any view) — marker mode: a finger
   draws straight on the wall, behind the notes, in five colours and three
   widths, with an eraser, undo and clear; two fingers still zoom. Strokes
   are stored with the board (as fractions of the wall, like the notes) and
@@ -121,8 +125,10 @@ then taken well beyond it.
   it to the gallery, or **share it as a PDF** (one page the size of the
   picture); choose the **whole wall or just the part in view** (when
   zoomed), **all notes or only the selected ones**, and **2× / 3× / 4×**
-  resolution. Laid out exactly as on screen, with a margin so a turned card
-  at the edge is not cut off — the board as a plan you can send around
+  resolution; **trim** the picture by dragging the corners or edges of a
+  crop frame over the preview. Laid out exactly as on screen, with a margin
+  so a turned card at the edge is not cut off — the board as a plan you can
+  send around
 - **Home-screen widget** (Android): *Show on the home-screen widget* in the
   export puts that picture of the board on the widget; until then it lists
   the current board's pinned notes
@@ -182,9 +188,11 @@ then taken well beyond it.
   strip changes width (grid / list add a sort button beside it)
 
 **The wall**
-- Twelve switchable textures: cork, green/black chalkboard, painted plaster,
-  brick, wood, kraft paper, marble, terrazzo, denim, felt, linen — each under
-  a tuned scrim so writing keeps contrast
+- Twenty-one switchable textures: cork, green/black chalkboard, painted
+  plaster, brick, wood, kraft paper, marble, terrazzo, denim, felt, linen,
+  cardboard, cement, white cotton, white paper, moss, red leather, dark
+  marble, dark planks, checker tiles — each under a tuned scrim so writing
+  keeps contrast
 - Or pick **your own photo** as the wall; its brightness is sampled to choose
   a scrim so the writing on it stays legible
 - Procedural **stains** layer (water rings, drips, paint splatters, smudges,
@@ -311,7 +319,9 @@ that starts loading inside the fake-async zone never finishes.
 - Wall textures: [ambientCG](https://ambientcg.com) — Cork004,
   PaintedPlaster017, Concrete046, Bricks104, Planks021, Paper004 (kraft),
   Marble012, Terrazzo013, Fabric069 (denim), Fabric034 (felt), Fabric030
-  (linen). License: CC0.
+  (linen), Cardboard004, Concrete034 (cement), Fabric019 (cotton), Paper001,
+  Ground037 (moss), Leather011, Marble006 (dark marble), Planks020 (dark
+  planks), Tiles074 (checker). License: CC0.
 - Fonts (Google Fonts, SIL OFL — licence files next to each in
   `assets/fonts/`):
   [Patrick Hand](https://fonts.google.com/specimen/Patrick+Hand),

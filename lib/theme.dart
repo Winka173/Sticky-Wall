@@ -249,6 +249,62 @@ const walls = [
     overlay: Color(0x40151412),
     dark: true,
   ),
+  WallStyle(
+    id: 'cardboard',
+    asset: 'assets/images/wall_cardboard.jpg',
+    overlay: Color(0x14FFFFFF),
+    dark: false,
+  ),
+  WallStyle(
+    id: 'cement',
+    asset: 'assets/images/wall_cement.jpg',
+    overlay: Color(0x1AFFFFFF),
+    dark: false,
+  ),
+  WallStyle(
+    id: 'cotton',
+    asset: 'assets/images/wall_cotton.jpg',
+    overlay: Color(0x0AFFFFFF),
+    dark: false,
+  ),
+  WallStyle(
+    id: 'paper',
+    asset: 'assets/images/wall_paper.jpg',
+    overlay: Color(0x00FFFFFF),
+    dark: false,
+  ),
+  WallStyle(
+    id: 'moss',
+    asset: 'assets/images/wall_moss.jpg',
+    overlay: Color(0x59182412),
+    dark: true,
+  ),
+  WallStyle(
+    id: 'leather',
+    asset: 'assets/images/wall_leather.jpg',
+    overlay: Color(0x40140606),
+    dark: true,
+  ),
+  WallStyle(
+    id: 'dark_marble',
+    asset: 'assets/images/wall_dark_marble.jpg',
+    overlay: Color(0x330A0A0A),
+    dark: true,
+  ),
+  WallStyle(
+    id: 'dark_wood',
+    asset: 'assets/images/wall_dark_wood.jpg',
+    overlay: Color(0x4D1E1208),
+    dark: true,
+  ),
+  WallStyle(
+    id: 'tiles',
+    asset: 'assets/images/wall_tiles.jpg',
+    // Half the squares are near-black, so chalk on a darkened floor reads
+    // on every square; ink on the bright ones would vanish on the dark.
+    overlay: Color(0x8C1C1714),
+    dark: true,
+  ),
 ];
 
 /// The bundled wall with the given [WallStyle.id], or the first one.
