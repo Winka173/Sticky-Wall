@@ -45,11 +45,15 @@ class WallCamera extends ChangeNotifier {
   final controller = TransformationController();
   Offset _origin = Offset.zero;
 
-  Matrix4 get matrix => controller.value;
+  /// The pan/zoom relative to the resting view: identity when the wall sits
+  /// where it started, whatever [controller] holds internally (the wall's
+  /// content is bigger than the screen, see [WallView.pad], so at rest the
+  /// controller itself is a plain shift).
+  Matrix4 get matrix => controller.value.multiplied(_WallViewState._toHome);
   Offset get origin => _origin;
 
   /// True while the wall is zoomed or panned away from its resting place.
-  bool get moved => !controller.value.isIdentity();
+  bool get moved => !matrix.isIdentity();
 
   void _setOrigin(Offset o) {
     if (o == _origin) return;
@@ -91,11 +95,20 @@ class WallMarker {
 /// Red threads can be tied between pins by dragging from one pin to another
 /// note.
 ///
+/// The wall is larger than the screen: [pad] logical pixels of extra wall run
+/// past every edge of the resting view, so a note can be parked out there
+/// after panning to it. Positions stay fractions of the resting view (the
+/// "home" area), so old layouts are untouched; a note out in the margin has
+/// a fraction below 0 or above 1.
+///
 /// Gestures on a note: one finger drags it; two fingers twist it round and
 /// pinch it larger or smaller. Gestures on empty wall: long-press sticks a
 /// new note right there, a tap deselects the active note, a double-tap resets
 /// the zoom.
 class WallView extends StatefulWidget {
+  /// Extra wall beyond each edge of the resting view, in logical pixels.
+  static const double pad = 360;
+
   const WallView({
     super.key,
     required this.notes,
@@ -245,6 +258,14 @@ class _WallViewState extends State<WallView>
   /// floating action button.
   static const double _bottomInset = 80;
 
+  static const double _pad = WallView.pad;
+
+  /// The camera at rest: the content shifted so the home area fills the
+  /// viewport. [_toHome] is its inverse, for reading the camera relative to
+  /// the resting view (see [WallCamera.matrix]).
+  static final Matrix4 _home = Matrix4.translationValues(-_pad, -_pad, 0);
+  static final Matrix4 _toHome = Matrix4.translationValues(_pad, _pad, 0);
+
   final _wallKey = GlobalKey();
 
   // The shared camera's controller when we have one, else our own.
@@ -257,6 +278,7 @@ class _WallViewState extends State<WallView>
     duration: const Duration(milliseconds: 240),
   );
   Animation<Matrix4>? _zoomAnim;
+  Matrix4? _zoomTarget;
 
   String? _draggingGuid;
   Offset _dragTopLeft = Offset.zero;
@@ -346,9 +368,20 @@ class _WallViewState extends State<WallView>
   void initState() {
     super.initState();
     widget.handle?._state = this;
+    // A controller nobody has touched holds the identity; the resting view
+    // is the content shifted by the pad.
+    if (_tc.value.isIdentity()) _tc.value = _home.clone();
     _zoomReset.addListener(() {
       final anim = _zoomAnim;
       if (anim != null) _tc.value = anim.value;
+    });
+    // Land exactly on the target: a tween's last frame can be a hair off,
+    // and "at rest" is checked by equality.
+    _zoomReset.addStatusListener((status) {
+      final target = _zoomTarget;
+      if (status == AnimationStatus.completed && target != null) {
+        _tc.value = target;
+      }
     });
     // A shared camera outlives the wall it was zoomed on; a wall that has
     // just appeared (another board) glides back to its resting view. Deferred
@@ -379,10 +412,11 @@ class _WallViewState extends State<WallView>
 
   void _resetZoom() {
     _focusedGuid = null;
-    _animateCamera(Matrix4.identity());
+    _animateCamera(_home.clone());
   }
 
   void _animateCamera(Matrix4 to) {
+    _zoomTarget = to;
     _zoomAnim = Matrix4Tween(
       begin: _tc.value,
       end: to,
@@ -393,7 +427,7 @@ class _WallViewState extends State<WallView>
   /// Double tap on a note: glides the camera in to frame it; a second double
   /// tap on the same note (or the reset button) glides back out.
   void _focusOn(Note note) {
-    if (_focusedGuid == note.guid && !_tc.value.isIdentity()) {
+    if (_focusedGuid == note.guid && _tc.value != _home) {
       _resetZoom();
       return;
     }
@@ -437,10 +471,22 @@ class _WallViewState extends State<WallView>
       math.max(1.0, w - _cardWidth * scale);
   static double _rangeY(double h) => math.max(1.0, h - _bottomInset);
 
+  /// Where a note rests, in content coordinates: its fraction of the home
+  /// area, which starts [_pad] in from the content's corner.
+  Offset _restingTopLeft(Note note, double scale, double w, double h) =>
+      Offset(_pad + note.x * _rangeX(w, scale), _pad + note.y * _rangeY(h));
+
+  /// The fraction of the home area a content top-left corresponds to.
+  Offset _fractionOf(Offset topLeft, double scale, double w, double h) =>
+      Offset(
+        (topLeft.dx - _pad) / _rangeX(w, scale),
+        (topLeft.dy - _pad) / _rangeY(h),
+      );
+
   Offset _topLeftOf(Note note, double w, double h) {
     if (_draggingGuid == note.guid) return _dragTopLeft;
     final scale = _resizingGuid == note.guid ? _resizeScale : note.scale;
-    final base = Offset(note.x * _rangeX(w, scale), note.y * _rangeY(h));
+    final base = _restingTopLeft(note, scale, w, h);
     return _groupGuids.contains(note.guid) ? base + _groupDelta : base;
   }
 
@@ -625,10 +671,10 @@ class _WallViewState extends State<WallView>
 
   // --- Marker mode ----------------------------------------------------------
 
-  Offset _inkNorm(Offset local) => Offset(
-    (local.dx / _size.width).clamp(0.0, 1.0),
-    (local.dy / _size.height).clamp(0.0, 1.0),
-  );
+  /// A content position as a fraction of the home area (strokes share the
+  /// notes' basis; out in the margin that is below 0 or above 1).
+  Offset _inkNorm(Offset local) =>
+      Offset((local.dx - _pad) / _size.width, (local.dy - _pad) / _size.height);
 
   void _inkStart(PointerDownEvent e) {
     _inkDown.add(e.pointer);
@@ -687,8 +733,8 @@ class _WallViewState extends State<WallView>
     widget.strokes.removeWhere((s) {
       final reach = 14 + s.width / 2;
       for (final p in s.points) {
-        final dx = p.dx * w - local.dx;
-        final dy = p.dy * h - local.dy;
+        final dx = _pad + p.dx * w - local.dx;
+        final dy = _pad + p.dy * h - local.dy;
         if (dx * dx + dy * dy <= reach * reach) return true;
       }
       return false;
@@ -759,7 +805,9 @@ class _WallViewState extends State<WallView>
     ];
     var top0 = 4.0;
     for (final n in widget.notes) {
-      if (n.locked) top0 = math.max(top0, _boxOf(n, w, h).bottom + _tidyRowGap);
+      if (n.locked) {
+        top0 = math.max(top0, _boxOf(n, w, h).bottom - _pad + _tidyRowGap);
+      }
     }
 
     // Reading order first; then, if asked, grouped by paper color.
@@ -882,12 +930,17 @@ class _WallViewState extends State<WallView>
           children: [
             InteractiveViewer(
               transformationController: _tc,
+              // The content is bigger than the viewport (its margin), so it
+              // must not be squeezed to the viewport's size.
+              constrained: false,
               clipBehavior: widget.still ? Clip.none : Clip.hardEdge,
               // One finger draws in marker mode; two still zoom.
               panEnabled: !widget.marking,
               minScale: 0.6,
               maxScale: 3,
-              boundaryMargin: const EdgeInsets.all(320),
+              // The content already carries its margin (see WallView.pad);
+              // a little slack lets a zoomed-out wall float free of the edges.
+              boundaryMargin: const EdgeInsets.all(120),
               // Re-measure right before a gesture, when it matters most.
               onInteractionStart: (_) {
                 _focusedGuid = null;
@@ -895,8 +948,8 @@ class _WallViewState extends State<WallView>
               },
               child: SizedBox(
                 key: _wallKey,
-                width: w,
-                height: h,
+                width: w + 2 * _pad,
+                height: h + 2 * _pad,
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -922,9 +975,14 @@ class _WallViewState extends State<WallView>
                             : null,
                       ),
                     ),
-                    // Marker strokes lie on the wall itself, under the paper.
+                    // Marker strokes lie on the wall itself, under the paper,
+                    // measured against the home area like the notes are.
                     if (widget.strokes.isNotEmpty)
-                      Positioned.fill(
+                      Positioned(
+                        left: _pad,
+                        top: _pad,
+                        width: w,
+                        height: h,
                         child: IgnorePointer(
                           child: CustomPaint(
                             painter: StrokePainter(widget.strokes),
@@ -932,7 +990,11 @@ class _WallViewState extends State<WallView>
                         ),
                       ),
                     if (widget.notes.isEmpty && widget.emptyHint != null)
-                      Positioned.fill(
+                      Positioned(
+                        left: _pad,
+                        top: _pad,
+                        width: w,
+                        height: h,
                         child: GestureDetector(
                           // Claims only the hint itself; the bare wall around
                           // it still reaches the detector above. A Stack stops
@@ -996,7 +1058,7 @@ class _WallViewState extends State<WallView>
               child: ValueListenableBuilder<Matrix4>(
                 valueListenable: _tc,
                 builder: (context, m, child) {
-                  final show = !m.isIdentity();
+                  final show = m != _home;
                   return AnimatedOpacity(
                     opacity: show ? 1 : 0,
                     duration: const Duration(milliseconds: 180),
@@ -1070,14 +1132,14 @@ class _WallViewState extends State<WallView>
     return inside;
   }
 
-  /// Keeps a dragged card on the wall: it stops at the edge and comes
-  /// straight back with the finger, instead of running off and springing
-  /// back on release.
+  /// Keeps a dragged card on the wall — the whole wall, margin included: it
+  /// stops at the outer edge and comes straight back with the finger, instead
+  /// of running off and springing back on release.
   Offset _onWall(Note note, Offset topLeft) {
     final scale = _resizingGuid == note.guid ? _resizeScale : note.scale;
     return Offset(
-      topLeft.dx.clamp(0.0, _rangeX(_size.width, scale)),
-      topLeft.dy.clamp(0.0, _rangeY(_size.height)),
+      topLeft.dx.clamp(0.0, _size.width + 2 * _pad - _cardWidth * scale),
+      topLeft.dy.clamp(0.0, _size.height + 2 * _pad - _bottomInset),
     );
   }
 
@@ -1111,7 +1173,7 @@ class _WallViewState extends State<WallView>
     setState(() {
       _draggingGuid = note.guid;
       _activeGuid = note.guid;
-      _dragStart = Offset(note.x * _rangeX(w, scale), note.y * _rangeY(h));
+      _dragStart = _restingTopLeft(note, scale, w, h);
       _dragTopLeft = _dragRaw = _dragStart;
       _dragFinger = _toWall(d.focalPoint);
       _dragGlobal = d.focalPoint;
@@ -1230,8 +1292,18 @@ class _WallViewState extends State<WallView>
         for (final n in group)
           (
             n,
-            _topLeftOf(n, w, h).dx / _rangeX(w, n == note ? scale : n.scale),
-            _topLeftOf(n, w, h).dy / _rangeY(h),
+            _fractionOf(
+              _topLeftOf(n, w, h),
+              n == note ? scale : n.scale,
+              w,
+              h,
+            ).dx,
+            _fractionOf(
+              _topLeftOf(n, w, h),
+              n == note ? scale : n.scale,
+              w,
+              h,
+            ).dy,
           ),
       ];
       if (moves.length > 1 && widget.onMoveMany != null) {
@@ -1312,14 +1384,17 @@ class _WallViewState extends State<WallView>
     widget.onRotate?.call(note, 0);
   }
 
-  /// Long press on bare wall (wall-local [p]): asks for a new note there.
+  /// Long press on bare wall (content-local [p]): asks for a new note there.
   void _createAt(Offset p, double w, double h) {
     HapticFeedback.mediumImpact();
     // Same basis as display/move (see _positioned), so the note lands
-    // centered under the finger.
-    final x = (p.dx - _cardWidth / 2) / _rangeX(w, 1);
-    final y = (p.dy - 40) / _rangeY(h);
-    widget.onCreateAt(x.clamp(0.0, 1.0), y.clamp(0.0, 1.0));
+    // centered under the finger — kept on the wall, margin included.
+    final topLeft = Offset(
+      (p.dx - _cardWidth / 2).clamp(0.0, w + 2 * _pad - _cardWidth),
+      (p.dy - 40).clamp(0.0, h + 2 * _pad - _bottomInset),
+    );
+    final f = _fractionOf(topLeft, 1, w, h);
+    widget.onCreateAt(f.dx, f.dy);
   }
 
   Widget _positioned(Note note, int index, double w, double h) {
@@ -1370,8 +1445,8 @@ class _WallViewState extends State<WallView>
           : Duration(milliseconds: _settling ? 560 : 200),
       curve: _settling ? Curves.easeInOutCubic : Curves.easeOutCubic,
       onEnd: _settling ? () => setState(() => _settling = false) : null,
-      left: left.clamp(0.0, math.max(0.0, w)),
-      top: top.clamp(0.0, math.max(0.0, h - 40)),
+      left: left.clamp(0.0, w + 2 * _pad),
+      top: top.clamp(0.0, h + 2 * _pad - 40),
       width: _cardWidth * scale,
       // The turn is outermost so a card lying at an angle is hit-testable
       // wherever it is painted, not only inside its upright footprint; the

@@ -14,6 +14,7 @@ import 'package:sticky_wall/widgets/add_note_button.dart';
 import 'package:sticky_wall/widgets/board_poster.dart';
 import 'package:sticky_wall/widgets/drawing_canvas.dart';
 import 'package:sticky_wall/widgets/note_views.dart';
+import 'package:sticky_wall/widgets/wall_view.dart';
 
 Future<NotesController> _pumpApp(
   WidgetTester tester, {
@@ -409,7 +410,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a note dragged past the edge stops there and follows back', (
+  testWidgets('a note can be parked out in the margin, but not off the wall', (
     tester,
   ) async {
     final notes = await _pumpApp(
@@ -430,23 +431,18 @@ void main() {
     final wall = tester.getRect(find.byType(InteractiveViewer));
     final rangeX = wall.width - 168;
 
-    // Far past the right edge: the card waits at the edge (no springing
-    // back on release), and the finger's overshoot is not remembered.
-    await _dragNote(tester, find.text('Edge'), const Offset(2000, 0));
-    expect(a.x, 1.0);
-    final card = find.ancestor(
-      of: find.text('Edge'),
-      matching: find.byType(NoteTurn),
-    );
-    expect(tester.getRect(card).right, closeTo(wall.right, 1.0));
+    // Past the right edge of the screen: the note goes out into the margin
+    // (a fraction above 1) and stays there on release.
+    await _dragNote(tester, find.text('Edge'), const Offset(380, 0));
+    expect(a.x, closeTo(0.5 + 380 / rangeX, 1e-6));
+    expect(a.x, greaterThan(1.0));
+    // Back a little: it follows at once.
     await _dragNote(tester, find.text('Edge'), const Offset(-60, 0));
-    expect(a.x, closeTo(1 - 60 / rangeX, 1e-6), reason: 'moves back at once');
+    expect(a.x, closeTo(0.5 + 320 / rangeX, 1e-6));
 
-    // The same on the left.
-    await _dragNote(tester, find.text('Edge'), const Offset(-3000, 0));
-    expect(a.x, 0.0);
-    await _dragNote(tester, find.text('Edge'), const Offset(60, 0));
-    expect(a.x, closeTo(60 / rangeX, 1e-6));
+    // The margin has an end: a huge drag stops at the wall's outer edge.
+    await _dragNote(tester, find.text('Edge'), const Offset(3000, 0));
+    expect(a.x, closeTo(1 + WallView.pad / rangeX, 1e-6));
     expect(tester.takeException(), isNull);
   });
 
@@ -607,8 +603,8 @@ void main() {
     await _dragNote(tester, find.text('Aa'), const Offset(0, 50));
     expect(a.y, closeTo(0.1 + 50 / rangeY, 1e-6));
     expect(b.y, closeTo(0.6 + 50 / rangeY, 1e-6), reason: 'came along');
-    expect(a.x, 0.1);
-    expect(b.x, 0.6);
+    expect(a.x, closeTo(0.1, 1e-9));
+    expect(b.x, closeTo(0.6, 1e-9));
     // One Undo step puts both back.
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();

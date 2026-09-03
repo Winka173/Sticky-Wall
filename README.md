@@ -88,10 +88,11 @@ then taken well beyond it.
   put **two fingers on a note**: twist to turn it, pinch to resize it about
   its centre (each with a small dead band so one does not bleed into the
   other) — two fingers on one card always act on the card, never on the
-  wall. A dragged card stops at the wall's edge and comes straight back
-  with the finger; drag a note onto the **tray** that slides up from the
-  bottom to delete it, or up onto a **board tab** to move it to that board
-  (the tab lights up). **Double-tap** a note to glide the camera
+  wall. The wall runs **360 px past every edge of the screen**: pan out
+  there and park notes in the margin; a dragged card stops at the wall's
+  outer edge and comes straight back with the finger. Drag a note onto the
+  **tray** that slides up from the bottom to delete it, or up onto a **board
+  tab** to move it to that board (the tab lights up). **Double-tap** a note to glide the camera
   in on it, and again to glide back out. **Pinch to zoom / pan** the whole
   board — the wall texture and its stains
   travel with the notes, only the lighting stays put (double-tap or the

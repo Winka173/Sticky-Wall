@@ -159,10 +159,11 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final wall = _wallSize(context);
-    // What ends up in the picture: the whole wall, or just the part in view.
+    // What ends up in the picture: the whole wall — grown to take in any
+    // note parked out in the margin — or just the part in view.
     final crop = _visibleOnly && widget.viewport != null
         ? widget.viewport!
-        : Offset.zero & wall;
+        : _wholeWall(wall);
     final faded = AppColors.chalk.withValues(alpha: 0.7);
 
     return Scaffold(
@@ -289,6 +290,21 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
         ],
       ),
     );
+  }
+
+  /// The home area plus whatever hangs outside it: a note dragged out into
+  /// the wall's margin still makes the picture.
+  Rect _wholeWall(Size wall) {
+    var rect = Offset.zero & wall;
+    for (final n in _notes) {
+      final width = 168 * n.scale;
+      final left = n.x * (wall.width - width);
+      final top = n.y * (wall.height - 80);
+      rect = rect.expandToInclude(
+        Rect.fromLTWH(left, top, width, width * 0.9 + 14),
+      );
+    }
+    return rect;
   }
 
   /// Which part, which notes, how sharp — only the choices that apply.

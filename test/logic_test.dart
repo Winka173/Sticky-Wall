@@ -246,6 +246,20 @@ void main() {
       expect(c.boards.map((b) => b.name), ['', 'B', 'C']);
     });
 
+    test('a move may leave the home area, within the wall margin', () async {
+      final c = await _controller(notes: [_note('1', 'x')]);
+      final note = c.boardNotes.single;
+      c.moveNote(note, 1.4, -0.3);
+      expect(note.x, 1.4);
+      expect(note.y, -0.3);
+      c.moveNote(note, 5, -5);
+      expect(note.x, 1 + NotesController.wallSpill);
+      expect(note.y, -NotesController.wallSpill);
+      c.moveNotes([(note, -9, 9)]);
+      expect(note.x, -NotesController.wallSpill);
+      expect(note.y, 1 + NotesController.wallSpill);
+    });
+
     test('arrange clamps positions and scale, and squares notes up', () async {
       final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
       final notes = c.boardNotes;

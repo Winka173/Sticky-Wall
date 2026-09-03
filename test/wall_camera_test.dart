@@ -64,7 +64,11 @@ void main() {
     final viewer = tester.widget<InteractiveViewer>(
       find.byType(InteractiveViewer),
     );
-    final wallMatrix = viewer.transformationController!.value;
+    // The controller holds the content's shift as well; the background
+    // gets the camera relative to the resting view.
+    final wallMatrix = viewer.transformationController!.value.multiplied(
+      Matrix4.translationValues(WallView.pad, WallView.pad, 0),
+    );
     expect(wallMatrix.isIdentity(), isFalse);
     expect(_backgroundTransform(tester)!.transform, wallMatrix);
   });

@@ -646,10 +646,16 @@ class NotesController extends ChangeNotifier {
     }
   }
 
+  /// How far outside the home area (0..1) a note may sit, in fractions of
+  /// it: the wall has a margin all round the screen (see `WallView.pad`).
+  static const double wallSpill = 1.0;
+
+  static double _onWall(double v) => v.clamp(-wallSpill, 1 + wallSpill);
+
   /// Updates a note's fractional wall position and brings it to the front.
   void moveNote(Note note, double x, double y) {
-    final nx = x.clamp(0.0, 1.0);
-    final ny = y.clamp(0.0, 1.0);
+    final nx = _onWall(x);
+    final ny = _onWall(y);
     if (nx != note.x || ny != note.y) {
       _rememberWall(WallEditKind.move, [note]);
       note
@@ -665,14 +671,14 @@ class NotesController extends ChangeNotifier {
   void moveNotes(List<(Note note, double x, double y)> moves) {
     final changed = [
       for (final (note, x, y) in moves)
-        if (x.clamp(0.0, 1.0) != note.x || y.clamp(0.0, 1.0) != note.y) note,
+        if (_onWall(x) != note.x || _onWall(y) != note.y) note,
     ];
     if (changed.isEmpty) return;
     _rememberWall(WallEditKind.move, changed);
     for (final (note, x, y) in moves) {
       note
-        ..x = x.clamp(0.0, 1.0)
-        ..y = y.clamp(0.0, 1.0);
+        ..x = _onWall(x)
+        ..y = _onWall(y);
     }
     _persistNotes();
     notifyListeners();
