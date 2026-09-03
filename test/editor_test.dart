@@ -37,13 +37,12 @@ Future<void> _openEditor(WidgetTester tester) async {
 
 Finder get _saveButton => find.byIcon(Icons.check);
 
-/// Drags a wall note by exactly [by]. A note's gesture only starts once the
-/// finger has travelled the pan slop, and the travel up to that point is not
-/// applied, so the slop is spent on a first move before the real one.
+/// Drags a wall note by exactly [by], in one move past the pan slop. The
+/// note claims the gesture from where the finger landed, so the whole move
+/// counts (unlike `tester.drag`, whose slop-sized first step is swallowed by
+/// the competing wall pan).
 Future<void> _dragNote(WidgetTester tester, Finder note, Offset by) async {
   final g = await tester.startGesture(tester.getCenter(note));
-  await g.moveBy(const Offset(0, 40));
-  await tester.pump();
   await g.moveBy(by);
   await tester.pump();
   await g.up();
@@ -382,19 +381,14 @@ void main() {
     // The wall is 800 wide: a card's travel range is 800 - 168.
     final wall = tester.getRect(find.byType(InteractiveViewer));
     final rangeX = wall.width - 168;
+    final rangeY = wall.height - 80;
     final leftA = a.x * rangeX;
     final leftB = b.x * rangeX;
 
-    final g = await tester.startGesture(tester.getCenter(find.text('Bb')));
-    await g.moveBy(const Offset(0, 40)); // past the pan slop; not yet moved
-    await tester.pump();
     // Land 4px right of A's left edge: inside the snap reach.
-    await g.moveBy(Offset(leftA + 4 - leftB, 0));
-    await tester.pump();
-    await g.up();
-    await tester.pumpAndSettle();
+    await _dragNote(tester, find.text('Bb'), Offset(leftA + 4 - leftB, 40));
     expect(b.x, closeTo(a.x, 1e-6), reason: 'snapped onto the shared edge');
-    expect(b.y, 0.5, reason: 'the slop-eating first move does not count');
+    expect(b.y, closeTo(0.5 + 40 / rangeY, 1e-6), reason: 'y just follows');
     expect(tester.takeException(), isNull);
   });
 
@@ -470,13 +464,7 @@ void main() {
 
     final wall = tester.getRect(find.byType(InteractiveViewer));
     final rangeY = wall.height - 80;
-    final g = await tester.startGesture(tester.getCenter(find.text('Aa')));
-    await g.moveBy(const Offset(0, 40));
-    await tester.pump();
-    await g.moveBy(const Offset(0, 50));
-    await tester.pump();
-    await g.up();
-    await tester.pumpAndSettle();
+    await _dragNote(tester, find.text('Aa'), const Offset(0, 50));
     expect(a.y, closeTo(0.1 + 50 / rangeY, 1e-6));
     expect(b.y, closeTo(0.6 + 50 / rangeY, 1e-6), reason: 'came along');
     expect(a.x, 0.1);

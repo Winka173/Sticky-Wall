@@ -1273,6 +1273,11 @@ class _WallViewState extends State<WallView>
                       GestureRecognizerFactoryWithHandlers<
                         _NoteGestureRecognizer
                       >(_NoteGestureRecognizer.new, (r) {
+                        // RawGestureDetector leaves the device's slop to
+                        // us; without it the wall's pan (which has it) wins.
+                        r.gestureSettings = MediaQuery.maybeGestureSettingsOf(
+                          context,
+                        );
                         r.onStart = (d) => _noteStart(note, d);
                         r.onUpdate = (d) => _noteUpdate(note, d);
                         r.onEnd = (d) => _noteEnd(note, d);
@@ -1627,12 +1632,43 @@ class _ThreadPainter extends CustomPainter {
 /// (a lone finger still waits for the slop, leaving taps and long-presses
 /// to the card).
 class _NoteGestureRecognizer extends ScaleGestureRecognizer {
+  Offset? _down;
+  bool _claimed = false;
+
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    super.addAllowedPointer(event);
+    _down ??= event.position;
+  }
+
   @override
   void handleEvent(PointerEvent event) {
-    super.handleEvent(event);
-    if (event is PointerDownEvent && pointerCount >= 2) {
+    // Claim a one-finger drag a little before the wall's own pan would: the
+    // InteractiveViewer behind the note competes for the same finger, and
+    // whichever recognizer crosses its slop first takes the gesture. A
+    // finger that moves on a card means "drag the card".
+    final down = _down;
+    if (!_claimed &&
+        event is PointerMoveEvent &&
+        down != null &&
+        pointerCount == 1 &&
+        (event.position - down).distance >
+            0.8 * computePanSlop(event.kind, gestureSettings)) {
+      _claimed = true;
       resolve(GestureDisposition.accepted);
     }
+    super.handleEvent(event);
+    if (event is PointerDownEvent && pointerCount >= 2) {
+      _claimed = true;
+      resolve(GestureDisposition.accepted);
+    }
+  }
+
+  @override
+  void didStopTrackingLastPointer(int pointer) {
+    _down = null;
+    _claimed = false;
+    super.didStopTrackingLastPointer(pointer);
   }
 }
 
@@ -1696,6 +1732,7 @@ class _Grip extends StatelessWidget {
             GestureRecognizerFactoryWithHandlers<_GripDragRecognizer>(
               _GripDragRecognizer.new,
               (r) {
+                r.gestureSettings = MediaQuery.maybeGestureSettingsOf(context);
                 r.onStart = onPanStart;
                 r.onUpdate = onPanUpdate;
                 r.onEnd = (_) => onPanEnd();
