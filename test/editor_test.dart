@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sticky_wall/main.dart';
 import 'package:sticky_wall/models/note.dart';
 import 'package:sticky_wall/models/view_mode.dart';
+import 'package:sticky_wall/screens/home_screen.dart';
 import 'package:sticky_wall/services/note_storage.dart';
 import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/reminder_service.dart';
@@ -14,6 +15,7 @@ import 'package:sticky_wall/widgets/add_note_button.dart';
 import 'package:sticky_wall/widgets/board_poster.dart';
 import 'package:sticky_wall/widgets/drawing_canvas.dart';
 import 'package:sticky_wall/widgets/note_views.dart';
+import 'package:sticky_wall/widgets/wall_background.dart';
 import 'package:sticky_wall/widgets/wall_view.dart';
 
 Future<NotesController> _pumpApp(
@@ -446,6 +448,38 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('notes pan under the header and stay in view', (tester) async {
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Under',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.5,
+          y: 0.0,
+        ),
+      ],
+    );
+    final wall = tester.getRect(find.byType(InteractiveViewer));
+    // The wall's box starts at the very top of the body, under the rows.
+    expect(wall.top, lessThan(tester.getRect(find.text('Sticky Wall')).top));
+    final before = tester.getRect(find.text('Under'));
+    // Pan the wall up by most of the header: the note slides under the rows
+    // and is still painted there.
+    await tester.dragFrom(
+      wall.center + const Offset(0, 120),
+      const Offset(0, -(HomeScreen.wallHeaderHeight - 20)),
+    );
+    await tester.pumpAndSettle();
+    final after = tester.getRect(find.text('Under'));
+    expect(after.top, lessThan(before.top - 60));
+    expect(after.top, lessThan(wall.top + HomeScreen.wallHeaderHeight));
+    expect(find.text('Under').hitTestable(), findsOneWidget);
+  });
+
   testWidgets('the toolbar has a pen on the wall that starts marker mode', (
     tester,
   ) async {
@@ -456,6 +490,59 @@ void main() {
     await tester.tap(find.byTooltip('Done'));
     await tester.pumpAndSettle();
     expect(find.byTooltip('Done'), findsNothing);
+  });
+
+  testWidgets('the whole-wall export grows to cover notes out in the margin', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Home',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.2,
+          y: 0.2,
+        ),
+        // A big print parked well outside the home area, and turned.
+        Note(
+          guid: 'b',
+          content: 'Far',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 1.5,
+          y: 1.3,
+          scale: 2.2,
+          rotation: 0.6,
+        ),
+      ],
+    );
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export board as image'));
+    await tester.pumpAndSettle();
+    final poster = find.byType(BoardPosterPage);
+    final wallRect = tester.getRect(
+      find.descendant(of: poster, matching: find.byType(WallBackground)),
+    );
+    for (final text in ['Home', 'Far']) {
+      final card = tester.getRect(
+        find.ancestor(
+          of: find.descendant(of: poster, matching: find.text(text)),
+          matching: find.byType(NoteTurn),
+        ),
+      );
+      expect(wallRect.contains(card.topLeft), true, reason: '$text top-left');
+      expect(
+        wallRect.contains(card.bottomRight),
+        true,
+        reason: '$text bottom-right',
+      );
+    }
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('the export can be trimmed with the crop frame', (tester) async {
@@ -670,7 +757,7 @@ void main() {
     expect(find.text('2 selected'), findsOneWidget);
 
     final wall = tester.getRect(find.byType(InteractiveViewer));
-    final rangeY = wall.height - 80;
+    final rangeY = wall.height - HomeScreen.wallHeaderHeight - 80;
     await _dragNote(tester, find.text('Aa'), const Offset(0, 50));
     expect(a.y, closeTo(0.1 + 50 / rangeY, 1e-6));
     expect(b.y, closeTo(0.6 + 50 / rangeY, 1e-6), reason: 'came along');
@@ -855,7 +942,7 @@ void main() {
     expect(head.x, 0.05, reason: 'tidy leaves it where it is');
     expect(head.y, 0.02);
     final wall = tester.getRect(find.byType(InteractiveViewer));
-    final rangeY = wall.height - 80;
+    final rangeY = wall.height - HomeScreen.wallHeaderHeight - 80;
     final headBottom =
         tester
             .getRect(
@@ -868,7 +955,7 @@ void main() {
         wall.top;
     for (final n in notes.boardNotes.skip(1)) {
       expect(
-        n.y * rangeY,
+        n.y * rangeY + HomeScreen.wallHeaderHeight,
         greaterThan(headBottom - 1),
         reason: 'rows start under the heading',
       );

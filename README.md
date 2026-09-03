@@ -95,7 +95,9 @@ then taken well beyond it.
   wall. The wall runs **1000 px past every edge of the screen** — over two
   screens each way — and the camera can pan exactly that far, so a note can
   be parked anywhere you can look; a dragged card stops at the wall's outer
-  edge and comes straight back with the finger. Drag a note onto the
+  edge and comes straight back with the finger. The wall also runs under
+  the title and tool rows and the system bar, so a note panned up or down
+  stays in view there instead of vanishing at an edge. Drag a note onto the
   **tray** that slides up from the bottom to delete it, or up onto a **board
   tab** to move it to that board (the tab lights up). **Double-tap** a note to glide the camera
   in on it, and again to glide back out. **Pinch to zoom / pan** the whole

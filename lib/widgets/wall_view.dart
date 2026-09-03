@@ -45,11 +45,17 @@ class WallCamera extends ChangeNotifier {
   final controller = TransformationController();
   Offset _origin = Offset.zero;
 
+  // The shift that brings the controller's value back to "relative to the
+  // resting view"; the wall sets it from its pad and top inset.
+  Offset _homeShift = const Offset(WallView.pad, WallView.pad);
+
   /// The pan/zoom relative to the resting view: identity when the wall sits
   /// where it started, whatever [controller] holds internally (the wall's
   /// content is bigger than the screen, see [WallView.pad], so at rest the
   /// controller itself is a plain shift).
-  Matrix4 get matrix => controller.value.multiplied(_WallViewState._toHome);
+  Matrix4 get matrix => controller.value.multiplied(
+    Matrix4.translationValues(_homeShift.dx, _homeShift.dy, 0),
+  );
   Offset get origin => _origin;
 
   /// True while the wall is zoomed or panned away from its resting place.
@@ -146,6 +152,8 @@ class WallView extends StatefulWidget {
     this.resetZoomTooltip = 'Reset zoom',
     this.rotateTooltip = 'Rotate',
     this.still = false,
+    this.topInset = 0,
+    this.bottomInset = 0,
   });
 
   final List<Note> notes;
@@ -243,6 +251,13 @@ class WallView extends StatefulWidget {
   /// left to overhang rather than clipped.
   final bool still;
 
+  /// Bands at the top and bottom of the wall's box that the resting view
+  /// keeps clear — the screen's header floats over the first, the system bar
+  /// over the second. Notes pan through them and stay visible there; the
+  /// home area (what positions are fractions of) sits between them.
+  final double topInset;
+  final double bottomInset;
+
   @override
   State<WallView> createState() => _WallViewState();
 }
@@ -262,11 +277,15 @@ class _WallViewState extends State<WallView>
 
   static const double _pad = WallView.pad;
 
-  /// The camera at rest: the content shifted so the home area fills the
-  /// viewport. [_toHome] is its inverse, for reading the camera relative to
-  /// the resting view (see [WallCamera.matrix]).
-  static final Matrix4 _home = Matrix4.translationValues(-_pad, -_pad, 0);
-  static final Matrix4 _toHome = Matrix4.translationValues(_pad, _pad, 0);
+  /// The camera at rest: the content shifted so the home area sits just
+  /// under the top inset. [WallCamera] gets the inverse, for reading the
+  /// camera relative to the resting view.
+  Matrix4 get _home =>
+      Matrix4.translationValues(-_pad, -_pad + widget.topInset, 0);
+
+  void _tellCameraHome() {
+    widget.camera?._homeShift = Offset(_pad, _pad - widget.topInset);
+  }
 
   final _wallKey = GlobalKey();
 
@@ -370,6 +389,7 @@ class _WallViewState extends State<WallView>
   void initState() {
     super.initState();
     widget.handle?._state = this;
+    _tellCameraHome();
     // A controller nobody has touched holds the identity; the resting view
     // is the content shifted by the pad.
     if (_tc.value.isIdentity()) _tc.value = _home.clone();
@@ -398,6 +418,10 @@ class _WallViewState extends State<WallView>
   @override
   void didUpdateWidget(WallView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.topInset != widget.topInset ||
+        oldWidget.camera != widget.camera) {
+      _tellCameraHome();
+    }
     if (oldWidget.handle != widget.handle) {
       if (oldWidget.handle?._state == this) oldWidget.handle?._state = null;
       widget.handle?._state = this;
@@ -414,7 +438,7 @@ class _WallViewState extends State<WallView>
 
   void _resetZoom() {
     _focusedGuid = null;
-    _animateCamera(_home.clone());
+    _animateCamera(_home);
   }
 
   void _animateCamera(Matrix4 to) {
@@ -919,7 +943,12 @@ class _WallViewState extends State<WallView>
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        final h = constraints.maxHeight;
+        // The home area: the box less the bands the header and system bar
+        // float over. Notes may pan into those bands and stay in view.
+        final h = math.max(
+          1.0,
+          constraints.maxHeight - widget.topInset - widget.bottomInset,
+        );
         _size = Size(w, h);
         widget.handle?.lastSize = _size;
         final threads = _threads(w, h);
@@ -1057,7 +1086,7 @@ class _WallViewState extends State<WallView>
             ),
             // Fixed (un-zoomed) reset button, only while actually zoomed/panned.
             Positioned(
-              top: 4,
+              top: 4 + widget.topInset,
               right: 8,
               child: ValueListenableBuilder<Matrix4>(
                 valueListenable: _tc,
@@ -1088,7 +1117,7 @@ class _WallViewState extends State<WallView>
               Positioned(
                 left: 16,
                 right: 92,
-                bottom: 12,
+                bottom: 12 + widget.bottomInset,
                 child: _DropTray(
                   key: _trayKey,
                   shown: _draggingGuid != null && _pinchGuid == null,

@@ -80,7 +80,14 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
   );
 
   final _boundary = GlobalKey();
+  final _wallBox = GlobalKey();
   late final _paperKeys = {for (final n in widget.notes) n.guid: GlobalKey()};
+
+  // Where the cards actually ended up, measured after layout (home
+  // coordinates): the estimate in _wholeWall does not know a card's height
+  // or its turn, so a print parked in the margin could poke out of the
+  // picture. Null until the first frame has been measured.
+  Rect? _measured;
   bool _busy = false;
 
   // The options: what part of the wall, which notes, how many pixels per
@@ -169,6 +176,7 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final wall = _wallSize(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
     // What ends up in the picture: the whole wall — grown to take in any
     // note parked out in the margin — or just the part in view.
     final crop = _visibleOnly && widget.viewport != null
@@ -289,6 +297,7 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
                                     width: wall.width,
                                     height: wall.height,
                                     child: IgnorePointer(
+                                      key: _wallBox,
                                       child: WallView(
                                         notes: _notes,
                                         callbacksFor: (_) => _still,
@@ -339,6 +348,8 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
   /// the wall's margin still makes the picture.
   Rect _wholeWall(Size wall) {
     var rect = Offset.zero & wall;
+    final measured = _measured;
+    if (measured != null) return rect.expandToInclude(measured);
     for (final n in _notes) {
       final width = 168 * n.scale;
       final left = n.x * (wall.width - width);
@@ -351,6 +362,60 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
       );
     }
     return rect;
+  }
+
+  /// Reads the cards' rendered corners (turned cards included) and the
+  /// marker strokes, relative to the wall's box, and grows the picture to
+  /// take them in. Runs after every frame in whole-wall mode; measurements
+  /// are relative to the wall box, so a bigger frame does not move them and
+  /// the size settles after one extra frame.
+  void _measure() {
+    if (!mounted || (_visibleOnly && widget.viewport != null)) return;
+    final wallRo = _wallBox.currentContext?.findRenderObject();
+    if (wallRo is! RenderBox || !wallRo.hasSize) return;
+    final wall = wallRo.size;
+    Rect? all;
+    void take(Offset p) {
+      final dot = Rect.fromCenter(center: p, width: 0, height: 0);
+      all = all == null ? dot : all!.expandToInclude(dot);
+    }
+
+    for (final key in _paperKeys.values) {
+      final ro = key.currentContext?.findRenderObject();
+      if (ro is! RenderBox || !ro.hasSize || !ro.attached) continue;
+      final size = ro.size;
+      for (final c in [
+        Offset.zero,
+        Offset(size.width, 0),
+        Offset(0, size.height),
+        Offset(size.width, size.height),
+      ]) {
+        take(ro.localToGlobal(c, ancestor: wallRo));
+      }
+    }
+    for (final stroke in widget.strokes) {
+      for (final p in stroke.points) {
+        take(Offset(p.dx * wall.width, p.dy * wall.height));
+      }
+    }
+    final bounds = all;
+    if (bounds == null) return;
+    // Air all round, and the pin's head above the paper.
+    final next = Rect.fromLTRB(
+      bounds.left - 10,
+      bounds.top - 24,
+      bounds.right + 10,
+      bounds.bottom + 10,
+    );
+    final old = _measured;
+    if (old != null &&
+        (old.left - next.left).abs() < 0.5 &&
+        (old.top - next.top).abs() < 0.5 &&
+        (old.right - next.right).abs() < 0.5 &&
+        (old.bottom - next.bottom).abs() < 0.5) {
+      return;
+    }
+    setState(() => _measured = next);
   }
 
   /// Which part, which notes, how sharp — only the choices that apply.

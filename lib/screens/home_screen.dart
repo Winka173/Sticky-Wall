@@ -39,6 +39,12 @@ const _kToast = Duration(seconds: 3);
 /// current layout (free wall, grid or list) over the wall texture. Also hosts
 /// the editor, selection mode, search, share/save and incoming shared content.
 class HomeScreen extends StatefulWidget {
+  /// Height of the title row, the tool row and the gap under them. On the
+  /// wall the notes run underneath this band (the wall fills the body and the
+  /// rows float over it), so the wall is told to keep its resting view clear
+  /// of it; grid and list simply start below it.
+  static const double wallHeaderHeight = 54 + 52 + 6;
+
   const HomeScreen({
     super.key,
     required this.notes,
@@ -909,8 +915,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _slideDir = 0;
         }
         _lastViewMode = _notes.viewMode;
-        final showFabLabel =
-            _notes.boardNotes.isEmpty || _notes.viewMode != ViewMode.wall;
+        final onWall = _notes.viewMode == ViewMode.wall;
+        final showFabLabel = _notes.boardNotes.isEmpty || !onWall;
         if (_notes.wallEdits != _seenWallEdits) {
           _seenWallEdits = _notes.wallEdits;
           _armUndo();
@@ -959,39 +965,74 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? _markerBar(wall)
                   : null,
               body: SafeArea(
+                // On the wall the body runs under the system bar too (the
+                // wall keeps its resting view clear of it); grid and list
+                // stop above it.
+                bottom: !onWall,
                 // While the keyboard is up the system reports no bottom
                 // padding (the keyboard covers the navigation bar), which
                 // would let the wall grow by that strip and every note below
                 // the top row slide down with it. Keep the bar's height.
                 maintainBottomViewPadding: true,
-                child: Column(
+                child: Stack(
                   children: [
-                    _buildTitleRow(wall),
-                    _buildToolRow(wall),
-                    const SizedBox(height: 6),
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 260),
-                            switchInCurve: Curves.easeOutCubic,
-                            switchOutCurve: Curves.easeInCubic,
-                            transitionBuilder: _contentTransition,
-                            child: KeyedSubtree(
-                              key: ValueKey(
-                                '${_notes.currentBoardId}:${_notes.viewMode.name}',
+                    // The content fills the body; each layout keeps its own
+                    // place under the header (see _buildContent).
+                    Positioned.fill(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 260),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        transitionBuilder: _contentTransition,
+                        child: KeyedSubtree(
+                          key: ValueKey(
+                            '${_notes.currentBoardId}:${_notes.viewMode.name}',
+                          ),
+                          child: _buildContent(wall),
+                        ),
+                      ),
+                    ),
+                    // A breath of shade behind the rows, so they stay legible
+                    // over a note passing underneath.
+                    if (onWall)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: HomeScreen.wallHeaderHeight + 16,
+                        child: IgnorePointer(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  (wall.dark ? Colors.black : Colors.white)
+                                      .withValues(alpha: 0.32),
+                                  (wall.dark ? Colors.black : Colors.white)
+                                      .withValues(alpha: 0),
+                                ],
                               ),
-                              child: _buildContent(wall),
                             ),
                           ),
-                          Positioned(
-                            top: 6,
-                            left: 0,
-                            right: 0,
-                            child: Center(child: _undoPill()),
-                          ),
-                        ],
+                        ),
                       ),
+                    // Positioned like everything else here, so the Stack
+                    // fills the body rather than shrinking to the rows.
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [_buildTitleRow(wall), _buildToolRow(wall)],
+                      ),
+                    ),
+                    Positioned(
+                      top: HomeScreen.wallHeaderHeight + 6,
+                      left: 0,
+                      right: 0,
+                      child: Center(child: _undoPill()),
                     ),
                   ],
                 ),
@@ -1232,31 +1273,34 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildToolRow(WallStyle wall) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 4, 8, 0),
-      child: Row(
-        children: [
-          Expanded(
-            child: BoardBar(
-              notes: _notes,
-              textColor: wall.wallText,
-              chipKeys: {
-                for (final b in _notes.boards)
-                  b.id: _chipKeys.putIfAbsent(b.id, GlobalKey.new),
-              },
-              dropTarget: _dropTarget,
+      child: SizedBox(
+        height: 48,
+        child: Row(
+          children: [
+            Expanded(
+              child: BoardBar(
+                notes: _notes,
+                textColor: wall.wallText,
+                chipKeys: {
+                  for (final b in _notes.boards)
+                    b.id: _chipKeys.putIfAbsent(b.id, GlobalKey.new),
+                },
+                dropTarget: _dropTarget,
+              ),
             ),
-          ),
-          _filterButton(wall),
-          if (_notes.viewMode == ViewMode.wall)
-            IconButton(
-              tooltip: _l10n.drawOnWall,
-              icon: Icon(Icons.gesture, color: wall.wallText),
-              onPressed: _marking ? null : () => _startMarking(wall),
-            )
-          else
-            _sortButton(wall),
-          _layoutButton(wall),
-          _moreButton(wall),
-        ],
+            _filterButton(wall),
+            if (_notes.viewMode == ViewMode.wall)
+              IconButton(
+                tooltip: _l10n.drawOnWall,
+                icon: Icon(Icons.gesture, color: wall.wallText),
+                onPressed: _marking ? null : () => _startMarking(wall),
+              )
+            else
+              _sortButton(wall),
+            _layoutButton(wall),
+            _moreButton(wall),
+          ],
+        ),
       ),
     );
   }
@@ -1511,30 +1555,42 @@ class _HomeScreenState extends State<HomeScreen> {
         resetZoomTooltip: _l10n.resetZoom,
         rotateTooltip: _l10n.rotate,
         emptyHint: _emptyState(wall, tip: _l10n.wallCreateHint),
+        // The wall fills the body: notes pan under the header rows and the
+        // system bar, while its resting view stays between them.
+        topInset: HomeScreen.wallHeaderHeight,
+        bottomInset: MediaQuery.viewPaddingOf(context).bottom,
       );
     }
 
+    // Grid and list sit below the header rows (the body starts above them).
+    const below = EdgeInsets.only(top: HomeScreen.wallHeaderHeight);
     final notes = _notes.visibleNotes;
     if (notes.isEmpty) {
-      return _notes.boardNotes.isNotEmpty && _notes.isFiltering
-          ? _noMatches(wall)
-          : _emptyState(wall);
+      return Padding(
+        padding: below,
+        child: _notes.boardNotes.isNotEmpty && _notes.isFiltering
+            ? _noMatches(wall)
+            : _emptyState(wall),
+      );
     }
 
     // Grid/list: swipe horizontally to move between boards.
     final content = _notes.viewMode == ViewMode.grid
         ? _grid(notes)
         : _list(notes);
-    return GestureDetector(
-      onHorizontalDragEnd: (d) {
-        final v = d.primaryVelocity ?? 0;
-        if (v < -250) {
-          _notes.selectBoardAt(_notes.currentBoardIndex + 1);
-        } else if (v > 250) {
-          _notes.selectBoardAt(_notes.currentBoardIndex - 1);
-        }
-      },
-      child: content,
+    return Padding(
+      padding: below,
+      child: GestureDetector(
+        onHorizontalDragEnd: (d) {
+          final v = d.primaryVelocity ?? 0;
+          if (v < -250) {
+            _notes.selectBoardAt(_notes.currentBoardIndex + 1);
+          } else if (v > 250) {
+            _notes.selectBoardAt(_notes.currentBoardIndex - 1);
+          }
+        },
+        child: content,
+      ),
     );
   }
 
