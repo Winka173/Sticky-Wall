@@ -1126,10 +1126,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             : _markerBar(wall),
                       ),
                     // Tools live in a pill at the bottom, thumb-side, so the
-                    // top row is all board tabs. It stays through selection
-                    // (the ⋮ menu exports the selection) and only yields to
-                    // the marker bar, which has its own tools.
-                    if (!_marking)
+                    // top row is all board tabs. The selection and marker
+                    // bars take its place (the selection bar carries the ⋮
+                    // menu, which exports the selection).
+                    if (!_selecting && !_marking)
                       Positioned(
                         left: 12,
                         bottom:
@@ -1324,6 +1324,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     ? const Color(0xFFFF8A80)
                     : AppColors.deleteIcon,
                 onTap: any ? () => _deleteMany(notes) : null,
+              ),
+              Expanded(
+                child: _moreButton(
+                  wall,
+                  child: _BarAction.face(
+                    icon: Icons.more_vert,
+                    label: l10n.moreActions,
+                    color: wall.wallText,
+                  ),
+                ),
               ),
             ],
           ),
@@ -1557,7 +1567,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Everything that didn't earn its own button: photos, select, tidy, trash,
   /// lights.
-  Widget _moreButton(WallStyle wall) {
+  /// The ⋮ menu. With [child] it wears that instead of the bare icon (the
+  /// selection bar gives it an icon-and-label face like its neighbours).
+  Widget _moreButton(WallStyle wall, {Widget? child}) {
     final l10n = _l10n;
     final onWall = _notes.viewMode == ViewMode.wall;
     final canTidy = onWall && _notes.boardNotes.length > 1;
@@ -1565,7 +1577,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final trashCount = _notes.trashCount;
     return PopupMenuButton<String>(
       tooltip: l10n.moreActions,
-      icon: Icon(Icons.more_vert, color: wall.wallText),
+      icon: child == null ? Icon(Icons.more_vert, color: wall.wallText) : null,
+      child: child,
       onSelected: (v) {
         switch (v) {
           case 'photos':
@@ -1898,6 +1911,30 @@ class _BarAction extends StatelessWidget {
   final Color color;
   final VoidCallback? onTap;
 
+  /// The icon-over-label look, for other controls that sit in the bar.
+  static Widget face({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: color, fontSize: 12.5),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = onTap == null ? color.withValues(alpha: 0.35) : color;
@@ -1905,22 +1942,7 @@ class _BarAction extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: c, size: 24),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: c, fontSize: 12.5),
-              ),
-            ],
-          ),
-        ),
+        child: face(icon: icon, label: label, color: c),
       ),
     );
   }
