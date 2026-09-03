@@ -328,8 +328,8 @@ class _HomeScreenState extends State<HomeScreen> {
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(6, 0, 6, 10),
-        child: Container(
-          decoration: _frosted(wall, radius: 16),
+        child: _Glass(
+          decoration: _frosted(wall, radius: 16, strong: true),
           padding: const EdgeInsets.fromLTRB(4, 6, 5, 6),
           child: Row(
             children: [
@@ -1014,11 +1014,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       // on it, so it covers less of them.
                       extended: showFabLabel,
                     ),
-              bottomNavigationBar: _selecting
-                  ? _selectionBar(wall)
-                  : _marking
-                  ? _markerBar(wall)
-                  : null,
               body: SafeArea(
                 // On the wall the body runs under the system bar too (the
                 // wall keeps its resting view clear of it); grid and list
@@ -1116,6 +1111,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
+                      ),
+                    // The selection and marker bars float over the body too
+                    // (not docked): docking would shrink the body, and with
+                    // it the wall, nudging every note up the moment either
+                    // bar appears. Each bar carries its own SafeArea.
+                    if (_selecting || _marking)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: _selecting
+                            ? _selectionBar(wall)
+                            : _markerBar(wall),
                       ),
                     // Tools live in a pill at the bottom, thumb-side, so the
                     // top row is all board tabs. It stays through selection
@@ -1278,8 +1286,8 @@ class _HomeScreenState extends State<HomeScreen> {
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-        child: Container(
-          decoration: _frosted(wall, radius: 16),
+        child: _Glass(
+          decoration: _frosted(wall, radius: 16, strong: true),
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Row(
             children: [
@@ -1406,33 +1414,25 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Filter, pen (wall) or sort (grid/list), layout and the more menu, in a
   /// frosted pill bottom-left, opposite the add button.
   Widget _toolPill(WallStyle wall) {
-    // Real frosted glass: whatever note drifts underneath turns into a soft
-    // smear, so the icons stay crisp without an opaque slab on the wall.
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          decoration: _frosted(wall, radius: 24, strong: true),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _filterButton(wall),
-              if (_notes.viewMode == ViewMode.wall)
-                IconButton(
-                  tooltip: _l10n.drawOnWall,
-                  icon: Icon(Icons.gesture, color: wall.wallText),
-                  onPressed: _marking ? null : () => _startMarking(wall),
-                )
-              else
-                _sortButton(wall),
-              _layoutButton(wall),
-              _moreButton(wall),
-            ],
-          ),
-        ),
+    return _Glass(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: _frosted(wall, radius: 24, strong: true),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _filterButton(wall),
+          if (_notes.viewMode == ViewMode.wall)
+            IconButton(
+              tooltip: _l10n.drawOnWall,
+              icon: Icon(Icons.gesture, color: wall.wallText),
+              onPressed: _marking ? null : () => _startMarking(wall),
+            )
+          else
+            _sortButton(wall),
+          _layoutButton(wall),
+          _moreButton(wall),
+        ],
       ),
     );
   }
@@ -2156,4 +2156,37 @@ class _GhostNotePainter extends CustomPainter {
   @override
   bool shouldRepaint(_GhostNotePainter oldDelegate) =>
       oldDelegate.color != color;
+}
+
+/// Frosted glass for controls that float over the notes — the tool pill, the
+/// marker and selection bars: blurs whatever drifts underneath so the controls
+/// stay crisp, with the chip look on top.
+class _Glass extends StatelessWidget {
+  const _Glass({
+    required this.decoration,
+    required this.child,
+    this.padding,
+    this.height,
+  });
+
+  final BoxDecoration decoration;
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  final double? height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: decoration.borderRadius ?? BorderRadius.zero,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          height: height,
+          padding: padding,
+          decoration: decoration,
+          child: child,
+        ),
+      ),
+    );
+  }
 }

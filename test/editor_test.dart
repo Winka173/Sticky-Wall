@@ -1261,6 +1261,54 @@ void main() {
     },
   );
 
+  testWidgets('notes hold still when the marker or selection bar appears', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Still',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.3,
+          y: 0.6,
+        ),
+        Note(
+          guid: 'b',
+          content: 'Other',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.7,
+          y: 0.2,
+        ),
+      ],
+    );
+    final before = tester.getRect(find.text('Still'));
+    final otherBefore = tester.getRect(find.text('Other'));
+
+    await tester.tap(find.byTooltip('Draw on the wall'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Done'), findsOneWidget);
+    expect(tester.getRect(find.text('Still')), before, reason: 'marker bar');
+    await tester.tap(find.byTooltip('Done'));
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('Still'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Select notes'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 selected'), findsOneWidget);
+    // The selected card lifts a touch on purpose; its neighbour must not move.
+    expect(
+      tester.getRect(find.text('Other')),
+      otherBefore,
+      reason: 'select bar',
+    );
+  });
+
   testWidgets('board tabs own the top row; tools sit in a pill at the bottom', (
     tester,
   ) async {
