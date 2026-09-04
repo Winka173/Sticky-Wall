@@ -120,6 +120,12 @@ class WallView extends StatefulWidget {
   /// a note can be parked there.
   static const double pad = 1000;
 
+  /// A note card's width at scale 1, and the room kept clear at the foot of
+  /// the wall. Public because the sample layout converts real distances into
+  /// the fractions a note stores (see SampleNotes).
+  static const double cardWidth = 168;
+  static const double noteBottomInset = 80;
+
   const WallView({
     super.key,
     required this.notes,
@@ -269,7 +275,7 @@ class WallView extends StatefulWidget {
 
 class _WallViewState extends State<WallView>
     with SingleTickerProviderStateMixin {
-  static const double _cardWidth = 168;
+  static const double _cardWidth = WallView.cardWidth;
   static const double _minScale = 0.7;
   static const double _maxScale = 2.4;
 
@@ -278,7 +284,12 @@ class _WallViewState extends State<WallView>
 
   /// Room kept clear at the bottom of the wall so notes never hide under the
   /// floating action button.
-  static const double _bottomInset = 80;
+  static const double _bottomInset = WallView.noteBottomInset;
+
+  /// How close to the foot of the wall a finger has to come before the drop
+  /// tray appears. Every drag used to raise it, which put a delete zone under
+  /// notes being merely moved.
+  static const double _trayReveal = 190;
 
   static const double _pad = WallView.pad;
 
@@ -316,6 +327,9 @@ class _WallViewState extends State<WallView>
   // Last finger position on screen, for the tray and the tabs above.
   Offset? _dragGlobal;
   bool _overTray = false;
+
+  /// Whether the finger is low enough that the tray is worth showing.
+  bool _nearTray = false;
   final _trayKey = GlobalKey();
 
   // The rest of a dragged selection (guids), moving by _groupDelta.
@@ -1193,18 +1207,24 @@ class _WallViewState extends State<WallView>
                   },
                 ),
               ),
-            // Drop a dragged note here to delete it. Slides up while a drag
-            // is under way; leaves room for the add button on the right.
+            // Drop a dragged note here to delete it. Slides up only once the
+            // finger comes near the foot of the wall, so moving a note around
+            // is not shadowed by a delete zone.
             if (widget.onTrash != null && !widget.still)
               Positioned(
-                left: 16,
-                right: 92,
+                left: 0,
+                right: 0,
                 bottom: 12 + widget.bottomInset,
-                child: _DropTray(
-                  key: _trayKey,
-                  shown: _draggingGuid != null && _pinchGuid == null,
-                  armed: _overTray,
-                  label: widget.trashLabel,
+                child: Center(
+                  child: _DropTray(
+                    key: _trayKey,
+                    shown:
+                        _draggingGuid != null &&
+                        _pinchGuid == null &&
+                        _nearTray,
+                    armed: _overTray,
+                    label: widget.trashLabel,
+                  ),
                 ),
               ),
             if (_probes.isNotEmpty) _tidyProbes(),
@@ -1261,11 +1281,19 @@ class _WallViewState extends State<WallView>
   bool _hitTray(Offset global) {
     final ro = _trayKey.currentContext?.findRenderObject();
     if (ro is! RenderBox || !ro.hasSize) return false;
-    final p = ro.globalToLocal(global);
-    return p.dx >= 0 &&
-        p.dy >= 0 &&
-        p.dx <= ro.size.width &&
-        p.dy <= ro.size.height;
+    // A generous margin around a small pill: a drop that lands just off it
+    // still means delete.
+    final box = Offset.zero & ro.size;
+    return box.inflate(28).contains(ro.globalToLocal(global));
+  }
+
+  /// Whether [global] is in the band at the foot of the wall the tray lives
+  /// in. Measured against the whole viewport, so it follows the insets.
+  bool _fingerNearTray(Offset global) {
+    final ro = context.findRenderObject();
+    if (ro is! RenderBox || !ro.hasSize) return false;
+    final y = ro.globalToLocal(global).dy;
+    return y > ro.size.height - widget.bottomInset - _trayReveal;
   }
 
   // --- One or two fingers on a note ------------------------------------
@@ -1293,6 +1321,7 @@ class _WallViewState extends State<WallView>
       _dragFinger = _toWall(d.focalPoint);
       _dragGlobal = d.focalPoint;
       _overTray = false;
+      _nearTray = false;
       // In select mode a selected note takes the rest of the selection along.
       _groupGuids = widget.lasso && widget.selected.contains(note.guid)
           ? {
@@ -1331,13 +1360,16 @@ class _WallViewState extends State<WallView>
         // tray / tabs learn where the finger is.
         _dragTopLeft = _dragRaw;
         _groupDelta = _dragTopLeft - _dragStart;
-        final over = widget.onTrash != null && _hitTray(d.focalPoint);
+        _nearTray = _fingerNearTray(d.focalPoint);
+        final over =
+            widget.onTrash != null && _nearTray && _hitTray(d.focalPoint);
         if (over != _overTray) HapticFeedback.selectionClick();
         _overTray = over;
         widget.onDragOver?.call(note, d.focalPoint);
         return;
       }
       _overTray = false;
+      _nearTray = false;
 
       if (_rotatingGuid == note.guid) {
         if (!_twisting && d.rotation.abs() > _twistSlop) _twisting = true;
@@ -1437,6 +1469,7 @@ class _WallViewState extends State<WallView>
       _groupGuids = const {};
       _groupDelta = Offset.zero;
       _overTray = false;
+      _nearTray = false;
       _dragGlobal = null;
       if (pinching) {
         _pinchGuid = null;
@@ -1732,7 +1765,8 @@ class _DropTray extends StatelessWidget {
             duration: const Duration(milliseconds: 120),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 120),
-              height: 60,
+              height: 44,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: armed ? AppColors.deleteIcon : AppColors.overlayDark,
                 borderRadius: BorderRadius.circular(16),
@@ -1749,19 +1783,19 @@ class _DropTray extends StatelessWidget {
                 ],
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     armed ? Icons.delete : Icons.delete_outline,
                     color: Colors.white,
-                    size: 24,
+                    size: 19,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Text(
                     label,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 15,
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

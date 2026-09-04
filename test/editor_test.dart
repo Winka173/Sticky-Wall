@@ -782,9 +782,10 @@ void main() {
       ],
     );
     final g = await tester.startGesture(tester.getCenter(find.text('Bin me')));
-    await g.moveBy(const Offset(0, 40));
+    // Carry it down to the foot of the wall: that is what raises the tray.
+    final wall = tester.getRect(find.byType(InteractiveViewer));
+    await g.moveTo(Offset(wall.center.dx, wall.bottom - 80));
     await tester.pumpAndSettle(); // the tray slides in
-    expect(find.text('Drop here to delete'), findsOneWidget);
     final tray = tester.getRect(find.text('Drop here to delete'));
     await g.moveTo(tray.center);
     await tester.pump();
@@ -1260,6 +1261,81 @@ void main() {
       expect(notes.boardNotes.single.content, 'Twin');
     },
   );
+
+  testWidgets('the drop tray only comes up when the finger nears the foot', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Movable',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.15,
+          y: 0.05,
+        ),
+      ],
+    );
+    double tray() => tester
+        .widget<AnimatedOpacity>(
+          find
+              .ancestor(
+                of: find.text('Drop here to delete'),
+                matching: find.byType(AnimatedOpacity),
+              )
+              .first,
+        )
+        .opacity;
+    expect(tray(), 0, reason: 'nothing being dragged');
+
+    final wall = tester.getRect(find.byType(InteractiveViewer));
+    final g = await tester.startGesture(tester.getCenter(find.text('Movable')));
+    await g.moveBy(const Offset(0, 60));
+    await tester.pumpAndSettle();
+    expect(tray(), 0, reason: 'a drag up here raises no delete zone');
+
+    await g.moveTo(Offset(wall.center.dx, wall.bottom - 80));
+    await tester.pumpAndSettle();
+    expect(tray(), 1, reason: 'down at the foot it comes up');
+
+    await g.moveTo(Offset(wall.center.dx, wall.top + 220));
+    await tester.pumpAndSettle();
+    expect(tray(), 0, reason: 'and goes again on the way back up');
+    await g.up();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a tap outside the search box leaves search', (tester) async {
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Findable',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.1,
+          y: 0.1,
+        ),
+      ],
+    );
+    await tester.tap(find.byTooltip('Search'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'find');
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsOneWidget);
+
+    // Empty wall, clear of the note and of the buttons in the corners.
+    final wall = tester.getRect(find.byType(InteractiveViewer));
+    await tester.tapAt(Offset(wall.right - 40, wall.center.dy));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsNothing, reason: 'search closed');
+    expect(find.text('Sticky Wall'), findsOneWidget);
+  });
 
   testWidgets('notes hold still when the marker or selection bar appears', (
     tester,

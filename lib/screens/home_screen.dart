@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
+import 'dart:ui' show FlutterView, ImageFilter;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -50,6 +50,25 @@ class HomeScreen extends StatefulWidget {
   /// Height the floating tool pill (and its margin) takes at the bottom of
   /// the wall: the resting view and the drop tray stay above it.
   static const double wallFooterHeight = 64;
+
+  /// The wall's usable size in logical pixels for [view] — the same
+  /// arithmetic the layout does, but available before the first frame, so the
+  /// sample notes can be placed in real distances rather than in fractions of
+  /// a screen whose size is not known yet. Null when the view has no size.
+  static Size? wallSizeFor(FlutterView view) {
+    final dpr = view.devicePixelRatio;
+    if (dpr <= 0 || view.physicalSize.isEmpty) return null;
+    final width = view.physicalSize.width / dpr;
+    // The body starts below the status bar; the wall keeps its resting view
+    // clear of the two header rows, the tool pill and the system bar.
+    final height =
+        (view.physicalSize.height - view.padding.top - view.padding.bottom) /
+            dpr -
+        wallHeaderHeight -
+        wallFooterHeight;
+    if (width <= 0 || height <= 0) return null;
+    return Size(width, height);
+  }
 
   const HomeScreen({
     super.key,
@@ -1348,54 +1367,59 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       key: const ValueKey('search'),
       padding: const EdgeInsets.fromLTRB(0, 3, 8, 3),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        decoration: _frosted(wall),
-        child: Row(
-          children: [
-            IconButton(
-              tooltip: _l10n.cancel,
-              iconSize: 20,
-              icon: Icon(Icons.arrow_back, color: text),
-              onPressed: () => _setSearching(false),
-            ),
-            Expanded(
-              child: TextField(
-                controller: _searchController,
-                autofocus: true,
-                cursorColor: text,
-                textInputAction: TextInputAction.search,
-                style: TextStyle(color: text, fontSize: 17),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  isDense: true,
-                  hintText: _l10n.search,
-                  hintStyle: TextStyle(color: faded, fontSize: 17),
+      // A tap anywhere else on the screen means "done searching" — the same
+      // way tapping away dismisses a text field.
+      child: TapRegion(
+        onTapOutside: (_) => _setSearching(false),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: _frosted(wall),
+          child: Row(
+            children: [
+              IconButton(
+                tooltip: _l10n.cancel,
+                iconSize: 20,
+                icon: Icon(Icons.arrow_back, color: text),
+                onPressed: () => _setSearching(false),
+              ),
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  cursorColor: text,
+                  textInputAction: TextInputAction.search,
+                  style: TextStyle(color: text, fontSize: 17),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    hintText: _l10n.search,
+                    hintStyle: TextStyle(color: faded, fontSize: 17),
+                  ),
                 ),
               ),
-            ),
-            ValueListenableBuilder<TextEditingValue>(
-              valueListenable: _searchController,
-              builder: (context, value, _) => value.text.isEmpty
-                  ? const SizedBox(width: 12)
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Live hit count, so you know when to stop typing.
-                        Text(
-                          _l10n.resultCount(_notes.visibleNotes.length),
-                          style: TextStyle(color: faded, fontSize: 13),
-                        ),
-                        IconButton(
-                          tooltip: _l10n.clear,
-                          iconSize: 18,
-                          icon: Icon(Icons.close, color: faded),
-                          onPressed: _searchController.clear,
-                        ),
-                      ],
-                    ),
-            ),
-          ],
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _searchController,
+                builder: (context, value, _) => value.text.isEmpty
+                    ? const SizedBox(width: 12)
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Live hit count, so you know when to stop typing.
+                          Text(
+                            _l10n.resultCount(_notes.visibleNotes.length),
+                            style: TextStyle(color: faded, fontSize: 13),
+                          ),
+                          IconButton(
+                            tooltip: _l10n.clear,
+                            iconSize: 18,
+                            icon: Icon(Icons.close, color: faded),
+                            onPressed: _searchController.clear,
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );

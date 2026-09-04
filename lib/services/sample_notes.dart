@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'dart:ui' show Offset;
+import 'dart:ui' show Offset, Size;
 
 import 'package:uuid/uuid.dart';
 
@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import '../models/draw_stroke.dart';
 import '../models/note.dart';
 import '../widgets/drawing_canvas.dart' show kDrawingAspect;
+import '../widgets/wall_view.dart' show WallView;
 
 /// The notes a brand-new wall starts with: stickies that each teach one
 /// gesture (plus a doodle, so the drawing type is discovered too), and a
@@ -18,7 +19,54 @@ class SampleNotes {
   final List<Note> notes;
   final List<NoteLink> links;
 
-  factory SampleNotes.build(AppLocalizations l10n, String boardId) {
+  /// Where each sample sits, in logical pixels from the wall's top-left.
+  /// Real distances, not fractions: a note stores its place as a fraction of
+  /// the wall's free travel, so an arrangement designed on a phone would
+  /// stretch across a tablet — two columns half a screen apart with a hole
+  /// between them — and pile up on a short wall. Keeping the distances puts
+  /// the same tidy cluster on every screen.
+  static const _spots = [
+    Offset(5, 17), // drag me
+    Offset(220, 66), // long-press me
+    Offset(7, 220), // checklist
+    Offset(218, 303), // thread
+    // Under the left column: centred at the foot it would clip the corner of
+    // the thread note above it (measured, see sample_layout_test).
+    Offset(16, 441), // doodle
+  ];
+
+  /// The wall the distances above were laid out against (a 393dp phone).
+  static const _designedFor = Size(393, 631);
+
+  /// [spot] as the fractions a note stores, for a wall of [wall] logical
+  /// pixels. Clamped, so a screen smaller than the design still lands every
+  /// card on the wall.
+  static Offset _fractionOf(Offset spot, Size? wall) {
+    final size = wall ?? _designedFor;
+    // Never divide by less than the design: on a wall smaller than the phone
+    // these distances were drawn for, the arrangement shrinks with the wall
+    // instead of piling every card against the clamp.
+    final rangeX = math.max(
+      size.width - WallView.cardWidth,
+      _designedFor.width - WallView.cardWidth,
+    );
+    final rangeY = math.max(
+      size.height - WallView.noteBottomInset,
+      _designedFor.height - WallView.noteBottomInset,
+    );
+    return Offset(
+      (spot.dx / rangeX).clamp(0.0, 1.0),
+      (spot.dy / rangeY).clamp(0.0, 1.0),
+    );
+  }
+
+  /// [wall] is the wall's usable size (see HomeScreen.wallSizeFor); the
+  /// design size stands in when it is not known.
+  factory SampleNotes.build(
+    AppLocalizations l10n,
+    String boardId, {
+    Size? wall,
+  }) {
     const uuid = Uuid();
     final now = DateTime.now();
     // Slightly staggered creation times keep the list/grid order stable.
@@ -26,34 +74,31 @@ class SampleNotes {
       int i,
       String content, {
       required int color,
-      required double x,
-      required double y,
       NoteType type = NoteType.normal,
       List<ChecklistItem>? checklist,
       List<DrawStroke>? strokes,
-    }) => Note(
-      guid: uuid.v4(),
-      content: content,
-      createdAt: now.subtract(Duration(minutes: 5 - i)),
-      boardId: boardId,
-      type: type,
-      colorIndex: color,
-      x: x,
-      y: y,
-      checklist: checklist,
-      strokes: strokes,
-    );
+    }) {
+      final at = _fractionOf(_spots[i], wall);
+      return Note(
+        guid: uuid.v4(),
+        content: content,
+        createdAt: now.subtract(Duration(minutes: 5 - i)),
+        boardId: boardId,
+        type: type,
+        colorIndex: color,
+        x: at.dx,
+        y: at.dy,
+        checklist: checklist,
+        strokes: strokes,
+      );
+    }
 
-    // x/y are fractions of the free travel (wall minus one card), so two
-    // columns need x near 0 and near 1 to sit apart on a phone-width wall.
-    final drag = note(0, l10n.sampleDrag, color: 0, x: 0.02, y: 0.03);
-    final longPress = note(1, l10n.sampleLongPress, color: 1, x: 0.98, y: 0.12);
+    final drag = note(0, l10n.sampleDrag, color: 0);
+    final longPress = note(1, l10n.sampleLongPress, color: 1);
     final checklist = note(
       2,
       l10n.sampleChecklistTitle,
       color: 3,
-      x: 0.03,
-      y: 0.40,
       type: NoteType.checklist,
       checklist: [
         ChecklistItem(text: l10n.sampleChecklist1),
@@ -61,14 +106,11 @@ class SampleNotes {
         ChecklistItem(text: l10n.sampleChecklist3),
       ],
     );
-    final thread = note(3, l10n.sampleThread, color: 2, x: 0.97, y: 0.55);
-    // Bottom middle, clear of the FAB in the bottom-right corner.
+    final thread = note(3, l10n.sampleThread, color: 2);
     final drawing = note(
       4,
       l10n.sampleDrawing,
       color: 4,
-      x: 0.5,
-      y: 0.8,
       type: NoteType.drawing,
       strokes: _doodle(),
     );

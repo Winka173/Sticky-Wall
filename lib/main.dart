@@ -34,9 +34,13 @@ Future<void> main() async {
   final settings = SettingsController(storage);
 
   if (firstRun) {
+    final views = PlatformDispatcher.instance.views;
     final sample = SampleNotes.build(
       _localizationsFor(settings.localeOverride),
       notes.currentBoardId,
+      // Laid out for this screen: on a tablet the samples keep the distances
+      // they have on a phone instead of being stretched to the corners.
+      wall: views.isEmpty ? null : HomeScreen.wallSizeFor(views.first),
     );
     notes.seed(sample.notes, links: sample.links);
     // The samples teach wall gestures (and one is tied to another by a

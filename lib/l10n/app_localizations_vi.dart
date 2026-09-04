@@ -687,7 +687,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get tipDropBody =>
-      'Đang kéo, thả note vào khay ở dưới để xóa, hoặc thả lên tab tường để chuyển sang tường đó.';
+      'Kéo note xuống gần đáy tường thì khay nhỏ hiện ra, thả vào đó để xóa. Thả lên tab tường thì chuyển sang tường đó.';
 
   @override
   String get tipSelectTitle => 'Chọn nhiều';

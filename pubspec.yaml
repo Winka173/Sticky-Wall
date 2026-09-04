@@ -6,7 +6,7 @@ publish_to: 'none'
 # Version name + build number. Android: versionName / versionCode.
 # iOS: CFBundleShortVersionString / CFBundleVersion. Bump the build number on
 # every store upload; bump the version name for user-visible releases.
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.12.2

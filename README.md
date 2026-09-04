@@ -102,9 +102,10 @@ then taken well beyond it.
   be parked anywhere you can look; a dragged card stops at the wall's outer
   edge and comes straight back with the finger. The wall also runs under
   the title and tool rows and the system bar, so a note panned up or down
-  stays in view there instead of vanishing at an edge. Drag a note onto the
-  **tray** that slides up from the bottom to delete it, or up onto a **board
-  tab** to move it to that board (the tab lights up). One camera button sits top right of the
+  stays in view there instead of vanishing at an edge. Drag a note down near the
+  foot of the wall and a small **tray** slides up: drop it there to delete.
+  Drag up onto a **board tab** instead to move it to that board (the tab
+  lights up). One camera button sits top right of the
   wall and only when useful: **show everything** (also in ⋮) glides the
   camera out until every note is in view when some are out of frame, and it
   turns into **reset** once the wall is panned or zoomed with everything

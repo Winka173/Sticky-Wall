@@ -157,7 +157,11 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
 
   Future<void> _save(AppLocalizations l10n) => _run((bytes) async {
     await widget.imageService.saveToGallery(bytes);
-    if (mounted) _toast(l10n.imageSaved);
+    if (!mounted) return;
+    _toast(l10n.imageSaved);
+    // Saved is the end of the job: leave the page rather than sit in the
+    // trim handles with the picture already in the gallery.
+    await Navigator.of(context).maybePop();
   }, failure: l10n.imageSaveFailed);
 
   Future<void> _sharePdf(AppLocalizations l10n) => _run((bytes) async {

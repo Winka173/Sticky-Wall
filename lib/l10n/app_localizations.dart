@@ -1313,7 +1313,7 @@ abstract class AppLocalizations {
   /// No description provided for @tipDropBody.
   ///
   /// In en, this message translates to:
-  /// **'While dragging, drop a note on the tray at the bottom to delete it, or on a board tab to move it to that board.'**
+  /// **'Drag a note down near the foot of the wall and a small tray appears; drop the note on it to delete. Drop on a board tab instead to move it to that board.'**
   String get tipDropBody;
 
   /// No description provided for @tipSelectTitle.

@@ -202,7 +202,7 @@
   "tipWallTitle": "Tường",
   "tipWallBody": "Nhấn giữ chỗ trống để dán note hoặc ảnh tại đó. Chụm để zoom, pan ra lề tường và đặt note ở đó. Chạm hai lần vào note để zoom vào; nút khung hiện toàn cảnh.",
   "tipDropTitle": "Thả để xóa hoặc chuyển",
-  "tipDropBody": "Đang kéo, thả note vào khay ở dưới để xóa, hoặc thả lên tab tường để chuyển sang tường đó.",
+  "tipDropBody": "Kéo note xuống gần đáy tường thì khay nhỏ hiện ra, thả vào đó để xóa. Thả lên tab tường thì chuyển sang tường đó.",
   "tipSelectTitle": "Chọn nhiều",
   "tipSelectBody": "Nhấn giữ note → Chọn. Khoanh một vòng quanh các note trên chỗ trống để chọn thêm; kéo một tờ đang chọn là cả nhóm đi theo.",
   "tipDrawTitle": "Vẽ lên tường",
