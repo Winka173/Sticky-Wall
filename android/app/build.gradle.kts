@@ -22,7 +22,7 @@ if (hasReleaseKey) {
 }
 
 android {
-    namespace = "com.winka.sticky_wall"
+    namespace = "com.apps.winka.stickywall"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -34,7 +34,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.winka.sticky_wall"
+        applicationId = "com.apps.winka.stickywall"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         // Both come from `version:` in pubspec.yaml (name+build).

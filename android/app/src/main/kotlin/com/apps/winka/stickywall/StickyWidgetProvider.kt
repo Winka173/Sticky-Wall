@@ -1,4 +1,4 @@
-package com.winka.sticky_wall
+package com.apps.winka.stickywall
 
 import android.appwidget.AppWidgetManager
 import android.content.Context

@@ -1,4 +1,4 @@
-package com.winka.sticky_wall
+package com.apps.winka.stickywall
 
 import io.flutter.embedding.android.FlutterActivity
 
