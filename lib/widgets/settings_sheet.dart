@@ -133,6 +133,9 @@ class _SettingsSheet extends StatelessWidget {
             height: 116,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
+              // Tiles run on past the sheet's margin to its edge: a tile
+              // cut there reads as "more this way", not as clipped.
+              clipBehavior: Clip.none,
               itemCount: walls.length + 1,
               separatorBuilder: (_, _) => const SizedBox(width: 12),
               itemBuilder: (context, index) {
@@ -173,10 +176,6 @@ class _SettingsSheet extends StatelessWidget {
             title: Text(
               l10n.wallDecor,
               style: const TextStyle(fontSize: 16, color: AppColors.ink),
-            ),
-            secondary: const Icon(
-              Icons.water_drop_outlined,
-              color: AppColors.ink,
             ),
             value: settings.wallDecor,
             onChanged: settings.setWallDecor,
@@ -241,6 +240,9 @@ class _SettingsSheet extends StatelessWidget {
             height: 150,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
+              // Tiles run on past the sheet's margin to its edge: a tile
+              // cut there reads as "more this way", not as clipped.
+              clipBehavior: Clip.none,
               itemCount: fontChoices.length,
               separatorBuilder: (_, _) => const SizedBox(width: 14),
               itemBuilder: (context, index) {
@@ -403,6 +405,8 @@ class _SettingsSheet extends StatelessWidget {
         subject: l10n.backupShareSubject,
       );
     } catch (_) {
+      // The snackbar lives under this sheet: close it so the message shows.
+      if (context.mounted) Navigator.of(context).pop();
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text(l10n.backupFailed)));
@@ -428,6 +432,7 @@ class _SettingsSheet extends StatelessWidget {
     try {
       await BackupService().restorePhotos(backup);
     } catch (_) {
+      navigator.pop();
       messenger.showSnackBar(SnackBar(content: Text(l10n.importFailed)));
       return;
     }

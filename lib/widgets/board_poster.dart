@@ -431,10 +431,10 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
   Widget _options(AppLocalizations l10n) {
     final style = SegmentedButton.styleFrom(
       foregroundColor: AppColors.chalk,
+      // Chalk, not the accent: yellow on this page means Share, once.
       selectedForegroundColor: AppColors.ink,
-      selectedBackgroundColor: AppColors.accent,
+      selectedBackgroundColor: AppColors.chalk,
       side: BorderSide(color: AppColors.chalk.withValues(alpha: 0.4)),
-      visualDensity: VisualDensity.compact,
       // The app's own face, a size down.
       textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 13),
     );

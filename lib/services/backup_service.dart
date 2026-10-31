@@ -15,14 +15,17 @@ class Backup {
   Backup({
     required this.boards,
     required this.notes,
-    this.links = const [],
+    this.links,
     this.photos = const {},
     this.wallPhotos = const {},
   });
 
   final List<Board> boards;
   final List<Note> notes;
-  final List<NoteLink> links;
+
+  /// Null for a backup from before threads were saved: the threads on the
+  /// wall then stay where both ends still exist.
+  final List<NoteLink>? links;
   final Map<String, Uint8List> photos;
   final Map<String, Uint8List> wallPhotos;
 }
@@ -119,9 +122,9 @@ class BackupService {
       final notes = (data['notes'] as List<dynamic>? ?? [])
           .map((e) => Note.fromJson(e as Map<String, dynamic>))
           .toList();
-      // Older backups have no threads; they restore without any.
-      final links = (data['links'] as List<dynamic>? ?? [])
-          .map((e) => NoteLink.fromJson(e as Map<String, dynamic>))
+      // Older backups have no threads; they leave the wall's threads be.
+      final links = (data['links'] as List<dynamic>?)
+          ?.map((e) => NoteLink.fromJson(e as Map<String, dynamic>))
           .toList();
       if (boards.isEmpty) throw const FormatException('No boards');
       return Backup(

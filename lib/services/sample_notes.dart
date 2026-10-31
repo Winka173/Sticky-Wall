@@ -26,17 +26,17 @@ class SampleNotes {
   /// between them — and pile up on a short wall. Keeping the distances puts
   /// the same tidy cluster on every screen.
   static const _spots = [
-    Offset(5, 17), // drag me
+    Offset(12, 17), // drag me
     // The thread note sits beside "drag me", pin level with pin: the yarn
     // tied between them then runs above both cards, not across their words.
-    Offset(220, 22), // thread
-    Offset(7, 220), // checklist
+    Offset(213, 22), // thread
+    Offset(12, 220), // checklist
     // The longest card, below the short thread note: a card above a pin
     // would hide it, and that pin is the one the sample asks you to drag.
-    Offset(218, 303), // long-press me
+    Offset(213, 303), // long-press me
     // Under the left column: centred at the foot it would clip the corner of
     // the thread note above it (measured, see sample_layout_test).
-    Offset(16, 441), // doodle
+    Offset(20, 441), // doodle
   ];
 
   /// The wall the distances above were laid out against (a 393dp phone).

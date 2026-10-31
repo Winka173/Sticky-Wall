@@ -429,7 +429,10 @@ class _AddChip extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: textColor.withValues(alpha: 0.35)),
+            border: Border.all(
+              color: textColor.withValues(alpha: 0.6),
+              width: 1.5,
+            ),
           ),
           child: Icon(Icons.add, color: textColor, size: 20),
         ),

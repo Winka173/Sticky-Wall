@@ -536,15 +536,22 @@ class _NoteDialogState extends State<_NoteDialog>
                   top: 0,
                   child: Tooltip(
                     message: _n.pinned ? l10n.unpin : l10n.pin,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        setState(() => _n.pinned = !_n.pinned);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        child: NotePin(pinned: _n.pinned),
+                    child: Semantics(
+                      button: true,
+                      toggled: _n.pinned,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          setState(() => _n.pinned = !_n.pinned);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                          child: NotePin(pinned: _n.pinned),
+                        ),
                       ),
                     ),
                   ),
@@ -563,7 +570,7 @@ class _NoteDialogState extends State<_NoteDialog>
   /// always one tap away and never hidden under the keyboard.
   Widget _topStrip(AppLocalizations l10n) {
     return Container(
-      height: 44,
+      height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: const BoxDecoration(
         color: Color(0x2EFFFFFF),
@@ -575,13 +582,13 @@ class _NoteDialogState extends State<_NoteDialog>
         children: [
           IconButton(
             tooltip: l10n.cancel,
-            color: _ink.withValues(alpha: 0.7),
+            color: _ink,
             icon: const Icon(Icons.close),
             onPressed: _close,
           ),
           const Spacer(),
           Padding(
-            padding: const EdgeInsets.only(right: 6),
+            padding: const EdgeInsets.only(right: 8),
             child: Tooltip(
               message: widget.isNew ? l10n.add : l10n.save,
               child: Material(
@@ -608,7 +615,7 @@ class _NoteDialogState extends State<_NoteDialog>
   /// button in its corner; tapping it opens it full screen. A photo note with
   /// nothing attached yet shows a stretched "add photo" tile as an invitation.
   Widget _photoTile(AppLocalizations l10n) {
-    final faint = _ink.withValues(alpha: 0.45);
+    const faint = AppColors.inkSoft;
     if (!_n.hasPhoto) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 10),
@@ -707,6 +714,8 @@ class _NoteDialogState extends State<_NoteDialog>
             },
       decoration: InputDecoration(
         border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
         isDense: true,
         contentPadding: EdgeInsets.zero,
         hintText: isNormal
@@ -774,6 +783,7 @@ class _NoteDialogState extends State<_NoteDialog>
           color: _ink,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+          alignment: Alignment.centerLeft,
           onPressed: onTap,
         );
     return Padding(
@@ -906,6 +916,8 @@ class _NoteDialogState extends State<_NoteDialog>
               style: const TextStyle(fontSize: 16, color: AppColors.link),
               decoration: InputDecoration(
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
                 isDense: true,
                 hintText: l10n.link,
                 hintStyle: TextStyle(fontSize: 16, color: AppColors.inkHint),
@@ -958,12 +970,12 @@ class _NoteDialogState extends State<_NoteDialog>
                     decoration: _n.checklist[i].done
                         ? TextDecoration.lineThrough
                         : null,
-                    color: _n.checklist[i].done
-                        ? _ink.withValues(alpha: 0.5)
-                        : _ink,
+                    color: _n.checklist[i].done ? AppColors.inkSoft : _ink,
                   ),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 8),
                   ),
@@ -1002,6 +1014,8 @@ class _NoteDialogState extends State<_NoteDialog>
                 style: itemStyle,
                 decoration: InputDecoration(
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   hintText: l10n.addItem,
@@ -1135,34 +1149,34 @@ class _NoteDialogState extends State<_NoteDialog>
             borderRadius: BorderRadius.circular(22),
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
               for (final (t, icon, label) in types)
-                Semantics(
-                  button: true,
-                  selected: _n.type == t,
-                  child: Tooltip(
-                    message: label,
-                    child: InkWell(
-                      customBorder: const StadiumBorder(),
-                      onTap: () => _setType(t),
-                      child: SizedBox(
-                        width: 44,
-                        height: 40,
-                        child: Center(
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 150),
-                            width: 40,
-                            height: 34,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(17),
-                              color: _n.type == t ? _ink : Colors.transparent,
-                            ),
-                            child: Icon(
-                              icon,
-                              size: 19,
-                              color: _n.type == t ? AppColors.chalk : _ink,
+                Expanded(
+                  child: Semantics(
+                    button: true,
+                    selected: _n.type == t,
+                    child: Tooltip(
+                      message: label,
+                      child: InkWell(
+                        customBorder: const StadiumBorder(),
+                        onTap: () => _setType(t),
+                        child: SizedBox(
+                          height: 40,
+                          child: Center(
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              width: 40,
+                              height: 34,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(17),
+                                color: _n.type == t ? _ink : Colors.transparent,
+                              ),
+                              child: Icon(
+                                icon,
+                                size: 19,
+                                color: _n.type == t ? AppColors.chalk : _ink,
+                              ),
                             ),
                           ),
                         ),
@@ -1176,67 +1190,72 @@ class _NoteDialogState extends State<_NoteDialog>
         const SizedBox(height: 4),
         // Filled icons mark what the note already has; outlined, what it
         // could have — never a faded icon that is hard to see on the paper.
-        Row(
-          children: [
-            // A photo note already has its add tile above.
-            if (!isPhoto)
-              IconButton(
-                tooltip: _n.hasPhoto ? l10n.replacePhoto : l10n.addPhoto,
-                onPressed: () => _photoMenu(l10n),
-                color: _ink,
-                icon: Icon(
-                  _n.hasPhoto
-                      ? Icons.photo_camera_back
-                      : Icons.photo_camera_back_outlined,
-                  size: 22,
+        // Pulled out by an icon button's inner padding, so the icons line
+        // up with the type pill and the text above.
+        Transform.translate(
+          offset: const Offset(-12, 0),
+          child: Row(
+            children: [
+              // A photo note already has its add tile above.
+              if (!isPhoto)
+                IconButton(
+                  tooltip: _n.hasPhoto ? l10n.replacePhoto : l10n.addPhoto,
+                  onPressed: () => _photoMenu(l10n),
+                  color: _ink,
+                  icon: Icon(
+                    _n.hasPhoto
+                        ? Icons.photo_camera_back
+                        : Icons.photo_camera_back_outlined,
+                    size: 22,
+                  ),
                 ),
-              ),
-            // A label is a heading, not something to be reminded of.
-            if (!isLabel)
-              IconButton(
-                tooltip: l10n.reminder,
-                onPressed: _pickReminder,
-                color: _ink,
-                icon: Icon(
-                  _n.reminderAt == null ? Icons.alarm_add : Icons.alarm_on,
-                  size: 22,
+              // A label is a heading, not something to be reminded of.
+              if (!isLabel)
+                IconButton(
+                  tooltip: l10n.reminder,
+                  onPressed: _pickReminder,
+                  color: _ink,
+                  icon: Icon(
+                    _n.reminderAt == null ? Icons.alarm_add : Icons.alarm_on,
+                    size: 22,
+                  ),
                 ),
-              ),
-            IconButton(
-              tooltip: l10n.emote,
-              isSelected: _showEmoji,
-              onPressed: () => setState(() {
-                _showEmoji = !_showEmoji;
-                _showColors = false;
-              }),
-              color: _ink,
-              icon: _n.emoji.isEmpty
-                  ? const Icon(Icons.add_reaction_outlined, size: 22)
-                  : Text(_n.emoji, style: const TextStyle(fontSize: 20)),
-            ),
-            // Prints are always white — no paper colour to choose.
-            if (!isPhoto)
               IconButton(
-                tooltip: '${l10n.color}: ${paperName(l10n, _n.colorIndex)}',
-                isSelected: _showColors,
+                tooltip: l10n.emote,
+                isSelected: _showEmoji,
                 onPressed: () => setState(() {
-                  _showColors = !_showColors;
-                  _showEmoji = false;
+                  _showEmoji = !_showEmoji;
+                  _showColors = false;
                 }),
-                icon: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: paperColorOf(context, _n.colorIndex, _n.guid),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: _ink,
-                      width: _showColors ? 2.2 : 1.2,
+                color: _ink,
+                icon: _n.emoji.isEmpty
+                    ? const Icon(Icons.add_reaction_outlined, size: 22)
+                    : Text(_n.emoji, style: const TextStyle(fontSize: 20)),
+              ),
+              // Prints are always white — no paper colour to choose.
+              if (!isPhoto)
+                IconButton(
+                  tooltip: '${l10n.color}: ${paperName(l10n, _n.colorIndex)}',
+                  isSelected: _showColors,
+                  onPressed: () => setState(() {
+                    _showColors = !_showColors;
+                    _showEmoji = false;
+                  }),
+                  icon: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: paperColorOf(context, _n.colorIndex, _n.guid),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _ink,
+                        width: _showColors ? 2.2 : 1.2,
+                      ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ],
     );

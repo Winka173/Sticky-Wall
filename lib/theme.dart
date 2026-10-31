@@ -12,7 +12,7 @@ abstract class AppColors {
   /// Ink at reduced strength, for secondary text and hints on paper.
   /// Secondary text stays at 4.5:1 on every day paper (about 4:1 with the
   /// lights off); hints are lighter, but still read as words.
-  static const inkSoft = Color(0xD93B372F);
+  static const inkSoft = Color(0xEB3B372F);
   static const inkHint = Color(0x993B372F);
 
   /// Warm chalk white used for text written directly on dark walls.
@@ -27,7 +27,7 @@ abstract class AppColors {
 
   /// Red for words on paper (overdue, errors): [deleteIcon] is too light to
   /// read at 4.5:1 on pink or lilac.
-  static const warnText = Color(0xFF8B1A1A);
+  static const warnText = Color(0xFF7A1414);
   static const pin = Color(0xFFD32F2F);
   static const paper = Color(0xFFFFF9E6);
 

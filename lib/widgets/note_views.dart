@@ -1133,15 +1133,21 @@ class NoteListTile extends StatelessWidget {
       _Lead.emoji => Text(note.emoji, style: const TextStyle(fontSize: 20)),
       _Lead.none => null,
     };
+    // A narrow slot: a wide sketch shrinks into it rather than pushing
+    // every plain row's words a third of the way across.
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.only(right: 10),
       child: SizedBox(
-        width: _Thumbnail.size * kDrawingAspect,
+        width: _slot,
         height: _Thumbnail.size,
-        child: Center(child: child),
+        child: child == null
+            ? null
+            : FittedBox(fit: BoxFit.scaleDown, child: child),
       ),
     );
   }
+
+  static const _slot = 40.0;
 
   Widget _rowContent(BuildContext context) {
     return Row(

@@ -953,7 +953,8 @@ class NotesController extends ChangeNotifier {
     _notes
       ..clear()
       ..addAll(notes);
-    if (links != null && links.isNotEmpty) {
+    // An empty list replaces too: Undo of a load puts back "no threads".
+    if (links != null) {
       _links
         ..clear()
         ..addAll(links);

@@ -613,13 +613,22 @@ void main() {
       expect(again.links, isEmpty);
     });
 
+    test('loading "no threads" clears them; a v1 backup leaves them', () async {
+      final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
+      c.connect('1', '2');
+      c.replaceAll(c.boards, c.allNotes);
+      expect(c.links.length, 1, reason: 'no list given: threads stay');
+      c.replaceAll(c.boards, c.allNotes, links: const []);
+      expect(c.links, isEmpty, reason: 'an empty list is an answer too');
+    });
+
     test('a backup carries the threads; a newer format is refused', () async {
       final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
       c.connect('1', '2');
       final backup = BackupService().decode(
         BackupService().encode(c.boards, c.allNotes, c.links),
       );
-      expect(backup.links.single.same('1', '2'), true);
+      expect(backup.links!.single.same('1', '2'), true);
 
       final fresh = await _controller();
       fresh.replaceAll(backup.boards, backup.notes, links: backup.links);

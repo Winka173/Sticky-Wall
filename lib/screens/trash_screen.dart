@@ -154,10 +154,6 @@ class TrashScreen extends StatelessWidget {
   }
 }
 
-/// Red for words on the note's paper: at least 6.5:1 on every day paper and
-/// 4.8:1 with the lights off, where [AppColors.deleteIcon] drops to ~2.5:1.
-const _paperRed = Color(0xFF7A1414);
-
 /// One deleted note: a preview, where it came from, when it was deleted and
 /// how long it has left, then labelled restore / delete-forever buttons.
 class _TrashTile extends StatelessWidget {
@@ -238,7 +234,7 @@ class _TrashTile extends StatelessWidget {
                     text: l10n.daysLeft(daysLeft),
                     style: expiring
                         ? const TextStyle(
-                            color: _paperRed,
+                            color: AppColors.warnText,
                             fontWeight: FontWeight.bold,
                           )
                         : null,
@@ -259,8 +255,12 @@ class _TrashTile extends StatelessWidget {
                   label: Text(l10n.restore),
                   onPressed: onRestore,
                 ),
+                // Quiet on every card, so the red stays for the notes about
+                // to expire; the confirmation is where it turns red.
                 TextButton.icon(
-                  style: TextButton.styleFrom(foregroundColor: _paperRed),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.inkSoft,
+                  ),
                   icon: const Icon(Icons.delete_forever_outlined),
                   label: Text(l10n.deleteForever),
                   onPressed: onPurge,
@@ -308,7 +308,7 @@ class _Empty extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 height: 1.35,
-                color: faded.withValues(alpha: 0.75),
+                color: faded,
                 shadows: wall.wallTextShadows,
               ),
             ),

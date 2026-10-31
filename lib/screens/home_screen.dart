@@ -170,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .where((n) => n.guid == guid && !n.isTrashed)
         .firstOrNull;
     if (note == null || !mounted) return;
-    Navigator.of(context).popUntil((r) => r.isFirst);
+    if (!await _makeWayForIncoming()) return;
     if (note.boardId != _notes.currentBoardId) _notes.selectBoard(note.boardId);
     await _openEditor(note, isNew: false);
   }
@@ -234,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: _undoWall,
               borderRadius: BorderRadius.circular(20),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 8, 16, 8),
+                padding: const EdgeInsets.fromLTRB(14, 13, 16, 13),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -570,8 +570,9 @@ class _HomeScreenState extends State<HomeScreen> {
       draft.type = NoteType.photo;
     }
     draft.content = content.text;
-    // Whatever was open (another editor, a sheet) gives way to the new note.
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    // Whatever was open gives way to the new note — an editor only once its
+    // user has saved or let go of their edits.
+    if (!await _makeWayForIncoming()) return;
     await _openEditor(draft, isNew: true);
   }
 
@@ -997,14 +998,40 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Completes when the open editor closes; null while none is open.
+  Completer<void>? _editorClosed;
+
+  /// Before a share or a tapped reminder opens the editor: an editor that is
+  /// already open closes the way its user decides — Save, or Discard when
+  /// asked — rather than being popped with its edits. Sheets and menus just
+  /// give way. False when the user chose to keep editing.
+  Future<bool> _makeWayForIncoming() async {
+    final open = _editorClosed;
+    if (open != null) {
+      unawaited(Navigator.of(context).maybePop());
+      await open.future;
+      if (!mounted || _editorClosed != null) return false;
+    }
+    if (!mounted) return false;
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    return true;
+  }
+
   Future<void> _openEditor(Note note, {required bool isNew}) async {
     final oldPhoto = note.imagePath;
-    final result = await showNoteDialog(
-      context,
-      note: note,
-      isNew: isNew,
-      existing: _notes.boardNotes,
-    );
+    final closed = _editorClosed = Completer<void>();
+    final Note? result;
+    try {
+      result = await showNoteDialog(
+        context,
+        note: note,
+        isNew: isNew,
+        existing: _notes.boardNotes,
+      );
+    } finally {
+      _editorClosed = null;
+      closed.complete();
+    }
     if (result == null || !mounted) return;
     if (isNew) {
       _notes.add(result);
@@ -1436,7 +1463,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       // menu, which exports the selection).
                       if (!_selecting && !_marking)
                         Positioned(
-                          left: 12,
+                          // The same 16dp margin as the board tabs above.
+                          left: 16,
                           bottom:
                               12 +
                               (onWall
@@ -1781,23 +1809,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return PopupMenuItem<T>(
       value: value,
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 18, color: AppColors.ink),
-            const SizedBox(width: 10),
-          ],
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: AppColors.ink,
-                fontWeight: selected ? FontWeight.bold : null,
+      child: Semantics(
+        selected: selected,
+        child: Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 18, color: AppColors.ink),
+              const SizedBox(width: 10),
+            ],
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: AppColors.ink,
+                  fontWeight: selected ? FontWeight.bold : null,
+                ),
               ),
             ),
-          ),
-          if (selected) const Icon(Icons.check, size: 18, color: AppColors.ink),
-        ],
+            if (selected)
+              const Icon(Icons.check, size: 18, color: AppColors.ink),
+          ],
+        ),
       ),
     );
   }
@@ -2286,7 +2318,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontSize: 15,
                       height: 1.35,
-                      color: faded.withValues(alpha: 0.75),
+                      color: faded,
                       shadows: wall.wallTextShadows,
                     ),
                   ),
