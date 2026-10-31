@@ -1217,7 +1217,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteBoardConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Delete “{name}” and all its notes?'**
+  /// **'Delete “{name}”?'**
   String deleteBoardConfirm(String name);
 
   /// No description provided for @moveToBoard.
@@ -1399,6 +1399,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restoring replaces all current boards and notes.'**
   String get importReplaceWarning;
+
+  /// No description provided for @discardChangesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard your changes?'**
+  String get discardChangesTitle;
+
+  /// No description provided for @keepEditing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get keepEditing;
+
+  /// No description provided for @discard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get discard;
+
+  /// No description provided for @deleteForeverConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this note for good? It can\'t be brought back.'**
+  String get deleteForeverConfirm;
+
+  /// No description provided for @deleteBoardWithNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Its note is deleted for good — it doesn\'t go to the trash.} other{Its {count} notes are deleted for good — they don\'t go to the trash.}}'**
+  String deleteBoardWithNotes(int count);
 }
 
 class _AppLocalizationsDelegate

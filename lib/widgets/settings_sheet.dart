@@ -301,7 +301,11 @@ class _SettingsSheet extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () =>
-                      BackupService().share(notes.boards, notes.allNotes),
+                      BackupService().share(
+                    notes.boards,
+                    notes.allNotes,
+                    notes.links,
+                  ),
                   icon: const Icon(Icons.ios_share),
                   label: Text(l10n.exportData),
                 ),
@@ -364,7 +368,7 @@ class _SettingsSheet extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     try {
       final backup = BackupService().decode(text);
-      notes.replaceAll(backup.boards, backup.notes);
+      notes.replaceAll(backup.boards, backup.notes, links: backup.links);
       messenger.showSnackBar(SnackBar(content: Text(l10n.importSuccess)));
       if (context.mounted) Navigator.pop(context);
     } catch (_) {

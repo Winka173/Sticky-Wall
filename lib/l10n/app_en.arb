@@ -216,7 +216,7 @@
   "underline": "Underline",
   "defaultBoardName": "My Wall",
   "deleteBoard": "Delete board",
-  "deleteBoardConfirm": "Delete “{name}” and all its notes?",
+  "deleteBoardConfirm": "Delete “{name}”?",
   "@deleteBoardConfirm": {
     "placeholders": { "name": { "type": "String" } }
   },
@@ -255,5 +255,13 @@
   "importHint": "Paste a backup here",
   "importSuccess": "Restored successfully",
   "importFailed": "Could not read that backup",
-  "importReplaceWarning": "Restoring replaces all current boards and notes."
+  "importReplaceWarning": "Restoring replaces all current boards and notes.",
+  "discardChangesTitle": "Discard your changes?",
+  "keepEditing": "Keep editing",
+  "discard": "Discard",
+  "deleteForeverConfirm": "Delete this note for good? It can't be brought back.",
+  "deleteBoardWithNotes": "{count, plural, =1{Its note is deleted for good — it doesn't go to the trash.} other{Its {count} notes are deleted for good — they don't go to the trash.}}",
+  "@deleteBoardWithNotes": {
+    "placeholders": { "count": { "type": "int" } }
+  }
 }

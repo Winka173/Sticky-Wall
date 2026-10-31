@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sticky_wall/models/board.dart';
 import 'package:sticky_wall/models/draw_stroke.dart';
 import 'package:sticky_wall/models/note.dart';
+import 'package:sticky_wall/services/backup_service.dart';
 import 'package:sticky_wall/services/image_service.dart';
 import 'package:sticky_wall/services/note_storage.dart';
 import 'package:sticky_wall/services/notes_controller.dart';
@@ -595,6 +596,29 @@ void main() {
 
       again.replaceAll(again.boards, [_note('1', 'x')]);
       expect(again.links, isEmpty);
+    });
+
+    test('a backup carries the threads; a newer format is refused', () async {
+      final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
+      c.connect('1', '2');
+      final backup = BackupService().decode(
+        BackupService().encode(c.boards, c.allNotes, c.links),
+      );
+      expect(backup.links.single.same('1', '2'), true);
+
+      final fresh = await _controller();
+      fresh.replaceAll(backup.boards, backup.notes, links: backup.links);
+      expect(fresh.links.single.same('1', '2'), true);
+
+      expect(
+        () => BackupService().decode(
+          jsonEncode({
+            'version': 99,
+            'boards': [Board(id: 'b', name: 'B').toJson()],
+          }),
+        ),
+        throwsFormatException,
+      );
     });
   });
 

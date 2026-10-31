@@ -68,7 +68,7 @@ class TrashScreen extends StatelessWidget {
                               SnackBar(content: Text(l10n.restored)),
                             );
                         },
-                        onPurge: () => notes.purge(trashed[i]),
+                        onPurge: () => _confirmPurge(context, l10n, trashed[i]),
                       ),
                     ),
             ),
@@ -76,6 +76,33 @@ class TrashScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// Delete forever sits right under Restore: one stray tap must not cost
+  /// the note.
+  Future<void> _confirmPurge(
+    BuildContext context,
+    AppLocalizations l10n,
+    Note note,
+  ) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(l10n.deleteForeverConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.deleteIcon),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.deleteForever),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) notes.purge(note);
   }
 
   Future<void> _confirmEmpty(

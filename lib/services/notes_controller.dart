@@ -916,8 +916,13 @@ class NotesController extends ChangeNotifier {
   /// Every note, trashed ones included, so a backup round-trips the trash.
   List<Note> get allNotes => List.unmodifiable(_notes);
 
-  /// Replaces all boards and notes with imported data.
-  void replaceAll(List<Board> boards, List<Note> notes) {
+  /// Replaces all boards and notes with imported data, and the threads with
+  /// [links] when the backup carried any.
+  void replaceAll(
+    List<Board> boards,
+    List<Note> notes, {
+    List<NoteLink>? links,
+  }) {
     if (boards.isEmpty) return;
     // Old reminders would otherwise keep firing for notes that no longer exist.
     for (final note in _notes) {
@@ -930,6 +935,11 @@ class NotesController extends ChangeNotifier {
     _notes
       ..clear()
       ..addAll(notes);
+    if (links != null && links.isNotEmpty) {
+      _links
+        ..clear()
+        ..addAll(links);
+    }
     final guids = {for (final n in _notes) n.guid};
     _links.removeWhere((l) => !guids.contains(l.a) || !guids.contains(l.b));
     _currentBoardId = _boards.first.id;

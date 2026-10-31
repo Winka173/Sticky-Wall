@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -106,6 +107,9 @@ class _NoteDialogState extends State<_NoteDialog>
   final _addedPhotos = <String>{};
   bool _saved = false;
 
+  /// The note as it was opened, to tell whether closing would lose anything.
+  late final String _initial;
+
   String? _error;
   bool _showEmoji = false;
   bool _showColors = false;
@@ -121,6 +125,7 @@ class _NoteDialogState extends State<_NoteDialog>
   @override
   void initState() {
     super.initState();
+    _initial = jsonEncode(widget.note.toJson());
     _content.addListener(_clearError);
     _url.addListener(_clearError);
   }
@@ -153,6 +158,54 @@ class _NoteDialogState extends State<_NoteDialog>
   }
 
   // --- saving ----------------------------------------------------------------
+
+  /// Whether anything typed, drawn or picked would be lost by closing now.
+  /// Text fields are read from their controllers: the note only takes them
+  /// on save.
+  bool get _dirty {
+    if (_newItem.text.trim().isNotEmpty) return true;
+    final now = _n.toJson()
+      ..['content'] = _content.text
+      ..['url'] = _url.text
+      ..['checklist'] = [
+        for (var i = 0; i < _n.checklist.length; i++)
+          {
+            'text': i < _items.length
+                ? _items[i].controller.text
+                : _n.checklist[i].text,
+            'done': _n.checklist[i].done,
+          },
+      ];
+    return jsonEncode(now) != _initial;
+  }
+
+  /// Cancel, back and a tap beside the paper all come here: an untouched
+  /// note just closes, an edited one asks first.
+  Future<void> _close() async {
+    if (!_dirty) {
+      Navigator.of(context).pop();
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.discardChangesTitle),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.keepEditing),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.deleteIcon),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.discard),
+          ),
+        ],
+      ),
+    );
+    if (discard == true && mounted) Navigator.of(context).pop();
+  }
 
   /// Two links are the same page if they differ only by scheme, "www." or a
   /// trailing slash.
@@ -324,103 +377,112 @@ class _NoteDialogState extends State<_NoteDialog>
         ? printColorOf(context)
         : paperColorOf(context, _n.colorIndex, _n.guid);
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: SingleChildScrollView(
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.topCenter,
-          children: [
-            AnimatedBuilder(
-              animation: _shake,
-              builder: (context, child) {
-                final t = _shake.value;
-                final dx = math.sin(t * math.pi * 4) * 6 * (1 - t);
-                return Transform.translate(offset: Offset(dx, 0), child: child);
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: _paperWidth,
-                margin: const EdgeInsets.only(top: 9),
-                decoration: BoxDecoration(
-                  color: paper,
-                  borderRadius: BorderRadius.circular(AppRadii.paper),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black45,
-                      blurRadius: 20,
-                      offset: Offset(3, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _topStrip(l10n),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (_n.hasPhoto || isPhoto) _photoTile(l10n),
-                          _writingArea(l10n),
-                          if (_n.type == NoteType.link) _urlField(l10n),
-                          if (_n.type == NoteType.checklist)
-                            _checklistEditor(l10n),
-                          if (_n.type == NoteType.drawing) ...[
-                            const SizedBox(height: 8),
-                            DrawingEditor(
-                              strokes: _n.strokes,
-                              canvas: _n.canvas,
-                              onChanged: () => setState(() => _error = null),
-                              onCanvasChanged: (c) =>
-                                  setState(() => _n.canvas = c),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _close();
+      },
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: SingleChildScrollView(
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
+            children: [
+              AnimatedBuilder(
+                animation: _shake,
+                builder: (context, child) {
+                  final t = _shake.value;
+                  final dx = math.sin(t * math.pi * 4) * 6 * (1 - t);
+                  return Transform.translate(
+                    offset: Offset(dx, 0),
+                    child: child,
+                  );
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: _paperWidth,
+                  margin: const EdgeInsets.only(top: 9),
+                  decoration: BoxDecoration(
+                    color: paper,
+                    borderRadius: BorderRadius.circular(AppRadii.paper),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black45,
+                        blurRadius: 20,
+                        offset: Offset(3, 10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _topStrip(l10n),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_n.hasPhoto || isPhoto) _photoTile(l10n),
+                            _writingArea(l10n),
+                            if (_n.type == NoteType.link) _urlField(l10n),
+                            if (_n.type == NoteType.checklist)
+                              _checklistEditor(l10n),
+                            if (_n.type == NoteType.drawing) ...[
+                              const SizedBox(height: 8),
+                              DrawingEditor(
+                                strokes: _n.strokes,
+                                canvas: _n.canvas,
+                                onChanged: () => setState(() => _error = null),
+                                onCanvasChanged: (c) =>
+                                    setState(() => _n.canvas = c),
+                              ),
+                            ],
+                            _errorLine(),
+                            if (_n.reminderAt != null) _reminderLine(l10n),
+                            const SizedBox(height: 10),
+                            _toolRow(l10n),
+                            AnimatedSize(
+                              duration: const Duration(milliseconds: 180),
+                              curve: Curves.easeOut,
+                              alignment: Alignment.topCenter,
+                              child: _showEmoji
+                                  ? _emojiStrip()
+                                  : _showColors
+                                  ? _colorRow()
+                                  : const SizedBox(width: double.infinity),
                             ),
                           ],
-                          _errorLine(),
-                          if (_n.reminderAt != null) _reminderLine(l10n),
-                          const SizedBox(height: 10),
-                          _toolRow(l10n),
-                          AnimatedSize(
-                            duration: const Duration(milliseconds: 180),
-                            curve: Curves.easeOut,
-                            alignment: Alignment.topCenter,
-                            child: _showEmoji
-                                ? _emojiStrip()
-                                : _showColors
-                                ? _colorRow()
-                                : const SizedBox(width: double.infinity),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // The pin doubles as the pin-to-top toggle.
-            Positioned(
-              top: 0,
-              child: Tooltip(
-                message: _n.pinned ? l10n.unpin : l10n.pin,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() => _n.pinned = !_n.pinned);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: NotePin(pinned: _n.pinned),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+              // The pin doubles as the pin-to-top toggle.
+              Positioned(
+                top: 0,
+                child: Tooltip(
+                  message: _n.pinned ? l10n.unpin : l10n.pin,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _n.pinned = !_n.pinned);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: NotePin(pinned: _n.pinned),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -446,7 +508,7 @@ class _NoteDialogState extends State<_NoteDialog>
             tooltip: l10n.cancel,
             color: _ink.withValues(alpha: 0.7),
             icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: _close,
           ),
           const Spacer(),
           Padding(

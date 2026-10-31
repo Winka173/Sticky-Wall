@@ -75,6 +75,35 @@ void main() {
     expect(find.text('Write something first'), findsNothing);
   });
 
+  testWidgets('closing an edited note asks before dropping the text', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(tester);
+
+    // Untouched, Cancel just closes.
+    await _openEditor(tester);
+    await tester.tap(find.byTooltip('Cancel'));
+    await tester.pumpAndSettle();
+    expect(_saveButton, findsNothing);
+
+    await _openEditor(tester);
+    await tester.enterText(find.byType(TextField).first, 'Buy bread');
+    await tester.tap(find.byTooltip('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Discard your changes?'), findsOneWidget);
+    await tester.tap(find.text('Keep editing'));
+    await tester.pumpAndSettle();
+    expect(find.text('Buy bread'), findsOneWidget);
+
+    // The system back button asks too.
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+    expect(_saveButton, findsNothing);
+    expect(notes.boardNotes, isEmpty);
+  });
+
   testWidgets('typing and saving sticks the note on the wall', (tester) async {
     final notes = await _pumpApp(tester);
     await _openEditor(tester);

@@ -257,16 +257,24 @@ class _BoardBarState extends State<BoardBar> {
         underline: draft.underline,
       );
     } else if (action == 'delete') {
+      // Trashed notes go too: deleting a board skips the trash entirely.
+      final count = widget.notes.allNotes
+          .where((n) => n.boardId == board.id)
+          .length;
       final ok = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          content: Text(l10n.deleteBoardConfirm(_displayName(l10n, board))),
+          title: Text(l10n.deleteBoardConfirm(_displayName(l10n, board))),
+          content: count == 0 ? null : Text(l10n.deleteBoardWithNotes(count)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
               child: Text(l10n.cancel),
             ),
-            FilledButton(
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.deleteIcon,
+              ),
               onPressed: () => Navigator.pop(context, true),
               child: Text(l10n.delete),
             ),

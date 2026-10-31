@@ -186,7 +186,7 @@
   "underline": "Gạch chân",
   "defaultBoardName": "Tường của tôi",
   "deleteBoard": "Xóa tường",
-  "deleteBoardConfirm": "Xóa “{name}” và toàn bộ ghi chú trên đó?",
+  "deleteBoardConfirm": "Xóa “{name}”?",
   "moveToBoard": "Chuyển sang tường khác",
   "duplicate": "Nhân đôi",
   "copy": "Sao chép",
@@ -216,5 +216,10 @@
   "importHint": "Dán bản sao lưu vào đây",
   "importSuccess": "Đã khôi phục thành công",
   "importFailed": "Không đọc được bản sao lưu",
-  "importReplaceWarning": "Khôi phục sẽ thay thế toàn bộ tường và ghi chú hiện tại."
+  "importReplaceWarning": "Khôi phục sẽ thay thế toàn bộ tường và ghi chú hiện tại.",
+  "discardChangesTitle": "Bỏ các thay đổi?",
+  "keepEditing": "Sửa tiếp",
+  "discard": "Bỏ",
+  "deleteForeverConfirm": "Xóa hẳn ghi chú này? Sẽ không lấy lại được nữa.",
+  "deleteBoardWithNotes": "{count, plural, other{{count} ghi chú trên đó sẽ bị xóa hẳn, không vào thùng rác.}}"
 }

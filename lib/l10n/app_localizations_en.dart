@@ -634,7 +634,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String deleteBoardConfirm(String name) {
-    return 'Delete “$name” and all its notes?';
+    return 'Delete “$name”?';
   }
 
   @override
@@ -744,4 +744,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get importReplaceWarning =>
       'Restoring replaces all current boards and notes.';
+
+  @override
+  String get discardChangesTitle => 'Discard your changes?';
+
+  @override
+  String get keepEditing => 'Keep editing';
+
+  @override
+  String get discard => 'Discard';
+
+  @override
+  String get deleteForeverConfirm =>
+      'Delete this note for good? It can\'t be brought back.';
+
+  @override
+  String deleteBoardWithNotes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Its $count notes are deleted for good — they don\'t go to the trash.',
+      one: 'Its note is deleted for good — it doesn\'t go to the trash.',
+    );
+    return '$_temp0';
+  }
 }

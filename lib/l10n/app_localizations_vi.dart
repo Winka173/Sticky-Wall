@@ -627,7 +627,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String deleteBoardConfirm(String name) {
-    return 'Xóa “$name” và toàn bộ ghi chú trên đó?';
+    return 'Xóa “$name”?';
   }
 
   @override
@@ -736,4 +736,27 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get importReplaceWarning =>
       'Khôi phục sẽ thay thế toàn bộ tường và ghi chú hiện tại.';
+
+  @override
+  String get discardChangesTitle => 'Bỏ các thay đổi?';
+
+  @override
+  String get keepEditing => 'Sửa tiếp';
+
+  @override
+  String get discard => 'Bỏ';
+
+  @override
+  String get deleteForeverConfirm =>
+      'Xóa hẳn ghi chú này? Sẽ không lấy lại được nữa.';
+
+  @override
+  String deleteBoardWithNotes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ghi chú trên đó sẽ bị xóa hẳn, không vào thùng rác.',
+    );
+    return '$_temp0';
+  }
 }
