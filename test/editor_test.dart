@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sticky_wall/main.dart';
@@ -102,6 +103,46 @@ void main() {
     await tester.pumpAndSettle();
     expect(_saveButton, findsNothing);
     expect(notes.boardNotes, isEmpty);
+  });
+
+  testWidgets('a note opens, and shows its menu, from a keyboard', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.grid,
+      notes: [
+        Note(
+          guid: 'k',
+          content: 'Keyed',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+        ),
+      ],
+    );
+    bool cardFocused() =>
+        Focus.of(tester.element(find.text('Keyed'))).hasPrimaryFocus;
+    for (var i = 0; i < 40 && !cardFocused(); i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+    }
+    expect(cardFocused(), isTrue, reason: 'Tab reaches the card');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+    expect(_saveButton, findsOneWidget, reason: 'Enter opens the editor');
+    await tester.tap(find.byTooltip('Cancel'));
+    await tester.pumpAndSettle();
+
+    while (!cardFocused()) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+    }
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.f10);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.pumpAndSettle();
+    expect(find.text('Duplicate'), findsOneWidget, reason: 'Shift+F10: menu');
   });
 
   testWidgets('typing and saving sticks the note on the wall', (tester) async {
@@ -1124,7 +1165,9 @@ void main() {
   });
 
   testWidgets('the marker bar fits a narrow phone', (tester) async {
-    tester.view.physicalSize = const Size(360 * 3, 720 * 3);
+    // 320dp: the smallest phones still in use. The colours scroll; the tools
+    // and Done stay whole.
+    tester.view.physicalSize = const Size(320 * 3, 640 * 3);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     await _pumpApp(tester, viewMode: ViewMode.wall);

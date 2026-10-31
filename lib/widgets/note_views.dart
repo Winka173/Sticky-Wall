@@ -10,6 +10,7 @@ import '../services/image_service.dart';
 import '../theme.dart';
 import '../util/rich_note.dart';
 import 'drawing_canvas.dart';
+import 'keyboard_tappable.dart';
 
 /// The spoken name of paper colour [index] (null: the one picked from the
 /// note's id), for the colour swatches.
@@ -327,30 +328,36 @@ class _PinTarget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Semantics(
-      button: true,
-      toggled: pinned,
-      label: pinned ? l10n.unpin : l10n.pin,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: cb.onTogglePin,
-        // Being the innermost pan recognizer, this beats the card's own drag
-        // and the wall's pan — so a drag that *starts* on the pin is always
-        // a thread, and one that starts on the paper always moves the note.
-        onPanStart: cb.canDragPin
-            ? (d) => cb.onPinDragStart!(d.globalPosition)
-            : null,
-        onPanUpdate: cb.canDragPin
-            ? (d) => cb.onPinDragUpdate!(d.globalPosition)
-            : null,
-        onPanEnd: cb.canDragPin
-            ? (d) => cb.onPinDragEnd!(d.globalPosition)
-            : null,
-        onPanCancel: cb.canDragPin ? () => cb.onPinDragEnd!(Offset.zero) : null,
-        child: SizedBox(
-          width: 44,
-          height: _pinInset * 2,
-          child: Center(child: NotePin(pinned: pinned)),
+    return KeyboardTappable(
+      onActivate: cb.onTogglePin,
+      circle: true,
+      child: Semantics(
+        button: true,
+        toggled: pinned,
+        label: pinned ? l10n.unpin : l10n.pin,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: cb.onTogglePin,
+          // Being the innermost pan recognizer, this beats the card's own drag
+          // and the wall's pan — so a drag that *starts* on the pin is always
+          // a thread, and one that starts on the paper always moves the note.
+          onPanStart: cb.canDragPin
+              ? (d) => cb.onPinDragStart!(d.globalPosition)
+              : null,
+          onPanUpdate: cb.canDragPin
+              ? (d) => cb.onPinDragUpdate!(d.globalPosition)
+              : null,
+          onPanEnd: cb.canDragPin
+              ? (d) => cb.onPinDragEnd!(d.globalPosition)
+              : null,
+          onPanCancel: cb.canDragPin
+              ? () => cb.onPinDragEnd!(Offset.zero)
+              : null,
+          child: SizedBox(
+            width: 44,
+            height: _pinInset * 2,
+            child: Center(child: NotePin(pinned: pinned)),
+          ),
         ),
       ),
     );
@@ -745,7 +752,15 @@ class StickyNoteCard extends StatelessWidget {
         ],
       ),
     );
-    final said = Semantics(selected: selected, child: card);
+    // From a keyboard: Enter opens the note, Shift+F10 its menu.
+    final said = Semantics(
+      selected: selected,
+      child: KeyboardTappable(
+        onActivate: cb.onEdit,
+        onMenu: cb.onLongPress,
+        child: card,
+      ),
+    );
     if (!rotated) return said;
     return NoteTurn(angle: note.pinned ? 0 : noteTilt(note), child: said);
   }
@@ -1102,10 +1117,15 @@ class NoteListTile extends StatelessWidget {
     }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: GestureDetector(
-        onTap: cb.onEdit,
-        onLongPress: cb.onLongPress,
-        child: row,
+      child: KeyboardTappable(
+        onActivate: cb.onEdit,
+        onMenu: cb.onLongPress,
+        borderRadius: BorderRadius.circular(AppRadii.paper),
+        child: GestureDetector(
+          onTap: cb.onEdit,
+          onLongPress: cb.onLongPress,
+          child: row,
+        ),
       ),
     );
   }

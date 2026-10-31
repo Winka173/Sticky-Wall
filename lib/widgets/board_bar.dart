@@ -8,6 +8,7 @@ import '../services/notes_controller.dart';
 import '../theme.dart';
 import 'action_sheet.dart';
 import 'board_dialog.dart';
+import 'keyboard_tappable.dart';
 
 /// Horizontal strip of board "tabs" with add / edit / delete.
 ///
@@ -124,7 +125,7 @@ class _BoardBarState extends State<BoardBar> {
     final boards = notes.boards;
 
     return SizedBox(
-      height: 40,
+      height: 44,
       child: Row(
         children: [
           // Shrink-wrapped so the "+" follows the last tab directly while
@@ -330,74 +331,82 @@ class _BoardChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = board.icon;
-    return Semantics(
-      button: true,
-      selected: selected,
-      // Tapping the current board opens its sheet (edit, move, delete).
-      hint: selected ? AppLocalizations.of(context)?.editBoard : null,
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedScale(
-          scale: highlighted ? 1.08 : 1,
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOutBack,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            padding: EdgeInsets.fromLTRB(
-              icon.isEmpty ? 16 : 12,
-              6,
-              selected ? 10 : 16,
-              6,
-            ),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: highlighted
-                  ? AppColors.accent.withValues(alpha: 0.45)
-                  : selected
-                  ? textColor.withValues(alpha: 0.18)
-                  : null,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: highlighted
-                    ? AppColors.accent
-                    : textColor.withValues(alpha: selected ? 0.9 : 0.35),
-                width: highlighted || selected ? 1.5 : 1,
+    return KeyboardTappable(
+      onActivate: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Semantics(
+        button: true,
+        selected: selected,
+        // Tapping the current board opens its sheet (edit, move, delete).
+        hint: selected ? AppLocalizations.of(context)?.editBoard : null,
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedScale(
+            scale: highlighted ? 1.08 : 1,
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOutBack,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: EdgeInsets.fromLTRB(
+                icon.isEmpty ? 16 : 12,
+                6,
+                selected ? 10 : 16,
+                6,
               ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (icon.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: Text(icon, style: const TextStyle(fontSize: 16)),
-                  ),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 160),
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: board.decorate(
-                      TextStyle(
-                        color: textColor,
-                        fontSize: 16,
-                        fontWeight: selected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        // The underline is drawn in the text color by default; on
-                        // a dark wall that is the chalk, which is what we want.
-                        decorationColor: textColor,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: highlighted
+                    ? AppColors.accent.withValues(alpha: 0.45)
+                    : selected
+                    ? textColor.withValues(alpha: 0.18)
+                    : null,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: highlighted
+                      ? AppColors.accent
+                      : textColor.withValues(alpha: selected ? 0.9 : 0.35),
+                  width: highlighted || selected ? 1.5 : 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Text(icon, style: const TextStyle(fontSize: 16)),
+                    ),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 160),
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: board.decorate(
+                        TextStyle(
+                          color: textColor,
+                          fontSize: 16,
+                          fontWeight: selected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          // The underline is drawn in the text color by default; on
+                          // a dark wall that is the chalk, which is what we want.
+                          decorationColor: textColor,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                if (selected)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 2),
-                    child: Icon(Icons.expand_more, size: 18, color: textColor),
-                  ),
-              ],
+                  if (selected)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 2),
+                      child: Icon(
+                        Icons.expand_more,
+                        size: 18,
+                        color: textColor,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -420,21 +429,25 @@ class _AddChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 40,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: textColor.withValues(alpha: 0.6),
-              width: 1.5,
+    return KeyboardTappable(
+      onActivate: onTap,
+      circle: true,
+      child: Tooltip(
+        message: tooltip,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: textColor.withValues(alpha: 0.6),
+                width: 1.5,
+              ),
             ),
+            child: Icon(Icons.add, color: textColor, size: 20),
           ),
-          child: Icon(Icons.add, color: textColor, size: 20),
         ),
       ),
     );

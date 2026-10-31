@@ -622,6 +622,19 @@ void main() {
       expect(c.links, isEmpty, reason: 'an empty list is an answer too');
     });
 
+    test('the streamed backup file reads back like the in-memory one', () async {
+      final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
+      c.connect('1', '2');
+      final dir = await Directory.systemTemp.createTemp('backup');
+      addTearDown(() => dir.delete(recursive: true));
+      final file = File('${dir.path}/b.json');
+      await BackupService().writeTo(file, c.boards, c.allNotes, c.links);
+      final backup = BackupService().decode(await file.readAsString());
+      expect(backup.notes.map((n) => n.guid), ['1', '2']);
+      expect(backup.links!.single.same('1', '2'), true);
+      expect(backup.boards.length, c.boards.length);
+    });
+
     test('a backup carries the threads; a newer format is refused', () async {
       final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
       c.connect('1', '2');

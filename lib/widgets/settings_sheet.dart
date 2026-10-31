@@ -13,6 +13,7 @@ import '../services/notes_controller.dart';
 import '../services/settings_controller.dart';
 import '../theme.dart';
 import 'action_sheet.dart';
+import 'keyboard_tappable.dart';
 
 /// Localized display name for a bundled wall texture.
 String wallLabel(AppLocalizations l10n, String id) => switch (id) {
@@ -341,7 +342,7 @@ class _SettingsSheet extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
+                child: _BusyButton(
                   onPressed: () => _backupFlow(context, l10n),
                   icon: const Icon(Icons.ios_share),
                   label: Text(l10n.exportData),
@@ -474,7 +475,11 @@ class _WallTile extends StatelessWidget {
       selected: selected,
       label: label,
       excludeSemantics: true,
-      child: GestureDetector(onTap: onTap, child: _tile()),
+      child: KeyboardTappable(
+        onActivate: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.control),
+        child: GestureDetector(onTap: onTap, child: _tile()),
+      ),
     );
   }
 
@@ -645,7 +650,10 @@ class _FontPaper extends StatelessWidget {
       selected: selected,
       label: font.label,
       excludeSemantics: true,
-      child: GestureDetector(onTap: onTap, child: _paper(paper)),
+      child: KeyboardTappable(
+        onActivate: onTap,
+        child: GestureDetector(onTap: onTap, child: _paper(paper)),
+      ),
     );
   }
 
@@ -861,6 +869,52 @@ class _ImportDialogState extends State<_ImportDialog> {
 }
 
 /// Small caps heading above each settings group.
+/// An outlined button whose action takes a while (a backup reads every
+/// photo): it shows a spinner and ignores taps until the action is done, so
+/// a second tap does not start a second copy.
+class _BusyButton extends StatefulWidget {
+  const _BusyButton({
+    required this.onPressed,
+    required this.icon,
+    required this.label,
+  });
+
+  final Future<void> Function() onPressed;
+  final Widget icon;
+  final Widget label;
+
+  @override
+  State<_BusyButton> createState() => _BusyButtonState();
+}
+
+class _BusyButtonState extends State<_BusyButton> {
+  bool _busy = false;
+
+  Future<void> _run() async {
+    setState(() => _busy = true);
+    try {
+      await widget.onPressed();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: _busy ? null : _run,
+      icon: _busy
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : widget.icon,
+      label: widget.label,
+    );
+  }
+}
+
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);
 

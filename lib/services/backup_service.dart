@@ -162,6 +162,60 @@ class BackupService {
     }
   }
 
+  /// Writes the same document as [encodeWithPhotos] straight into [file],
+  /// one photo at a time: a wall with hundreds of photos never holds them
+  /// all — and their base64 copies — in memory at once.
+  Future<void> writeTo(
+    File file,
+    List<Board> boards,
+    List<Note> notes,
+    List<NoteLink> links,
+  ) async {
+    final sink = file.openWrite();
+    try {
+      String key(String k) => jsonEncode(k);
+      sink
+        ..write('{"version":$_version,')
+        ..write('"exportedAt":${jsonEncode(DateTime.now().toIso8601String())},')
+        ..write(
+          '"boards":${jsonEncode(boards.map((b) => b.toJson()).toList())},',
+        )
+        ..write('"notes":${jsonEncode(notes.map((n) => n.toJson()).toList())},')
+        ..write('"links":${jsonEncode(links.map((l) => l.toJson()).toList())}');
+      Future<void> section(
+        String name,
+        Iterable<String> files,
+        bool wall,
+      ) async {
+        var first = true;
+        for (final stored in files) {
+          final bytes = await ImageService.readStored(stored, wall: wall);
+          if (bytes == null) continue;
+          sink
+            ..write(first ? ',${key(name)}:{' : ',')
+            ..write('${key(stored)}:"${base64Encode(bytes)}"');
+          first = false;
+          // Let the sink drain before reading the next file.
+          await sink.flush();
+        }
+        if (!first) sink.write('}');
+      }
+
+      await section('photos', {
+        for (final n in notes)
+          if (n.imagePath.isNotEmpty) n.imagePath,
+      }, false);
+      await section('wallPhotos', {
+        for (final b in boards)
+          for (final w in [b.wallImage, b.savedWallImage])
+            if (w.isNotEmpty) w,
+      }, true);
+      sink.write('}');
+    } finally {
+      await sink.close();
+    }
+  }
+
   /// Writes the backup to a temp file and opens the system share sheet.
   /// [subject] is the localized title the share target may show.
   Future<void> share(
@@ -172,7 +226,7 @@ class BackupService {
   }) async {
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/sticky-wall-backup.json');
-    await file.writeAsString(await encodeWithPhotos(boards, notes, links));
+    await writeTo(file, boards, notes, links);
     await SharePlus.instance.share(
       ShareParams(
         files: [XFile(file.path, mimeType: 'application/json')],

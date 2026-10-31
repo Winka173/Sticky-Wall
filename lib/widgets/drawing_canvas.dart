@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../l10n/app_localizations.dart';
 import '../models/draw_stroke.dart';
 import '../theme.dart';
+import 'keyboard_tappable.dart';
 
 /// Width : height of every drawing surface. Strokes are stored normalized, so
 /// the editor and the card thumbnails must share one aspect ratio or a sketch
@@ -664,27 +665,31 @@ class _Swatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: SizedBox(
-          height: _target,
-          child: Center(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
-              width: selected ? 28 : 22,
-              height: selected ? 28 : 22,
-              decoration: BoxDecoration(
-                color: color,
-                shape: square ? BoxShape.rectangle : BoxShape.circle,
-                borderRadius: square ? BorderRadius.circular(5) : null,
-                border: Border.all(
-                  color: selected ? AppColors.ink : Colors.black26,
-                  width: selected ? 2.5 : 1,
+    return KeyboardTappable(
+      onActivate: onTap,
+      circle: true,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: SizedBox(
+            height: _target,
+            child: Center(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                width: selected ? 28 : 22,
+                height: selected ? 28 : 22,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: square ? BoxShape.rectangle : BoxShape.circle,
+                  borderRadius: square ? BorderRadius.circular(5) : null,
+                  border: Border.all(
+                    color: selected ? AppColors.ink : Colors.black26,
+                    width: selected ? 2.5 : 1,
+                  ),
                 ),
               ),
             ),
