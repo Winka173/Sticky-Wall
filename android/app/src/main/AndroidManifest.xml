@@ -13,6 +13,12 @@
     <!-- Voice notes (record). Asked for only when the user starts recording;
          recordings stay in the app's own files. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- RECORD_AUDIO would otherwise make Play require a microphone and drop
+         every device without one. Voice notes are optional: on such a device
+         recording just reports that it failed. -->
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false"/>
 
     <!-- Android Auto Backup / phone-to-phone transfer: the notes (shared
          preferences) plus the photo and voice-note files. The rules are in
