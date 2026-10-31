@@ -161,6 +161,7 @@ class WallView extends StatefulWidget {
     this.resetZoomTooltip = 'Reset zoom',
     this.fitAllTooltip = 'Show everything',
     this.rotateTooltip = 'Rotate',
+    this.resizeTooltip = 'Resize',
     this.still = false,
     this.topInset = 0,
     this.bottomInset = 0,
@@ -256,6 +257,7 @@ class WallView extends StatefulWidget {
   final String resetZoomTooltip;
   final String fitAllTooltip;
   final String rotateTooltip;
+  final String resizeTooltip;
 
   /// A still render of the board (the export): complete on its first frame
   /// with no entrance animation, no grips, and cards turned near the edge
@@ -462,6 +464,12 @@ class _WallViewState extends State<WallView>
   }
 
   void _animateCamera(Matrix4 to) {
+    // With reduced motion the camera cuts instead of gliding.
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _zoomTarget = null;
+      _tc.value = to;
+      return;
+    }
     _zoomTarget = to;
     _zoomAnim = Matrix4Tween(
       begin: _tc.value,
@@ -1588,7 +1596,11 @@ class _WallViewState extends State<WallView>
       key: ValueKey(note.guid),
       // Instant while the finger is down; on release the note settles into
       // its clamped spot instead of jumping there. Tidying flies slower.
-      duration: dragging || resizing || grouped
+      duration:
+          dragging ||
+              resizing ||
+              grouped ||
+              MediaQuery.disableAnimationsOf(context)
           ? Duration.zero
           : Duration(milliseconds: _settling ? 560 : 200),
       curve: _settling ? Curves.easeInOutCubic : Curves.easeOutCubic,
@@ -1604,90 +1616,95 @@ class _WallViewState extends State<WallView>
         live: rotating,
         child: IgnorePointer(
           ignoring: dimmed,
-          child: AnimatedOpacity(
-            opacity: dimmed ? 0.22 : 1,
-            duration: const Duration(milliseconds: 200),
-            child: _appear(
-              index,
-              RawGestureDetector(
-                gestures: {
-                  _NoteGestureRecognizer:
-                      GestureRecognizerFactoryWithHandlers<
-                        _NoteGestureRecognizer
-                      >(_NoteGestureRecognizer.new, (r) {
-                        // RawGestureDetector leaves the device's slop to
-                        // us; without it the wall's pan (which has it) wins.
-                        r.gestureSettings = MediaQuery.maybeGestureSettingsOf(
-                          context,
-                        );
-                        r.onStart = (d) => _noteStart(note, d);
-                        r.onUpdate = (d) => _noteUpdate(note, d);
-                        r.onEnd = (d) => _noteEnd(note, d);
-                      }),
-                },
-                child: AnimatedScale(
-                  // Lifts while dragged; also swells a touch when a thread is
-                  // hovering over it, to say "drop here".
-                  scale: dragging ? 1.05 : (over ? 1.04 : 1.0),
-                  duration: const Duration(milliseconds: 120),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      StickyNoteCard(
-                        note: note,
-                        cb: cb,
-                        raised: dragging || over,
-                        selected: widget.selected.contains(note.guid),
-                        maxContentLines: 6,
-                        captureKey: widget.captureKeys?[note.guid],
-                        rotated: false,
-                      ),
-                      if (!widget.still)
-                        Positioned(
-                          right: -8,
-                          bottom: -8,
-                          child: _Grip(
-                            visible: grips,
-                            engaged: resizing,
-                            icon: Icons.open_in_full,
-                            onPanStart: (_) {
-                              HapticFeedback.selectionClick();
-                              setState(() {
-                                _resizingGuid = note.guid;
-                                _resizeScale = note.scale;
-                              });
-                            },
-                            // The grip's local delta is in the card's own
-                            // frame, so "away from the centre" grows the note
-                            // whichever way it is turned.
-                            onPanUpdate: (d) => setState(() {
-                              final dx = (d.delta.dx + d.delta.dy) / 2;
-                              _resizeScale = (_resizeScale + dx / _cardWidth)
-                                  .clamp(_minScale, _maxScale);
-                            }),
-                            onPanEnd: () {
-                              widget.onResize(note, _resizeScale);
-                              setState(() => _resizingGuid = null);
-                            },
-                          ),
+          child: ExcludeSemantics(
+            excluding: dimmed,
+            child: AnimatedOpacity(
+              opacity: dimmed ? 0.22 : 1,
+              duration: const Duration(milliseconds: 200),
+              child: _appear(
+                index,
+                RawGestureDetector(
+                  gestures: {
+                    _NoteGestureRecognizer:
+                        GestureRecognizerFactoryWithHandlers<
+                          _NoteGestureRecognizer
+                        >(_NoteGestureRecognizer.new, (r) {
+                          // RawGestureDetector leaves the device's slop to
+                          // us; without it the wall's pan (which has it) wins.
+                          r.gestureSettings = MediaQuery.maybeGestureSettingsOf(
+                            context,
+                          );
+                          r.onStart = (d) => _noteStart(note, d);
+                          r.onUpdate = (d) => _noteUpdate(note, d);
+                          r.onEnd = (d) => _noteEnd(note, d);
+                        }),
+                  },
+                  child: AnimatedScale(
+                    // Lifts while dragged; also swells a touch when a thread is
+                    // hovering over it, to say "drop here".
+                    scale: dragging ? 1.05 : (over ? 1.04 : 1.0),
+                    duration: const Duration(milliseconds: 120),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        StickyNoteCard(
+                          note: note,
+                          cb: cb,
+                          raised: dragging || over,
+                          selected: widget.selected.contains(note.guid),
+                          maxContentLines: 6,
+                          captureKey: widget.captureKeys?[note.guid],
+                          rotated: false,
                         ),
-                      if (!widget.still && widget.onRotate != null)
-                        Positioned(
-                          left: -8,
-                          bottom: -8,
-                          child: _Grip(
-                            visible: grips,
-                            engaged: rotating,
-                            icon: Icons.rotate_right,
-                            tooltip: widget.rotateTooltip,
-                            onPanStart: (d) =>
-                                _rotateStart(note, d.globalPosition, w, h),
-                            onPanUpdate: (d) => _rotateUpdate(d.globalPosition),
-                            onPanEnd: () => _rotateEnd(note),
-                            onTap: () => _straighten(note),
+                        if (!widget.still)
+                          Positioned(
+                            right: -8 - _Grip.margin,
+                            bottom: -8 - _Grip.margin,
+                            child: _Grip(
+                              visible: grips,
+                              engaged: resizing,
+                              icon: Icons.open_in_full,
+                              tooltip: widget.resizeTooltip,
+                              onPanStart: (_) {
+                                HapticFeedback.selectionClick();
+                                setState(() {
+                                  _resizingGuid = note.guid;
+                                  _resizeScale = note.scale;
+                                });
+                              },
+                              // The grip's local delta is in the card's own
+                              // frame, so "away from the centre" grows the note
+                              // whichever way it is turned.
+                              onPanUpdate: (d) => setState(() {
+                                final dx = (d.delta.dx + d.delta.dy) / 2;
+                                _resizeScale = (_resizeScale + dx / _cardWidth)
+                                    .clamp(_minScale, _maxScale);
+                              }),
+                              onPanEnd: () {
+                                widget.onResize(note, _resizeScale);
+                                setState(() => _resizingGuid = null);
+                              },
+                            ),
                           ),
-                        ),
-                    ],
+                        if (!widget.still && widget.onRotate != null)
+                          Positioned(
+                            left: -8 - _Grip.margin,
+                            bottom: -8 - _Grip.margin,
+                            child: _Grip(
+                              visible: grips,
+                              engaged: rotating,
+                              icon: Icons.rotate_right,
+                              tooltip: widget.rotateTooltip,
+                              onPanStart: (d) =>
+                                  _rotateStart(note, d.globalPosition, w, h),
+                              onPanUpdate: (d) =>
+                                  _rotateUpdate(d.globalPosition),
+                              onPanEnd: () => _rotateEnd(note),
+                              onTap: () => _straighten(note),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -2109,6 +2126,10 @@ class _Grip extends StatelessWidget {
   final VoidCallback? onTap;
   final String? tooltip;
 
+  /// Transparent room around the disc that still takes the finger: the
+  /// disc is 26dp, the target 44dp.
+  static const margin = 9.0;
+
   @override
   Widget build(BuildContext context) {
     final size = engaged ? 30.0 : 26.0;
@@ -2132,24 +2153,28 @@ class _Grip extends StatelessWidget {
               },
             ),
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: engaged ? AppColors.ink : AppColors.overlayDark,
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.chalk, width: 1.5),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black38,
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsets.all(margin + (26 - size) / 2),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          width: size,
+          height: size,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: engaged ? AppColors.ink : AppColors.overlayDark,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.chalk, width: 1.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black38,
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(icon, size: 13, color: Colors.white),
         ),
-        child: Icon(icon, size: 13, color: Colors.white),
       ),
     );
     if (tooltip != null) grip = Tooltip(message: tooltip, child: grip);

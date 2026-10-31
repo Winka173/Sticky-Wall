@@ -11,6 +11,18 @@ import '../theme.dart';
 import '../util/rich_note.dart';
 import 'drawing_canvas.dart';
 
+/// The spoken name of paper colour [index] (null: the one picked from the
+/// note's id), for the colour swatches.
+String paperName(AppLocalizations l10n, int? index) => switch (index) {
+  null => l10n.paperAuto,
+  0 => l10n.paperYellow,
+  1 => l10n.paperPink,
+  2 => l10n.paperMint,
+  3 => l10n.paperBlue,
+  4 => l10n.paperOrange,
+  _ => l10n.paperLilac,
+};
+
 /// Opens [url] in the browser, defaulting to https when no scheme is given,
 /// and reports failure with a snack bar.
 Future<void> openNoteUrl(BuildContext context, String url) async {
@@ -93,9 +105,14 @@ class NotePhoto extends StatelessWidget {
     this.height,
     this.maxHeight,
     this.radius = 4,
+    this.semanticLabel,
   });
 
   final String path;
+
+  /// What a screen reader says for the picture (a caption, or "Photo").
+  /// Null keeps it silent — for a thumbnail beside words that say it all.
+  final String? semanticLabel;
 
   /// Fixed height (cropped to it), or null with [maxHeight] to keep the
   /// photo's own aspect ratio up to that height — a print. One of the two
@@ -112,11 +129,43 @@ class NotePhoto extends StatelessWidget {
         height: height,
         width: double.infinity,
         fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => Container(
-          height: height ?? 80,
-          color: Colors.black.withValues(alpha: 0.06),
-          child: const Center(child: Icon(Icons.broken_image, size: 28)),
-        ),
+        semanticLabel: semanticLabel,
+        excludeFromSemantics: semanticLabel == null,
+        // A restored backup or a cleared photo folder leaves the note with a
+        // name and no file: say so where there is room, not just an icon.
+        errorBuilder: (context, _, _) {
+          final room = (height ?? 80) >= 60;
+          final words = AppLocalizations.of(context)?.photoMissing;
+          return Container(
+            height: height ?? 80,
+            color: Colors.black.withValues(alpha: 0.06),
+            padding: const EdgeInsets.all(6),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.broken_image_outlined,
+                    size: room ? 26 : 18,
+                    color: AppColors.inkSoft,
+                    semanticLabel: room ? null : words,
+                  ),
+                  if (room && words != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      words,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
     if (maxHeight != null) {
@@ -135,6 +184,9 @@ class NotePhoto extends StatelessWidget {
     return ClipRRect(borderRadius: BorderRadius.circular(radius), child: image);
   }
 }
+
+/// What fills the fixed slot at the start of a list row.
+enum _Lead { photo, sketch, list, link, emoji, none }
 
 /// List-row thumbnail of the note's photo.
 class _Thumbnail extends StatelessWidget {
@@ -277,6 +329,7 @@ class _PinTarget extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Semantics(
       button: true,
+      toggled: pinned,
       label: pinned ? l10n.unpin : l10n.pin,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -320,7 +373,7 @@ class _ReminderChip extends StatelessWidget {
     final label =
         '${ml.formatShortMonthDay(at)} '
         '${ml.formatTimeOfDay(TimeOfDay.fromDateTime(at))}';
-    final color = overdue ? AppColors.deleteIcon : const Color(0xFF4E6E4E);
+    final color = overdue ? AppColors.warnText : const Color(0xFF2E4A2E);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -559,39 +612,46 @@ class _ChecklistRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 28),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 160),
-              transitionBuilder: (child, anim) =>
-                  ScaleTransition(scale: anim, child: child),
-              child: Icon(
-                item.done ? Icons.check_box : Icons.check_box_outline_blank,
-                key: ValueKey(item.done),
-                size: 18,
-                color: AppColors.ink.withValues(alpha: 0.8),
-              ),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                item.text,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: item.done ? AppColors.inkSoft : AppColors.ink,
-                  decoration: item.done ? TextDecoration.lineThrough : null,
-                  decorationColor: AppColors.inkSoft,
+    // One node: "Milk, checked" — not an unnamed tap target beside a line
+    // of text.
+    return MergeSemantics(
+      child: Semantics(
+        checked: item.done,
+        child: InkWell(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 36),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 160),
+                  transitionBuilder: (child, anim) =>
+                      ScaleTransition(scale: anim, child: child),
+                  child: Icon(
+                    item.done ? Icons.check_box : Icons.check_box_outline_blank,
+                    key: ValueKey(item.done),
+                    size: 18,
+                    color: AppColors.ink.withValues(alpha: 0.8),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    item.text,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: item.done ? AppColors.inkSoft : AppColors.ink,
+                      decoration: item.done ? TextDecoration.lineThrough : null,
+                      decorationColor: AppColors.inkSoft,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -663,10 +723,15 @@ class StickyNoteCard extends StatelessWidget {
               child: _PinTarget(pinned: note.pinned, cb: cb),
             ),
           if (note.locked)
-            const Positioned(
+            Positioned(
               left: 5,
               top: _pinInset + 4,
-              child: Icon(Icons.lock, size: 12, color: AppColors.inkSoft),
+              child: Icon(
+                Icons.lock,
+                size: 12,
+                color: AppColors.inkSoft,
+                semanticLabel: AppLocalizations.of(context)?.locked,
+              ),
             ),
           // Sits just inside the corner, on the adhesive strip: a badge
           // hanging over the edge gets sliced off by the wall's viewport
@@ -680,8 +745,9 @@ class StickyNoteCard extends StatelessWidget {
         ],
       ),
     );
-    if (!rotated) return card;
-    return NoteTurn(angle: note.pinned ? 0 : noteTilt(note), child: card);
+    final said = Semantics(selected: selected, child: card);
+    if (!rotated) return said;
+    return NoteTurn(angle: note.pinned ? 0 : noteTilt(note), child: said);
   }
 
   /// A sheet of sticky paper: adhesive strip, curled corner, the body.
@@ -819,7 +885,16 @@ class StickyNoteCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          NotePhoto(path: note.imagePath, maxHeight: 230, radius: 2),
+          NotePhoto(
+            path: note.imagePath,
+            maxHeight: 230,
+            radius: 2,
+            // A caption below is read on its own; only a bare print needs
+            // a name here.
+            semanticLabel: hasCaption
+                ? null
+                : AppLocalizations.of(context)?.typePhoto,
+          ),
           if (hasCaption)
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 6, 4, 2),
@@ -863,10 +938,16 @@ class StickyNoteCard extends StatelessWidget {
           children: [
             AspectRatio(
               aspectRatio: kDrawingAspect,
-              child: NightShade(
-                child: DrawingSurface(
-                  strokes: note.strokes,
-                  canvas: note.canvas,
+              child: Semantics(
+                image: true,
+                label: hasLabel
+                    ? null
+                    : AppLocalizations.of(context)?.typeDrawing,
+                child: NightShade(
+                  child: DrawingSurface(
+                    strokes: note.strokes,
+                    canvas: note.canvas,
+                  ),
                 ),
               ),
             ),
@@ -1029,6 +1110,39 @@ class NoteListTile extends StatelessWidget {
     );
   }
 
+  _Lead get _leadingKind => note.hasPhoto
+      ? _Lead.photo
+      : note.type == NoteType.drawing
+      ? _Lead.sketch
+      : note.type == NoteType.checklist
+      ? _Lead.list
+      : note.type == NoteType.link
+      ? _Lead.link
+      : note.emoji.isNotEmpty
+      ? _Lead.emoji
+      : _Lead.none;
+
+  /// One fixed-width slot before the words — photo, sketch, list or link
+  /// icon, or the emote — so every row's text starts on the same edge.
+  Widget _leading() {
+    final child = switch (_leadingKind) {
+      _Lead.photo => _Thumbnail(path: note.imagePath),
+      _Lead.sketch => _SketchThumb(note: note),
+      _Lead.list => const Icon(Icons.checklist, size: 20, color: AppColors.ink),
+      _Lead.link => const Icon(Icons.link, size: 20, color: AppColors.ink),
+      _Lead.emoji => Text(note.emoji, style: const TextStyle(fontSize: 20)),
+      _Lead.none => null,
+    };
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: SizedBox(
+        width: _Thumbnail.size * kDrawingAspect,
+        height: _Thumbnail.size,
+        child: Center(child: child),
+      ),
+    );
+  }
+
   Widget _rowContent(BuildContext context) {
     return Row(
       children: [
@@ -1044,17 +1158,8 @@ class NoteListTile extends StatelessWidget {
           )
         else
           _PinTarget(pinned: note.pinned, cb: cb),
-        if (note.hasPhoto)
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: _Thumbnail(path: note.imagePath),
-          ),
-        if (note.type == NoteType.drawing)
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: _SketchThumb(note: note),
-          ),
-        if (note.emoji.isNotEmpty)
+        _leading(),
+        if (note.emoji.isNotEmpty && _leadingKind != _Lead.emoji)
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: Text(note.emoji, style: const TextStyle(fontSize: 20)),
@@ -1131,8 +1236,6 @@ class NoteListTile extends StatelessWidget {
         final done = note.checklist.where((i) => i.done).length;
         return Row(
           children: [
-            const Icon(Icons.checklist, size: 18, color: AppColors.ink),
-            const SizedBox(width: 6),
             Expanded(
               child: Text(
                 note.content.isEmpty
@@ -1200,6 +1303,7 @@ class _NoteAppearState extends State<NoteAppear>
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) return widget.child;
     return AnimatedBuilder(
       animation: _t,
       child: widget.child,

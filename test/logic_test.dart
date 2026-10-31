@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart' show ThemeMode;
@@ -502,6 +503,20 @@ void main() {
   });
 
   group('duplicate and copy', () {
+    test('a copy does not ring a reminder twice', () async {
+      final c = await _controller(
+        notes: [
+          _note('1', 'Call')
+            ..reminderAt = DateTime(2030)
+            ..repeat = ReminderRepeat.daily,
+        ],
+      );
+      final copy = c.duplicate(c.boardNotes.single);
+      expect(copy.reminderAt, isNull);
+      expect(copy.repeat, ReminderRepeat.none);
+      expect(c.allNotes.first.reminderAt, DateTime(2030), reason: 'kept');
+    });
+
     test('a duplicate sits beside the original with its own id', () async {
       final c = await _controller(
         notes: [
@@ -715,6 +730,148 @@ void main() {
         expect(removed, ['own.jpg']);
         expect(c.photoInUse('own.jpg'), false);
         expect(c.photoInUse(''), false);
+      },
+    );
+
+    group('backup files', () {
+      late Directory from;
+      late Directory to;
+      setUp(() {
+        from = Directory.systemTemp.createTempSync('sw_from');
+        to = Directory.systemTemp.createTempSync('sw_to');
+      });
+      tearDown(() {
+        ImageService.docsDirForTest = null;
+        from.deleteSync(recursive: true);
+        to.deleteSync(recursive: true);
+      });
+
+      test('a backup carries the photos and writes them back', () async {
+        ImageService.docsDirForTest = from.path;
+        File('${from.path}/note_images/p1.jpg')
+          ..createSync(recursive: true)
+          ..writeAsBytesSync([1, 2, 3]);
+        File('${from.path}/wall_images/w1.jpg')
+          ..createSync(recursive: true)
+          ..writeAsBytesSync([4, 5]);
+        final c = await _controller(
+          notes: [
+            _note('1', 'x', image: 'p1.jpg'),
+            _note('2', 'y', image: 'gone.jpg'),
+          ],
+        );
+        c.setCurrentBoardWallImage('w1.jpg', dark: true);
+        final json = await BackupService().encodeWithPhotos(
+          c.boards,
+          c.allNotes,
+          c.links,
+        );
+
+        // On the new device: the files come back under their stored names;
+        // a photo that was already missing is simply not carried.
+        ImageService.docsDirForTest = to.path;
+        final backup = BackupService().decode(json);
+        expect(backup.photos.keys, ['p1.jpg']);
+        await BackupService().restorePhotos(backup);
+        expect(File('${to.path}/note_images/p1.jpg').readAsBytesSync(), [
+          1,
+          2,
+          3,
+        ]);
+        expect(File('${to.path}/wall_images/w1.jpg').readAsBytesSync(), [4, 5]);
+        expect(backup.boards.single.wallImage, 'w1.jpg');
+      });
+
+      test('a version 1 backup still loads; bad input says why', () {
+        final v1 = jsonEncode({
+          'version': 1,
+          'boards': [Board(id: 'b', name: 'B').toJson()],
+          'notes': [_note('1', 'x').toJson()],
+        });
+        final backup = BackupService().decode(v1);
+        expect(backup.notes.single.guid, '1');
+        expect(backup.photos, isEmpty);
+
+        BackupProblem problem(String s) {
+          try {
+            BackupService().decode(s);
+          } on BackupFormatException catch (e) {
+            return e.problem;
+          }
+          fail('decoded $s');
+        }
+
+        expect(problem('{"version": 1, "boa'), BackupProblem.notJson);
+        expect(problem('[1, 2]'), BackupProblem.notBackup);
+        expect(problem('{"notes": []}'), BackupProblem.notBackup);
+        expect(
+          problem('{"version": 99, "boards": [{"id": "b"}]}'),
+          BackupProblem.newerVersion,
+        );
+      });
+    });
+
+    test('loading a backup can be undone, photos and threads intact', () async {
+      final removed = <String>[];
+      final c = await _controller(
+        notes: [
+          _note('1', 'x', image: 'mine.jpg'),
+          _note('2', 'y'),
+        ],
+        deletePhoto: removed.add,
+      );
+      c.connect('1', '2');
+      final oldBoards = List.of(c.boards);
+      final oldNotes = List.of(c.allNotes);
+      final oldLinks = List.of(c.links);
+
+      c.replaceAll(
+        [Board(id: 'other', name: 'Other')],
+        [_note('9', 'z', board: 'other')],
+      );
+      expect(c.allNotes.single.guid, '9');
+      expect(removed, isEmpty, reason: 'Undo still needs mine.jpg');
+
+      c.replaceAll(oldBoards, oldNotes, links: oldLinks);
+      expect(c.allNotes.map((n) => n.guid), ['1', '2']);
+      expect(c.allNotes.first.imagePath, 'mine.jpg');
+      expect(c.links.single.same('1', '2'), true);
+      expect(c.currentBoard.id, 'default');
+    });
+
+    test(
+      'trying textures keeps the wall photo until another replaces it',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final storage = await NoteStorage.create();
+        final removed = <String>[];
+        final c = NotesController(
+          storage,
+          ReminderService(),
+          deleteWallImage: removed.add,
+        );
+        c.setCurrentBoardWallImage('w1.jpg', dark: true);
+        c.setCurrentBoardWall(3);
+        expect(removed, isEmpty);
+        expect(c.currentBoard.hasWallImage, false);
+        expect(c.currentBoard.savedWallImage, 'w1.jpg');
+
+        // Picked again in one tap, and it survives a reload.
+        c.setCurrentBoardWallImage('w1.jpg', dark: true);
+        expect(c.currentBoard.wallImage, 'w1.jpg');
+        final json = c.currentBoard.toJson()..remove('savedWallImage');
+        expect(
+          Board.fromJson(json).savedWallImage,
+          'w1.jpg',
+          reason: 'older data: the photo on show is the kept one',
+        );
+
+        c.setCurrentBoardWall(0);
+        c.setCurrentBoardWallImage('w2.jpg', dark: false);
+        expect(removed, ['w1.jpg']);
+        c.setCurrentBoardWall(0, forgetPhoto: true);
+        expect(removed, ['w1.jpg', 'w2.jpg']);
+        expect(c.currentBoard.hasSavedWallImage, false);
       },
     );
   });

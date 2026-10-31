@@ -730,20 +730,111 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportData => 'Back up notes';
 
   @override
-  String get importData => 'Restore backup';
+  String get importData => 'Load backup';
 
   @override
   String get importHint => 'Paste a backup here';
 
   @override
-  String get importSuccess => 'Restored successfully';
+  String get importSuccess => 'Backup loaded';
 
   @override
   String get importFailed => 'Could not read that backup';
 
   @override
   String get importReplaceWarning =>
-      'Restoring replaces all current boards and notes.';
+      'Loading a backup replaces all current boards and notes.';
+
+  @override
+  String get importChooseFile => 'Choose file';
+
+  @override
+  String get importNotJson =>
+      'This isn\'t a backup file: the text is not valid JSON. Paste the whole file, with nothing cut off.';
+
+  @override
+  String get importNotBackup => 'This isn\'t a Sticky Wall backup.';
+
+  @override
+  String get importNewerVersion =>
+      'This backup was made by a newer version of Sticky Wall. Update the app, then try again.';
+
+  @override
+  String get backupFailed => 'Could not make the backup';
+
+  @override
+  String get backupShareSubject => 'Sticky Wall backup';
+
+  @override
+  String restoredTo(String board) {
+    return 'Restored to “$board”';
+  }
+
+  @override
+  String get shareFailed => 'Could not share';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get cropDone => 'Finish trimming';
+
+  @override
+  String get penThin => 'Thin pen';
+
+  @override
+  String get penMedium => 'Medium pen';
+
+  @override
+  String get penThick => 'Thick pen';
+
+  @override
+  String get colorInk => 'Ink';
+
+  @override
+  String get colorChalk => 'Chalk white';
+
+  @override
+  String get colorRed => 'Red';
+
+  @override
+  String get colorOrange => 'Orange';
+
+  @override
+  String get colorAmber => 'Amber';
+
+  @override
+  String get colorGreen => 'Green';
+
+  @override
+  String get colorBlue => 'Blue';
+
+  @override
+  String get colorViolet => 'Violet';
+
+  @override
+  String get colorPink => 'Pink';
+
+  @override
+  String get toneWhite => 'White paper';
+
+  @override
+  String get toneCream => 'Cream paper';
+
+  @override
+  String get toneBlush => 'Blush paper';
+
+  @override
+  String get toneSky => 'Sky paper';
+
+  @override
+  String get toneMint => 'Mint paper';
+
+  @override
+  String get toneKraft => 'Kraft paper';
+
+  @override
+  String get toneChalkboard => 'Chalkboard';
 
   @override
   String get discardChangesTitle => 'Discard your changes?';
@@ -769,4 +860,150 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get reminderInPast => 'That time has passed — pick a later one.';
+
+  @override
+  String get notificationsOff =>
+      'Notifications are off for Sticky Wall, so this reminder won\'t ring. Turn them on in the phone\'s settings.';
+
+  @override
+  String get removeReminder => 'Remove reminder';
+
+  @override
+  String typeChangeDrops(String type) {
+    return 'Save as “$type”? Its drawing or link address won\'t be kept.';
+  }
+
+  @override
+  String get saveAnyway => 'Save anyway';
+
+  @override
+  String get paperAuto => 'Automatic colour';
+
+  @override
+  String get paperYellow => 'Yellow';
+
+  @override
+  String get paperPink => 'Pink';
+
+  @override
+  String get paperMint => 'Mint';
+
+  @override
+  String get paperBlue => 'Blue';
+
+  @override
+  String get paperOrange => 'Orange';
+
+  @override
+  String get paperLilac => 'Lilac';
+
+  @override
+  String get swatchRed => 'Red';
+
+  @override
+  String get swatchOrange => 'Orange';
+
+  @override
+  String get swatchGold => 'Gold';
+
+  @override
+  String get swatchGreen => 'Green';
+
+  @override
+  String get swatchBlue => 'Blue';
+
+  @override
+  String get swatchPurple => 'Purple';
+
+  @override
+  String get swatchInk => 'Ink';
+
+  @override
+  String get swatchChalk => 'Chalk';
+
+  @override
+  String get locked => 'Locked';
+
+  @override
+  String get selectHint => 'Tap notes, or draw a loop round them';
+
+  @override
+  String filterShowing(String what) {
+    return 'Showing: $what';
+  }
+
+  @override
+  String get clearFilter => 'Clear';
+
+  @override
+  String get undoMove => 'Undo move';
+
+  @override
+  String get undoResize => 'Undo resize';
+
+  @override
+  String get undoRotate => 'Undo turn';
+
+  @override
+  String get undoTidy => 'Undo tidy';
+
+  @override
+  String get undoMoveBoard => 'Undo move to board';
+
+  @override
+  String get clearInkConfirm => 'Wipe everything drawn on this wall?';
+
+  @override
+  String get photoMissing => 'Photo not found on this device';
+
+  @override
+  String get photoPickFailed => 'Couldn\'t open that photo';
+
+  @override
+  String get sizeAndTurn => 'Size and turn';
+
+  @override
+  String get smaller => 'Smaller';
+
+  @override
+  String get larger => 'Larger';
+
+  @override
+  String get turnLeft => 'Turn left';
+
+  @override
+  String get turnRight => 'Turn right';
+
+  @override
+  String get straighten => 'Straighten';
+
+  @override
+  String get tieThreadTo => 'Tie a thread to…';
+
+  @override
+  String get threadsOfNote => 'Threads';
+
+  @override
+  String get noOtherNotes => 'No other notes on this wall to tie to';
+
+  @override
+  String get moveBoardLeft => 'Move left';
+
+  @override
+  String get moveBoardRight => 'Move right';
+
+  @override
+  String get resize => 'Resize';
+
+  @override
+  String get untitledNote => 'Untitled note';
+
+  @override
+  String get remindersChannel => 'Reminders';
+
+  @override
+  String get remindersChannelDescription => 'Reminders you set on your notes';
 }

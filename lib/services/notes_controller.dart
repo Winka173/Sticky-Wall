@@ -242,7 +242,9 @@ class NotesController extends ChangeNotifier {
     for (final note in _notes.where((n) => n.boardId == id).toList()) {
       _purge(note);
     }
-    if (board.hasWallImage) _deleteWallImage(board.wallImage);
+    for (final photo in {board.wallImage, board.savedWallImage}) {
+      if (photo.isNotEmpty) _deleteWallImage(photo);
+    }
     // Undo would resurrect a note onto a board that no longer exists.
     _lastDeleted = _lastDeleted.where((n) => n.boardId != id).toList();
     if (_currentBoardId == id) _currentBoardId = _boards.first.id;
@@ -253,11 +255,20 @@ class NotesController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Switches the current board to one of the built-in textures, dropping
-  /// any photo it had.
-  void setCurrentBoardWall(int wallIndex) {
+  /// Switches the current board to one of the built-in textures. The board's
+  /// own photo is kept (see [Board.savedWallImage]) so trying textures never
+  /// costs it; [forgetPhoto] is the explicit "remove photo", which deletes it.
+  void setCurrentBoardWall(int wallIndex, {bool forgetPhoto = false}) {
     final board = currentBoard;
-    if (board.hasWallImage) _deleteWallImage(board.wallImage);
+    if (forgetPhoto) {
+      if (board.hasSavedWallImage) _deleteWallImage(board.savedWallImage);
+      if (board.hasWallImage && board.wallImage != board.savedWallImage) {
+        _deleteWallImage(board.wallImage);
+      }
+      board
+        ..savedWallImage = ''
+        ..savedWallImageDark = false;
+    }
     board
       ..wallIndex = wallIndex
       ..wallImage = ''
@@ -267,15 +278,19 @@ class NotesController extends ChangeNotifier {
   }
 
   /// Uses the user's own photo (already copied by `ImageService`) as the
-  /// current board's wall. [dark] picks the scrim that keeps text readable.
+  /// current board's wall — a new one, or the kept one picked again. [dark]
+  /// picks the scrim that keeps text readable. A new photo replaces the kept
+  /// one, whose file goes then.
   void setCurrentBoardWallImage(String stored, {required bool dark}) {
     final board = currentBoard;
-    if (board.hasWallImage && board.wallImage != stored) {
-      _deleteWallImage(board.wallImage);
+    for (final old in {board.wallImage, board.savedWallImage}) {
+      if (old.isNotEmpty && old != stored) _deleteWallImage(old);
     }
     board
       ..wallImage = stored
-      ..wallImageDark = dark;
+      ..wallImageDark = dark
+      ..savedWallImage = stored
+      ..savedWallImageDark = dark;
     _storage.saveBoards(_boards);
     notifyListeners();
   }
@@ -599,6 +614,9 @@ class NotesController extends ChangeNotifier {
       ..['createdAt'] = DateTime.now().toIso8601String()
       ..['pinned'] = false
       ..['locked'] = false
+      // Two copies of one reminder would ring twice for the same thing.
+      ..remove('reminderAt')
+      ..remove('repeat')
       ..remove('deletedAt')
       ..remove('completedAt');
     final copy = Note.fromJson(json);

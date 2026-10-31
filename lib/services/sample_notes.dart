@@ -27,9 +27,13 @@ class SampleNotes {
   /// the same tidy cluster on every screen.
   static const _spots = [
     Offset(5, 17), // drag me
-    Offset(220, 66), // long-press me
+    // The thread note sits beside "drag me", pin level with pin: the yarn
+    // tied between them then runs above both cards, not across their words.
+    Offset(220, 22), // thread
     Offset(7, 220), // checklist
-    Offset(218, 303), // thread
+    // The longest card, below the short thread note: a card above a pin
+    // would hide it, and that pin is the one the sample asks you to drag.
+    Offset(218, 303), // long-press me
     // Under the left column: centred at the foot it would clip the corner of
     // the thread note above it (measured, see sample_layout_test).
     Offset(16, 441), // doodle
@@ -94,7 +98,7 @@ class SampleNotes {
     }
 
     final drag = note(0, l10n.sampleDrag, color: 0);
-    final longPress = note(1, l10n.sampleLongPress, color: 1);
+    final longPress = note(3, l10n.sampleLongPress, color: 1);
     final checklist = note(
       2,
       l10n.sampleChecklistTitle,
@@ -106,7 +110,7 @@ class SampleNotes {
         ChecklistItem(text: l10n.sampleChecklist3),
       ],
     );
-    final thread = note(3, l10n.sampleThread, color: 2);
+    final thread = note(1, l10n.sampleThread, color: 2);
     final drawing = note(
       4,
       l10n.sampleDrawing,

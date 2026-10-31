@@ -722,20 +722,111 @@ class AppLocalizationsVi extends AppLocalizations {
   String get exportData => 'Sao lưu ghi chú';
 
   @override
-  String get importData => 'Khôi phục bản sao lưu';
+  String get importData => 'Nạp bản sao lưu';
 
   @override
   String get importHint => 'Dán bản sao lưu vào đây';
 
   @override
-  String get importSuccess => 'Đã khôi phục thành công';
+  String get importSuccess => 'Đã nạp bản sao lưu';
 
   @override
   String get importFailed => 'Không đọc được bản sao lưu';
 
   @override
   String get importReplaceWarning =>
-      'Khôi phục sẽ thay thế toàn bộ tường và ghi chú hiện tại.';
+      'Nạp bản sao lưu sẽ thay thế toàn bộ tường và ghi chú hiện tại.';
+
+  @override
+  String get importChooseFile => 'Chọn tệp';
+
+  @override
+  String get importNotJson =>
+      'Đây không phải tệp sao lưu: nội dung không đúng định dạng JSON. Hãy dán trọn cả tệp, không thiếu đoạn nào.';
+
+  @override
+  String get importNotBackup => 'Đây không phải bản sao lưu của Sticky Wall.';
+
+  @override
+  String get importNewerVersion =>
+      'Bản sao lưu này được tạo bởi phiên bản Sticky Wall mới hơn. Hãy cập nhật ứng dụng rồi thử lại.';
+
+  @override
+  String get backupFailed => 'Không tạo được bản sao lưu';
+
+  @override
+  String get backupShareSubject => 'Bản sao lưu Sticky Wall';
+
+  @override
+  String restoredTo(String board) {
+    return 'Đã khôi phục vào “$board”';
+  }
+
+  @override
+  String get shareFailed => 'Không chia sẻ được';
+
+  @override
+  String get share => 'Chia sẻ';
+
+  @override
+  String get cropDone => 'Cắt xong';
+
+  @override
+  String get penThin => 'Bút nét mảnh';
+
+  @override
+  String get penMedium => 'Bút nét vừa';
+
+  @override
+  String get penThick => 'Bút nét đậm';
+
+  @override
+  String get colorInk => 'Mực';
+
+  @override
+  String get colorChalk => 'Phấn trắng';
+
+  @override
+  String get colorRed => 'Đỏ';
+
+  @override
+  String get colorOrange => 'Cam';
+
+  @override
+  String get colorAmber => 'Vàng nghệ';
+
+  @override
+  String get colorGreen => 'Xanh lá';
+
+  @override
+  String get colorBlue => 'Xanh dương';
+
+  @override
+  String get colorViolet => 'Tím';
+
+  @override
+  String get colorPink => 'Hồng';
+
+  @override
+  String get toneWhite => 'Giấy trắng';
+
+  @override
+  String get toneCream => 'Giấy kem';
+
+  @override
+  String get toneBlush => 'Giấy hồng phấn';
+
+  @override
+  String get toneSky => 'Giấy xanh trời';
+
+  @override
+  String get toneMint => 'Giấy bạc hà';
+
+  @override
+  String get toneKraft => 'Giấy kraft';
+
+  @override
+  String get toneChalkboard => 'Bảng đen';
 
   @override
   String get discardChangesTitle => 'Bỏ các thay đổi?';
@@ -759,4 +850,150 @@ class AppLocalizationsVi extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get reminderInPast => 'Giờ đó đã qua — hãy chọn giờ muộn hơn.';
+
+  @override
+  String get notificationsOff =>
+      'Thông báo của Sticky Wall đang tắt nên lời nhắc này sẽ không reo. Hãy bật lại trong cài đặt của máy.';
+
+  @override
+  String get removeReminder => 'Bỏ lời nhắc';
+
+  @override
+  String typeChangeDrops(String type) {
+    return 'Lưu thành “$type”? Hình vẽ hoặc địa chỉ link sẽ không được giữ lại.';
+  }
+
+  @override
+  String get saveAnyway => 'Vẫn lưu';
+
+  @override
+  String get paperAuto => 'Màu tự động';
+
+  @override
+  String get paperYellow => 'Vàng';
+
+  @override
+  String get paperPink => 'Hồng';
+
+  @override
+  String get paperMint => 'Xanh bạc hà';
+
+  @override
+  String get paperBlue => 'Xanh dương';
+
+  @override
+  String get paperOrange => 'Cam';
+
+  @override
+  String get paperLilac => 'Tím nhạt';
+
+  @override
+  String get swatchRed => 'Đỏ';
+
+  @override
+  String get swatchOrange => 'Cam';
+
+  @override
+  String get swatchGold => 'Vàng';
+
+  @override
+  String get swatchGreen => 'Xanh lá';
+
+  @override
+  String get swatchBlue => 'Xanh dương';
+
+  @override
+  String get swatchPurple => 'Tím';
+
+  @override
+  String get swatchInk => 'Mực';
+
+  @override
+  String get swatchChalk => 'Phấn trắng';
+
+  @override
+  String get locked => 'Đã khóa';
+
+  @override
+  String get selectHint => 'Chạm vào ghi chú, hoặc khoanh một vòng quanh chúng';
+
+  @override
+  String filterShowing(String what) {
+    return 'Đang lọc: $what';
+  }
+
+  @override
+  String get clearFilter => 'Bỏ lọc';
+
+  @override
+  String get undoMove => 'Hoàn tác di chuyển';
+
+  @override
+  String get undoResize => 'Hoàn tác đổi cỡ';
+
+  @override
+  String get undoRotate => 'Hoàn tác xoay';
+
+  @override
+  String get undoTidy => 'Hoàn tác sắp xếp';
+
+  @override
+  String get undoMoveBoard => 'Hoàn tác chuyển tường';
+
+  @override
+  String get clearInkConfirm => 'Xóa hết nét vẽ trên tường này?';
+
+  @override
+  String get photoMissing => 'Không tìm thấy ảnh trên máy này';
+
+  @override
+  String get photoPickFailed => 'Không mở được ảnh đó';
+
+  @override
+  String get sizeAndTurn => 'Cỡ và góc xoay';
+
+  @override
+  String get smaller => 'Nhỏ lại';
+
+  @override
+  String get larger => 'To lên';
+
+  @override
+  String get turnLeft => 'Xoay trái';
+
+  @override
+  String get turnRight => 'Xoay phải';
+
+  @override
+  String get straighten => 'Để thẳng';
+
+  @override
+  String get tieThreadTo => 'Nối dây tới…';
+
+  @override
+  String get threadsOfNote => 'Dây nối';
+
+  @override
+  String get noOtherNotes => 'Trên tường này không còn ghi chú nào khác để nối';
+
+  @override
+  String get moveBoardLeft => 'Chuyển sang trái';
+
+  @override
+  String get moveBoardRight => 'Chuyển sang phải';
+
+  @override
+  String get resize => 'Đổi cỡ';
+
+  @override
+  String get untitledNote => 'Ghi chú không tên';
+
+  @override
+  String get remindersChannel => 'Lời nhắc';
+
+  @override
+  String get remindersChannelDescription => 'Lời nhắc bạn đặt trên ghi chú';
 }

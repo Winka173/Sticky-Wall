@@ -97,6 +97,9 @@ void main() {
       await tester.longPress(find.text('Nhớ tưới cây'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: 'action sheet');
+      // The sheet is taller than a phone on its side: it scrolls.
+      await tester.ensureVisible(find.text('Select notes'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Select notes'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: 'selection bar');

@@ -1373,7 +1373,7 @@ abstract class AppLocalizations {
   /// No description provided for @importData.
   ///
   /// In en, this message translates to:
-  /// **'Restore backup'**
+  /// **'Load backup'**
   String get importData;
 
   /// No description provided for @importHint.
@@ -1385,7 +1385,7 @@ abstract class AppLocalizations {
   /// No description provided for @importSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Restored successfully'**
+  /// **'Backup loaded'**
   String get importSuccess;
 
   /// No description provided for @importFailed.
@@ -1397,8 +1397,182 @@ abstract class AppLocalizations {
   /// No description provided for @importReplaceWarning.
   ///
   /// In en, this message translates to:
-  /// **'Restoring replaces all current boards and notes.'**
+  /// **'Loading a backup replaces all current boards and notes.'**
   String get importReplaceWarning;
+
+  /// No description provided for @importChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose file'**
+  String get importChooseFile;
+
+  /// No description provided for @importNotJson.
+  ///
+  /// In en, this message translates to:
+  /// **'This isn\'t a backup file: the text is not valid JSON. Paste the whole file, with nothing cut off.'**
+  String get importNotJson;
+
+  /// No description provided for @importNotBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'This isn\'t a Sticky Wall backup.'**
+  String get importNotBackup;
+
+  /// No description provided for @importNewerVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup was made by a newer version of Sticky Wall. Update the app, then try again.'**
+  String get importNewerVersion;
+
+  /// No description provided for @backupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not make the backup'**
+  String get backupFailed;
+
+  /// No description provided for @backupShareSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticky Wall backup'**
+  String get backupShareSubject;
+
+  /// No description provided for @restoredTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored to “{board}”'**
+  String restoredTo(String board);
+
+  /// No description provided for @shareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not share'**
+  String get shareFailed;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @cropDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish trimming'**
+  String get cropDone;
+
+  /// No description provided for @penThin.
+  ///
+  /// In en, this message translates to:
+  /// **'Thin pen'**
+  String get penThin;
+
+  /// No description provided for @penMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium pen'**
+  String get penMedium;
+
+  /// No description provided for @penThick.
+  ///
+  /// In en, this message translates to:
+  /// **'Thick pen'**
+  String get penThick;
+
+  /// No description provided for @colorInk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ink'**
+  String get colorInk;
+
+  /// No description provided for @colorChalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Chalk white'**
+  String get colorChalk;
+
+  /// No description provided for @colorRed.
+  ///
+  /// In en, this message translates to:
+  /// **'Red'**
+  String get colorRed;
+
+  /// No description provided for @colorOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get colorOrange;
+
+  /// No description provided for @colorAmber.
+  ///
+  /// In en, this message translates to:
+  /// **'Amber'**
+  String get colorAmber;
+
+  /// No description provided for @colorGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get colorGreen;
+
+  /// No description provided for @colorBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get colorBlue;
+
+  /// No description provided for @colorViolet.
+  ///
+  /// In en, this message translates to:
+  /// **'Violet'**
+  String get colorViolet;
+
+  /// No description provided for @colorPink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get colorPink;
+
+  /// No description provided for @toneWhite.
+  ///
+  /// In en, this message translates to:
+  /// **'White paper'**
+  String get toneWhite;
+
+  /// No description provided for @toneCream.
+  ///
+  /// In en, this message translates to:
+  /// **'Cream paper'**
+  String get toneCream;
+
+  /// No description provided for @toneBlush.
+  ///
+  /// In en, this message translates to:
+  /// **'Blush paper'**
+  String get toneBlush;
+
+  /// No description provided for @toneSky.
+  ///
+  /// In en, this message translates to:
+  /// **'Sky paper'**
+  String get toneSky;
+
+  /// No description provided for @toneMint.
+  ///
+  /// In en, this message translates to:
+  /// **'Mint paper'**
+  String get toneMint;
+
+  /// No description provided for @toneKraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Kraft paper'**
+  String get toneKraft;
+
+  /// No description provided for @toneChalkboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Chalkboard'**
+  String get toneChalkboard;
 
   /// No description provided for @discardChangesTitle.
   ///
@@ -1429,6 +1603,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Its note is deleted for good — it doesn\'t go to the trash.} other{Its {count} notes are deleted for good — they don\'t go to the trash.}}'**
   String deleteBoardWithNotes(int count);
+
+  /// No description provided for @reminderInPast.
+  ///
+  /// In en, this message translates to:
+  /// **'That time has passed — pick a later one.'**
+  String get reminderInPast;
+
+  /// No description provided for @notificationsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are off for Sticky Wall, so this reminder won\'t ring. Turn them on in the phone\'s settings.'**
+  String get notificationsOff;
+
+  /// No description provided for @removeReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove reminder'**
+  String get removeReminder;
+
+  /// No description provided for @typeChangeDrops.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as “{type}”? Its drawing or link address won\'t be kept.'**
+  String typeChangeDrops(String type);
+
+  /// No description provided for @saveAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Save anyway'**
+  String get saveAnyway;
+
+  /// No description provided for @paperAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic colour'**
+  String get paperAuto;
+
+  /// No description provided for @paperYellow.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow'**
+  String get paperYellow;
+
+  /// No description provided for @paperPink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get paperPink;
+
+  /// No description provided for @paperMint.
+  ///
+  /// In en, this message translates to:
+  /// **'Mint'**
+  String get paperMint;
+
+  /// No description provided for @paperBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get paperBlue;
+
+  /// No description provided for @paperOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get paperOrange;
+
+  /// No description provided for @paperLilac.
+  ///
+  /// In en, this message translates to:
+  /// **'Lilac'**
+  String get paperLilac;
+
+  /// No description provided for @swatchRed.
+  ///
+  /// In en, this message translates to:
+  /// **'Red'**
+  String get swatchRed;
+
+  /// No description provided for @swatchOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get swatchOrange;
+
+  /// No description provided for @swatchGold.
+  ///
+  /// In en, this message translates to:
+  /// **'Gold'**
+  String get swatchGold;
+
+  /// No description provided for @swatchGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get swatchGreen;
+
+  /// No description provided for @swatchBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get swatchBlue;
+
+  /// No description provided for @swatchPurple.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get swatchPurple;
+
+  /// No description provided for @swatchInk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ink'**
+  String get swatchInk;
+
+  /// No description provided for @swatchChalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Chalk'**
+  String get swatchChalk;
+
+  /// No description provided for @locked.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get locked;
+
+  /// No description provided for @selectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap notes, or draw a loop round them'**
+  String get selectHint;
+
+  /// No description provided for @filterShowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing: {what}'**
+  String filterShowing(String what);
+
+  /// No description provided for @clearFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearFilter;
+
+  /// No description provided for @undoMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo move'**
+  String get undoMove;
+
+  /// No description provided for @undoResize.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo resize'**
+  String get undoResize;
+
+  /// No description provided for @undoRotate.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo turn'**
+  String get undoRotate;
+
+  /// No description provided for @undoTidy.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo tidy'**
+  String get undoTidy;
+
+  /// No description provided for @undoMoveBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo move to board'**
+  String get undoMoveBoard;
+
+  /// No description provided for @clearInkConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Wipe everything drawn on this wall?'**
+  String get clearInkConfirm;
+
+  /// No description provided for @photoMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo not found on this device'**
+  String get photoMissing;
+
+  /// No description provided for @photoPickFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open that photo'**
+  String get photoPickFailed;
+
+  /// No description provided for @sizeAndTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Size and turn'**
+  String get sizeAndTurn;
+
+  /// No description provided for @smaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Smaller'**
+  String get smaller;
+
+  /// No description provided for @larger.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger'**
+  String get larger;
+
+  /// No description provided for @turnLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn left'**
+  String get turnLeft;
+
+  /// No description provided for @turnRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn right'**
+  String get turnRight;
+
+  /// No description provided for @straighten.
+  ///
+  /// In en, this message translates to:
+  /// **'Straighten'**
+  String get straighten;
+
+  /// No description provided for @tieThreadTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Tie a thread to…'**
+  String get tieThreadTo;
+
+  /// No description provided for @threadsOfNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Threads'**
+  String get threadsOfNote;
+
+  /// No description provided for @noOtherNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'No other notes on this wall to tie to'**
+  String get noOtherNotes;
+
+  /// No description provided for @moveBoardLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Move left'**
+  String get moveBoardLeft;
+
+  /// No description provided for @moveBoardRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Move right'**
+  String get moveBoardRight;
+
+  /// No description provided for @resize.
+  ///
+  /// In en, this message translates to:
+  /// **'Resize'**
+  String get resize;
+
+  /// No description provided for @untitledNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled note'**
+  String get untitledNote;
+
+  /// No description provided for @remindersChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get remindersChannel;
+
+  /// No description provided for @remindersChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders you set on your notes'**
+  String get remindersChannelDescription;
 }
 
 class _AppLocalizationsDelegate

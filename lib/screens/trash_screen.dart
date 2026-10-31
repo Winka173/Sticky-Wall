@@ -56,20 +56,33 @@ class TrashScreen extends StatelessWidget {
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                       itemCount: trashed.length,
-                      itemBuilder: (context, i) => _TrashTile(
-                        key: ValueKey(trashed[i].guid),
-                        note: trashed[i],
-                        daysLeft: notes.daysLeft(trashed[i]),
-                        onRestore: () {
-                          notes.restore(trashed[i]);
-                          ScaffoldMessenger.of(context)
-                            ..hideCurrentSnackBar()
-                            ..showSnackBar(
-                              SnackBar(content: Text(l10n.restored)),
-                            );
-                        },
-                        onPurge: () => _confirmPurge(context, l10n, trashed[i]),
-                      ),
+                      itemBuilder: (context, i) {
+                        final note = trashed[i];
+                        return _TrashTile(
+                          key: ValueKey(note.guid),
+                          note: note,
+                          boardName: _boardName(l10n, note.boardId),
+                          daysLeft: notes.daysLeft(note),
+                          onRestore: () {
+                            notes.restore(note);
+                            // Restore falls back to the first board when the
+                            // note's own is gone; say where it really went.
+                            final where = _boardName(l10n, note.boardId);
+                            ScaffoldMessenger.of(context)
+                              ..hideCurrentSnackBar()
+                              ..showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    where == null
+                                        ? l10n.restored
+                                        : l10n.restoredTo(where),
+                                  ),
+                                ),
+                              );
+                          },
+                          onPurge: () => _confirmPurge(context, l10n, note),
+                        );
+                      },
                     ),
             ),
           ],
@@ -78,7 +91,18 @@ class TrashScreen extends StatelessWidget {
     );
   }
 
-  /// Delete forever sits right under Restore: one stray tap must not cost
+  /// The name of the board with [id] as its tab shows it, or null when that
+  /// board has been deleted.
+  String? _boardName(AppLocalizations l10n, String id) {
+    for (final b in notes.boards) {
+      if (b.id != id) continue;
+      final name = b.name.isEmpty ? l10n.defaultBoardName : b.name;
+      return b.icon.isEmpty ? name : '${b.icon} $name';
+    }
+    return null;
+  }
+
+  /// Delete forever sits right beside Restore: one stray tap must not cost
   /// the note.
   Future<void> _confirmPurge(
     BuildContext context,
@@ -118,7 +142,8 @@ class TrashScreen extends StatelessWidget {
             onPressed: () => Navigator.pop(context, false),
             child: Text(l10n.cancel),
           ),
-          FilledButton(
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.deleteIcon),
             onPressed: () => Navigator.pop(context, true),
             child: Text(l10n.deleteForever),
           ),
@@ -129,18 +154,26 @@ class TrashScreen extends StatelessWidget {
   }
 }
 
-/// One deleted note: a preview, when it was deleted and how long it has
-/// left, plus restore / delete-forever buttons.
+/// Red for words on the note's paper: at least 6.5:1 on every day paper and
+/// 4.8:1 with the lights off, where [AppColors.deleteIcon] drops to ~2.5:1.
+const _paperRed = Color(0xFF7A1414);
+
+/// One deleted note: a preview, where it came from, when it was deleted and
+/// how long it has left, then labelled restore / delete-forever buttons.
 class _TrashTile extends StatelessWidget {
   const _TrashTile({
     super.key,
     required this.note,
+    required this.boardName,
     required this.daysLeft,
     required this.onRestore,
     required this.onPurge,
   });
 
   final Note note;
+
+  /// The board the note was on; null when that board no longer exists.
+  final String? boardName;
   final int daysLeft;
   final VoidCallback onRestore;
   final VoidCallback onPurge;
@@ -170,61 +203,66 @@ class _TrashTile extends StatelessWidget {
         '${ml.formatTimeOfDay(TimeOfDay.fromDateTime(deleted))}';
     final scale = Theme.of(context).extension<NoteTextScale>()?.scale ?? 1;
     final expiring = daysLeft <= 3;
+    final board = boardName;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Container(
         decoration: paperDecoration(context, note),
-        padding: const EdgeInsets.fromLTRB(14, 10, 6, 6),
-        child: Row(
+        padding: const EdgeInsets.fromLTRB(14, 10, 8, 4),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: Text(
+                note.emoji.isEmpty
+                    ? _preview(l10n)
+                    : '${note.emoji} ${_preview(l10n)}',
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 16 * scale,
+                  height: 1.3,
+                  color: AppColors.ink,
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text.rich(
+              TextSpan(
                 children: [
-                  Text(
-                    note.emoji.isEmpty
-                        ? _preview(l10n)
-                        : '${note.emoji} ${_preview(l10n)}',
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 16 * scale,
-                      height: 1.3,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${l10n.deletedOn(when)} · ${l10n.daysLeft(daysLeft)}',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: expiring
-                          ? AppColors.deleteIcon
-                          : AppColors.inkSoft,
-                      fontWeight: expiring ? FontWeight.bold : null,
-                    ),
+                  if (board != null) TextSpan(text: '$board · '),
+                  TextSpan(text: '${l10n.deletedOn(when)} · '),
+                  TextSpan(
+                    text: l10n.daysLeft(daysLeft),
+                    style: expiring
+                        ? const TextStyle(
+                            color: _paperRed,
+                            fontWeight: FontWeight.bold,
+                          )
+                        : null,
                   ),
                 ],
               ),
+              style: const TextStyle(fontSize: 12.5, color: AppColors.inkSoft),
             ),
-            Column(
+            // Labelled actions along the bottom: icon-only buttons stacked
+            // at the side read as decoration and left the card half empty.
+            OverflowBar(
+              alignment: MainAxisAlignment.end,
+              overflowAlignment: OverflowBarAlignment.end,
               children: [
-                IconButton(
-                  tooltip: l10n.restore,
-                  icon: const Icon(
-                    Icons.restore_from_trash_outlined,
-                    color: AppColors.ink,
-                  ),
+                TextButton.icon(
+                  style: TextButton.styleFrom(foregroundColor: AppColors.ink),
+                  icon: const Icon(Icons.restore_from_trash_outlined),
+                  label: Text(l10n.restore),
                   onPressed: onRestore,
                 ),
-                IconButton(
-                  tooltip: l10n.deleteForever,
-                  icon: const Icon(
-                    Icons.delete_forever_outlined,
-                    color: AppColors.deleteIcon,
-                  ),
+                TextButton.icon(
+                  style: TextButton.styleFrom(foregroundColor: _paperRed),
+                  icon: const Icon(Icons.delete_forever_outlined),
+                  label: Text(l10n.deleteForever),
                   onPressed: onPurge,
                 ),
               ],

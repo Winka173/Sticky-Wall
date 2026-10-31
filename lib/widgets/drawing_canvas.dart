@@ -148,7 +148,43 @@ const _penColors = [
   0xFFD81B60, // pink
 ];
 
+/// Spoken names for [_penColors], in the same order.
+List<String> _penColorNames(AppLocalizations l10n) => [
+  l10n.colorInk,
+  l10n.colorChalk,
+  l10n.colorRed,
+  l10n.colorOrange,
+  l10n.colorAmber,
+  l10n.colorGreen,
+  l10n.colorBlue,
+  l10n.colorViolet,
+  l10n.colorPink,
+];
+
+/// Spoken names for [DrawCanvas.tones], in the same order.
+List<String> _toneNames(AppLocalizations l10n) => [
+  l10n.toneWhite,
+  l10n.toneCream,
+  l10n.toneBlush,
+  l10n.toneSky,
+  l10n.toneMint,
+  l10n.toneKraft,
+  l10n.toneChalkboard,
+];
+
 const _penWidths = [2.5, 5.0, 10.0];
+
+/// Height of every tap target in the editor's controls (Material's 48 dp).
+/// Rows share their width out evenly, so a row of swatches is one unbroken
+/// strip of targets with no dead gaps between them.
+const _target = 48.0;
+
+/// The most a row stretches each target, so a wide screen keeps the
+/// swatches together instead of spreading them edge to edge.
+Widget _evenRow(List<Widget> children) => ConstrainedBox(
+  constraints: BoxConstraints(maxWidth: children.length * _target),
+  child: Row(children: [for (final c in children) Expanded(child: c)]),
+);
 
 /// How far (logical px) from the finger a stroke counts as touched by the
 /// eraser.
@@ -319,8 +355,7 @@ class _DrawingEditorState extends State<DrawingEditor> {
       children: [
         _surface(),
         const SizedBox(height: 8),
-        _colorRow(),
-        const SizedBox(height: 2),
+        _colorRow(l10n),
         _toolRow(l10n),
         AnimatedSize(
           duration: const Duration(milliseconds: 180),
@@ -384,58 +419,122 @@ class _DrawingEditorState extends State<DrawingEditor> {
   }
 
   /// Pen colors; picking one also switches back to the pen.
-  Widget _colorRow() {
-    return Wrap(
-      spacing: 2,
-      runSpacing: 2,
-      children: [
-        for (final c in _penColors)
-          _Swatch(
-            color: Color(c),
-            selected: _tool == _Tool.pen && _color == c,
-            onTap: () => setState(() {
-              _color = c;
-              _tool = _Tool.pen;
-            }),
-          ),
-      ],
-    );
+  Widget _colorRow(AppLocalizations l10n) {
+    final names = _penColorNames(l10n);
+    return _evenRow([
+      for (var i = 0; i < _penColors.length; i++)
+        _Swatch(
+          color: Color(_penColors[i]),
+          label: names[i],
+          selected: _tool == _Tool.pen && _color == _penColors[i],
+          onTap: () => setState(() {
+            _color = _penColors[i];
+            _tool = _Tool.pen;
+          }),
+        ),
+    ]);
   }
 
   /// Pen sizes, eraser, history and the canvas panel toggle.
   Widget _toolRow(AppLocalizations l10n) {
     final hasStrokes = widget.strokes.isNotEmpty;
-    return Wrap(
-      spacing: 0,
-      runSpacing: 2,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        // Three pen sizes, drawn at their real thickness.
-        for (final w in _penWidths)
-          Tooltip(
-            message: l10n.penSize,
-            child: InkResponse(
-              radius: 16,
-              onTap: () {
-                HapticFeedback.selectionClick();
-                setState(() {
-                  _width = w;
-                  _tool = _Tool.pen;
-                });
-              },
+    final sizeNames = [l10n.penThin, l10n.penMedium, l10n.penThick];
+    return _evenRow([
+      // Three pen sizes, drawn at their real thickness.
+      for (var i = 0; i < _penWidths.length; i++)
+        _PenSize(
+          width: _penWidths[i],
+          label: sizeNames[i],
+          selected: _tool == _Tool.pen && _width == _penWidths[i],
+          onTap: () {
+            HapticFeedback.selectionClick();
+            setState(() {
+              _width = _penWidths[i];
+              _tool = _Tool.pen;
+            });
+          },
+        ),
+      _ToolButton(
+        tooltip: l10n.eraser,
+        icon: Icons.auto_fix_normal_outlined,
+        activeIcon: Icons.auto_fix_normal,
+        active: _tool == _Tool.eraser,
+        onPressed: () => setState(
+          () => _tool = _tool == _Tool.eraser ? _Tool.pen : _Tool.eraser,
+        ),
+      ),
+      _ToolButton(
+        tooltip: l10n.undo,
+        icon: Icons.undo,
+        onPressed: _past.isNotEmpty ? _undo : null,
+      ),
+      _ToolButton(
+        tooltip: l10n.redo,
+        icon: Icons.redo,
+        onPressed: _future.isNotEmpty ? _redo : null,
+      ),
+      _ToolButton(
+        tooltip: l10n.clear,
+        icon: Icons.delete_sweep_outlined,
+        onPressed: hasStrokes ? _clear : null,
+      ),
+      _ToolButton(
+        tooltip: l10n.canvasSection,
+        icon: Icons.texture_outlined,
+        activeIcon: Icons.texture,
+        active: _canvasPanel,
+        onPressed: () => setState(() => _canvasPanel = !_canvasPanel),
+      ),
+    ]);
+  }
+}
+
+/// One pen size: a dot at the stroke's real thickness, ringed when chosen.
+class _PenSize extends StatelessWidget {
+  const _PenSize({
+    required this.width,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final double width;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: label,
+      excludeFromSemantics: true,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: InkResponse(
+          radius: 22,
+          onTap: onTap,
+          child: SizedBox(
+            height: _target,
+            child: Center(
               child: Container(
                 width: 30,
                 height: 30,
                 alignment: Alignment.center,
+                // Chosen: a tint and an ink ring, so it shows without colour.
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _tool == _Tool.pen && _width == w
+                  color: selected
                       ? AppColors.ink.withValues(alpha: 0.14)
+                      : null,
+                  border: selected
+                      ? Border.all(color: AppColors.ink, width: 1.5)
                       : null,
                 ),
                 child: Container(
-                  width: w + 3,
-                  height: w + 3,
+                  width: width + 3,
+                  height: width + 3,
                   decoration: const BoxDecoration(
                     color: AppColors.ink,
                     shape: BoxShape.circle,
@@ -444,38 +543,8 @@ class _DrawingEditorState extends State<DrawingEditor> {
               ),
             ),
           ),
-        _ToolButton(
-          tooltip: l10n.eraser,
-          icon: Icons.auto_fix_normal_outlined,
-          active: _tool == _Tool.eraser,
-          onPressed: () => setState(
-            () => _tool = _tool == _Tool.eraser ? _Tool.pen : _Tool.eraser,
-          ),
         ),
-        const SizedBox(width: 6),
-        _ToolButton(
-          tooltip: l10n.undo,
-          icon: Icons.undo,
-          onPressed: _past.isNotEmpty ? _undo : null,
-        ),
-        _ToolButton(
-          tooltip: l10n.redo,
-          icon: Icons.redo,
-          onPressed: _future.isNotEmpty ? _redo : null,
-        ),
-        _ToolButton(
-          tooltip: l10n.clear,
-          icon: Icons.delete_sweep_outlined,
-          onPressed: hasStrokes ? _clear : null,
-        ),
-        const SizedBox(width: 6),
-        _ToolButton(
-          tooltip: l10n.canvasSection,
-          icon: Icons.texture_outlined,
-          active: _canvasPanel,
-          onPressed: () => setState(() => _canvasPanel = !_canvasPanel),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -515,91 +584,108 @@ class _CanvasPanel extends StatelessWidget {
           // Guide patterns on one line, paper tones on the next, so neither
           // set breaks mid-row on a narrow sheet.
           Wrap(
-            spacing: 8,
-            runSpacing: 4,
             children: [
               for (final p in CanvasPattern.values)
                 Tooltip(
                   message: _patternLabel(p),
-                  child: GestureDetector(
-                    onTap: () => onChanged(canvas.copyWith(pattern: p)),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: canvas.pattern == p
-                              ? AppColors.ink
-                              : Colors.black26,
-                          width: canvas.pattern == p ? 2.5 : 1,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: DrawingSurface(
-                          strokes: const [],
-                          canvas: canvas.copyWith(pattern: p),
-                        ),
+                  excludeFromSemantics: true,
+                  child: Semantics(
+                    button: true,
+                    selected: canvas.pattern == p,
+                    label: _patternLabel(p),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => onChanged(canvas.copyWith(pattern: p)),
+                      // The 40 px sheet sits in a 48 px target.
+                      child: SizedBox.square(
+                        dimension: _target,
+                        child: Center(child: _patternTile(p)),
                       ),
                     ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 4),
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children: [
-              for (final tone in DrawCanvas.tones)
-                _Swatch(
-                  color: Color(tone),
-                  selected: canvas.color == tone,
-                  square: true,
-                  onTap: () => onChanged(canvas.copyWith(color: tone)),
-                ),
-            ],
-          ),
+          _evenRow([
+            for (var i = 0; i < DrawCanvas.tones.length; i++)
+              _Swatch(
+                color: Color(DrawCanvas.tones[i]),
+                label: _toneNames(l10n)[i],
+                selected: canvas.color == DrawCanvas.tones[i],
+                square: true,
+                onTap: () =>
+                    onChanged(canvas.copyWith(color: DrawCanvas.tones[i])),
+              ),
+          ]),
         ],
+      ),
+    );
+  }
+
+  Widget _patternTile(CanvasPattern p) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: canvas.pattern == p ? AppColors.ink : Colors.black26,
+          width: canvas.pattern == p ? 2.5 : 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: DrawingSurface(
+          strokes: const [],
+          canvas: canvas.copyWith(pattern: p),
+        ),
       ),
     );
   }
 }
 
-/// A colour chip: a pen colour (round) or a paper tone (square).
+/// A colour chip: a pen colour (round) or a paper tone (square). The chip
+/// keeps its size; the tap target around it is the full [_target] height and
+/// whatever width its row gives it.
 class _Swatch extends StatelessWidget {
   const _Swatch({
     required this.color,
+    required this.label,
     required this.selected,
     required this.onTap,
     this.square = false,
   });
 
   final Color color;
+  final String label;
   final bool selected;
   final bool square;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 30,
-        height: square ? 40 : 30,
-        child: Center(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            width: selected ? 28 : 22,
-            height: selected ? 28 : 22,
-            decoration: BoxDecoration(
-              color: color,
-              shape: square ? BoxShape.rectangle : BoxShape.circle,
-              borderRadius: square ? BorderRadius.circular(5) : null,
-              border: Border.all(
-                color: selected ? AppColors.ink : Colors.black26,
-                width: selected ? 2.5 : 1,
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          height: _target,
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              width: selected ? 28 : 22,
+              height: selected ? 28 : 22,
+              decoration: BoxDecoration(
+                color: color,
+                shape: square ? BoxShape.rectangle : BoxShape.circle,
+                borderRadius: square ? BorderRadius.circular(5) : null,
+                border: Border.all(
+                  color: selected ? AppColors.ink : Colors.black26,
+                  width: selected ? 2.5 : 1,
+                ),
               ),
             ),
           ),
@@ -609,17 +695,21 @@ class _Swatch extends StatelessWidget {
   }
 }
 
-/// A compact icon button for the drawing toolbar; [selected] fills it.
+/// An icon button for the drawing toolbar. [active] swaps in the filled
+/// glyph and a tint, so the state shows by shape as well as by colour; a
+/// disabled one stays at 3.5:1 on the paper so it can still be read.
 class _ToolButton extends StatelessWidget {
   const _ToolButton({
     required this.tooltip,
     required this.icon,
     required this.onPressed,
+    this.activeIcon,
     this.active = false,
   });
 
   final String tooltip;
   final IconData icon;
+  final IconData? activeIcon;
   final VoidCallback? onPressed;
   final bool active;
 
@@ -627,13 +717,15 @@ class _ToolButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       tooltip: tooltip,
-      visualDensity: VisualDensity.compact,
-      color: AppColors.ink,
       isSelected: active,
       style: IconButton.styleFrom(
+        foregroundColor: AppColors.ink,
+        disabledForegroundColor: AppColors.ink.withValues(alpha: 0.6),
         backgroundColor: active ? AppColors.ink.withValues(alpha: 0.14) : null,
+        minimumSize: const Size(36, _target),
+        padding: EdgeInsets.zero,
       ),
-      icon: Icon(icon, size: 21),
+      icon: Icon(active ? activeIcon ?? icon : icon, size: 21),
       onPressed: onPressed,
     );
   }

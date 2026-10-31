@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
 import '../services/image_service.dart';
+import '../services/reminder_service.dart';
 import '../theme.dart';
 import 'action_sheet.dart';
 import 'drawing_canvas.dart';
@@ -111,6 +112,10 @@ class _NoteDialogState extends State<_NoteDialog>
   late final String _initial;
 
   String? _error;
+
+  /// Set when the system refused notifications, so a reminder would be set
+  /// but never ring.
+  bool _notificationsOff = false;
   bool _showEmoji = false;
   bool _showColors = false;
 
@@ -154,7 +159,8 @@ class _NoteDialogState extends State<_NoteDialog>
   void _fail(String message) {
     HapticFeedback.heavyImpact();
     setState(() => _error = message);
-    _shake.forward(from: 0);
+    // The words and the buzz carry it; the shake is extra motion.
+    if (!MediaQuery.disableAnimationsOf(context)) _shake.forward(from: 0);
   }
 
   // --- saving ----------------------------------------------------------------
@@ -216,7 +222,7 @@ class _NoteDialogState extends State<_NoteDialog>
       .replaceFirst(RegExp(r'^www\.'), '')
       .replaceFirst(RegExp(r'/+$'), '');
 
-  void _save() {
+  Future<void> _save() async {
     final l10n = AppLocalizations.of(context)!;
     final content = _content.text.trim();
     final url = _url.text.trim();
@@ -259,8 +265,41 @@ class _NoteDialogState extends State<_NoteDialog>
       return;
     }
 
+    // A list saved as text keeps its items as bullet lines rather than
+    // losing them; a sketch or an address has no text form, so ask first.
+    final items = [
+      for (final i in _n.checklist)
+        if (i.text.isNotEmpty) i.text,
+    ];
+    final dropsDrawing = _n.type != NoteType.drawing && _n.strokes.isNotEmpty;
+    final dropsLink = _n.type != NoteType.link && url.isNotEmpty;
+    if (dropsDrawing || dropsLink) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          content: Text(l10n.typeChangeDrops(_typeName(l10n, _n.type))),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.keepEditing),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l10n.saveAnyway),
+            ),
+          ],
+        ),
+      );
+      if (ok != true || !mounted) return;
+    }
+    var text = content;
+    if (_n.type != NoteType.checklist && items.isNotEmpty) {
+      final bullets = items.map((t) => '- $t').join('\n');
+      text = text.isEmpty ? bullets : '$text\n$bullets';
+    }
+
     // An untitled link shows its address on the card.
-    _n.content = content.isEmpty && _n.type == NoteType.link ? url : content;
+    _n.content = text.isEmpty && _n.type == NoteType.link ? url : text;
     _n.url = _n.type == NoteType.link ? url : '';
     if (_n.type == NoteType.checklist) {
       _n.checklist.removeWhere((i) => i.text.isEmpty);
@@ -272,6 +311,15 @@ class _NoteDialogState extends State<_NoteDialog>
     _saved = true;
     Navigator.of(context).pop(_n);
   }
+
+  static String _typeName(AppLocalizations l10n, NoteType t) => switch (t) {
+    NoteType.normal => l10n.typeNormal,
+    NoteType.link => l10n.typeLink,
+    NoteType.checklist => l10n.typeChecklist,
+    NoteType.drawing => l10n.typeDrawing,
+    NoteType.photo => l10n.typePhoto,
+    NoteType.label => l10n.typeLabel,
+  };
 
   // --- reminder / photo / checklist ---------------------------------------------
 
@@ -295,15 +343,21 @@ class _NoteDialogState extends State<_NoteDialog>
       initialTime: TimeOfDay.fromDateTime(initial),
     );
     if (time == null || !mounted) return;
-    setState(() {
-      _n.reminderAt = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-    });
+    final at = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
+    // A one-off reminder in the past would be saved and never ring.
+    if (_n.repeat == ReminderRepeat.none && at.isBefore(DateTime.now())) {
+      _fail(AppLocalizations.of(context)!.reminderInPast);
+      return;
+    }
+    setState(() => _n.reminderAt = at);
+    final allowed = await ReminderService.requestPermission();
+    if (mounted) setState(() => _notificationsOff = !allowed);
   }
 
   /// Attaches a photo from the gallery or camera, replacing the current one.
@@ -318,7 +372,9 @@ class _NoteDialogState extends State<_NoteDialog>
         _error = null;
       });
     } catch (_) {
-      // Permission denied, camera error, I/O — leave the note unchanged.
+      // Permission denied, camera error, I/O: the note stays as it was, and
+      // the line under the paper says why nothing happened.
+      if (mounted) _fail(AppLocalizations.of(context)!.photoPickFailed);
     }
   }
 
@@ -382,106 +438,119 @@ class _NoteDialogState extends State<_NoteDialog>
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _close();
       },
-      child: Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: SingleChildScrollView(
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.topCenter,
-            children: [
-              AnimatedBuilder(
-                animation: _shake,
-                builder: (context, child) {
-                  final t = _shake.value;
-                  final dx = math.sin(t * math.pi * 4) * 6 * (1 - t);
-                  return Transform.translate(
-                    offset: Offset(dx, 0),
-                    child: child,
-                  );
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: _paperWidth,
-                  margin: const EdgeInsets.only(top: 9),
-                  decoration: BoxDecoration(
-                    color: paper,
-                    borderRadius: BorderRadius.circular(AppRadii.paper),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black45,
-                        blurRadius: 20,
-                        offset: Offset(3, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _topStrip(l10n),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (_n.hasPhoto || isPhoto) _photoTile(l10n),
-                            _writingArea(l10n),
-                            if (_n.type == NoteType.link) _urlField(l10n),
-                            if (_n.type == NoteType.checklist)
-                              _checklistEditor(l10n),
-                            if (_n.type == NoteType.drawing) ...[
-                              const SizedBox(height: 8),
-                              DrawingEditor(
-                                strokes: _n.strokes,
-                                canvas: _n.canvas,
-                                onChanged: () => setState(() => _error = null),
-                                onCanvasChanged: (c) =>
-                                    setState(() => _n.canvas = c),
+      // Opening the editor announces what it is for.
+      child: Semantics(
+        scopesRoute: true,
+        namesRoute: true,
+        explicitChildNodes: true,
+        label: widget.isNew ? l10n.addNote : l10n.edit,
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 24,
+          ),
+          child: SingleChildScrollView(
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.topCenter,
+              children: [
+                AnimatedBuilder(
+                  animation: _shake,
+                  builder: (context, child) {
+                    final t = _shake.value;
+                    final dx = math.sin(t * math.pi * 4) * 6 * (1 - t);
+                    return Transform.translate(
+                      offset: Offset(dx, 0),
+                      child: child,
+                    );
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: _paperWidth,
+                    margin: const EdgeInsets.only(top: 9),
+                    decoration: BoxDecoration(
+                      color: paper,
+                      borderRadius: BorderRadius.circular(AppRadii.paper),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black45,
+                          blurRadius: 20,
+                          offset: Offset(3, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _topStrip(l10n),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (_n.hasPhoto || isPhoto) _photoTile(l10n),
+                              _writingArea(l10n),
+                              if (_n.type == NoteType.link) _urlField(l10n),
+                              if (_n.type == NoteType.checklist)
+                                _checklistEditor(l10n),
+                              if (_n.type == NoteType.drawing) ...[
+                                const SizedBox(height: 8),
+                                DrawingEditor(
+                                  strokes: _n.strokes,
+                                  canvas: _n.canvas,
+                                  onChanged: () =>
+                                      setState(() => _error = null),
+                                  onCanvasChanged: (c) =>
+                                      setState(() => _n.canvas = c),
+                                ),
+                              ],
+                              _errorLine(),
+                              if (_n.reminderAt != null) _reminderLine(l10n),
+                              if (_n.reminderAt != null && _notificationsOff)
+                                _notificationsOffLine(l10n),
+                              const SizedBox(height: 10),
+                              _toolRow(l10n),
+                              AnimatedSize(
+                                duration: const Duration(milliseconds: 180),
+                                curve: Curves.easeOut,
+                                alignment: Alignment.topCenter,
+                                child: _showEmoji
+                                    ? _emojiStrip()
+                                    : _showColors
+                                    ? _colorRow(l10n)
+                                    : const SizedBox(width: double.infinity),
                               ),
                             ],
-                            _errorLine(),
-                            if (_n.reminderAt != null) _reminderLine(l10n),
-                            const SizedBox(height: 10),
-                            _toolRow(l10n),
-                            AnimatedSize(
-                              duration: const Duration(milliseconds: 180),
-                              curve: Curves.easeOut,
-                              alignment: Alignment.topCenter,
-                              child: _showEmoji
-                                  ? _emojiStrip()
-                                  : _showColors
-                                  ? _colorRow()
-                                  : const SizedBox(width: double.infinity),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              // The pin doubles as the pin-to-top toggle.
-              Positioned(
-                top: 0,
-                child: Tooltip(
-                  message: _n.pinned ? l10n.unpin : l10n.pin,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      setState(() => _n.pinned = !_n.pinned);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: NotePin(pinned: _n.pinned),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
+                // The pin doubles as the pin-to-top toggle.
+                Positioned(
+                  top: 0,
+                  child: Tooltip(
+                    message: _n.pinned ? l10n.unpin : l10n.pin,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _n.pinned = !_n.pinned);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: NotePin(pinned: _n.pinned),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -522,9 +591,9 @@ class _NoteDialogState extends State<_NoteDialog>
                   customBorder: const CircleBorder(),
                   onTap: _save,
                   child: const SizedBox(
-                    width: 34,
-                    height: 34,
-                    child: Icon(Icons.check, size: 20, color: AppColors.chalk),
+                    width: 40,
+                    height: 40,
+                    child: Icon(Icons.check, size: 22, color: AppColors.chalk),
                   ),
                 ),
               ),
@@ -581,17 +650,15 @@ class _NoteDialogState extends State<_NoteDialog>
             child: NotePhoto(path: _n.imagePath, maxHeight: 220, radius: 6),
           ),
           Positioned(
-            top: 6,
-            right: 6,
-            child: GestureDetector(
-              onTap: _removePhoto,
-              child: Tooltip(
-                message: l10n.delete,
-                child: const CircleAvatar(
-                  backgroundColor: Colors.black54,
-                  radius: 12,
-                  child: Icon(Icons.close, size: 14, color: Colors.white),
-                ),
+            top: 0,
+            right: 0,
+            child: IconButton(
+              tooltip: l10n.removePhoto,
+              onPressed: _removePhoto,
+              icon: const CircleAvatar(
+                backgroundColor: Colors.black54,
+                radius: 14,
+                child: Icon(Icons.close, size: 16, color: Colors.white),
               ),
             ),
           ),
@@ -649,7 +716,7 @@ class _NoteDialogState extends State<_NoteDialog>
             : isLabel
             ? l10n.labelHint
             : l10n.title,
-        hintStyle: style.copyWith(color: _ink.withValues(alpha: 0.35)),
+        hintStyle: style.copyWith(color: AppColors.inkHint),
       ),
       maxLines: isNormal
           ? null
@@ -700,15 +767,13 @@ class _NoteDialogState extends State<_NoteDialog>
   /// typed into the text (`**bold**`, `*italic*`, `- item`) and the card
   /// renders them — what you see here is the recipe, the wall the dish.
   Widget _formatRow(AppLocalizations l10n) {
-    final faint = _ink.withValues(alpha: 0.5);
     Widget button(String tooltip, IconData icon, VoidCallback onTap) =>
         IconButton(
           tooltip: tooltip,
           icon: Icon(icon, size: 20),
-          color: faint,
+          color: _ink,
           padding: EdgeInsets.zero,
-          visualDensity: VisualDensity.compact,
-          constraints: const BoxConstraints.tightFor(width: 34, height: 30),
+          constraints: const BoxConstraints.tightFor(width: 44, height: 44),
           onPressed: onTap,
         );
     return Padding(
@@ -785,26 +850,31 @@ class _NoteDialogState extends State<_NoteDialog>
       alignment: Alignment.topLeft,
       child: _error == null
           ? const SizedBox(width: double.infinity)
-          : Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 16,
-                    color: AppColors.deleteIcon,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.deleteIcon,
+          // Announced as it appears: the shake alone says nothing to a
+          // screen reader.
+          : Semantics(
+              liveRegion: true,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 16,
+                      color: AppColors.warnText,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        _error!,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.warnText,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
     );
@@ -838,10 +908,7 @@ class _NoteDialogState extends State<_NoteDialog>
                 border: InputBorder.none,
                 isDense: true,
                 hintText: l10n.link,
-                hintStyle: TextStyle(
-                  fontSize: 16,
-                  color: _ink.withValues(alpha: 0.35),
-                ),
+                hintStyle: TextStyle(fontSize: 16, color: AppColors.inkHint),
               ),
             ),
           ),
@@ -862,6 +929,7 @@ class _NoteDialogState extends State<_NoteDialog>
           Row(
             children: [
               Checkbox(
+                semanticLabel: _items[i].controller.text,
                 value: _n.checklist[i].done,
                 activeColor: _ink,
                 visualDensity: VisualDensity.compact,
@@ -937,9 +1005,7 @@ class _NoteDialogState extends State<_NoteDialog>
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   hintText: l10n.addItem,
-                  hintStyle: itemStyle.copyWith(
-                    color: _ink.withValues(alpha: 0.35),
-                  ),
+                  hintStyle: itemStyle.copyWith(color: AppColors.inkHint),
                 ),
               ),
             ),
@@ -963,7 +1029,7 @@ class _NoteDialogState extends State<_NoteDialog>
     // For a repeating reminder show when it rings *next*, not when it began.
     final at = _n.nextReminder()!;
     final overdue = !repeats && at.isBefore(DateTime.now());
-    final color = overdue ? AppColors.deleteIcon : _ink.withValues(alpha: 0.7);
+    final color = overdue ? AppColors.warnText : AppColors.inkSoft;
     final label =
         '${ml.formatMediumDate(at)} ${ml.formatTimeOfDay(TimeOfDay.fromDateTime(at))}';
     return Padding(
@@ -987,32 +1053,56 @@ class _NoteDialogState extends State<_NoteDialog>
               for (final r in ReminderRepeat.values)
                 PopupMenuItem(value: r, child: Text(repeatLabel(l10n, r))),
             ],
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: _ink.withValues(alpha: repeats ? 0.14 : 0.07),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                repeatLabel(l10n, _n.repeat),
-                style: TextStyle(
-                  fontSize: 13,
-                  color: _ink.withValues(alpha: 0.8),
+            // The pill stays small; the padding around it is the target.
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: _ink.withValues(alpha: repeats ? 0.14 : 0.07),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Text(
+                  repeatLabel(l10n, _n.repeat),
+                  style: const TextStyle(fontSize: 13, color: _ink),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 6),
-          InkResponse(
-            radius: 14,
-            onTap: () => setState(() {
+          IconButton(
+            tooltip: l10n.removeReminder,
+            color: _ink,
+            icon: const Icon(Icons.close, size: 18),
+            onPressed: () => setState(() {
               _n.reminderAt = null;
               _n.repeat = ReminderRepeat.none;
+              _notificationsOff = false;
             }),
-            child: Icon(
-              Icons.close,
-              size: 16,
-              color: _ink.withValues(alpha: 0.5),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _notificationsOffLine(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.notifications_off_outlined,
+            size: 16,
+            color: AppColors.warnText,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              l10n.notificationsOff,
+              style: const TextStyle(fontSize: 13, color: AppColors.warnText),
             ),
           ),
         ],
@@ -1020,8 +1110,9 @@ class _NoteDialogState extends State<_NoteDialog>
     );
   }
 
-  /// One compact row: note type, then photo / reminder / emote / paper color.
-  /// Scrolls sideways on very narrow screens instead of overflowing.
+  /// The note type on one row, then what can be added to it — photo,
+  /// reminder, emote, paper colour — on the next, so nothing sits scrolled
+  /// out of sight past the paper's edge.
   Widget _toolRow(AppLocalizations l10n) {
     final types = [
       (NoteType.normal, Icons.notes, l10n.typeNormal),
@@ -1031,107 +1122,123 @@ class _NoteDialogState extends State<_NoteDialog>
       (NoteType.photo, Icons.photo_outlined, l10n.typePhoto),
       (NoteType.label, Icons.label_outline, l10n.typeLabel),
     ];
-    final faint = _ink.withValues(alpha: 0.45);
     final isPhoto = _n.type == NoteType.photo;
     final isLabel = _n.type == NoteType.label;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              color: _ink.withValues(alpha: 0.07),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Row(
-              children: [
-                for (final (t, icon, label) in types)
-                  Tooltip(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: _ink.withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final (t, icon, label) in types)
+                Semantics(
+                  button: true,
+                  selected: _n.type == t,
+                  child: Tooltip(
                     message: label,
                     child: InkWell(
-                      customBorder: const CircleBorder(),
+                      customBorder: const StadiumBorder(),
                       onTap: () => _setType(t),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        width: 34,
-                        height: 32,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          color: _n.type == t ? _ink : Colors.transparent,
-                        ),
-                        child: Icon(
-                          icon,
-                          size: 19,
-                          color: _n.type == t ? AppColors.chalk : faint,
+                      child: SizedBox(
+                        width: 44,
+                        height: 40,
+                        child: Center(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            width: 40,
+                            height: 34,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(17),
+                              color: _n.type == t ? _ink : Colors.transparent,
+                            ),
+                            child: Icon(
+                              icon,
+                              size: 19,
+                              color: _n.type == t ? AppColors.chalk : _ink,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
-          const SizedBox(width: 6),
-          // A photo note already has its add tile above.
-          if (!isPhoto)
-            IconButton(
-              tooltip: _n.hasPhoto ? l10n.replacePhoto : l10n.addPhoto,
-              onPressed: () => _photoMenu(l10n),
-              color: _n.hasPhoto ? _ink : faint,
-              icon: Icon(
-                _n.hasPhoto
-                    ? Icons.photo_camera_back
-                    : Icons.photo_camera_back_outlined,
-                size: 22,
+        ),
+        const SizedBox(height: 4),
+        // Filled icons mark what the note already has; outlined, what it
+        // could have — never a faded icon that is hard to see on the paper.
+        Row(
+          children: [
+            // A photo note already has its add tile above.
+            if (!isPhoto)
+              IconButton(
+                tooltip: _n.hasPhoto ? l10n.replacePhoto : l10n.addPhoto,
+                onPressed: () => _photoMenu(l10n),
+                color: _ink,
+                icon: Icon(
+                  _n.hasPhoto
+                      ? Icons.photo_camera_back
+                      : Icons.photo_camera_back_outlined,
+                  size: 22,
+                ),
               ),
-            ),
-          // A label is a heading, not something to be reminded of.
-          if (!isLabel)
-            IconButton(
-              tooltip: l10n.reminder,
-              onPressed: _pickReminder,
-              color: _n.reminderAt == null ? faint : _ink,
-              icon: Icon(
-                _n.reminderAt == null ? Icons.alarm_add : Icons.alarm_on,
-                size: 22,
+            // A label is a heading, not something to be reminded of.
+            if (!isLabel)
+              IconButton(
+                tooltip: l10n.reminder,
+                onPressed: _pickReminder,
+                color: _ink,
+                icon: Icon(
+                  _n.reminderAt == null ? Icons.alarm_add : Icons.alarm_on,
+                  size: 22,
+                ),
               ),
-            ),
-          IconButton(
-            tooltip: l10n.emote,
-            onPressed: () => setState(() {
-              _showEmoji = !_showEmoji;
-              _showColors = false;
-            }),
-            color: _showEmoji || _n.emoji.isNotEmpty ? _ink : faint,
-            icon: _n.emoji.isEmpty
-                ? const Icon(Icons.add_reaction_outlined, size: 22)
-                : Text(_n.emoji, style: const TextStyle(fontSize: 20)),
-          ),
-          // Prints are always white — no paper colour to choose.
-          if (!isPhoto)
             IconButton(
-              tooltip: l10n.color,
+              tooltip: l10n.emote,
+              isSelected: _showEmoji,
               onPressed: () => setState(() {
-                _showColors = !_showColors;
-                _showEmoji = false;
+                _showEmoji = !_showEmoji;
+                _showColors = false;
               }),
-              icon: Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: paperColorOf(context, _n.colorIndex, _n.guid),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: _showColors ? _ink : _ink.withValues(alpha: 0.5),
-                    width: _showColors ? 2 : 1.2,
+              color: _ink,
+              icon: _n.emoji.isEmpty
+                  ? const Icon(Icons.add_reaction_outlined, size: 22)
+                  : Text(_n.emoji, style: const TextStyle(fontSize: 20)),
+            ),
+            // Prints are always white — no paper colour to choose.
+            if (!isPhoto)
+              IconButton(
+                tooltip: '${l10n.color}: ${paperName(l10n, _n.colorIndex)}',
+                isSelected: _showColors,
+                onPressed: () => setState(() {
+                  _showColors = !_showColors;
+                  _showEmoji = false;
+                }),
+                icon: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: paperColorOf(context, _n.colorIndex, _n.guid),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: _ink,
+                      width: _showColors ? 2.2 : 1.2,
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -1159,27 +1266,31 @@ class _NoteDialogState extends State<_NoteDialog>
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: SizedBox(
-        height: 40,
+        height: 48,
         child: ListView(
           scrollDirection: Axis.horizontal,
           children: [
             for (final emoji in _emojiChoices)
-              InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap: () => setState(() {
-                  _n.emoji = _n.emoji == emoji ? '' : emoji;
-                  _showEmoji = false;
-                }),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: _n.emoji == emoji
-                        ? _ink.withValues(alpha: 0.16)
-                        : null,
+              Semantics(
+                selected: _n.emoji == emoji,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => setState(() {
+                    _n.emoji = _n.emoji == emoji ? '' : emoji;
+                    _showEmoji = false;
+                  }),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: _n.emoji == emoji
+                          ? _ink.withValues(alpha: 0.16)
+                          : null,
+                    ),
+                    constraints: const BoxConstraints(minWidth: 44),
+                    child: Text(emoji, style: const TextStyle(fontSize: 22)),
                   ),
-                  child: Text(emoji, style: const TextStyle(fontSize: 22)),
                 ),
               ),
           ],
@@ -1188,14 +1299,13 @@ class _NoteDialogState extends State<_NoteDialog>
     );
   }
 
-  Widget _colorRow() {
+  Widget _colorRow(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
         children: [
           _swatch(
+            name: paperName(l10n, null),
             color: noteColor(null, _n.guid),
             selected: _n.colorIndex == null,
             auto: true,
@@ -1203,6 +1313,7 @@ class _NoteDialogState extends State<_NoteDialog>
           ),
           for (var i = 0; i < AppColors.notePapers.length; i++)
             _swatch(
+              name: paperName(l10n, i),
               color: AppColors.notePapers[i],
               selected: _n.colorIndex == i,
               onTap: () => _pickColor(i),
@@ -1221,37 +1332,43 @@ class _NoteDialogState extends State<_NoteDialog>
   }
 
   Widget _swatch({
+    required String name,
     required Color color,
     required bool selected,
     required VoidCallback onTap,
     bool auto = false,
   }) {
-    return InkWell(
-      customBorder: const CircleBorder(),
-      onTap: onTap,
-      child: SizedBox(
-        width: 34,
-        height: 34,
-        child: Center(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            width: selected ? 32 : 26,
-            height: selected ? 32 : 26,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: selected ? _ink : Colors.black26,
-                width: selected ? 2 : 1,
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: name,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              width: selected ? 32 : 26,
+              height: selected ? 32 : 26,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected ? _ink : Colors.black26,
+                  width: selected ? 2 : 1,
+                ),
               ),
+              child: auto
+                  ? Icon(
+                      Icons.auto_awesome,
+                      size: 13,
+                      color: _ink.withValues(alpha: 0.7),
+                    )
+                  : null,
             ),
-            child: auto
-                ? Icon(
-                    Icons.auto_awesome,
-                    size: 13,
-                    color: _ink.withValues(alpha: 0.7),
-                  )
-                : null,
           ),
         ),
       ),

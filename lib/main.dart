@@ -32,6 +32,14 @@ Future<void> main() async {
     deleteWallImage: ImageService.deleteWallFile,
   );
   final settings = SettingsController(storage);
+  // What Android's notification settings call the channel, in the app's
+  // language rather than always in English.
+  final words = _localizationsFor(settings.localeOverride);
+  ReminderService.labels = (
+    channel: words.remindersChannel,
+    description: words.remindersChannelDescription,
+    fallback: words.appTitle,
+  );
 
   if (firstRun) {
     final views = PlatformDispatcher.instance.views;

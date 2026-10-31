@@ -88,7 +88,11 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
   // or its turn, so a print parked in the margin could poke out of the
   // picture. Null until the first frame has been measured.
   Rect? _measured;
-  bool _busy = false;
+
+  // The job being rendered or handed on ('share', 'save', 'pdf', 'widget'),
+  // so its own control shows the spinner while the others wait.
+  String? _working;
+  bool get _busy => _working != null;
 
   // The options: what part of the wall, which notes, how many pixels per
   // logical pixel.
@@ -130,18 +134,20 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
   }
 
   Future<void> _run(
+    String job,
     Future<void> Function(Uint8List bytes) action, {
-    String? failure,
+    required String failure,
   }) async {
     if (_busy) return;
-    setState(() => _busy = true);
+    setState(() => _working = job);
     try {
       final bytes = await _render();
-      if (bytes != null) await action(bytes);
+      if (bytes == null) throw StateError('Nothing rendered');
+      await action(bytes);
     } catch (_) {
-      if (failure != null && mounted) _toast(failure);
+      if (mounted) _toast(failure);
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) setState(() => _working = null);
     }
   }
 
@@ -152,10 +158,12 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
   }
 
   Future<void> _share(AppLocalizations l10n) => _run(
+    'share',
     (bytes) => widget.imageService.sharePng(bytes, subject: l10n.appTitle),
+    failure: l10n.shareFailed,
   );
 
-  Future<void> _save(AppLocalizations l10n) => _run((bytes) async {
+  Future<void> _save(AppLocalizations l10n) => _run('save', (bytes) async {
     await widget.imageService.saveToGallery(bytes);
     if (!mounted) return;
     _toast(l10n.imageSaved);
@@ -164,17 +172,18 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
     await Navigator.of(context).maybePop();
   }, failure: l10n.imageSaveFailed);
 
-  Future<void> _sharePdf(AppLocalizations l10n) => _run((bytes) async {
+  Future<void> _sharePdf(AppLocalizations l10n) => _run('pdf', (bytes) async {
     final pdf = await ImageService.pdfFromPng(bytes);
     await widget.imageService.sharePdf(pdf, subject: l10n.appTitle);
-  });
+  }, failure: l10n.shareFailed);
 
-  Future<void> _toWidget(AppLocalizations l10n) => _run((bytes) async {
-    final ok = await widget.onShowOnWidget!(bytes);
-    if (mounted) {
-      _toast(ok ? l10n.widgetUpdated : l10n.widgetUpdateFailed);
-    }
-  }, failure: l10n.widgetUpdateFailed);
+  Future<void> _toWidget(AppLocalizations l10n) =>
+      _run('widget', (bytes) async {
+        final ok = await widget.onShowOnWidget!(bytes);
+        if (mounted) {
+          _toast(ok ? l10n.widgetUpdated : l10n.widgetUpdateFailed);
+        }
+      }, failure: l10n.widgetUpdateFailed);
 
   @override
   Widget build(BuildContext context) {
@@ -197,29 +206,25 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
         elevation: 0,
         title: Text(l10n.exportBoard),
         actions: [
+          // While trimming, the button becomes the way out (a check), so the
+          // mode shows by shape and name, not only by the accent colour.
           IconButton(
-            tooltip: l10n.cropImage,
+            tooltip: _cropping ? l10n.cropDone : l10n.cropImage,
+            isSelected: _cropping,
             icon: Icon(
-              Icons.crop,
+              _cropping ? Icons.check : Icons.crop,
               color: _cropping || _trimmed ? AppColors.accent : null,
             ),
             onPressed: _busy
                 ? null
                 : () => setState(() => _cropping = !_cropping),
           ),
-          IconButton(
-            tooltip: l10n.shareAsImage,
-            icon: const Icon(Icons.ios_share),
-            onPressed: _busy ? null : () => _share(l10n),
-          ),
-          IconButton(
-            tooltip: l10n.saveImage,
-            icon: const Icon(Icons.save_alt),
-            onPressed: _busy ? null : () => _save(l10n),
-          ),
           PopupMenuButton<String>(
             tooltip: l10n.moreActions,
             enabled: !_busy,
+            icon: _working == 'pdf' || _working == 'widget'
+                ? const _Spinner(color: AppColors.chalk)
+                : null,
             onSelected: (v) {
               if (v == 'pdf') _sharePdf(l10n);
               if (v == 'widget') _toWidget(l10n);
@@ -479,6 +484,45 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
             selected: {_pixelRatio},
             onSelectionChanged: (s) => setState(() => _pixelRatio = s.single),
           ),
+          // The two jobs people come here for, named, beside the size they
+          // will come out at (the bar above only has room for icons).
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.chalk,
+                  disabledForegroundColor: AppColors.chalk.withValues(
+                    alpha: 0.5,
+                  ),
+                  side: BorderSide(
+                    color: AppColors.chalk.withValues(alpha: 0.6),
+                  ),
+                ),
+                icon: _working == 'save'
+                    ? const _Spinner(color: AppColors.chalk)
+                    : const Icon(Icons.save_alt),
+                label: Text(l10n.saveImage),
+                onPressed: _busy ? null : () => _save(l10n),
+              ),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: AppColors.ink,
+                  disabledBackgroundColor: AppColors.accent.withValues(
+                    alpha: 0.5,
+                  ),
+                  disabledForegroundColor: AppColors.ink,
+                ),
+                icon: _working == 'share'
+                    ? const _Spinner(color: AppColors.ink)
+                    : const Icon(Icons.ios_share),
+                label: Text(l10n.share),
+                onPressed: _busy ? null : () => _share(l10n),
+              ),
+            ],
+          ),
           if (_trimmed)
             TextButton.icon(
               style: TextButton.styleFrom(foregroundColor: AppColors.accent),
@@ -490,6 +534,22 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// A button-sized progress ring, shown in place of the icon of the job that
+/// is running.
+class _Spinner extends StatelessWidget {
+  const _Spinner({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: 18,
+      child: CircularProgressIndicator(strokeWidth: 2, color: color),
     );
   }
 }

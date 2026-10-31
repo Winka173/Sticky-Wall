@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
@@ -46,8 +48,39 @@ String nightModeLabel(AppLocalizations l10n, NightMode mode) => switch (mode) {
   NightMode.schedule => l10n.nightModeSchedule,
 };
 
-/// A whole hour as "HH:00".
-String hourLabel(int hour) => '${hour.toString().padLeft(2, '0')}:00';
+/// A whole hour the way the device writes times ("22:00", or "10:00 PM"
+/// where the 12-hour clock is used).
+String hourLabel(BuildContext context, int hour) =>
+    MaterialLocalizations.of(context).formatTimeOfDay(
+      TimeOfDay(hour: hour, minute: 0),
+      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+
+/// A choice chip whose selected state reads without colour vision: a check
+/// replaces the icon, the fill is the strong accent and the outline is ink.
+Widget _choiceChip({
+  required String label,
+  required bool selected,
+  required VoidCallback onSelected,
+  IconData? icon,
+}) {
+  return ChoiceChip(
+    avatar: icon == null || selected ? null : Icon(icon, size: 18),
+    showCheckmark: true,
+    checkmarkColor: AppColors.ink,
+    selectedColor: AppColors.accent,
+    side: BorderSide(
+      color: selected ? AppColors.ink : AppColors.inkHint,
+      width: selected ? 1.5 : 1,
+    ),
+    label: Text(
+      label,
+      style: TextStyle(fontWeight: selected ? FontWeight.bold : null),
+    ),
+    selected: selected,
+    onSelected: (_) => onSelected(),
+  );
+}
 
 /// Opens the customization sheet: wall texture, font, lights, language,
 /// auto-tidy and backup.
@@ -107,7 +140,14 @@ class _SettingsSheet extends StatelessWidget {
                   return _PhotoWallTile(
                     board: board,
                     l10n: l10n,
-                    onTap: () => _photoWallFlow(context, l10n),
+                    // The kept photo comes back in one tap; once it is on
+                    // show, a tap offers to change or remove it.
+                    onTap: !board.hasWallImage && board.hasSavedWallImage
+                        ? () => notes.setCurrentBoardWallImage(
+                            board.savedWallImage,
+                            dark: board.savedWallImageDark,
+                          )
+                        : () => _photoWallFlow(context, l10n),
                   );
                 }
                 final wall = walls[index];
@@ -148,16 +188,16 @@ class _SettingsSheet extends StatelessWidget {
             runSpacing: 4,
             children: [
               for (final mode in NightMode.values)
-                ChoiceChip(
-                  avatar: Icon(switch (mode) {
+                _choiceChip(
+                  icon: switch (mode) {
                     NightMode.off => Icons.light_mode_outlined,
                     NightMode.on => Icons.dark_mode_outlined,
                     NightMode.system => Icons.phone_android_outlined,
                     NightMode.schedule => Icons.schedule_outlined,
-                  }, size: 18),
-                  label: Text(nightModeLabel(l10n, mode)),
+                  },
+                  label: nightModeLabel(l10n, mode),
                   selected: settings.nightMode == mode,
-                  onSelected: (_) => settings.setNightMode(mode),
+                  onSelected: () => settings.setNightMode(mode),
                 ),
             ],
           ),
@@ -225,10 +265,10 @@ class _SettingsSheet extends StatelessWidget {
                 ('vi', 'Tiếng Việt'),
                 ('en', 'English'),
               ])
-                ChoiceChip(
-                  label: Text(label),
+                _choiceChip(
+                  label: label,
                   selected: settings.languageCode == code,
-                  onSelected: (_) => settings.setLanguageCode(code),
+                  onSelected: () => settings.setLanguageCode(code),
                 ),
             ],
           ),
@@ -300,12 +340,7 @@ class _SettingsSheet extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () =>
-                      BackupService().share(
-                    notes.boards,
-                    notes.allNotes,
-                    notes.links,
-                  ),
+                  onPressed: () => _backupFlow(context, l10n),
                   icon: const Icon(Icons.ios_share),
                   label: Text(l10n.exportData),
                 ),
@@ -330,7 +365,7 @@ class _SettingsSheet extends StatelessWidget {
     AppLocalizations l10n,
   ) async {
     final board = notes.currentBoard;
-    if (board.hasWallImage) {
+    if (board.hasSavedWallImage) {
       final action = await showActionSheet<String>(
         context,
         children: [
@@ -348,7 +383,7 @@ class _SettingsSheet extends StatelessWidget {
       );
       if (action == null) return;
       if (action == 'remove') {
-        notes.setCurrentBoardWall(board.wallIndex);
+        notes.setCurrentBoardWall(board.wallIndex, forgetPhoto: true);
         return;
       }
     }
@@ -358,22 +393,58 @@ class _SettingsSheet extends StatelessWidget {
     notes.setCurrentBoardWallImage(stored, dark: dark);
   }
 
+  Future<void> _backupFlow(BuildContext context, AppLocalizations l10n) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await BackupService().share(
+        notes.boards,
+        notes.allNotes,
+        notes.links,
+        subject: l10n.backupShareSubject,
+      );
+    } catch (_) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(l10n.backupFailed)));
+    }
+  }
+
+  /// The dialog only hands back a backup it has already read, so a bad file
+  /// is explained there, with the text still in place to fix.
   Future<void> _importFlow(BuildContext context, AppLocalizations l10n) async {
-    final text = await showDialog<String>(
+    final backup = await showDialog<Backup>(
       context: context,
       builder: (context) => _ImportDialog(l10n: l10n),
     );
-    if (text == null || text.trim().isEmpty || !context.mounted) return;
+    if (backup == null || !context.mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    // Kept for Undo. replaceAll never deletes photo files, so the photos
+    // these notes show are still on disk when they come back.
+    final oldBoards = List.of(notes.boards);
+    final oldNotes = List.of(notes.allNotes);
+    final oldLinks = List.of(notes.links);
     try {
-      final backup = BackupService().decode(text);
-      notes.replaceAll(backup.boards, backup.notes, links: backup.links);
-      messenger.showSnackBar(SnackBar(content: Text(l10n.importSuccess)));
-      if (context.mounted) Navigator.pop(context);
+      await BackupService().restorePhotos(backup);
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.importFailed)));
+      return;
     }
+    notes.replaceAll(backup.boards, backup.notes, links: backup.links);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(l10n.importSuccess),
+          action: SnackBarAction(
+            label: l10n.undo,
+            onPressed: () =>
+                notes.replaceAll(oldBoards, oldNotes, links: oldLinks),
+          ),
+        ),
+      );
+    if (navigator.mounted) navigator.pop();
   }
 }
 
@@ -393,56 +464,63 @@ class _WallTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            width: 84,
-            height: 84,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: selected ? AppColors.ink : Colors.black26,
-                width: selected ? 3 : 1,
-              ),
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      excludeSemantics: true,
+      child: GestureDetector(onTap: onTap, child: _tile()),
+    );
+  }
+
+  Widget _tile() {
+    return Column(
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: 84,
+          height: 84,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: selected ? AppColors.ink : Colors.black26,
+              width: selected ? 3 : 1,
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  child,
-                  if (selected)
-                    const Center(
-                      child: Icon(
-                        Icons.check_circle,
-                        color: Colors.white,
-                        size: 26,
-                      ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                child,
+                if (selected)
+                  const Center(
+                    child: Icon(
+                      Icons.check_circle,
+                      color: Colors.white,
+                      size: 26,
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.ink,
-              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-            ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: AppColors.ink,
+            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-/// The last wall tile: the board's own photo when it has one, otherwise an
-/// invitation to pick one.
+/// The last wall tile: the board's own photo when it has one (on show or
+/// kept while a texture is tried), otherwise an invitation to pick one.
 class _PhotoWallTile extends StatelessWidget {
   const _PhotoWallTile({
     required this.board,
@@ -460,9 +538,9 @@ class _PhotoWallTile extends StatelessWidget {
       label: l10n.customWall,
       selected: board.hasWallImage,
       onTap: onTap,
-      child: board.hasWallImage
+      child: board.hasSavedWallImage
           ? Image.file(
-              File(ImageService.resolveWall(board.wallImage)),
+              File(ImageService.resolveWall(board.savedWallImage)),
               fit: BoxFit.cover,
               errorBuilder: (_, _, _) => const _PhotoPlaceholder(),
             )
@@ -526,7 +604,7 @@ class _HourField extends StatelessWidget {
           isExpanded: true,
           items: [
             for (var h = 0; h < 24; h++)
-              DropdownMenuItem(value: h, child: Text(hourLabel(h))),
+              DropdownMenuItem(value: h, child: Text(hourLabel(context, h))),
           ],
           onChanged: (h) {
             if (h != null) onChanged(h);
@@ -557,100 +635,105 @@ class _FontPaper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final paper = paperColorOf(context, null, font.id);
-    return GestureDetector(
-      onTap: onTap,
-      child: Transform.rotate(
-        angle: selected ? 0 : tilt,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          width: 150,
-          padding: const EdgeInsets.fromLTRB(12, 18, 12, 10),
-          decoration: BoxDecoration(
-            color: paper,
-            border: selected
-                ? Border.all(color: AppColors.ink, width: 2.5)
-                : null,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: selected ? 0.28 : 0.18),
-                blurRadius: selected ? 10 : 6,
-                offset: Offset(0, selected ? 5 : 3),
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    font.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: font.family,
-                      fontSize: 18 * font.scale,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    preview,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: font.family,
-                      fontSize: 15 * font.scale,
-                      height: 1.25,
-                      color: AppColors.inkSoft,
-                    ),
-                  ),
-                ],
-              ),
-              // A little pin so it reads as a note, not a card.
-              Positioned(
-                top: -12,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: selected ? AppColors.pin : Colors.black38,
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black38,
-                          blurRadius: 3,
-                          offset: Offset(0, 1.5),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              if (selected)
-                const Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Icon(
-                    Icons.check_circle,
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: font.label,
+      excludeSemantics: true,
+      child: GestureDetector(onTap: onTap, child: _paper(paper)),
+    );
+  }
+
+  Widget _paper(Color paper) {
+    return Transform.rotate(
+      angle: selected ? 0 : tilt,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 150,
+        padding: const EdgeInsets.fromLTRB(12, 18, 12, 10),
+        decoration: BoxDecoration(
+          color: paper,
+          border: selected
+              ? Border.all(color: AppColors.ink, width: 2.5)
+              : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: selected ? 0.28 : 0.18),
+              blurRadius: selected ? 10 : 6,
+              offset: Offset(0, selected ? 5 : 3),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  font.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: font.family,
+                    fontSize: 18 * font.scale,
+                    fontWeight: FontWeight.bold,
                     color: AppColors.ink,
-                    size: 18,
                   ),
                 ),
-            ],
-          ),
+                const SizedBox(height: 4),
+                Text(
+                  preview,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: font.family,
+                    fontSize: 15 * font.scale,
+                    height: 1.25,
+                    color: AppColors.inkSoft,
+                  ),
+                ),
+              ],
+            ),
+            // A little pin so it reads as a note, not a card.
+            Positioned(
+              top: -12,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: selected ? AppColors.pin : Colors.black38,
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black38,
+                        blurRadius: 3,
+                        offset: Offset(0, 1.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            if (selected)
+              const Positioned(
+                right: 0,
+                bottom: 0,
+                child: Icon(Icons.check_circle, color: AppColors.ink, size: 18),
+              ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// Owns its controller so it is disposed with the dialog, not while the
-/// field is still animating off screen.
+/// Paste a backup or choose its file. Owns its controller so it is
+/// disposed with the dialog, not while the field is still animating off
+/// screen. Pops with the [Backup] once it has been read; a document that
+/// cannot be read keeps the dialog open with the reason under the field.
 class _ImportDialog extends StatefulWidget {
   const _ImportDialog({required this.l10n});
 
@@ -662,6 +745,8 @@ class _ImportDialog extends StatefulWidget {
 
 class _ImportDialogState extends State<_ImportDialog> {
   final _controller = TextEditingController();
+  String? _error;
+  bool _reading = false;
 
   @override
   void dispose() {
@@ -669,38 +754,101 @@ class _ImportDialogState extends State<_ImportDialog> {
     super.dispose();
   }
 
+  String _reason(BackupProblem problem) {
+    final l10n = widget.l10n;
+    return switch (problem) {
+      BackupProblem.notJson => l10n.importNotJson,
+      BackupProblem.notBackup => l10n.importNotBackup,
+      BackupProblem.newerVersion => l10n.importNewerVersion,
+    };
+  }
+
+  /// Reads [source]; pops with the backup, or shows why it can't be used.
+  void _load(String source) {
+    try {
+      Navigator.pop(context, BackupService().decode(source));
+    } on BackupFormatException catch (e) {
+      setState(() => _error = _reason(e.problem));
+    }
+  }
+
+  Future<void> _chooseFile() async {
+    setState(() => _reading = true);
+    try {
+      // Any type: providers label .json files inconsistently (text/plain,
+      // octet-stream), and a filter would grey out the very file wanted.
+      final file = await FilePicker.pickFile();
+      if (file == null || !mounted) return;
+      final String text;
+      try {
+        text = utf8.decode(await file.readAsBytes());
+      } on FormatException {
+        if (mounted) _error = _reason(BackupProblem.notJson);
+        return;
+      }
+      if (mounted) _load(text);
+    } catch (_) {
+      if (mounted) _error = widget.l10n.importFailed;
+    } finally {
+      if (mounted) setState(() => _reading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = widget.l10n;
     return AlertDialog(
       title: Text(l10n.importData),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            l10n.importReplaceWarning,
-            style: const TextStyle(fontSize: 14, color: AppColors.inkSoft),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _controller,
-            maxLines: 6,
-            autofocus: true,
-            decoration: InputDecoration(
-              hintText: l10n.importHint,
-              border: const OutlineInputBorder(),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.importReplaceWarning,
+              style: const TextStyle(fontSize: 14, color: AppColors.inkSoft),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _reading ? null : _chooseFile,
+              icon: _reading
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.file_open_outlined),
+              label: Text(l10n.importChooseFile),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _controller,
+              maxLines: 6,
+              onChanged: (_) {
+                if (_error != null) setState(() => _error = null);
+              },
+              decoration: InputDecoration(
+                hintText: l10n.importHint,
+                border: const OutlineInputBorder(),
+                errorText: _error,
+                errorMaxLines: 4,
+              ),
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: Text(l10n.cancel),
         ),
-        FilledButton(
-          onPressed: () => Navigator.pop(context, _controller.text),
-          child: Text(l10n.importData),
+        ListenableBuilder(
+          listenable: _controller,
+          builder: (context, _) => FilledButton(
+            onPressed: _controller.text.trim().isEmpty || _reading
+                ? null
+                : () => _load(_controller.text),
+            child: Text(l10n.importData),
+          ),
         ),
       ],
     );

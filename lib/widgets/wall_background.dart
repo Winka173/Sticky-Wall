@@ -100,7 +100,9 @@ class WallBackground extends StatelessWidget {
               IgnorePointer(
                 child: AnimatedOpacity(
                   opacity: night ? 1 : 0,
-                  duration: const Duration(milliseconds: 600),
+                  duration: MediaQuery.disableAnimationsOf(context)
+                      ? Duration.zero
+                      : const Duration(milliseconds: 600),
                   curve: Curves.easeInOut,
                   child: const DecoratedBox(
                     decoration: BoxDecoration(

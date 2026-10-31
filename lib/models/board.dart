@@ -10,12 +10,16 @@ class Board {
     this.wallIndex = 0,
     this.wallImage = '',
     this.wallImageDark = false,
+    String? savedWallImage,
+    bool? savedWallImageDark,
     this.icon = '',
     this.bold = false,
     this.italic = false,
     this.underline = false,
     List<DrawStroke>? strokes,
-  }) : strokes = strokes ?? [];
+  }) : strokes = strokes ?? [],
+       savedWallImage = savedWallImage ?? wallImage,
+       savedWallImageDark = savedWallImageDark ?? wallImageDark;
 
   final String id;
   String name;
@@ -30,6 +34,12 @@ class Board {
   /// Whether that photo is dark overall, which decides the scrim that keeps
   /// writing on top of it legible.
   bool wallImageDark;
+
+  /// The board's own photo, kept while the user browses the textures so it
+  /// is one tap to go back to (equals [wallImage] while it is on show). The
+  /// file goes only when another photo replaces it or the board is deleted.
+  String savedWallImage;
+  bool savedWallImageDark;
 
   /// Optional emoji shown on the board's tab.
   String icon;
@@ -46,6 +56,8 @@ class Board {
 
   bool get hasWallImage => wallImage.isNotEmpty;
 
+  bool get hasSavedWallImage => savedWallImage.isNotEmpty;
+
   /// [base] with this board's formatting laid on top. Anything not switched
   /// on is left as [base] has it, so a selected tab can still be bold.
   TextStyle decorate(TextStyle base) => base.copyWith(
@@ -60,6 +72,9 @@ class Board {
     wallIndex: json['wallIndex'] as int? ?? 0,
     wallImage: json['wallImage'] as String? ?? '',
     wallImageDark: json['wallImageDark'] as bool? ?? false,
+    // Absent before photos were kept: falls back to the photo on show.
+    savedWallImage: json['savedWallImage'] as String?,
+    savedWallImageDark: json['savedWallImageDark'] as bool?,
     icon: json['icon'] as String? ?? '',
     bold: json['bold'] as bool? ?? false,
     italic: json['italic'] as bool? ?? false,
@@ -75,6 +90,8 @@ class Board {
     'wallIndex': wallIndex,
     'wallImage': wallImage,
     'wallImageDark': wallImageDark,
+    if (savedWallImage.isNotEmpty) 'savedWallImage': savedWallImage,
+    if (savedWallImage.isNotEmpty) 'savedWallImageDark': savedWallImageDark,
     'icon': icon,
     'bold': bold,
     'italic': italic,

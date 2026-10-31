@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:math' as math;
-import 'dart:ui' show FlutterView, ImageFilter;
+import 'dart:ui' show FlutterView;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -17,10 +17,12 @@ import '../models/note.dart';
 import '../models/view_mode.dart';
 import '../services/image_service.dart';
 import '../services/notes_controller.dart';
+import '../services/reminder_service.dart';
 import '../services/settings_controller.dart';
 import '../services/share_service.dart';
 import '../services/widget_service.dart';
 import '../theme.dart';
+import '../util/rich_note.dart';
 import '../widgets/action_sheet.dart';
 import '../widgets/add_note_button.dart';
 import '../widgets/board_bar.dart';
@@ -151,11 +153,32 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _searchController.addListener(() => _notes.search = _searchController.text);
     widget.shareReceiver?.listen(_onShared);
+    _reminderTaps = ReminderService.opened.listen(_openFromReminder);
+    final launched = ReminderService.takeLaunchNote();
+    if (launched != null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _openFromReminder(launched),
+      );
+    }
+  }
+
+  StreamSubscription<String>? _reminderTaps;
+
+  /// A tapped reminder opens its note, on its own board.
+  Future<void> _openFromReminder(String guid) async {
+    final note = _notes.allNotes
+        .where((n) => n.guid == guid && !n.isTrashed)
+        .firstOrNull;
+    if (note == null || !mounted) return;
+    Navigator.of(context).popUntil((r) => r.isFirst);
+    if (note.boardId != _notes.currentBoardId) _notes.selectBoard(note.boardId);
+    await _openEditor(note, isNew: false);
   }
 
   @override
   void dispose() {
     widget.shareReceiver?.dispose();
+    unawaited(_reminderTaps?.cancel());
     _searchController.dispose();
     _camera.dispose();
     _dropTarget.dispose();
@@ -170,6 +193,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _armUndo() {
     _undoShown = true;
     _undoTimer?.cancel();
+    // Six seconds is too short to find the pill with a screen reader.
+    if (MediaQuery.accessibleNavigationOf(context)) return;
     _undoTimer = Timer(const Duration(seconds: 6), () {
       if (mounted) setState(() => _undoShown = false);
     });
@@ -216,7 +241,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Icon(Icons.undo, size: 18, color: AppColors.chalk),
                     const SizedBox(width: 8),
                     Text(
-                      _l10n.undo,
+                      switch (_notes.nextWallUndo) {
+                        WallEditKind.move => _l10n.undoMove,
+                        WallEditKind.resize => _l10n.undoResize,
+                        WallEditKind.rotate => _l10n.undoRotate,
+                        WallEditKind.tidy => _l10n.undoTidy,
+                        WallEditKind.moveBoard => _l10n.undoMoveBoard,
+                        null => _l10n.undo,
+                      },
                       style: const TextStyle(
                         color: AppColors.chalk,
                         fontSize: 15,
@@ -312,11 +344,30 @@ class _HomeScreenState extends State<HomeScreen> {
     _notes.saveWallStrokes();
   }
 
-  void _clearInk() {
+  Future<void> _clearInk() async {
     if (_wallStrokes.isEmpty) return;
-    HapticFeedback.lightImpact();
+    // Done empties the undo history, so a cleared wall could not come back.
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(_l10n.clearInkConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(_l10n.cancel),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.deleteIcon),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(_l10n.clear),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    unawaited(HapticFeedback.lightImpact());
     _inkBegin();
-    _wallStrokes.clear();
+    setState(_wallStrokes.clear);
     _notes.saveWallStrokes();
   }
 
@@ -341,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> {
       color: color ?? text,
       padding: EdgeInsets.zero,
       visualDensity: VisualDensity.compact,
-      constraints: const BoxConstraints.tightFor(width: 34, height: 34),
+      constraints: const BoxConstraints.tightFor(width: 34, height: 44),
     );
     return SafeArea(
       top: false,
@@ -352,8 +403,9 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.fromLTRB(4, 6, 5, 6),
           child: Row(
             children: [
-              for (final c in AppColors.markers)
+              for (final (i, c) in AppColors.markers.indexed)
                 _InkDot(
+                  name: _markerName(l10n, i),
                   color: Color(c),
                   selected: !_marker.eraser && _marker.color == c,
                   onTap: () => setState(
@@ -401,8 +453,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     customBorder: const CircleBorder(),
                     onTap: _stopMarking,
                     child: const SizedBox(
-                      width: 34,
-                      height: 34,
+                      width: 38,
+                      height: 38,
                       child: Icon(Icons.check, size: 20, color: AppColors.ink),
                     ),
                   ),
@@ -503,7 +555,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final draft = _notes.draft();
     if (content.imagePath.isNotEmpty) {
       final stored = await _imageService.importSharedImage(content.imagePath);
-      if (stored != null) draft.imagePath = stored;
+      if (stored != null) {
+        draft.imagePath = stored;
+      } else if (mounted) {
+        _toast(_l10n.photoPickFailed);
+      }
     }
     if (!mounted) return;
     if (content.url.isNotEmpty) {
@@ -547,6 +603,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _showNoteActions(Note note) async {
     final l10n = _l10n;
     final canMove = _notes.boards.length > 1;
+    final onWall = _notes.viewMode == ViewMode.wall;
+    final threads = [
+      for (final l in _notes.linksOn(_notes.currentBoardId))
+        if (l.connects(note.guid)) l,
+    ];
     final action = await showActionSheet<String>(
       context,
       children: [
@@ -571,6 +632,25 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(note.locked ? l10n.unlock : l10n.lockInPlace),
           onTap: () => Navigator.pop(context, 'lock'),
         ),
+        // Menu paths for what the wall otherwise only does by dragging.
+        if (onWall && !note.locked)
+          ListTile(
+            leading: const Icon(Icons.open_in_full),
+            title: Text(l10n.sizeAndTurn),
+            onTap: () => Navigator.pop(context, 'size'),
+          ),
+        if (onWall)
+          ListTile(
+            leading: const Icon(Icons.timeline),
+            title: Text(l10n.tieThreadTo),
+            onTap: () => Navigator.pop(context, 'tie'),
+          ),
+        if (onWall && threads.isNotEmpty)
+          ListTile(
+            leading: const Icon(Icons.gesture),
+            title: Text(l10n.threadsOfNote),
+            onTap: () => Navigator.pop(context, 'threads'),
+          ),
         ListTile(
           leading: const Icon(Icons.checklist_rtl),
           title: Text(l10n.select),
@@ -629,6 +709,12 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'lock':
         unawaited(HapticFeedback.selectionClick());
         _notes.toggleLock(note);
+      case 'size':
+        await _sizeAndTurn(note);
+      case 'tie':
+        await _tieThreadFrom(note);
+      case 'threads':
+        await _threadsOf(note, threads);
       case 'select':
         _startSelecting(note);
       case 'duplicate':
@@ -645,6 +731,160 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'delete':
         await _delete(note);
     }
+  }
+
+  /// Resize and turn from buttons, for anyone who cannot pinch, twist or
+  /// drag the grips. Each press is one step of the wall's Undo.
+  Future<void> _sizeAndTurn(Note note) async {
+    final l10n = _l10n;
+    const step = math.pi / 12; // 15°
+    await showActionSheet<void>(
+      context,
+      title: l10n.sizeAndTurn,
+      children: [
+        StatefulBuilder(
+          builder: (context, setSheet) {
+            void apply(void Function() change) {
+              HapticFeedback.selectionClick();
+              change();
+              setSheet(() {});
+            }
+
+            Widget button(String label, IconData icon, VoidCallback onTap) =>
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: OutlinedButton.icon(
+                      onPressed: () => apply(onTap),
+                      icon: Icon(icon),
+                      label: Text(label, textAlign: TextAlign.center),
+                    ),
+                  ),
+                );
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      button(
+                        l10n.smaller,
+                        Icons.zoom_out,
+                        () => _notes.resizeNote(note, note.scale - 0.1),
+                      ),
+                      button(
+                        l10n.larger,
+                        Icons.zoom_in,
+                        () => _notes.resizeNote(note, note.scale + 0.1),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      button(
+                        l10n.turnLeft,
+                        Icons.rotate_left,
+                        () => _notes.rotateNote(note, noteAngle(note) - step),
+                      ),
+                      button(
+                        l10n.straighten,
+                        Icons.crop_portrait,
+                        () => _notes.rotateNote(note, 0),
+                      ),
+                      button(
+                        l10n.turnRight,
+                        Icons.rotate_right,
+                        () => _notes.rotateNote(note, noteAngle(note) + step),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Ties a thread from [note] to another note picked from a list — the
+  /// pin-to-pin drag, without dragging.
+  Future<void> _tieThreadFrom(Note note) async {
+    final l10n = _l10n;
+    final others = [
+      for (final n in _notes.boardNotes)
+        if (n.guid != note.guid && !_notes.isLinked(n.guid, note.guid)) n,
+    ];
+    if (others.isEmpty) {
+      _toast(l10n.noOtherNotes);
+      return;
+    }
+    final target = await showActionSheet<Note>(
+      context,
+      title: l10n.tieThreadTo,
+      children: [
+        for (final n in others)
+          ListTile(
+            leading: const Icon(Icons.sticky_note_2_outlined),
+            title: Text(
+              _noteTitle(n),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            onTap: () => Navigator.pop(context, n),
+          ),
+      ],
+    );
+    if (target == null || !mounted) return;
+    if (_notes.connect(note.guid, target.guid)) {
+      unawaited(HapticFeedback.lightImpact());
+      _toast(l10n.threadTied);
+    }
+  }
+
+  /// The threads on [note], each opening the same sheet a tap on the yarn
+  /// opens.
+  Future<void> _threadsOf(Note note, List<NoteLink> threads) async {
+    final l10n = _l10n;
+    final link = await showActionSheet<NoteLink>(
+      context,
+      title: l10n.threadsOfNote,
+      children: [
+        for (final l in threads)
+          ListTile(
+            leading: Icon(
+              Icons.circle,
+              color: Color(l.color ?? AppColors.yarns.first),
+              size: 18,
+            ),
+            title: Text(
+              _noteTitle(
+                _notes.boardNotes.firstWhere(
+                  (n) => n.guid == (l.a == note.guid ? l.b : l.a),
+                  orElse: () => note,
+                ),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: l.label.isEmpty ? null : Text(l.label),
+            onTap: () => Navigator.pop(context, l),
+          ),
+      ],
+    );
+    if (link != null && mounted) await _editThread(link);
+  }
+
+  /// One line naming a note in a list: its words, else its first item,
+  /// else its type.
+  String _noteTitle(Note note) {
+    final text = plainNoteText(note.content).trim();
+    if (text.isNotEmpty) return text.split('\n').first;
+    final item = note.checklist.where((i) => i.text.trim().isNotEmpty);
+    if (item.isNotEmpty) return item.first.text;
+    if (note.type == NoteType.photo) return _l10n.typePhoto;
+    if (note.type == NoteType.drawing) return _l10n.typeDrawing;
+    return _l10n.untitledNote;
   }
 
   /// Lets the user pick one of the other boards.
@@ -730,14 +970,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _captureAndShare(Note note) async {
     final boundary = _boundaryFor(note);
-    if (boundary == null) return;
     try {
-      final bytes = await ImageService.capture(boundary);
-      if (bytes != null) {
-        await _imageService.sharePng(bytes, subject: _l10n.appTitle);
+      final bytes = boundary == null
+          ? null
+          : await ImageService.capture(boundary);
+      if (bytes == null) {
+        if (mounted) _toast(_l10n.shareFailed);
+        return;
       }
+      await _imageService.sharePng(bytes, subject: _l10n.appTitle);
     } catch (_) {
-      /* user cancelled / platform unavailable */
+      if (mounted) _toast(_l10n.shareFailed);
     }
   }
 
@@ -804,7 +1047,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ? await _imageService.pickImages()
           : [?await _imageService.pickImage(source)];
     } catch (_) {
-      return; // Permission denied, camera error — nothing to pin.
+      // Permission denied, camera error — nothing to pin, but say so.
+      if (mounted) _toast(_l10n.photoPickFailed);
+      return;
     }
     if (stored.isEmpty || !mounted) return;
     final created = _notes.addPhotos(stored, x: x, y: y);
@@ -841,7 +1086,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Peels the note off the wall (unless it already animated itself away,
   /// e.g. a swipe-to-dismiss) and drops it in the trash, with Undo.
   Future<void> _delete(Note note, {bool peel = true}) async {
-    if (peel) {
+    if (peel && !MediaQuery.disableAnimationsOf(context)) {
       final key = _captureKeys[_captureId(note)];
       if (key != null) await PeelAway.play(context, key);
       if (!mounted) return;
@@ -853,7 +1098,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _deleteMany(List<Note> notes, {bool peel = true}) async {
     if (notes.isEmpty) return;
-    if (peel) {
+    if (peel && !MediaQuery.disableAnimationsOf(context)) {
       // Peel a handful for the effect; a huge selection just vanishes.
       final keys = [
         for (final n in notes.take(8)) _captureKeys[_captureId(n)],
@@ -934,12 +1179,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   // -1 stands for "auto" (derive from each note's guid).
                   _Swatch(
+                    name: paperName(_l10n, null),
                     color: AppColors.paper,
                     auto: true,
                     onTap: () => Navigator.pop(context, -1),
                   ),
                   for (final (i, c) in AppColors.notePapers.indexed)
-                    _Swatch(color: c, onTap: () => Navigator.pop(context, i)),
+                    _Swatch(
+                      name: paperName(_l10n, i),
+                      color: c,
+                      onTap: () => Navigator.pop(context, i),
+                    ),
                 ],
               ),
             ],
@@ -1064,7 +1314,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       // place under the header (see _buildContent).
                       Positioned.fill(
                         child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 260),
+                          duration: MediaQuery.disableAnimationsOf(context)
+                              ? Duration.zero
+                              : const Duration(milliseconds: 260),
                           switchInCurve: Curves.easeOutCubic,
                           switchOutCurve: Curves.easeInCubic,
                           transitionBuilder: _contentTransition,
@@ -1107,16 +1359,35 @@ class _HomeScreenState extends State<HomeScreen> {
                         top: 0,
                         left: 0,
                         right: 0,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [_buildTitleRow(wall), _buildToolRow(wall)],
+                        // The rows have fixed heights the wall is laid out
+                        // under; large system text grows them only so far.
+                        // Notes and sheets scale freely.
+                        child: MediaQuery.withClampedTextScaling(
+                          maxScaleFactor: 1.3,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildTitleRow(wall),
+                              _buildToolRow(wall),
+                            ],
+                          ),
                         ),
                       ),
                       Positioned(
                         top: HomeScreen.wallHeaderHeight + 6,
                         left: 0,
                         right: 0,
-                        child: Center(child: _undoPill()),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: _filterPill(),
+                            ),
+                            _undoPill(),
+                          ],
+                        ),
                       ),
                       // The same breath of shade along the bottom, behind the
                       // tool pill and the add button.
@@ -1214,8 +1485,11 @@ class _HomeScreenState extends State<HomeScreen> {
     double radius = 21,
     bool strong = false,
   }) => BoxDecoration(
+    // Floating controls are near-opaque: a blur behind them cost a repaint
+    // of the moving wall every frame and read as glass, not as the wall's
+    // own warm chrome.
     color: strong
-        ? (wall.dark ? const Color(0x8C000000) : const Color(0xB8FFFFFF))
+        ? (wall.dark ? const Color(0xE62A2520) : const Color(0xEBFDFBF3))
         : (wall.dark ? const Color(0x26FFFFFF) : const Color(0x14000000)),
     borderRadius: BorderRadius.circular(radius),
     border: Border.all(color: wall.wallTextFaded.withValues(alpha: 0.25)),
@@ -1289,7 +1563,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             Expanded(
               child: Text(
-                _l10n.selectedCount(_selected.length),
+                _selected.isEmpty
+                    ? _l10n.selectHint
+                    : _l10n.selectedCount(_selected.length),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -1386,7 +1662,17 @@ class _HomeScreenState extends State<HomeScreen> {
       // A tap anywhere else on the screen means "done searching" — the same
       // way tapping away dismisses a text field.
       child: TapRegion(
-        onTapOutside: (_) => _setSearching(false),
+        // On the wall, results are dimmed in place, so leaving is safe; in
+        // grid and list the results *are* the screen — a tap there to open
+        // one, or a scroll, only puts the keyboard away.
+        onTapOutside: (_) {
+          if (_notes.viewMode == ViewMode.wall ||
+              _searchController.text.trim().isEmpty) {
+            _setSearching(false);
+          } else {
+            FocusManager.instance.primaryFocus?.unfocus();
+          }
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 4),
           decoration: _frosted(wall),
@@ -1654,32 +1940,34 @@ class _HomeScreenState extends State<HomeScreen> {
             widget.settings.setNightMode(night ? NightMode.off : NightMode.on);
         }
       },
+      // Grouped: add to the wall, arrange it, take it away, the app.
       itemBuilder: (context) => [
         _menuItem(
           'photos',
           l10n.pinPhotos,
           icon: Icons.add_photo_alternate_outlined,
         ),
-        if (_notes.boardNotes.isNotEmpty)
-          _menuItem('select', l10n.select, icon: Icons.checklist_rtl),
-        if (canTidy) ...[
-          _menuItem(
-            'tidy',
-            l10n.tidy,
-            icon: Icons.auto_awesome_mosaic_outlined,
-          ),
-          _menuItem(
-            'tidyColor',
-            l10n.tidyByColor,
-            icon: Icons.palette_outlined,
-          ),
-        ],
         _menuItem('draw', l10n.drawOnWall, icon: Icons.gesture),
-        if (onWall && _notes.boardNotes.isNotEmpty)
-          _menuItem('fit', l10n.fitAll, icon: Icons.fit_screen_outlined),
-        _menuItem('tips', l10n.gestureTips, icon: Icons.lightbulb_outline),
-        if (_notes.boardNotes.isNotEmpty)
+        if (_notes.boardNotes.isNotEmpty) ...[
+          const PopupMenuDivider(),
+          _menuItem('select', l10n.select, icon: Icons.checklist_rtl),
+          if (canTidy) ...[
+            _menuItem(
+              'tidy',
+              l10n.tidy,
+              icon: Icons.auto_awesome_mosaic_outlined,
+            ),
+            _menuItem(
+              'tidyColor',
+              l10n.tidyByColor,
+              icon: Icons.palette_outlined,
+            ),
+          ],
+          if (onWall)
+            _menuItem('fit', l10n.fitAll, icon: Icons.fit_screen_outlined),
           _menuItem('export', l10n.exportBoard, icon: Icons.image_outlined),
+        ],
+        const PopupMenuDivider(),
         _menuItem(
           'trash',
           trashCount > 0 ? '${l10n.trash} ($trashCount)' : l10n.trash,
@@ -1690,6 +1978,7 @@ class _HomeScreenState extends State<HomeScreen> {
           night ? l10n.lightsOn : l10n.lightsOff,
           icon: night ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
         ),
+        _menuItem('tips', l10n.gestureTips, icon: Icons.lightbulb_outline),
       ],
     );
   }
@@ -1747,6 +2036,7 @@ class _HomeScreenState extends State<HomeScreen> {
         resetZoomTooltip: _l10n.resetZoom,
         fitAllTooltip: _l10n.fitAll,
         rotateTooltip: _l10n.rotate,
+        resizeTooltip: _l10n.resize,
         emptyHint: _emptyState(wall, tip: _l10n.wallCreateHint),
         // The wall fills the body: notes pan under the header rows and the
         // system bar, while its resting view stays between them.
@@ -1769,10 +2059,12 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Grid/list: swipe horizontally to move between boards.
-    final content = _notes.viewMode == ViewMode.grid
-        ? _grid(notes)
-        : _list(notes);
+    // Grid: swipe horizontally to move between boards. Not in the list,
+    // where a sideways swipe on a row already means delete.
+    if (_notes.viewMode == ViewMode.list) {
+      return Padding(padding: below, child: _list(notes));
+    }
+    final content = _grid(notes);
     return Padding(
       padding: below,
       child: GestureDetector(
@@ -1861,6 +2153,70 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _clearFilters() {
+    _notes.typeFilter = -1;
+    if (_searching) _setSearching(false);
+  }
+
+  String _typeName(int filter) => switch (filter) {
+    0 => _l10n.typeNormal,
+    1 => _l10n.typeLink,
+    2 => _l10n.typeChecklist,
+    3 => _l10n.typeDrawing,
+    4 => _l10n.typePhoto,
+    5 => _l10n.typeLabel,
+    _ => _l10n.typeAll,
+  };
+
+  /// On the wall a filter only dims cards, so say that one is on — and how
+  /// to turn it off — instead of leaving a wall of faded notes unexplained.
+  /// It is remembered across launches, which makes this matter more.
+  Widget _filterPill() {
+    final filtering = _notes.typeFilter != -1;
+    final none =
+        _notes.isFiltering &&
+        _notes.boardNotes.isNotEmpty &&
+        !_notes.boardNotes.any(_notes.matches);
+    if (_notes.viewMode != ViewMode.wall || _selecting || _marking) {
+      return const SizedBox.shrink();
+    }
+    if (!filtering && !none) return const SizedBox.shrink();
+    final label = [
+      if (filtering) _l10n.filterShowing(_typeName(_notes.typeFilter)),
+      if (none) _l10n.noMatches,
+    ].join(' · ');
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Material(
+        color: AppColors.overlayDark,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 14),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.filter_alt, size: 16, color: AppColors.chalk),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppColors.chalk, fontSize: 14),
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: AppColors.accent),
+                onPressed: _clearFilters,
+                child: Text(_l10n.clearFilter),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _noMatches(WallStyle wall) {
     final faded = wall.wallTextFaded;
     return Center(
@@ -1876,6 +2232,13 @@ class _HomeScreenState extends State<HomeScreen> {
               color: faded,
               shadows: wall.wallTextShadows,
             ),
+          ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            style: TextButton.styleFrom(foregroundColor: wall.wallText),
+            onPressed: _clearFilters,
+            icon: const Icon(Icons.filter_alt_off_outlined),
+            label: Text(_l10n.clearFilter),
           ),
         ],
       ),
@@ -1988,15 +2351,37 @@ class _BarAction extends StatelessWidget {
   }
 }
 
+/// The spoken name of yarn colour [i] (see [AppColors.yarns]).
+String _yarnName(AppLocalizations l10n, int i) => switch (i) {
+  0 => l10n.swatchRed,
+  1 => l10n.swatchOrange,
+  2 => l10n.swatchGold,
+  3 => l10n.swatchGreen,
+  4 => l10n.swatchBlue,
+  5 => l10n.swatchPurple,
+  _ => l10n.swatchInk,
+};
+
+/// The spoken name of marker colour [i] (see [AppColors.markers]).
+String _markerName(AppLocalizations l10n, int i) => switch (i) {
+  0 => l10n.swatchInk,
+  1 => l10n.swatchRed,
+  2 => l10n.swatchBlue,
+  3 => l10n.swatchGreen,
+  _ => l10n.swatchChalk,
+};
+
 /// A colour choice in a sheet (paper colours, yarn colours).
 class _Swatch extends StatelessWidget {
   const _Swatch({
+    required this.name,
     required this.color,
     required this.onTap,
     this.auto = false,
     this.selected = false,
   });
 
+  final String name;
   final Color color;
   final VoidCallback onTap;
   final bool auto;
@@ -2004,28 +2389,33 @@ class _Swatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: selected
-              ? Border.all(color: AppColors.ink, width: 3)
-              : Border.all(color: Colors.black26),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 3,
-              offset: Offset(0, 1.5),
-            ),
-          ],
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: name,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: selected
+                ? Border.all(color: AppColors.ink, width: 3)
+                : Border.all(color: Colors.black26),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 3,
+                offset: Offset(0, 1.5),
+              ),
+            ],
+          ),
+          child: auto
+              ? const Icon(Icons.auto_awesome, size: 20, color: AppColors.ink)
+              : null,
         ),
-        child: auto
-            ? const Icon(Icons.auto_awesome, size: 20, color: AppColors.ink)
-            : null,
       ),
     );
   }
@@ -2092,8 +2482,9 @@ class _ThreadSheetState extends State<_ThreadSheet> {
               spacing: 10,
               runSpacing: 10,
               children: [
-                for (final c in AppColors.yarns)
+                for (final (i, c) in AppColors.yarns.indexed)
                   _Swatch(
+                    name: _yarnName(AppLocalizations.of(context)!, i),
                     color: Color(c),
                     selected: (_link.color ?? AppColors.yarns.first) == c,
                     onTap: () => _apply(_link.copyWith(color: c)),
@@ -2144,39 +2535,50 @@ class _ThreadSheetState extends State<_ThreadSheet> {
 /// One marker colour in the drawing bar.
 class _InkDot extends StatelessWidget {
   const _InkDot({
+    required this.name,
     required this.color,
     required this.selected,
     required this.onTap,
   });
 
+  final String name;
   final Color color;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          width: selected ? 28 : 22,
-          height: selected ? 28 : 22,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: selected ? AppColors.accent : Colors.black26,
-              width: selected ? 3 : 1,
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 3,
-                offset: Offset(0, 1.5),
+    // The dot stays small; the transparent box around it is the target.
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: name,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          width: 27,
+          height: 44,
+          alignment: Alignment.center,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            width: selected ? 28 : 22,
+            height: selected ? 28 : 22,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: selected ? AppColors.accent : Colors.black26,
+                width: selected ? 3 : 1,
               ),
-            ],
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 3,
+                  offset: Offset(0, 1.5),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -2220,9 +2622,8 @@ class _GhostNotePainter extends CustomPainter {
       oldDelegate.color != color;
 }
 
-/// Frosted glass for controls that float over the notes — the tool pill, the
-/// marker and selection bars: blurs whatever drifts underneath so the controls
-/// stay crisp, with the chip look on top.
+/// The surface of controls that float over the notes — the tool pill, the
+/// marker and selection bars: a near-opaque chip, clipped to its shape.
 class _Glass extends StatelessWidget {
   const _Glass({
     required this.decoration,
@@ -2240,14 +2641,11 @@ class _Glass extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: decoration.borderRadius ?? BorderRadius.zero,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(
-          height: height,
-          padding: padding,
-          decoration: decoration,
-          child: child,
-        ),
+      child: Container(
+        height: height,
+        padding: padding,
+        decoration: decoration,
+        child: child,
       ),
     );
   }

@@ -65,6 +65,9 @@ then taken well beyond it.
 - The editor *is* the note: same handwriting, same paper color, faint ruled
   lines under each baseline, Save/Cancel on the adhesive strip so they are
   never hidden by the keyboard; validation is inline (the paper shakes).
+  Closing an edited note — Cancel, Back or a tap beside the paper — asks
+  before anything is thrown away; a reminder set in the past, or one that
+  cannot ring because notifications are off, is said so on the paper
   Under a text note's field, **bold / italic / bullet** buttons put light
   markup into the text (`**bold**`, `*italic*`, `- item`) and the card
   renders it; search, the trash and the widget read the words without the
@@ -162,16 +165,19 @@ then taken well beyond it.
 - Live, diacritic-insensitive search ("tuoi" finds "Tưới") with a result
   count, and a type filter; on the wall, notes that don't match are dimmed in
   place rather than removed. Grid/list add a sort menu (newest, oldest, A–Z,
-  Z–A)
+  Z–A). On the wall a type filter shows a small "Showing: …" pill with
+  Clear, since dimmed cards alone do not say why
 - **Multi-select** (⋮ → Select, or long-press → Select): on the wall, draw a
   **lasso** round notes with a finger to add them, and drag any selected
   note to move the whole selection; with a bottom action
   bar: pin / unpin, recolor, move to another board, delete — all at once
 
 **Trash**
-- Deleted notes wait in the Trash for **30 days** (the remaining days are
-  shown on each; the last 3 turn red), then are purged along with any photo
-  no other note uses. Restore, delete forever, or empty the whole trash
+- Deleted notes wait in the Trash for **30 days** (each shows the board it
+  came from and the days left; the last 3 turn red), then are purged along
+  with any photo no other note uses. Restore, delete forever (asks first), or
+  empty the whole trash. Deleting a board says how many notes go with it —
+  they skip the trash
 
 **Share to Sticky Wall**
 - Share text, a link or a photo from any other app; the note editor opens
@@ -238,7 +244,10 @@ then taken well beyond it.
 - Photos are copied into the app's documents folder and referenced by file
   name, so they survive iOS container moves; a file is removed only once no
   note — live or in the trash — refers to it
-- **Export** the whole wall to a JSON file (share sheet) and **import** it back
+- **Back up** the whole wall — boards, notes, threads and photos — to one
+  JSON file (share sheet) and **load** it back from the file or pasted text;
+  a load can be undone from its snackbar, and a backup from a newer version
+  is refused rather than half-read
 
 ## Getting started
 

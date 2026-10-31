@@ -170,6 +170,42 @@ class ImageService {
     await _delete(resolveWall(stored));
   }
 
+  /// The bytes of a stored photo ([wall] for a wall photo), or null when the
+  /// file is missing or unreadable — a backup then simply goes without it.
+  static Future<Uint8List?> readStored(
+    String stored, {
+    bool wall = false,
+  }) async {
+    if (stored.isEmpty) return null;
+    try {
+      final file = File(wall ? resolveWall(stored) : resolve(stored));
+      if (!await file.exists()) return null;
+      return await file.readAsBytes();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Writes a photo carried by a backup back under its stored name. A file
+  /// already there is left alone: names are unique, so it is the same photo.
+  static Future<void> writeStored(
+    String stored,
+    Uint8List bytes, {
+    bool wall = false,
+  }) async {
+    if (stored.isEmpty) return;
+    _docsDir ??= (await getApplicationDocumentsDirectory()).path;
+    final folder = wall ? _wallFolder : _folder;
+    // Only the name counts (see resolve), so a crafted "../x" stays inside.
+    final name = stored.split(RegExp(r'[\\/]')).last;
+    if (name.isEmpty || name == '.' || name == '..') return;
+    final dir = Directory('$_docsDir/$folder');
+    if (!dir.existsSync()) dir.createSync(recursive: true);
+    final file = File('${dir.path}/$name');
+    if (await file.exists()) return;
+    await file.writeAsBytes(bytes, flush: true);
+  }
+
   /// Rasterizes a RepaintBoundary (a rendered note) to PNG bytes.
   static Future<Uint8List?> capture(
     RenderRepaintBoundary boundary, {

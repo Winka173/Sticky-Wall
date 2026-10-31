@@ -10,8 +10,10 @@ abstract class AppColors {
   static const ink = Color(0xFF3B372F);
 
   /// Ink at reduced strength, for secondary text and hints on paper.
-  static const inkSoft = Color(0x993B372F);
-  static const inkHint = Color(0x593B372F);
+  /// Secondary text stays at 4.5:1 on every day paper (about 4:1 with the
+  /// lights off); hints are lighter, but still read as words.
+  static const inkSoft = Color(0xD93B372F);
+  static const inkHint = Color(0x993B372F);
 
   /// Warm chalk white used for text written directly on dark walls.
   static const chalk = Color(0xFFFDFBF3);
@@ -19,8 +21,13 @@ abstract class AppColors {
   /// Sunny accent for the primary action and small badges.
   static const accent = Color(0xFFFFCA28);
 
-  static const link = Color(0xFF1A55A5);
+  /// Deep enough to keep 4.5:1 on the dimmed papers too.
+  static const link = Color(0xFF123A73);
   static const deleteIcon = Color(0xFFC62828);
+
+  /// Red for words on paper (overdue, errors): [deleteIcon] is too light to
+  /// read at 4.5:1 on pink or lilac.
+  static const warnText = Color(0xFF8B1A1A);
   static const pin = Color(0xFFD32F2F);
   static const paper = Color(0xFFFFF9E6);
 
@@ -31,9 +38,9 @@ abstract class AppColors {
   static const overlayDark = Color(0xCC33322C);
 
   /// Laid over artwork (a sketch, a photo) with the lights off: the same
-  /// warm shadow [nightPaper] blends in, at the same strength (0.38 → 0x61),
+  /// warm shadow [nightPaper] blends in, at the same strength (0.30 → 0x4D),
   /// so a picture dims exactly as much as the paper next to it.
-  static const nightShade = Color(0x617A6A4A);
+  static const nightShade = Color(0x4D7A6A4A);
 
   /// Yarn a thread can be tied with, classic red first (ARGB ints, since
   /// they are stored on the link).
@@ -85,8 +92,9 @@ Color noteColor(int? colorIndex, String guid) {
 /// The warm shadow tone paper takes on with the lights off.
 const _nightTone = Color(0xFF7A6A4A);
 
-/// Paper under a dimmed lamp: the pastel pulled toward a warm shadow tone.
-Color nightPaper(Color day) => Color.lerp(day, _nightTone, 0.38)!;
+/// Paper under a dimmed lamp: the pastel pulled toward a warm shadow tone —
+/// no further than ink still reads on it at 5:1.
+Color nightPaper(Color day) => Color.lerp(day, _nightTone, 0.30)!;
 
 /// [noteColor] as it should look right now — dimmed when the lights are off.
 Color paperColorOf(BuildContext context, int? colorIndex, String guid) {
@@ -164,8 +172,10 @@ class WallStyle {
 
   Color get wallText => dark ? AppColors.chalk : AppColors.ink;
 
+  /// Secondary words written on the wall: lighter than [wallText], but not
+  /// so light that the texture swallows them.
   Color get wallTextFaded =>
-      dark ? const Color(0xCCFDFBF3) : const Color(0xB33B372F);
+      dark ? const Color(0xE6FDFBF3) : const Color(0xE63B372F);
 
   /// Soft shadow gives the "chalk/marker on wall" depth on dark walls.
   List<Shadow> get wallTextShadows => dark
@@ -209,14 +219,14 @@ const walls = [
   WallStyle(
     id: 'wood',
     asset: 'assets/images/wall_wood.jpg',
-    overlay: Color(0x1A3B2F1E),
+    overlay: Color(0x26FFFFFF),
     dark: false,
   ),
   // New walls are appended, never inserted: boards persist the wall by index.
   WallStyle(
     id: 'kraft',
     asset: 'assets/images/wall_kraft.jpg',
-    overlay: Color(0x14FFFFFF),
+    overlay: Color(0x2EFFFFFF),
     dark: false,
   ),
   WallStyle(
@@ -252,7 +262,7 @@ const walls = [
   WallStyle(
     id: 'cardboard',
     asset: 'assets/images/wall_cardboard.jpg',
-    overlay: Color(0x14FFFFFF),
+    overlay: Color(0x33FFFFFF),
     dark: false,
   ),
   WallStyle(

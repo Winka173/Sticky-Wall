@@ -73,6 +73,18 @@ void main() {
           lessThan(screen.bottom),
           reason: 'card $i off the foot',
         );
+        // Each pin pokes up above its card: no other card may cover it, or
+        // "drag from my pin" cannot be done.
+        final pin = Offset(r.center.dx, r.top - 4);
+        for (var j = 0; j < rects.length; j++) {
+          if (j != i) {
+            expect(
+              rects[j].contains(pin),
+              isFalse,
+              reason: 'card $j covers the pin of card $i',
+            );
+          }
+        }
         for (var j = i + 1; j < rects.length; j++) {
           // Deflated a hair: cards may just touch, they may not pile up.
           expect(

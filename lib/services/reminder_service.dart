@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -20,6 +22,27 @@ class ReminderService {
   bool _ready = false;
   bool _permissionAsked = false;
 
+  /// Words the system shows for the reminder channel (in Android's app
+  /// settings) and for a note with nothing to show. Set from the app's
+  /// language at start-up; English until then.
+  static ({String channel, String description, String fallback}) labels = (
+    channel: 'Reminders',
+    description: 'Sticky Wall note reminders',
+    fallback: 'Sticky Wall',
+  );
+
+  /// Guids of notes whose reminder the user tapped while the app was running.
+  static final _opened = StreamController<String>.broadcast();
+  static Stream<String> get opened => _opened.stream;
+
+  /// The note whose reminder launched the app, if one did. Read once.
+  static String? _launchedFor;
+  static String? takeLaunchNote() {
+    final guid = _launchedFor;
+    _launchedFor = null;
+    return guid;
+  }
+
   Future<void> init() async {
     try {
       tz.initializeTimeZones();
@@ -31,7 +54,15 @@ class ReminderService {
       );
       await _plugin.initialize(
         settings: const InitializationSettings(android: android, iOS: darwin),
+        onDidReceiveNotificationResponse: (response) {
+          final guid = response.payload;
+          if (guid != null && guid.isNotEmpty) _opened.add(guid);
+        },
       );
+      final launch = await _plugin.getNotificationAppLaunchDetails();
+      if (launch?.didNotificationLaunchApp ?? false) {
+        _launchedFor = launch!.notificationResponse?.payload;
+      }
       _ready = true;
     } catch (e) {
       // Unsupported platform / no plugin — reminders simply won't fire.
@@ -39,15 +70,15 @@ class ReminderService {
     }
   }
 
-  static const _details = NotificationDetails(
+  static NotificationDetails get _details => NotificationDetails(
     android: AndroidNotificationDetails(
       'reminders',
-      'Reminders',
-      channelDescription: 'Sticky Wall note reminders',
+      labels.channel,
+      channelDescription: labels.description,
       importance: Importance.high,
       priority: Priority.high,
     ),
-    iOS: DarwinNotificationDetails(),
+    iOS: const DarwinNotificationDetails(),
   );
 
   /// A stable per-note notification id derived from the guid. Must survive a
@@ -64,26 +95,36 @@ class ReminderService {
           .where((t) => t.isNotEmpty)
           .join(', ');
     }
-    if (text.isEmpty) text = 'Sticky Wall';
+    if (text.isEmpty) text = labels.fallback;
     return note.emoji.isEmpty ? text : '${note.emoji} $text';
   }
 
   Future<void> _ensurePermission() async {
     if (_permissionAsked) return;
     _permissionAsked = true;
+    await requestPermission();
+  }
+
+  /// Asks for (or re-checks) permission to show notifications. False only
+  /// when the system says no — so the editor can tell the user their
+  /// reminder will stay silent; platforms without the question say yes.
+  static Future<bool> requestPermission() async {
+    final plugin = FlutterLocalNotificationsPlugin();
     try {
-      await _plugin
+      final android = await plugin
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
           >()
           ?.requestNotificationsPermission();
-      await _plugin
+      final ios = await plugin
           .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin
           >()
           ?.requestPermissions(alert: true, badge: true, sound: true);
+      return (android ?? true) && (ios ?? true);
     } catch (e) {
       debugPrint('Notification permission request failed: $e');
+      return true;
     }
   }
 
@@ -124,6 +165,8 @@ class ReminderService {
           scheduledDate: when,
           notificationDetails: _details,
           androidScheduleMode: mode,
+          // Tapping the notification opens this note.
+          payload: note.guid,
           matchDateTimeComponents: _repeatOf(note.repeat),
         );
         return;

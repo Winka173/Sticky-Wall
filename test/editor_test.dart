@@ -243,7 +243,7 @@ void main() {
     // photo tile carries its own remove button.
     expect(find.byTooltip('Replace photo'), findsOneWidget);
     expect(find.byTooltip('Add photo'), findsNothing);
-    await tester.tap(find.byTooltip('Delete'));
+    await tester.tap(find.byTooltip('Remove photo'));
     await tester.pumpAndSettle();
     expect(find.byTooltip('Add photo'), findsOneWidget);
     expect(find.byTooltip('Replace photo'), findsNothing);
@@ -437,8 +437,16 @@ void main() {
     expect(find.byType(AddNoteButton), findsNothing);
     expect(find.byIcon(Icons.rotate_right), findsNothing);
     expect(find.byIcon(Icons.open_in_full), findsNothing);
-    expect(find.byTooltip('Share as image'), findsOneWidget);
-    expect(find.byTooltip('Save image'), findsOneWidget);
+    // Share and save are named buttons under the picture.
+    for (final label in ['Share', 'Save image']) {
+      expect(
+        find.ancestor(
+          of: find.text(label),
+          matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+        ),
+        findsOneWidget,
+      );
+    }
     expect(tester.takeException(), isNull);
   });
 
@@ -789,7 +797,7 @@ void main() {
     expect(a.x, closeTo(0.1, 1e-9));
     expect(b.x, closeTo(0.6, 1e-9));
     // One Undo step puts both back.
-    await tester.tap(find.text('Undo'));
+    await tester.tap(find.text('Undo move'));
     await tester.pumpAndSettle();
     expect(a.y, 0.1);
     expect(b.y, 0.6);
@@ -859,7 +867,7 @@ void main() {
     expect(notes.boardNotes, isEmpty);
     expect(find.textContaining('Moved to'), findsOneWidget);
     // Undo (the pill, not the snackbar's) brings it back to this board.
-    await tester.tap(find.text('Undo').last);
+    await tester.tap(find.text('Undo move to board'));
     await tester.pumpAndSettle();
     expect(note.boardId, 'default');
   });
@@ -898,7 +906,7 @@ void main() {
         .widget<AnimatedOpacity>(
           find
               .ancestor(
-                of: find.text('Undo'),
+                of: find.byIcon(Icons.undo),
                 matching: find.byType(AnimatedOpacity),
               )
               .first,
@@ -908,7 +916,8 @@ void main() {
     await _dragNote(tester, find.text('Oops'), const Offset(0, 100));
     expect(note.y, isNot(0.3));
     expect(pillOpacity(), 1);
-    await tester.tap(find.text('Undo'));
+    // The pill says what it undoes.
+    await tester.tap(find.text('Undo move'));
     await tester.pumpAndSettle();
     expect(note.y, 0.3);
     expect(pillOpacity(), 0, reason: 'nothing left to undo: the pill is gone');
@@ -1097,6 +1106,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(notes.currentBoard.strokes.length, 1);
     await tester.tap(find.byTooltip('Clear'));
+    await tester.pumpAndSettle();
+    // Wiping the wall asks first.
+    expect(find.text('Wipe everything drawn on this wall?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, 'Clear'));
     await tester.pumpAndSettle();
     expect(notes.currentBoard.strokes, isEmpty);
     await tester.tap(find.byTooltip('Undo'));

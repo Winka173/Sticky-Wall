@@ -215,6 +215,7 @@ class _BoardBarState extends State<BoardBar> {
     AppLocalizations l10n,
     Board board,
   ) async {
+    final index = widget.notes.boards.indexWhere((b) => b.id == board.id);
     final action = await showActionSheet<String>(
       context,
       title: board.icon.isEmpty
@@ -229,6 +230,19 @@ class _BoardBarState extends State<BoardBar> {
           title: Text(l10n.editBoard),
           onTap: () => Navigator.pop(context, 'edit'),
         ),
+        // Reordering is otherwise a long-press drag of the tab.
+        if (index > 0)
+          ListTile(
+            leading: const Icon(Icons.arrow_back),
+            title: Text(l10n.moveBoardLeft),
+            onTap: () => Navigator.pop(context, 'left'),
+          ),
+        if (index < widget.notes.boards.length - 1)
+          ListTile(
+            leading: const Icon(Icons.arrow_forward),
+            title: Text(l10n.moveBoardRight),
+            onTap: () => Navigator.pop(context, 'right'),
+          ),
         if (widget.notes.boards.length > 1)
           ListTile(
             leading: const Icon(
@@ -245,6 +259,10 @@ class _BoardBarState extends State<BoardBar> {
     );
     if (action == null || !context.mounted) return;
 
+    if (action == 'left' || action == 'right') {
+      widget.notes.reorderBoards(index, index + (action == 'left' ? -1 : 1));
+      return;
+    }
     if (action == 'edit') {
       final draft = await showBoardDialog(context, board: board);
       if (draft == null) return;
@@ -287,7 +305,8 @@ class _BoardBarState extends State<BoardBar> {
 }
 
 /// A board tab: icon + name in the board's own formatting, filled when it is
-/// the current board. Tap to switch, long-press to edit / delete.
+/// the current board. Tap to switch; tap the current one to edit, move or
+/// delete it; long-press and drag to reorder.
 class _BoardChip extends StatelessWidget {
   const _BoardChip({
     super.key,
@@ -311,69 +330,75 @@ class _BoardChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = board.icon;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedScale(
-        scale: highlighted ? 1.08 : 1,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOutBack,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: EdgeInsets.fromLTRB(
-            icon.isEmpty ? 16 : 12,
-            6,
-            selected ? 10 : 16,
-            6,
-          ),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: highlighted
-                ? AppColors.accent.withValues(alpha: 0.45)
-                : selected
-                ? textColor.withValues(alpha: 0.18)
-                : null,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: highlighted
-                  ? AppColors.accent
-                  : textColor.withValues(alpha: selected ? 0.9 : 0.35),
-              width: highlighted || selected ? 1.5 : 1,
+    return Semantics(
+      button: true,
+      selected: selected,
+      // Tapping the current board opens its sheet (edit, move, delete).
+      hint: selected ? AppLocalizations.of(context)?.editBoard : null,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedScale(
+          scale: highlighted ? 1.08 : 1,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOutBack,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: EdgeInsets.fromLTRB(
+              icon.isEmpty ? 16 : 12,
+              6,
+              selected ? 10 : 16,
+              6,
             ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: Text(icon, style: const TextStyle(fontSize: 16)),
-                ),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 160),
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: board.decorate(
-                    TextStyle(
-                      color: textColor,
-                      fontSize: 16,
-                      fontWeight: selected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      // The underline is drawn in the text color by default; on
-                      // a dark wall that is the chalk, which is what we want.
-                      decorationColor: textColor,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: highlighted
+                  ? AppColors.accent.withValues(alpha: 0.45)
+                  : selected
+                  ? textColor.withValues(alpha: 0.18)
+                  : null,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: highlighted
+                    ? AppColors.accent
+                    : textColor.withValues(alpha: selected ? 0.9 : 0.35),
+                width: highlighted || selected ? 1.5 : 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Text(icon, style: const TextStyle(fontSize: 16)),
+                  ),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 160),
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: board.decorate(
+                      TextStyle(
+                        color: textColor,
+                        fontSize: 16,
+                        fontWeight: selected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        // The underline is drawn in the text color by default; on
+                        // a dark wall that is the chalk, which is what we want.
+                        decorationColor: textColor,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              if (selected)
-                Padding(
-                  padding: const EdgeInsets.only(left: 2),
-                  child: Icon(Icons.expand_more, size: 18, color: textColor),
-                ),
-            ],
+                if (selected)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 2),
+                    child: Icon(Icons.expand_more, size: 18, color: textColor),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
