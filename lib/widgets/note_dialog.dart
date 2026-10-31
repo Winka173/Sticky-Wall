@@ -7,10 +7,12 @@ import 'package:image_picker/image_picker.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
+import '../services/audio_service.dart';
 import '../services/image_service.dart';
 import '../services/reminder_service.dart';
 import '../theme.dart';
 import 'action_sheet.dart';
+import 'audio_note.dart';
 import 'drawing_canvas.dart';
 import 'keyboard_tappable.dart';
 import 'note_views.dart';
@@ -109,6 +111,9 @@ class _NoteDialogState extends State<_NoteDialog>
   // swap the picture several times). Only the one the note is saved with is
   // kept; the rest would pile up unreferenced in the documents directory.
   final _addedPhotos = <String>{};
+  // Recordings made in this session, kept on the same terms as photos.
+  final _addedAudio = <String>{};
+  final _voice = GlobalKey<VoiceRecorderPanelState>();
   bool _saved = false;
 
   /// The note as it was opened, to tell whether closing would lose anything.
@@ -142,6 +147,15 @@ class _NoteDialogState extends State<_NoteDialog>
   void dispose() {
     for (final path in _addedPhotos) {
       if (!_saved || _n.imagePath != path) ImageService.deleteFile(path);
+    }
+    for (final path in _addedAudio) {
+      if (!_saved || _n.audioPath != path) AudioService.deleteFile(path);
+    }
+    // A voice note still playing from the editor stops with it.
+    final playing = AudioPlayback.instance.current;
+    if (playing != null &&
+        (playing == _n.audioPath || _addedAudio.contains(playing))) {
+      AudioPlayback.instance.stop();
     }
     _content.dispose();
     _url.dispose();
@@ -239,6 +253,12 @@ class _NoteDialogState extends State<_NoteDialog>
 
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context)!;
+    // A take still running is what the user meant to keep: end it first.
+    final voice = _voice.currentState;
+    if (voice != null && voice.isRecording) {
+      await voice.finish();
+      if (!mounted) return;
+    }
     final content = _content.text.trim();
     final url = _url.text.trim();
 
@@ -274,6 +294,8 @@ class _NoteDialogState extends State<_NoteDialog>
         if (!_n.hasPhoto) error = l10n.photoRequired;
       case NoteType.label:
         if (content.isEmpty) error = l10n.contentRequired;
+      case NoteType.audio:
+        if (!_n.hasAudio) error = l10n.recordingRequired;
     }
     if (error != null) {
       _fail(error);
@@ -288,7 +310,8 @@ class _NoteDialogState extends State<_NoteDialog>
     ];
     final dropsDrawing = _n.type != NoteType.drawing && _n.strokes.isNotEmpty;
     final dropsLink = _n.type != NoteType.link && url.isNotEmpty;
-    if (dropsDrawing || dropsLink) {
+    final dropsVoice = _n.type != NoteType.audio && _n.hasAudio;
+    if (dropsDrawing || dropsLink || dropsVoice) {
       final ok = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -322,6 +345,11 @@ class _NoteDialogState extends State<_NoteDialog>
       _n.checklist = [];
     }
     if (_n.type != NoteType.drawing) _n.strokes = [];
+    if (_n.type != NoteType.audio) {
+      _n
+        ..audioPath = ''
+        ..audioMs = 0;
+    }
 
     _saved = true;
     Navigator.of(context).pop(_n);
@@ -334,6 +362,7 @@ class _NoteDialogState extends State<_NoteDialog>
     NoteType.drawing => l10n.typeDrawing,
     NoteType.photo => l10n.typePhoto,
     NoteType.label => l10n.typeLabel,
+    NoteType.audio => l10n.typeAudio,
   };
 
   // --- reminder / photo / checklist ---------------------------------------------
@@ -403,6 +432,32 @@ class _NoteDialogState extends State<_NoteDialog>
   /// business (it may still be wanted if the edit is cancelled).
   void _discardPhotoIfAdded(String path) {
     if (_addedPhotos.remove(path)) ImageService.deleteFile(path);
+  }
+
+  /// A recording made in the editor replaces the one before it; a take
+  /// from this session that is no longer wanted goes straight away.
+  void _setRecording(String stored, int ms) {
+    _discardAudioIfAdded(_n.audioPath);
+    _addedAudio.add(stored);
+    setState(() {
+      _n
+        ..audioPath = stored
+        ..audioMs = ms;
+      _error = null;
+    });
+  }
+
+  void _deleteRecording() {
+    _discardAudioIfAdded(_n.audioPath);
+    setState(() {
+      _n
+        ..audioPath = ''
+        ..audioMs = 0;
+    });
+  }
+
+  void _discardAudioIfAdded(String path) {
+    if (_addedAudio.remove(path)) AudioService.deleteFile(path);
   }
 
   void _addItem({bool keepFocus = true}) {
@@ -512,6 +567,20 @@ class _NoteDialogState extends State<_NoteDialog>
                               if (_n.type == NoteType.link) _urlField(l10n),
                               if (_n.type == NoteType.checklist)
                                 _checklistEditor(l10n),
+                              if (_n.type == NoteType.audio)
+                                VoiceRecorderPanel(
+                                  key: _voice,
+                                  stored: _n.audioPath,
+                                  length: Duration(milliseconds: _n.audioMs),
+                                  onRecorded: _setRecording,
+                                  onDelete: _deleteRecording,
+                                  onProblem: (p) => _fail(
+                                    p == RecordProblem.denied
+                                        ? l10n.micDenied
+                                        : l10n.recordFailed,
+                                  ),
+                                  onRecordingChanged: (_) => _clearError(),
+                                ),
                               if (_n.type == NoteType.drawing) ...[
                                 const SizedBox(height: 8),
                                 DrawingEditor(

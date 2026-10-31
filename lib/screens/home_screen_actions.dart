@@ -29,7 +29,78 @@ extension _NoteActions on _HomeScreenState {
         _showNoteActions(note);
       }
     },
+    onOpenStack: note.stack == null ? null : () => _openStack(note),
   );
+
+  /// A stack's cards, top first: tap one to edit it, or spread them out.
+  Future<void> _openStack(Note note) async {
+    final l10n = _l10n;
+    final pile = _notes.stackOf(note).reversed.toList();
+    final choice = await showActionSheet<Object>(
+      context,
+      title: l10n.stackCount(pile.length),
+      children: [
+        for (final n in pile)
+          ListTile(
+            leading: Icon(
+              Icons.sticky_note_2,
+              color: paperColorOf(context, n.colorIndex, n.guid),
+            ),
+            title: Text(
+              _noteTitle(n),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            onTap: () => Navigator.pop(context, n),
+          ),
+        const Divider(height: 1),
+        ListTile(
+          leading: const Icon(Icons.call_split),
+          title: Text(l10n.unstack),
+          onTap: () => Navigator.pop(context, 'unstack'),
+        ),
+      ],
+    );
+    if (!mounted) return;
+    if (choice == 'unstack') {
+      unawaited(HapticFeedback.lightImpact());
+      _notes.unstack(note);
+    } else if (choice is Note) {
+      await _openEditor(choice, isNew: false);
+    }
+  }
+
+  /// Piles [note] onto another note picked from a list; [note] lands on top.
+  Future<void> _stackWith(Note note) async {
+    final l10n = _l10n;
+    final others = [
+      for (final n in _notes.wallNotes)
+        if (n != note && (n.stack == null || n.stack != note.stack)) n,
+    ];
+    if (others.isEmpty) {
+      _toast(l10n.noOtherNotes);
+      return;
+    }
+    final target = await showActionSheet<Note>(
+      context,
+      title: l10n.stackNotes,
+      children: [
+        for (final n in others)
+          ListTile(
+            leading: const Icon(Icons.sticky_note_2_outlined),
+            title: Text(
+              _noteTitle(n),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            onTap: () => Navigator.pop(context, n),
+          ),
+      ],
+    );
+    if (target == null || !mounted) return;
+    unawaited(HapticFeedback.lightImpact());
+    _notes.stackNotes([target, note]);
+  }
 
   Future<void> _showNoteActions(Note note) async {
     final l10n = _l10n;
@@ -75,6 +146,18 @@ extension _NoteActions on _HomeScreenState {
             leading: const Icon(Icons.timeline),
             title: Text(l10n.tieThreadTo),
             onTap: () => Navigator.pop(context, 'tie'),
+          ),
+        if (onWall)
+          ListTile(
+            leading: const Icon(Icons.layers_outlined),
+            title: Text(l10n.stackNotes),
+            onTap: () => Navigator.pop(context, 'stack'),
+          ),
+        if (onWall && note.stack != null)
+          ListTile(
+            leading: const Icon(Icons.call_split),
+            title: Text(l10n.unstack),
+            onTap: () => Navigator.pop(context, 'unstack'),
           ),
         if (onWall && threads.isNotEmpty)
           ListTile(
@@ -144,6 +227,10 @@ extension _NoteActions on _HomeScreenState {
         await _sizeAndTurn(note);
       case 'tie':
         await _tieThreadFrom(note);
+      case 'stack':
+        await _stackWith(note);
+      case 'unstack':
+        _notes.unstack(note);
       case 'threads':
         await _threadsOf(note, threads);
       case 'select':
@@ -315,6 +402,7 @@ extension _NoteActions on _HomeScreenState {
     if (item.isNotEmpty) return item.first.text;
     if (note.type == NoteType.photo) return _l10n.typePhoto;
     if (note.type == NoteType.drawing) return _l10n.typeDrawing;
+    if (note.type == NoteType.audio) return _l10n.typeAudio;
     return _l10n.untitledNote;
   }
 
@@ -426,5 +514,75 @@ extension _NoteActions on _HomeScreenState {
     } catch (_) {
       if (mounted) _toast(_l10n.imageSaveFailed);
     }
+  }
+
+  /// Under the search box: how many notes the search finds on the other
+  /// walls, opening a list of them — a note is never lost to the wrong tab.
+  Widget _otherBoardsPill() {
+    final elsewhere = _notes.otherBoardMatches;
+    if (elsewhere.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Material(
+        color: AppColors.overlayDark,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => _showOtherBoardMatches(elsewhere),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.travel_explore,
+                    size: 16,
+                    color: AppColors.chalk,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _l10n.otherBoardsMatches(elsewhere.length),
+                    style: const TextStyle(
+                      color: AppColors.chalk,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The matches on other walls, each with its wall's name; picking one goes
+  /// to that wall (the search stays, so it is found there too) and opens it.
+  Future<void> _showOtherBoardMatches(List<Note> notes) async {
+    final boards = {for (final b in _notes.boards) b.id: b};
+    final picked = await showActionSheet<Note>(
+      context,
+      title: _l10n.onOtherBoards,
+      children: [
+        for (final n in notes)
+          ListTile(
+            leading: const Icon(Icons.sticky_note_2_outlined),
+            title: Text(
+              _noteTitle(n),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: boards[n.boardId] == null
+                ? null
+                : Text(_boardName(boards[n.boardId]!)),
+            onTap: () => Navigator.pop(context, n),
+          ),
+      ],
+    );
+    if (picked == null || !mounted) return;
+    _notes.selectBoard(picked.boardId);
+    await _openEditor(picked, isNew: false);
   }
 }

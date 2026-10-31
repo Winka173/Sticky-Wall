@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/board.dart';
+import '../services/board_templates.dart';
 import '../theme.dart';
 
 /// Emoji offered as board icons.
@@ -31,6 +32,9 @@ typedef BoardDraft = ({
   bool bold,
   bool italic,
   bool underline,
+
+  /// What a new board starts with (always blank when editing).
+  BoardTemplate template,
 });
 
 /// Longest name that still reads on a tab; the chip ellipsizes past ~160 px
@@ -70,6 +74,7 @@ class _BoardDialogState extends State<_BoardDialog> {
   };
 
   bool get _isNew => widget.board == null;
+  BoardTemplate _template = BoardTemplate.blank;
 
   @override
   void initState() {
@@ -100,6 +105,7 @@ class _BoardDialogState extends State<_BoardDialog> {
       bold: _format.contains(_Format.bold),
       italic: _format.contains(_Format.italic),
       underline: _format.contains(_Format.underline),
+      template: _template,
     ));
   }
 
@@ -116,104 +122,146 @@ class _BoardDialogState extends State<_BoardDialog> {
     return AlertDialog(
       title: Text(_isNew ? l10n.newBoard : l10n.editBoard),
       contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-      content: SizedBox(
-        width: 360,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _IconWell(icon: _icon),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _name,
-                    autofocus: true,
-                    textCapitalization: TextCapitalization.sentences,
-                    maxLength: _maxNameLength,
-                    // Live preview: the field is written the way the tab is.
-                    style: _styled(
-                      theme.textTheme.bodyLarge ??
-                          const TextStyle(color: AppColors.ink),
-                    ),
-                    decoration: InputDecoration(
-                      labelText: l10n.boardName,
-                      hintText: _isNew ? null : l10n.defaultBoardName,
-                      counterText: '',
-                    ),
-                    onSubmitted: canSave ? (_) => _save() : null,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(l10n.nameStyle, style: sectionStyle),
-            const SizedBox(height: 6),
-            SegmentedButton<_Format>(
-              multiSelectionEnabled: true,
-              emptySelectionAllowed: true,
-              showSelectedIcon: false,
-              selected: _format,
-              onSelectionChanged: (s) => setState(() {
-                _format
-                  ..clear()
-                  ..addAll(s);
-              }),
-              segments: [
-                ButtonSegment(
-                  value: _Format.bold,
-                  icon: const Icon(Icons.format_bold),
-                  tooltip: l10n.bold,
-                ),
-                ButtonSegment(
-                  value: _Format.italic,
-                  icon: const Icon(Icons.format_italic),
-                  tooltip: l10n.italic,
-                ),
-                ButtonSegment(
-                  value: _Format.underline,
-                  icon: const Icon(Icons.format_underlined),
-                  tooltip: l10n.underline,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(l10n.boardIcon, style: sectionStyle),
-            const SizedBox(height: 6),
-            // One scrolling line, so the dialog stays short above a keyboard.
-            SizedBox(
-              height: 48,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
+      // Scrolls when the keyboard leaves too little room for every choice.
+      content: SingleChildScrollView(
+        child: SizedBox(
+          width: 360,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _IconChoice(
-                    selected: _icon.isEmpty,
-                    onTap: () => setState(() => _icon = ''),
-                    child: Text(
-                      l10n.none,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.ink,
+                  _IconWell(icon: _icon),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _name,
+                      autofocus: true,
+                      textCapitalization: TextCapitalization.sentences,
+                      maxLength: _maxNameLength,
+                      // Live preview: the field is written the way the tab is.
+                      style: _styled(
+                        theme.textTheme.bodyLarge ??
+                            const TextStyle(color: AppColors.ink),
                       ),
+                      decoration: InputDecoration(
+                        labelText: l10n.boardName,
+                        hintText: _isNew ? null : l10n.defaultBoardName,
+                        counterText: '',
+                      ),
+                      onSubmitted: canSave ? (_) => _save() : null,
                     ),
                   ),
-                  for (final e in boardIcons)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: _IconChoice(
-                        selected: e == _icon,
-                        // Tapping the current icon takes it off again.
-                        onTap: () =>
-                            setState(() => _icon = _icon == e ? '' : e),
-                        child: Text(e, style: const TextStyle(fontSize: 24)),
-                      ),
-                    ),
                 ],
               ),
-            ),
-          ],
+              if (_isNew) ...[
+                const SizedBox(height: 16),
+                Text(l10n.boardTemplate, style: sectionStyle),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    for (final (t, label, icon) in [
+                      (
+                        BoardTemplate.blank,
+                        l10n.templateBlank,
+                        Icons.crop_square,
+                      ),
+                      (
+                        BoardTemplate.kanban,
+                        l10n.templateKanban,
+                        Icons.view_week_outlined,
+                      ),
+                      (
+                        BoardTemplate.week,
+                        l10n.templateWeek,
+                        Icons.calendar_view_week_outlined,
+                      ),
+                      (
+                        BoardTemplate.brainstorm,
+                        l10n.templateBrainstorm,
+                        Icons.hub_outlined,
+                      ),
+                    ])
+                      ChoiceChip(
+                        avatar: Icon(icon, size: 18),
+                        label: Text(label),
+                        selected: _template == t,
+                        onSelected: (_) => setState(() => _template = t),
+                      ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 16),
+              Text(l10n.nameStyle, style: sectionStyle),
+              const SizedBox(height: 6),
+              SegmentedButton<_Format>(
+                multiSelectionEnabled: true,
+                emptySelectionAllowed: true,
+                showSelectedIcon: false,
+                selected: _format,
+                onSelectionChanged: (s) => setState(() {
+                  _format
+                    ..clear()
+                    ..addAll(s);
+                }),
+                segments: [
+                  ButtonSegment(
+                    value: _Format.bold,
+                    icon: const Icon(Icons.format_bold),
+                    tooltip: l10n.bold,
+                  ),
+                  ButtonSegment(
+                    value: _Format.italic,
+                    icon: const Icon(Icons.format_italic),
+                    tooltip: l10n.italic,
+                  ),
+                  ButtonSegment(
+                    value: _Format.underline,
+                    icon: const Icon(Icons.format_underlined),
+                    tooltip: l10n.underline,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(l10n.boardIcon, style: sectionStyle),
+              const SizedBox(height: 6),
+              // One scrolling line, so the dialog stays short above a keyboard.
+              SizedBox(
+                height: 48,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _IconChoice(
+                      selected: _icon.isEmpty,
+                      onTap: () => setState(() => _icon = ''),
+                      child: Text(
+                        l10n.none,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                    ),
+                    for (final e in boardIcons)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: _IconChoice(
+                          selected: e == _icon,
+                          // Tapping the current icon takes it off again.
+                          onTap: () =>
+                              setState(() => _icon = _icon == e ? '' : e),
+                          child: Text(e, style: const TextStyle(fontSize: 24)),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       actions: [

@@ -738,6 +738,72 @@ class AppLocalizationsVi extends AppLocalizations {
       'Nạp bản sao lưu sẽ thay thế toàn bộ tường và ghi chú hiện tại.';
 
   @override
+  String get typeAudio => 'Ghi âm';
+
+  @override
+  String get recordHint => 'Chạm để ghi âm, hoặc giữ rồi thả ra';
+
+  @override
+  String get recordStart => 'Bắt đầu ghi âm';
+
+  @override
+  String get recordStop => 'Dừng ghi âm';
+
+  @override
+  String get recordingNow => 'Đang ghi âm';
+
+  @override
+  String get recordAgain => 'Ghi lại';
+
+  @override
+  String get deleteRecording => 'Xoá bản ghi';
+
+  @override
+  String get playVoice => 'Phát ghi âm';
+
+  @override
+  String get pauseVoice => 'Tạm dừng ghi âm';
+
+  @override
+  String get recordingRequired => 'Hãy ghi âm trước đã';
+
+  @override
+  String get micDenied =>
+      'Sticky Wall chưa được dùng micrô. Hãy cho phép trong phần cài đặt của máy để ghi âm.';
+
+  @override
+  String get recordFailed => 'Không ghi âm được. Hãy thử lại.';
+
+  @override
+  String get recordingMissing => 'Bản ghi này không còn trên máy';
+
+  @override
+  String get autoBackup => 'Tự động sao lưu hằng tuần';
+
+  @override
+  String get autoBackupHint => 'Giữ 4 bản gần nhất ngay trên máy';
+
+  @override
+  String autoBackupLast(String date) {
+    return 'Lần sao lưu tự động gần nhất: $date';
+  }
+
+  @override
+  String get autoBackupNone => 'Chưa có bản sao lưu tự động nào';
+
+  @override
+  String get autoBackupRestore => 'Khôi phục bản này';
+
+  @override
+  String autoBackupRestoreTitle(String date) {
+    return 'Khôi phục bản sao lưu ngày $date?';
+  }
+
+  @override
+  String get autoBackupMissing =>
+      'Không tìm thấy bản sao lưu tự động nào trên máy';
+
+  @override
   String get importChooseFile => 'Chọn tệp';
 
   @override
@@ -996,4 +1062,87 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get remindersChannelDescription => 'Lời nhắc bạn đặt trên ghi chú';
+
+  @override
+  String get boardTemplate => 'Bắt đầu từ';
+
+  @override
+  String get templateBlank => 'Trống';
+
+  @override
+  String get templateKanban => 'Kanban';
+
+  @override
+  String get templateWeek => 'Kế hoạch tuần';
+
+  @override
+  String get templateBrainstorm => 'Động não';
+
+  @override
+  String get kanbanTodo => 'Cần làm';
+
+  @override
+  String get kanbanDoing => 'Đang làm';
+
+  @override
+  String get kanbanDone => 'Xong';
+
+  @override
+  String get brainstormCenter => 'Ý tưởng chính';
+
+  @override
+  String get stackNotes => 'Xếp chồng với…';
+
+  @override
+  String get stackSelected => 'Xếp chồng';
+
+  @override
+  String stackCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ghi chú trong chồng này',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get unstack => 'Trải ra';
+
+  @override
+  String get stackOpen => 'Mở chồng';
+
+  @override
+  String otherBoardsMatches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Thêm $count ở tường khác',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get onOtherBoards => 'Ở tường khác';
+
+  @override
+  String get dayMonday => 'Thứ Hai';
+
+  @override
+  String get dayTuesday => 'Thứ Ba';
+
+  @override
+  String get dayWednesday => 'Thứ Tư';
+
+  @override
+  String get dayThursday => 'Thứ Năm';
+
+  @override
+  String get dayFriday => 'Thứ Sáu';
+
+  @override
+  String get daySaturday => 'Thứ Bảy';
+
+  @override
+  String get daySunday => 'Chủ Nhật';
 }

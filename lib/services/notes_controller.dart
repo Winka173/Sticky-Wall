@@ -65,8 +65,10 @@ class NotesController extends ChangeNotifier {
     this._reminders, {
     FileRemover? deletePhoto,
     FileRemover? deleteWallImage,
+    FileRemover? deleteAudio,
   }) : _deletePhoto = deletePhoto ?? _noop,
-       _deleteWallImage = deleteWallImage ?? _noop {
+       _deleteWallImage = deleteWallImage ?? _noop,
+       _deleteAudio = deleteAudio ?? _noop {
     _load();
   }
 
@@ -79,6 +81,7 @@ class NotesController extends ChangeNotifier {
   final ReminderService _reminders;
   final FileRemover _deletePhoto;
   final FileRemover _deleteWallImage;
+  final FileRemover _deleteAudio;
   final _uuid = const Uuid();
 
   final List<Board> _boards = [];
@@ -351,6 +354,7 @@ class NotesController extends ChangeNotifier {
       3 => note.type == NoteType.drawing,
       4 => note.type == NoteType.photo,
       5 => note.type == NoteType.label,
+      6 => note.type == NoteType.audio,
       _ => true,
     };
     if (!matchesType) return false;
@@ -364,6 +368,17 @@ class NotesController extends ChangeNotifier {
       ].join(' '),
     );
     return haystack.contains(search);
+  }
+
+  /// Live notes on the *other* boards that the search finds — so a search
+  /// can say "3 more on other walls" instead of a note seeming lost. Empty
+  /// while nothing is typed: a type filter alone stays on this board.
+  List<Note> get otherBoardMatches {
+    if (_search.trim().isEmpty) return const [];
+    return [
+      for (final n in _notes)
+        if (!n.isTrashed && n.boardId != _currentBoardId && matches(n)) n,
+    ];
   }
 
   /// Notes on the current board, filtered by type/search and sorted, for the
@@ -553,11 +568,16 @@ class NotesController extends ChangeNotifier {
       _storage.saveLinks(_links);
     }
     if (!photoInUse(note.imagePath)) _deletePhoto(note.imagePath);
+    if (!audioInUse(note.audioPath)) _deleteAudio(note.audioPath);
   }
 
   /// Whether some note (live or trashed) still shows the photo at [path].
   bool photoInUse(String path) =>
       path.isNotEmpty && _notes.any((n) => n.imagePath == path);
+
+  /// Whether some note (live or trashed) still plays the recording [path].
+  bool audioInUse(String path) =>
+      path.isNotEmpty && _notes.any((n) => n.audioPath == path);
 
   /// A copy of [note] beside it — a touch down and to the right, on top —
   /// with its own id, unpinned and unlocked so it can be taken where it is
@@ -617,6 +637,8 @@ class NotesController extends ChangeNotifier {
       // Two copies of one reminder would ring twice for the same thing.
       ..remove('reminderAt')
       ..remove('repeat')
+      // A copy lies on its own, not in the original's pile.
+      ..remove('stack')
       ..remove('deletedAt')
       ..remove('completedAt');
     final copy = Note.fromJson(json);
@@ -736,11 +758,15 @@ class NotesController extends ChangeNotifier {
   void moveNote(Note note, double x, double y) {
     final nx = _onWall(x);
     final ny = _onWall(y);
+    // A stack moves as one pile.
+    final pile = [note, ..._stackMates(note)];
     if (nx != note.x || ny != note.y) {
-      _rememberWall(WallEditKind.move, [note]);
-      note
-        ..x = nx
-        ..y = ny;
+      _rememberWall(WallEditKind.move, pile);
+      for (final n in pile) {
+        n
+          ..x = nx
+          ..y = ny;
+      }
     }
     _bringToFront(note);
     _persistNotes();
@@ -749,6 +775,12 @@ class NotesController extends ChangeNotifier {
 
   /// Moves several notes at once — a dragged selection — as one Undo step.
   void moveNotes(List<(Note note, double x, double y)> moves) {
+    moves = [
+      for (final (note, x, y) in moves) ...[
+        (note, x, y),
+        for (final mate in _stackMates(note)) (mate, x, y),
+      ],
+    ];
     final changed = [
       for (final (note, x, y) in moves)
         if (_onWall(x) != note.x || _onWall(y) != note.y) note,
@@ -768,6 +800,13 @@ class NotesController extends ChangeNotifier {
   /// tidied note also loses any turn the user gave it: neat rows want the
   /// cards straight (their slight hand-stuck tilt comes back on its own).
   void arrange(List<(Note, double x, double y, double scale)> placements) {
+    // The wall tidies the top card of a stack; the pile goes with it.
+    placements = [
+      for (final (note, x, y, scale) in placements) ...[
+        (note, x, y, scale),
+        for (final mate in _stackMates(note)) (mate, x, y, scale),
+      ],
+    ];
     _rememberWall(WallEditKind.tidy, [
       for (final (note, _, _, _) in placements) note,
     ]);
@@ -869,6 +908,85 @@ class NotesController extends ChangeNotifier {
 
   void _bringToFront(Note note) {
     if (_notes.remove(note)) _notes.add(note);
+  }
+
+  // --- Stacks ----------------------------------------------------------------
+
+  /// The other live notes in [note]'s stack (empty for a lone note).
+  List<Note> _stackMates(Note note) {
+    final id = note.stack;
+    if (id == null) return const [];
+    return [
+      for (final n in _notes)
+        if (n.stack == id && n != note && !n.isTrashed) n,
+    ];
+  }
+
+  /// [note]'s whole stack, bottom to top (the last one shows), or just the
+  /// note when it lies alone.
+  List<Note> stackOf(Note note) => note.stack == null
+      ? [note]
+      : [
+          for (final n in _notes)
+            if (n.stack == note.stack && !n.isTrashed) n,
+        ];
+
+  /// What the wall shows: the current board's notes with each stack folded
+  /// to its top card.
+  List<Note> get wallNotes {
+    final tops = <String, Note>{
+      // Later in the list = higher on the pile, so the last one wins.
+      for (final n in boardNotes)
+        if (n.stack != null) n.stack!: n,
+    };
+    // Keep the wall's paint order: a stack sits where its top card does.
+    return [
+      for (final n in boardNotes)
+        if (n.stack == null || tops[n.stack!] == n) n,
+    ];
+  }
+
+  /// Piles [notes] onto the last of them, which stays on top. A note that
+  /// was in another stack brings that whole stack along.
+  void stackNotes(List<Note> notes) {
+    if (notes.length < 2) return;
+    final pile = <Note>{for (final n in notes) ...stackOf(n)}.toList();
+    final top = notes.last;
+    final id = top.stack ?? _uuid.v4();
+    _rememberWall(WallEditKind.move, pile);
+    for (final n in pile) {
+      n
+        ..stack = id
+        ..x = top.x
+        ..y = top.y;
+    }
+    for (final n in pile) {
+      if (n != top) _bringToFront(n);
+    }
+    _bringToFront(top);
+    _persistNotes();
+    notifyListeners();
+  }
+
+  /// Spreads a stack back out into single notes, fanned to the right and
+  /// down from where it lay, so each can be seen again.
+  void unstack(Note note) {
+    final pile = stackOf(note);
+    if (pile.length < 2) {
+      note.stack = null;
+      _persistNotes();
+      notifyListeners();
+      return;
+    }
+    _rememberWall(WallEditKind.move, pile);
+    for (final (i, n) in pile.reversed.indexed) {
+      n
+        ..stack = null
+        ..x = _onWall(note.x + i * 0.07)
+        ..y = _onWall(note.y + i * 0.05);
+    }
+    _persistNotes();
+    notifyListeners();
   }
 
   void _persistNotes() => _storage.saveNotes(_notes);

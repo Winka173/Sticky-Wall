@@ -145,6 +145,35 @@ void main() {
     expect(find.text('Duplicate'), findsOneWidget, reason: 'Shift+F10: menu');
   });
 
+  testWidgets('a dragged note clicks into line with its neighbour', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        for (final (guid, text, x, y) in [
+          ('a', 'Aa', 0.1, 0.1),
+          ('b', 'Bb', 0.5, 0.6),
+        ])
+          Note(
+            guid: guid,
+            content: text,
+            createdAt: DateTime(2026),
+            boardId: 'default',
+            x: x,
+            y: y,
+          ),
+      ],
+    );
+    final a = notes.boardNotes.firstWhere((n) => n.guid == 'a');
+    final wall = tester.getRect(find.byType(InteractiveViewer));
+    final rangeX = wall.width - WallView.cardWidth;
+    // Four pixels past B's left edge: close enough to line up with it.
+    await _dragNote(tester, find.text('Aa'), Offset(0.4 * rangeX + 4, 0));
+    expect(a.x, closeTo(0.5, 1e-6), reason: 'snapped to the left edge of B');
+  });
+
   testWidgets('typing and saving sticks the note on the wall', (tester) async {
     final notes = await _pumpApp(tester);
     await _openEditor(tester);
@@ -1325,6 +1354,9 @@ void main() {
 
       await tester.longPress(find.text('Twin'));
       await tester.pumpAndSettle();
+      // The sheet scrolls once it holds more than fits.
+      await tester.ensureVisible(find.text('Duplicate'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Duplicate'));
       await tester.pumpAndSettle();
       expect(notes.boardNotes.length, 2);
@@ -1332,6 +1364,9 @@ void main() {
 
       // The copy sits on top of the original, a touch down and to the right.
       await tester.longPress(find.text('Twin').last);
+      await tester.pumpAndSettle();
+      // The sheet scrolls once it holds more than fits.
+      await tester.ensureVisible(find.text('Copy to another board'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Copy to another board'));
       await tester.pumpAndSettle();

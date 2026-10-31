@@ -125,6 +125,7 @@ extension _EditorPieces on _NoteDialogState {
     final isNormal = _n.type == NoteType.normal;
     final isPhoto = _n.type == NoteType.photo;
     final isLabel = _n.type == NoteType.label;
+    final isAudio = _n.type == NoteType.audio;
     final style = noteBodyStyle(context);
     final lineHeight = style.fontSize! * style.height!;
     final strut = StrutStyle(
@@ -135,8 +136,9 @@ extension _EditorPieces on _NoteDialogState {
 
     final field = TextField(
       controller: _content,
-      // A new photo note starts by picking photos, not typing.
-      autofocus: widget.isNew && !isPhoto,
+      // A new photo note starts by picking photos, a voice note by
+      // speaking — not by typing.
+      autofocus: widget.isNew && !isPhoto && !isAudio,
       cursorColor: _NoteDialogState._ink,
       style: style,
       strutStyle: strut,
@@ -144,7 +146,7 @@ extension _EditorPieces on _NoteDialogState {
       keyboardType: isNormal ? TextInputType.multiline : TextInputType.text,
       textInputAction: isNormal
           ? TextInputAction.newline
-          : _n.type == NoteType.drawing || isPhoto || isLabel
+          : _n.type == NoteType.drawing || isPhoto || isLabel || isAudio
           ? TextInputAction.done
           : TextInputAction.next,
       onSubmitted: isNormal
@@ -583,8 +585,10 @@ extension _EditorPieces on _NoteDialogState {
       (NoteType.drawing, Icons.brush_outlined, l10n.typeDrawing),
       (NoteType.photo, Icons.photo_outlined, l10n.typePhoto),
       (NoteType.label, Icons.label_outline, l10n.typeLabel),
+      (NoteType.audio, Icons.voicemail, l10n.typeAudio),
     ];
     final isPhoto = _n.type == NoteType.photo;
+    final isAudio = _n.type == NoteType.audio;
     final isLabel = _n.type == NoteType.label;
 
     return Column(
@@ -648,8 +652,9 @@ extension _EditorPieces on _NoteDialogState {
           offset: const Offset(-12, 0),
           child: Row(
             children: [
-              // A photo note already has its add tile above.
-              if (!isPhoto)
+              // A photo note already has its add tile above; a cassette has
+              // no room for a picture.
+              if (!isPhoto && !isAudio)
                 IconButton(
                   tooltip: _n.hasPhoto ? l10n.replacePhoto : l10n.addPhoto,
                   onPressed: () => _photoMenu(l10n),

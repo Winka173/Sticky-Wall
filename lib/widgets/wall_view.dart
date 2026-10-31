@@ -164,6 +164,7 @@ class WallView extends StatefulWidget {
     this.fitAllTooltip = 'Show everything',
     this.rotateTooltip = 'Rotate',
     this.resizeTooltip = 'Resize',
+    this.stackSizeOf,
     this.still = false,
     this.topInset = 0,
     this.bottomInset = 0,
@@ -260,6 +261,9 @@ class WallView extends StatefulWidget {
   final String fitAllTooltip;
   final String rotateTooltip;
   final String resizeTooltip;
+
+  /// How many notes lie in a card's stack (see Note.stack); null: none do.
+  final int Function(Note note)? stackSizeOf;
 
   /// A still render of the board (the export): complete on its first frame
   /// with no entrance animation, no grips, and cards turned near the edge
@@ -1137,6 +1141,14 @@ class _WallViewState extends State<WallView>
                           child: CustomPaint(painter: _LassoPainter(_lasso!)),
                         ),
                       ),
+                    if (_guides.isNotEmpty)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: CustomPaint(
+                            painter: _GuidePainter(_guides, AppColors.accent),
+                          ),
+                        ),
+                      ),
                     // Threads lie over the paper, like real yarn over pins.
                     // The painter only claims taps landing on a thread, so
                     // the notes beneath stay fully interactive.
@@ -1280,6 +1292,83 @@ class _WallViewState extends State<WallView>
   /// Keeps a dragged card on the wall — the whole wall, margin included: it
   /// stops at the outer edge and comes straight back with the finger, instead
   /// of running off and springing back on release.
+  /// Alignment guides while one card is dragged: lines through the edges
+  /// or centres of other cards it has been pulled into line with.
+  List<(Offset, Offset)> _guides = const [];
+
+  /// How close (in wall pixels) an edge must come to another to click into
+  /// line with it.
+  static const _snapDistance = 6.0;
+
+  /// Pulls a dragged card's [topLeft] into line with the nearest edge or
+  /// centre of the other cards — across and down independently — and
+  /// records the guide lines to draw. A selection dragged as a group, or
+  /// the export's still render, is left alone.
+  Offset _snapToNeighbours(Note note, Offset topLeft) {
+    final w = _size.width;
+    final h = _size.height;
+    final width = _cardWidth * note.scale;
+    final me = Rect.fromLTWH(
+      topLeft.dx,
+      topLeft.dy,
+      width,
+      _paperHeight(note, width) + _pinInset,
+    );
+    (double, double, Rect)? bestX; // (shift, line, the card lined up with)
+    (double, double, Rect)? bestY;
+    for (final other in widget.notes) {
+      if (other.guid == note.guid || _groupGuids.contains(other.guid)) {
+        continue;
+      }
+      final r = _boxOf(other, w, h);
+      // Far-off cards are not worth lining up with.
+      if (!r.inflate(260).overlaps(me)) continue;
+      for (final (mine, theirs) in [
+        (me.left, r.left),
+        (me.left, r.right),
+        (me.right, r.left),
+        (me.right, r.right),
+        (me.center.dx, r.center.dx),
+      ]) {
+        final d = theirs - mine;
+        if (d.abs() <= _snapDistance &&
+            (bestX == null || d.abs() < bestX.$1.abs())) {
+          bestX = (d, theirs, r);
+        }
+      }
+      for (final (mine, theirs) in [
+        (me.top, r.top),
+        (me.top, r.bottom),
+        (me.bottom, r.top),
+        (me.bottom, r.bottom),
+        (me.center.dy, r.center.dy),
+      ]) {
+        final d = theirs - mine;
+        if (d.abs() <= _snapDistance &&
+            (bestY == null || d.abs() < bestY.$1.abs())) {
+          bestY = (d, theirs, r);
+        }
+      }
+    }
+    final snapped = topLeft.translate(bestX?.$1 ?? 0, bestY?.$1 ?? 0);
+    final moved = me.shift(snapped - topLeft);
+    final guides = <(Offset, Offset)>[
+      if (bestX case (_, final x, final r))
+        (
+          Offset(x, math.min(moved.top, r.top) - 12),
+          Offset(x, math.max(moved.bottom, r.bottom) + 12),
+        ),
+      if (bestY case (_, final y, final r))
+        (
+          Offset(math.min(moved.left, r.left) - 12, y),
+          Offset(math.max(moved.right, r.right) + 12, y),
+        ),
+    ];
+    if (guides.isNotEmpty && _guides.isEmpty) HapticFeedback.selectionClick();
+    _guides = guides;
+    return _onWall(note, snapped);
+  }
+
   Offset _onWall(Note note, Offset topLeft) {
     final scale = _resizingGuid == note.guid ? _resizeScale : note.scale;
     return Offset(
@@ -1368,7 +1457,9 @@ class _WallViewState extends State<WallView>
       if (d.pointerCount < 2 || _pinchGuid != note.guid) {
         // One finger: the card follows, the selection comes along, and the
         // tray / tabs learn where the finger is.
-        _dragTopLeft = _dragRaw;
+        _dragTopLeft = _groupGuids.isEmpty
+            ? _snapToNeighbours(note, _dragRaw)
+            : _dragRaw;
         _groupDelta = _dragTopLeft - _dragStart;
         _nearTray = _fingerNearTray(d.focalPoint);
         final over =
@@ -1380,6 +1471,7 @@ class _WallViewState extends State<WallView>
       }
       _overTray = false;
       _nearTray = false;
+      _guides = const [];
 
       if (_rotatingGuid == note.guid) {
         if (!_twisting && d.rotation.abs() > _twistSlop) _twisting = true;
@@ -1476,6 +1568,7 @@ class _WallViewState extends State<WallView>
     if (released) widget.onDragOver?.call(note, null);
     setState(() {
       _draggingGuid = null;
+      _guides = const [];
       _groupGuids = const {};
       _groupDelta = Offset.zero;
       _overTray = false;
@@ -1580,6 +1673,7 @@ class _WallViewState extends State<WallView>
       },
       onTogglePin: base.onTogglePin,
       onToggleItem: base.onToggleItem,
+      onOpenStack: base.onOpenStack,
       onLongPress: () {
         _setActive(note.guid);
         base.onLongPress();
@@ -1657,6 +1751,7 @@ class _WallViewState extends State<WallView>
                           maxContentLines: 6,
                           captureKey: widget.captureKeys?[note.guid],
                           rotated: false,
+                          stackCount: widget.stackSizeOf?.call(note) ?? 1,
                         ),
                         if (!widget.still)
                           Positioned(

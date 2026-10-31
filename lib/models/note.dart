@@ -9,7 +9,11 @@ import 'draw_stroke.dart';
 ///
 /// [label] is a strip of tape with a word or two on it — a heading for a
 /// column or corner of a planning board. No pin, no body: just the name.
-enum NoteType { normal, link, checklist, drawing, photo, label }
+///
+/// [audio] is a voice note, drawn as a little cassette with a play button;
+/// its recording lives in a file named by [Note.audioPath]. New types go at
+/// the end: the type filter stores an index (see `NoteStorage.typeFilter`).
+enum NoteType { normal, link, checklist, drawing, photo, label, audio }
 
 /// How often a reminder fires again after its first time.
 enum ReminderRepeat { none, daily, weekly, monthly }
@@ -51,11 +55,14 @@ class Note {
     List<DrawStroke>? strokes,
     this.canvas = const DrawCanvas(),
     this.imagePath = '',
+    this.audioPath = '',
+    this.audioMs = 0,
     this.x = 0.5,
     this.y = 0.5,
     this.scale = 1.0,
     this.rotation,
     this.locked = false,
+    this.stack,
     this.deletedAt,
     this.completedAt,
   }) : type = type ?? (url.isEmpty ? NoteType.normal : NoteType.link),
@@ -93,6 +100,16 @@ class Note {
 
   bool get hasPhoto => imagePath.isNotEmpty;
 
+  /// A voice note's recording — a file name inside the app's audio folder
+  /// (see `AudioService.resolve`), or empty. Only [NoteType.audio] keeps one.
+  String audioPath;
+
+  /// How long the recording runs, in milliseconds (0 when unknown), so the
+  /// card can say so without opening the file.
+  int audioMs;
+
+  bool get hasAudio => audioPath.isNotEmpty;
+
   DateTime createdAt;
 
   /// Fractional position on the wall (0..1 of the wall area), so a note keeps
@@ -113,6 +130,10 @@ class Note {
   /// a tidy-up flows the other notes around it. For headings and anything
   /// else that must not be nudged by accident.
   bool locked;
+
+  /// Notes sharing a stack id lie in one pile on the wall: one place, the
+  /// top card showing, the rest peeking out under it. Null for a lone note.
+  String? stack;
 
   /// Which board this note lives on.
   String boardId;
@@ -211,6 +232,8 @@ class Note {
           .toList(),
       canvas: DrawCanvas.fromJson(json['canvas'] as Map<String, dynamic>?),
       imagePath: _imagePath(json),
+      audioPath: json['audioPath'] as String? ?? '',
+      audioMs: (json['audioMs'] as num?)?.toInt() ?? 0,
       createdAt:
           _date(json['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       x: (json['x'] as num?)?.toDouble() ?? 0.5,
@@ -218,6 +241,7 @@ class Note {
       scale: (json['scale'] as num?)?.toDouble() ?? 1.0,
       rotation: (json['rotation'] as num?)?.toDouble(),
       locked: json['locked'] as bool? ?? false,
+      stack: json['stack'] as String?,
       boardId: json['boardId'] as String? ?? 'default',
       deletedAt: _date(json['deletedAt']),
       completedAt: _date(json['completedAt']),
@@ -238,12 +262,15 @@ class Note {
     'strokes': strokes.map((s) => s.toJson()).toList(),
     'canvas': canvas.toJson(),
     'imagePath': imagePath,
+    if (audioPath.isNotEmpty) 'audioPath': audioPath,
+    if (audioMs > 0) 'audioMs': audioMs,
     'createdAt': createdAt.toIso8601String(),
     'x': x,
     'y': y,
     'scale': scale,
     'rotation': rotation,
     'locked': locked,
+    if (stack != null) 'stack': stack,
     'boardId': boardId,
     'deletedAt': deletedAt?.toIso8601String(),
     'completedAt': completedAt?.toIso8601String(),

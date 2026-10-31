@@ -1,6 +1,6 @@
 # Privacy Policy · Chính sách quyền riêng tư
 
-**Sticky Wall** — last updated 3 September 2026 · cập nhật 3/9/2026
+**Sticky Wall** — last updated 31 October 2026 · cập nhật 31/10/2026
 
 ---
 
@@ -13,13 +13,19 @@ personal data.
 ### What the app stores, and where
 
 Everything you create — notes, checklists, drawings, boards, wall settings,
-reminders and the photos you pin — is saved only in the app's private storage
-on your device. It never leaves the device unless you choose to share it.
+reminders, the photos you pin and the voice notes you record — is saved only
+in the app's private storage on your device. It never leaves the device
+unless you choose to share it.
+
+Once a week the app also writes a backup file of all of this into the same
+private storage (the newest four are kept), so you can roll back if
+something goes wrong. You can turn this off under *Customize → Backup*. These
+files stay on the device too, unless you share one.
 
 Uninstalling the app deletes all of it. The app does not keep copies anywhere
-else. (Android may include app data in your device backup if you have backups
-turned on; that is handled by Android under your Google account settings, not
-by us.)
+else. (Android may include the notes, photos and recordings in your device
+backup, or carry them to a new phone, if you have backups turned on; that is
+handled by Android under your Google account settings, not by us.)
 
 ### Permissions and features
 
@@ -27,6 +33,10 @@ by us.)
   are scheduled on the device; nothing is sent to a server.
 - **Exact alarms** (Android 12+) — so a reminder fires at the minute you chose.
   If you decline, reminders still work but may arrive a few minutes late.
+- **Microphone** — used only while you record a voice note, and asked for
+  the first time you press record. The recording is saved as a file in the
+  app's private storage and played back on the device; it is never uploaded,
+  transcribed or analysed. If you decline, everything else works as before.
 - **Photos** — when you pin a photo, the app uses the system photo picker. It
   only receives the pictures you select and copies them into its own storage.
   It does not scan or read your photo library.
@@ -73,13 +83,19 @@ thập, lưu trữ hay chia sẻ bất kỳ dữ liệu cá nhân nào.
 ### Ứng dụng lưu gì, ở đâu
 
 Mọi thứ bạn tạo — ghi chú, checklist, hình vẽ, tường, thiết lập tường, lời
-nhắc và ảnh bạn ghim — chỉ được lưu trong bộ nhớ riêng của ứng dụng trên
-thiết bị. Dữ liệu không rời khỏi máy trừ khi bạn chủ động chia sẻ.
+nhắc, ảnh bạn ghim và các bản ghi âm — chỉ được lưu trong bộ nhớ riêng của
+ứng dụng trên thiết bị. Dữ liệu không rời khỏi máy trừ khi bạn chủ động chia
+sẻ.
+
+Mỗi tuần ứng dụng còn tự ghi một tệp sao lưu toàn bộ dữ liệu trên vào chính
+bộ nhớ riêng đó (giữ 4 bản mới nhất), để bạn có thể quay lại khi có sự cố.
+Bạn có thể tắt việc này trong *Tùy chỉnh → Sao lưu*. Các tệp này cũng chỉ
+nằm trên máy, trừ khi bạn chia sẻ.
 
 Gỡ ứng dụng sẽ xóa toàn bộ dữ liệu này. Ứng dụng không giữ bản sao ở nơi
-khác. (Android có thể đưa dữ liệu ứng dụng vào bản sao lưu thiết bị nếu bạn
-bật sao lưu; việc đó do Android và tài khoản Google của bạn quản lý, không
-phải chúng tôi.)
+khác. (Android có thể đưa ghi chú, ảnh và bản ghi âm vào bản sao lưu thiết
+bị, hoặc chuyển sang điện thoại mới, nếu bạn bật sao lưu; việc đó do Android
+và tài khoản Google của bạn quản lý, không phải chúng tôi.)
 
 ### Quyền và tính năng
 
@@ -87,6 +103,10 @@ phải chúng tôi.)
   hẹn ngay trên máy; không gửi gì lên máy chủ.
 - **Báo thức chính xác** (Android 12+) — để lời nhắc kêu đúng phút bạn chọn.
   Nếu bạn từ chối, lời nhắc vẫn hoạt động nhưng có thể trễ vài phút.
+- **Micrô** — chỉ dùng trong lúc bạn ghi âm, và chỉ được hỏi lần đầu bạn
+  bấm ghi. Bản ghi được lưu thành tệp trong bộ nhớ riêng của ứng dụng và
+  phát lại ngay trên máy; không bao giờ được tải lên, chuyển thành chữ hay
+  phân tích. Nếu bạn từ chối, mọi tính năng khác vẫn dùng bình thường.
 - **Ảnh** — khi bạn ghim ảnh, ứng dụng dùng bộ chọn ảnh của hệ thống, chỉ
   nhận đúng những ảnh bạn chọn và sao chép vào bộ nhớ riêng của nó. Ứng dụng
   không quét hay đọc thư viện ảnh của bạn.

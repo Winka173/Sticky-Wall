@@ -1400,6 +1400,126 @@ abstract class AppLocalizations {
   /// **'Loading a backup replaces all current boards and notes.'**
   String get importReplaceWarning;
 
+  /// No description provided for @typeAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get typeAudio;
+
+  /// No description provided for @recordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to record, or hold and let go'**
+  String get recordHint;
+
+  /// No description provided for @recordStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start recording'**
+  String get recordStart;
+
+  /// No description provided for @recordStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop recording'**
+  String get recordStop;
+
+  /// No description provided for @recordingNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording'**
+  String get recordingNow;
+
+  /// No description provided for @recordAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Record again'**
+  String get recordAgain;
+
+  /// No description provided for @deleteRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete recording'**
+  String get deleteRecording;
+
+  /// No description provided for @playVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Play voice note'**
+  String get playVoice;
+
+  /// No description provided for @pauseVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause voice note'**
+  String get pauseVoice;
+
+  /// No description provided for @recordingRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Record something first'**
+  String get recordingRequired;
+
+  /// No description provided for @micDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'The microphone is off for Sticky Wall. Allow it in the phone\'s settings to record.'**
+  String get micDenied;
+
+  /// No description provided for @recordFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not record. Try again.'**
+  String get recordFailed;
+
+  /// No description provided for @recordingMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'This recording is no longer on the device'**
+  String get recordingMissing;
+
+  /// No description provided for @autoBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic weekly backup'**
+  String get autoBackup;
+
+  /// No description provided for @autoBackupHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps the last 4 copies on this device'**
+  String get autoBackupHint;
+
+  /// No description provided for @autoBackupLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Last automatic backup: {date}'**
+  String autoBackupLast(String date);
+
+  /// No description provided for @autoBackupNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No automatic backup yet'**
+  String get autoBackupNone;
+
+  /// No description provided for @autoBackupRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore it'**
+  String get autoBackupRestore;
+
+  /// No description provided for @autoBackupRestoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore the backup from {date}?'**
+  String autoBackupRestoreTitle(String date);
+
+  /// No description provided for @autoBackupMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'No automatic backup found on this device'**
+  String get autoBackupMissing;
+
   /// No description provided for @importChooseFile.
   ///
   /// In en, this message translates to:
@@ -1885,6 +2005,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminders you set on your notes'**
   String get remindersChannelDescription;
+
+  /// No description provided for @boardTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from'**
+  String get boardTemplate;
+
+  /// No description provided for @templateBlank.
+  ///
+  /// In en, this message translates to:
+  /// **'Blank'**
+  String get templateBlank;
+
+  /// No description provided for @templateKanban.
+  ///
+  /// In en, this message translates to:
+  /// **'Kanban'**
+  String get templateKanban;
+
+  /// No description provided for @templateWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week planner'**
+  String get templateWeek;
+
+  /// No description provided for @templateBrainstorm.
+  ///
+  /// In en, this message translates to:
+  /// **'Brainstorm'**
+  String get templateBrainstorm;
+
+  /// No description provided for @kanbanTodo.
+  ///
+  /// In en, this message translates to:
+  /// **'To do'**
+  String get kanbanTodo;
+
+  /// No description provided for @kanbanDoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Doing'**
+  String get kanbanDoing;
+
+  /// No description provided for @kanbanDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get kanbanDone;
+
+  /// No description provided for @brainstormCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Big idea'**
+  String get brainstormCenter;
+
+  /// No description provided for @stackNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Stack with…'**
+  String get stackNotes;
+
+  /// No description provided for @stackSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Stack'**
+  String get stackSelected;
+
+  /// No description provided for @stackCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 note in this stack} other{{count} notes in this stack}}'**
+  String stackCount(int count);
+
+  /// No description provided for @unstack.
+  ///
+  /// In en, this message translates to:
+  /// **'Spread out'**
+  String get unstack;
+
+  /// No description provided for @stackOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open stack'**
+  String get stackOpen;
+
+  /// No description provided for @otherBoardsMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 more on other walls} other{{count} more on other walls}}'**
+  String otherBoardsMatches(int count);
+
+  /// No description provided for @onOtherBoards.
+  ///
+  /// In en, this message translates to:
+  /// **'On other walls'**
+  String get onOtherBoards;
+
+  /// No description provided for @dayMonday.
+  ///
+  /// In en, this message translates to:
+  /// **'Monday'**
+  String get dayMonday;
+
+  /// No description provided for @dayTuesday.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuesday'**
+  String get dayTuesday;
+
+  /// No description provided for @dayWednesday.
+  ///
+  /// In en, this message translates to:
+  /// **'Wednesday'**
+  String get dayWednesday;
+
+  /// No description provided for @dayThursday.
+  ///
+  /// In en, this message translates to:
+  /// **'Thursday'**
+  String get dayThursday;
+
+  /// No description provided for @dayFriday.
+  ///
+  /// In en, this message translates to:
+  /// **'Friday'**
+  String get dayFriday;
+
+  /// No description provided for @daySaturday.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturday'**
+  String get daySaturday;
+
+  /// No description provided for @daySunday.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunday'**
+  String get daySunday;
 }
 
 class _AppLocalizationsDelegate

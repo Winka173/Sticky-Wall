@@ -15,6 +15,7 @@ import '../models/board.dart';
 import '../models/draw_stroke.dart';
 import '../models/note.dart';
 import '../models/view_mode.dart';
+import '../services/audio_service.dart';
 import '../services/image_service.dart';
 import '../services/notes_controller.dart';
 import '../services/reminder_service.dart';
@@ -367,6 +368,7 @@ class _HomeScreenState extends State<HomeScreen> {
           (NoteType.drawing, Icons.brush_outlined, l10n.typeDrawing),
           (NoteType.photo, Icons.photo_outlined, l10n.typePhoto),
           (NoteType.label, Icons.label_outline, l10n.typeLabel),
+          (NoteType.audio, Icons.voicemail, l10n.typeAudio),
         ])
           ListTile(
             leading: Icon(icon),
@@ -455,6 +457,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openEditor(Note note, {required bool isNew}) async {
     final oldPhoto = note.imagePath;
+    final oldAudio = note.audioPath;
     final closed = _editorClosed = Completer<void>();
     final Note? result;
     try {
@@ -480,6 +483,12 @@ class _HomeScreenState extends State<HomeScreen> {
         result.imagePath != oldPhoto &&
         !_notes.photoInUse(oldPhoto)) {
       unawaited(ImageService.deleteFile(oldPhoto));
+    }
+    // Likewise a recording deleted or recorded over in the editor.
+    if (oldAudio.isNotEmpty &&
+        result.audioPath != oldAudio &&
+        !_notes.audioInUse(oldAudio)) {
+      unawaited(AudioService.deleteFile(oldAudio));
     }
   }
 
@@ -848,6 +857,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               child: _filterPill(),
                             ),
+                            if (_searching) _otherBoardsPill(),
                             _undoPill(),
                           ],
                         ),
@@ -946,7 +956,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // the type filter dim non-matches instead of removing them, so nothing
     // jumps around. Rendered even when empty so the wall still takes taps.
     if (_notes.viewMode == ViewMode.wall) {
-      final notes = _notes.boardNotes;
+      // Each stack shows as its top card.
+      final notes = _notes.wallNotes;
       final boardId = _notes.currentBoardId;
       return WallView(
         notes: notes,
@@ -995,6 +1006,7 @@ class _HomeScreenState extends State<HomeScreen> {
         fitAllTooltip: _l10n.fitAll,
         rotateTooltip: _l10n.rotate,
         resizeTooltip: _l10n.resize,
+        stackSizeOf: (n) => _notes.stackOf(n).length,
         emptyHint: _emptyState(wall, tip: _l10n.wallCreateHint),
         // The wall fills the body: notes pan under the header rows and the
         // system bar, while its resting view stays between them.
@@ -1123,6 +1135,7 @@ class _HomeScreenState extends State<HomeScreen> {
     3 => _l10n.typeDrawing,
     4 => _l10n.typePhoto,
     5 => _l10n.typeLabel,
+    6 => _l10n.typeAudio,
     _ => _l10n.typeAll,
   };
 

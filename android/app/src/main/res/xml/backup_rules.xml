@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Auto Backup on Android 6-11 (API 23-30); Android 12+ reads
+     data_extraction_rules.xml instead. Listing <include>s means only these
+     are backed up:
+     - the notes, boards and settings (shared_preferences' file);
+     - the photo, wall-photo and voice-note files in the documents folder
+       (path_provider's app_flutter directory under the app's data dir).
+     The weekly backups/ folder is left out: it repeats everything above
+     several times over and would push the backup past Google's 25 MB
+     quota, after which Android backs up nothing at all. -->
+<full-backup-content>
+    <include domain="sharedpref" path="FlutterSharedPreferences.xml"/>
+    <include domain="root" path="app_flutter/note_images/"/>
+    <include domain="root" path="app_flutter/wall_images/"/>
+    <include domain="root" path="app_flutter/note_audio/"/>
+</full-backup-content>

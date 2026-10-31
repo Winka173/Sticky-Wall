@@ -37,6 +37,14 @@ class ImageService {
   @visibleForTesting
   static set docsDirForTest(String? dir) => _docsDir = dir;
 
+  /// The app documents directory (looked up once), which the voice-note and
+  /// automatic-backup folders live in as well.
+  static Future<String> documentsPath() async =>
+      _docsDir ??= (await getApplicationDocumentsDirectory()).path;
+
+  /// The documents directory if it is known yet, for synchronous lookups.
+  static String? get documentsPathOrNull => _docsDir;
+
   static String _resolveIn(String folder, String stored) {
     if (stored.isEmpty) return stored;
     final dir = _docsDir;

@@ -185,6 +185,7 @@ class _TrashTile extends StatelessWidget {
       NoteType.link => note.url,
       NoteType.drawing => '✏️',
       NoteType.photo => '📷 ${l10n.typePhoto}',
+      NoteType.audio => '🎙️ ${l10n.typeAudio}',
       _ => plainNoteText(note.content),
     };
   }

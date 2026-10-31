@@ -17,7 +17,9 @@ class SettingsController extends ChangeNotifier {
       _nightMode = _storage.nightMode,
       _nightStart = _storage.nightStart,
       _nightEnd = _storage.nightEnd,
-      _autoTrashDone = _storage.autoTrashDone {
+      _autoTrashDone = _storage.autoTrashDone,
+      _autoBackup = _storage.autoBackup,
+      _lastAutoBackup = _storage.lastAutoBackup {
     _watchClock();
   }
 
@@ -30,6 +32,8 @@ class SettingsController extends ChangeNotifier {
   int _nightStart;
   int _nightEnd;
   bool _autoTrashDone;
+  bool _autoBackup;
+  DateTime? _lastAutoBackup;
 
   Timer? _clock;
   bool? _lastScheduledNight;
@@ -48,6 +52,12 @@ class SettingsController extends ChangeNotifier {
   int get nightStart => _nightStart;
   int get nightEnd => _nightEnd;
   bool get autoTrashDone => _autoTrashDone;
+
+  /// Weekly backup into the app's own folder (see `AutoBackup`).
+  bool get autoBackup => _autoBackup;
+
+  /// When the last automatic backup was written; null before the first.
+  DateTime? get lastAutoBackup => _lastAutoBackup;
 
   /// The gesture tips have not been shown yet (fresh install).
   bool get tipsPending => _storage.tipsPending;
@@ -113,6 +123,19 @@ class SettingsController extends ChangeNotifier {
     _autoTrashDone = value;
     _storage.setAutoTrashDone(value);
     notifyListeners();
+  }
+
+  void setAutoBackup(bool value) {
+    _autoBackup = value;
+    _storage.setAutoBackup(value);
+    notifyListeners();
+  }
+
+  /// Records that an automatic backup was just written at [at].
+  Future<void> markAutoBackup(DateTime at) async {
+    _lastAutoBackup = at;
+    notifyListeners();
+    await _storage.setLastAutoBackup(at);
   }
 
   /// In schedule mode, checks once a minute whether the lights should have

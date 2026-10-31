@@ -31,6 +31,8 @@ class NoteStorage {
   static const _nightEndKey = 'nightEnd';
   static const _autoTrashDoneKey = 'autoTrashDone';
   static const _tipsPendingKey = 'tipsPending';
+  static const _autoBackupKey = 'autoBackup';
+  static const _lastAutoBackupKey = 'lastAutoBackup';
 
   final SharedPreferences _prefs;
 
@@ -127,7 +129,7 @@ class NoteStorage {
       _prefs.setString(_viewModeKey, mode.name);
 
   /// -1 = All, 0 = Normal, 1 = Link, 2 = Checklist, 3 = Drawing, 4 = Photo,
-  /// 5 = Label.
+  /// 5 = Label, 6 = Voice note.
   int get typeFilter => _prefs.getInt(_filterKey) ?? -1;
   Future<void> setTypeFilter(int value) => _prefs.setInt(_filterKey, value);
 
@@ -135,7 +137,9 @@ class NoteStorage {
   Future<void> setFontId(String value) => _prefs.setString(_fontKey, value);
 
   /// 'system', or a locale code ('en', 'vi').
-  String get languageCode => _prefs.getString(_languageKey) ?? 'system';
+  /// English unless the user picked another language (or "follow the
+  /// phone") in Customize: English is the app's main language.
+  String get languageCode => _prefs.getString(_languageKey) ?? 'en';
   Future<void> setLanguageCode(String value) =>
       _prefs.setString(_languageKey, value);
 
@@ -174,4 +178,19 @@ class NoteStorage {
   bool get tipsPending => _prefs.getBool(_tipsPendingKey) ?? false;
   Future<void> setTipsPending(bool value) =>
       _prefs.setBool(_tipsPendingKey, value);
+
+  /// Whether a backup is written to the app's own folder once a week (on by
+  /// default — see `AutoBackup`).
+  bool get autoBackup => _prefs.getBool(_autoBackupKey) ?? true;
+  Future<void> setAutoBackup(bool value) =>
+      _prefs.setBool(_autoBackupKey, value);
+
+  /// When the last automatic backup was written; null before the first.
+  DateTime? get lastAutoBackup {
+    final raw = _prefs.getString(_lastAutoBackupKey);
+    return raw == null ? null : DateTime.tryParse(raw);
+  }
+
+  Future<void> setLastAutoBackup(DateTime at) =>
+      _prefs.setString(_lastAutoBackupKey, at.toIso8601String());
 }

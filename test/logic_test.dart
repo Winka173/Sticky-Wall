@@ -2,13 +2,16 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart' show ThemeMode;
+import 'package:flutter/material.dart' show Locale, ThemeMode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sticky_wall/l10n/app_localizations.dart';
 import 'package:sticky_wall/models/board.dart';
 import 'package:sticky_wall/models/draw_stroke.dart';
 import 'package:sticky_wall/models/note.dart';
+import 'package:sticky_wall/services/auto_backup.dart';
 import 'package:sticky_wall/services/backup_service.dart';
+import 'package:sticky_wall/services/board_templates.dart';
 import 'package:sticky_wall/services/image_service.dart';
 import 'package:sticky_wall/services/note_storage.dart';
 import 'package:sticky_wall/services/notes_controller.dart';
@@ -41,11 +44,17 @@ Note _note(
 Future<NotesController> _controller({
   List<Note> notes = const [],
   FileRemover? deletePhoto,
+  FileRemover? deleteAudio,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final storage = await NoteStorage.create();
   await storage.saveNotes(notes);
-  return NotesController(storage, ReminderService(), deletePhoto: deletePhoto);
+  return NotesController(
+    storage,
+    ReminderService(),
+    deletePhoto: deletePhoto,
+    deleteAudio: deleteAudio,
+  );
 }
 
 void main() {
@@ -502,6 +511,70 @@ void main() {
     });
   });
 
+  group('stacks, templates, search everywhere', () {
+    test('a stack moves, tidies and spreads out as one pile', () async {
+      final c = await _controller(
+        notes: [
+          _note('1', 'a')..x = 0.1,
+          _note('2', 'b')..x = 0.5,
+          _note('3', 'c')..x = 0.9,
+        ],
+      );
+      final [a, b, _] = c.boardNotes;
+      c.stackNotes([a, b]);
+      expect(a.stack, isNotNull);
+      expect(a.stack, b.stack);
+      expect(a.x, b.x, reason: 'piled where the top one lay');
+      expect(c.wallNotes.map((n) => n.guid), ['3', '2'], reason: 'b on top');
+      expect(c.stackOf(b).length, 2);
+
+      c.moveNote(b, 0.3, 0.4);
+      expect((a.x, a.y), (0.3, 0.4), reason: 'the pile moves with its top');
+      c.undoWall();
+      expect(a.x, b.x);
+
+      c.unstack(b);
+      expect(a.stack, isNull);
+      expect(b.stack, isNull);
+      expect(c.wallNotes.length, 3);
+      expect(a.x == b.x && a.y == b.y, isFalse, reason: 'fanned out');
+
+      expect(c.duplicate(a).stack, isNull, reason: 'copies lie alone');
+    });
+
+    test('templates put locked headings on the new board', () async {
+      final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+      final kanban = templateNotes(BoardTemplate.kanban, l10n, 'b');
+      expect(kanban.map((n) => n.content), ['To do', 'Doing', 'Done']);
+      expect(
+        kanban.every((n) => n.type == NoteType.label && n.locked),
+        isTrue,
+      );
+      final week = templateNotes(BoardTemplate.week, l10n, 'b');
+      expect(week.first.content, 'Monday');
+      expect(week.length, 7);
+      expect(templateNotes(BoardTemplate.blank, l10n, 'b'), isEmpty);
+    });
+
+    test('search counts what it finds on the other walls', () async {
+      final c = await _controller(
+        notes: [
+          _note('1', 'milk here'),
+          _note('2', 'milk there'),
+          _note('3', 'bread'),
+        ],
+      );
+      final work = c.addBoard('Work');
+      for (final n in c.allNotes.where((n) => n.guid != '1').toList()) {
+        c.moveToBoard(n, work.id);
+      }
+      c.selectBoard('default');
+      expect(c.otherBoardMatches, isEmpty, reason: 'nothing typed');
+      c.search = 'milk';
+      expect(c.otherBoardMatches.map((n) => n.guid), ['2']);
+    });
+  });
+
   group('duplicate and copy', () {
     test('a copy does not ring a reminder twice', () async {
       final c = await _controller(
@@ -898,6 +971,194 @@ void main() {
     );
   });
 
+  group('voice notes', () {
+    Note voice(String guid, String file, {int ms = 4200}) =>
+        _note(guid, 'Memo $guid', type: NoteType.audio)
+          ..audioPath = file
+          ..audioMs = ms;
+
+    test('the recording round-trips through JSON; old data has none', () {
+      final json =
+          jsonDecode(jsonEncode(voice('1', 'v.m4a').toJson()))
+              as Map<String, dynamic>;
+      final back = Note.fromJson(json);
+      expect(back.type, NoteType.audio);
+      expect(back.audioPath, 'v.m4a');
+      expect(back.audioMs, 4200);
+      final old = Note.fromJson(_note('2', 'x').toJson());
+      expect(old.audioPath, '');
+      expect(old.hasAudio, false);
+      // An app that does not know "audio" yet reads it as a plain note.
+      expect(
+        Note.fromJson({'guid': '3', 'type': 'hologram'}).type,
+        NoteType.normal,
+      );
+    });
+
+    test('the type filter finds voice notes', () async {
+      final c = await _controller(notes: [voice('1', 'v.m4a'), _note('2', 'x')]);
+      c.typeFilter = 6;
+      expect(c.visibleNotes.map((n) => n.guid), ['1']);
+    });
+
+    test('purging deletes a recording only once no note uses it', () async {
+      final removed = <String>[];
+      final c = await _controller(
+        notes: [
+          voice('1', 'shared.m4a'),
+          voice('2', 'shared.m4a'),
+          voice('3', 'own.m4a'),
+        ],
+        deleteAudio: removed.add,
+      );
+      final n1 = c.boardNotes[0];
+      final n3 = c.boardNotes[2];
+      c.delete(n1);
+      c.purge(n1);
+      expect(removed, isEmpty, reason: 'note 2 still plays shared.m4a');
+      expect(c.audioInUse('shared.m4a'), true);
+      c.delete(n3);
+      expect(removed, isEmpty, reason: 'a trashed note can still come back');
+      c.purge(n3);
+      expect(removed, ['own.m4a']);
+      expect(c.audioInUse('own.m4a'), false);
+      expect(c.audioInUse(''), false);
+    });
+
+    group('in backups', () {
+      late Directory from;
+      late Directory to;
+      setUp(() {
+        from = Directory.systemTemp.createTempSync('sw_vfrom');
+        to = Directory.systemTemp.createTempSync('sw_vto');
+      });
+      tearDown(() {
+        ImageService.docsDirForTest = null;
+        from.deleteSync(recursive: true);
+        to.deleteSync(recursive: true);
+      });
+
+      test('both backup writers carry the recordings and restore them', () async {
+        ImageService.docsDirForTest = from.path;
+        File('${from.path}/note_audio/v1.m4a')
+          ..createSync(recursive: true)
+          ..writeAsBytesSync([7, 8, 9]);
+        File('${from.path}/note_images/p1.jpg')
+          ..createSync(recursive: true)
+          ..writeAsBytesSync([1]);
+        final c = await _controller(
+          notes: [
+            voice('1', 'v1.m4a'),
+            voice('2', 'gone.m4a'),
+            _note('3', 'x', image: 'p1.jpg'),
+          ],
+        );
+        final inMemory = BackupService().decode(
+          await BackupService().encodeWithPhotos(
+            c.boards,
+            c.allNotes,
+            c.links,
+          ),
+        );
+        final file = File('${from.path}/stream.json');
+        await BackupService().writeTo(file, c.boards, c.allNotes, c.links);
+        final streamed = BackupService().decode(await file.readAsString());
+
+        for (final backup in [inMemory, streamed]) {
+          expect(backup.audios.keys, ['v1.m4a']);
+          expect(backup.photos.keys, ['p1.jpg']);
+          expect(backup.notes.first.audioPath, 'v1.m4a');
+          expect(backup.notes.first.audioMs, 4200);
+        }
+
+        ImageService.docsDirForTest = to.path;
+        await BackupService().restorePhotos(streamed);
+        expect(File('${to.path}/note_audio/v1.m4a').readAsBytesSync(), [
+          7,
+          8,
+          9,
+        ]);
+        expect(File('${to.path}/note_images/p1.jpg').existsSync(), true);
+      });
+    });
+  });
+
+  group('automatic backup', () {
+    late Directory docs;
+    setUp(() => docs = Directory.systemTemp.createTempSync('sw_auto'));
+    tearDown(() {
+      ImageService.docsDirForTest = null;
+      docs.deleteSync(recursive: true);
+    });
+
+    test('is due with none yet, after a week, or with a future stamp', () {
+      final now = DateTime(2026, 10, 31, 9);
+      expect(AutoBackup.isDue(null, now), true);
+      expect(AutoBackup.isDue(now.subtract(const Duration(days: 6)), now), false);
+      expect(AutoBackup.isDue(now.subtract(const Duration(days: 7)), now), true);
+      expect(AutoBackup.isDue(now.add(const Duration(days: 3)), now), true);
+      expect(AutoBackup.fileName(now), 'sticky-wall-2026-10-31.json');
+    });
+
+    test('writes when due, then waits a week, and keeps the newest 4', () async {
+      ImageService.docsDirForTest = docs.path;
+      final c = await _controller(notes: [_note('1', 'kept')]);
+      // Same storage as the controller (the mock prefs are shared).
+      final settings = SettingsController(await NoteStorage.create());
+      expect(settings.autoBackup, true, reason: 'on by default');
+
+      var day = DateTime(2026, 9, 1, 10);
+      final first = await AutoBackup.runIfDue(settings, c, now: day);
+      expect(first, isNotNull);
+      expect(settings.lastAutoBackup, day);
+      expect(
+        BackupService().decode(first!.readAsStringSync()).notes.single.guid,
+        '1',
+      );
+      // Two days on: not due, nothing written.
+      expect(
+        await AutoBackup.runIfDue(
+          settings,
+          c,
+          now: day.add(const Duration(days: 2)),
+        ),
+        isNull,
+      );
+
+      for (var week = 1; week <= 5; week++) {
+        day = day.add(const Duration(days: 7));
+        expect(await AutoBackup.runIfDue(settings, c, now: day), isNotNull);
+      }
+      final kept = await AutoBackup.list();
+      expect(kept.map((f) => f.uri.pathSegments.last), [
+        'sticky-wall-2026-10-06.json',
+        'sticky-wall-2026-09-29.json',
+        'sticky-wall-2026-09-22.json',
+        'sticky-wall-2026-09-15.json',
+      ]);
+      expect((await AutoBackup.latest())!.path, kept.first.path);
+      expect(AutoBackup.dateOf(kept.first), DateTime(2026, 10, 6));
+      expect(
+        Directory('${docs.path}/backups').listSync().length,
+        4,
+        reason: 'no half-written side files left behind',
+      );
+      // The time survives a restart.
+      expect(SettingsController(await NoteStorage.create()).lastAutoBackup, day);
+
+      settings.setAutoBackup(false);
+      expect(
+        await AutoBackup.runIfDue(
+          settings,
+          c,
+          now: day.add(const Duration(days: 30)),
+        ),
+        isNull,
+        reason: 'switched off',
+      );
+    });
+  });
+
   group('first run', () {
     test('isFirstRun is only true before anything was saved', () async {
       SharedPreferences.setMockInitialValues({});
@@ -993,6 +1254,16 @@ void main() {
   });
 
   group('SettingsController night schedule', () {
+    test('English is the language until another is picked', () async {
+      SharedPreferences.setMockInitialValues({});
+      final s = SettingsController(await NoteStorage.create());
+      expect(s.languageCode, 'en');
+      expect(s.localeOverride, const Locale('en'));
+      s.setLanguageCode('system');
+      expect(s.localeOverride, isNull, reason: 'follow the phone, on request');
+      s.dispose();
+    });
+
     test('wraps past midnight and treats start == end as never', () async {
       SharedPreferences.setMockInitialValues({});
       final s = SettingsController(await NoteStorage.create());

@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 
 import '../l10n/app_localizations.dart';
 import '../models/board.dart';
+import '../services/board_templates.dart';
 import '../services/notes_controller.dart';
 import '../theme.dart';
 import 'action_sheet.dart';
@@ -201,14 +202,17 @@ class _BoardBarState extends State<BoardBar> {
 
   Future<void> _create(BuildContext context) async {
     final draft = await showBoardDialog(context);
-    if (draft == null || draft.name.isEmpty) return;
-    widget.notes.addBoard(
+    if (draft == null || draft.name.isEmpty || !context.mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final board = widget.notes.addBoard(
       draft.name,
       icon: draft.icon,
       bold: draft.bold,
       italic: draft.italic,
       underline: draft.underline,
     );
+    final headings = templateNotes(draft.template, l10n, board.id);
+    if (headings.isNotEmpty) widget.notes.seed(headings);
   }
 
   Future<void> _manage(

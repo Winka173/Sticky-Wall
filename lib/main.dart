@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'l10n/app_localizations.dart';
 import 'models/view_mode.dart';
 import 'screens/home_screen.dart';
+import 'services/audio_service.dart';
+import 'services/auto_backup.dart';
 import 'services/image_service.dart';
 import 'services/note_storage.dart';
 import 'services/notes_controller.dart';
@@ -30,6 +33,7 @@ Future<void> main() async {
     reminders,
     deletePhoto: ImageService.deleteFile,
     deleteWallImage: ImageService.deleteWallFile,
+    deleteAudio: AudioService.deleteFile,
   );
   final settings = SettingsController(storage);
   // What Android's notification settings call the channel, in the app's
@@ -71,12 +75,22 @@ Future<void> main() async {
       checklistLabel: l10n.typeChecklist,
       drawingLabel: l10n.typeDrawing,
       photoLabel: l10n.typePhoto,
+      audioLabel: l10n.typeAudio,
     );
   }
 
   notes.addListener(syncWidget);
   settings.addListener(syncWidget);
   syncWidget();
+
+  // The weekly safety copy, once the first frames are out of the way. Fire
+  // and forget: it logs its own failures and never holds up the start.
+  unawaited(
+    Future<void>.delayed(
+      const Duration(seconds: 3),
+      () => AutoBackup.runIfDue(settings, notes),
+    ),
+  );
 
   runApp(
     StickyWallApp(

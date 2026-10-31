@@ -6,9 +6,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
+import '../services/audio_service.dart';
 import '../services/image_service.dart';
 import '../theme.dart';
 import '../util/rich_note.dart';
+import 'audio_note.dart';
 import 'drawing_canvas.dart';
 import 'keyboard_tappable.dart';
 
@@ -73,9 +75,13 @@ class NoteCallbacks {
     this.onPinDragStart,
     this.onPinDragUpdate,
     this.onPinDragEnd,
+    this.onOpenStack,
   });
 
   final VoidCallback onEdit;
+
+  /// Opens the stack this card tops (its count badge); null for a lone note.
+  final VoidCallback? onOpenStack;
   final VoidCallback onTogglePin;
   final void Function(int index) onToggleItem;
 
@@ -187,7 +193,7 @@ class NotePhoto extends StatelessWidget {
 }
 
 /// What fills the fixed slot at the start of a list row.
-enum _Lead { photo, sketch, list, link, emoji, none }
+enum _Lead { photo, sketch, list, link, audio, emoji, none }
 
 /// List-row thumbnail of the note's photo.
 class _Thumbnail extends StatelessWidget {
@@ -592,6 +598,15 @@ class _NoteBody extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: body.copyWith(fontWeight: FontWeight.bold),
         );
+      case NoteType.audio:
+        // The cassette writes its title on its own label sticker.
+        if (note.content.isEmpty) return const SizedBox.shrink();
+        return Text(
+          note.content,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: body.copyWith(fontWeight: FontWeight.bold),
+        );
       case NoteType.photo:
         // The caption written under a print; nothing at all when blank.
         if (note.content.isEmpty) return const SizedBox.shrink();
@@ -676,7 +691,12 @@ class StickyNoteCard extends StatelessWidget {
     this.maxContentLines = 6,
     this.captureKey,
     this.rotated = true,
+    this.stackCount = 1,
   });
+
+  /// How many notes lie in this card's pile, itself included. Above one the
+  /// card draws the sheets under it peeking out, and a count to open them.
+  final int stackCount;
 
   final Note note;
   final NoteCallbacks cb;
@@ -703,9 +723,11 @@ class StickyNoteCard extends StatelessWidget {
       NoteType.photo => _print(context),
       NoteType.drawing => _sketch(context),
       NoteType.label => _tape(context),
+      NoteType.audio => _cassette(context),
       _ => _sheet(context, done),
     };
     if (done) paper = Opacity(opacity: 0.72, child: paper);
+    if (stackCount > 1) paper = _pile(context, paper);
     if (captureKey != null) {
       paper = RepaintBoundary(key: captureKey, child: paper);
     }
@@ -763,6 +785,84 @@ class StickyNoteCard extends StatelessWidget {
     );
     if (!rotated) return said;
     return NoteTurn(angle: note.pinned ? 0 : noteTilt(note), child: said);
+  }
+
+  /// The card on top of its stack: two sheets of the pile peek out below
+  /// and to the side, a little askew, and a count on the corner opens them.
+  Widget _pile(BuildContext context, Widget paper) {
+    final under = paperColorOf(context, note.colorIndex, note.guid);
+    Widget sheet(double dx, double dy, double turn) => Positioned.fill(
+      child: Transform.translate(
+        offset: Offset(dx, dy),
+        child: Transform.rotate(
+          angle: turn,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Color.lerp(under, Colors.black, 0.12),
+              borderRadius: BorderRadius.circular(AppRadii.paper),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 3,
+                  offset: Offset(0, 1.5),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    final l10n = AppLocalizations.of(context);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (stackCount > 2) sheet(10, 10, 0.04),
+        sheet(5, 6, -0.03),
+        paper,
+        // Top right: the bottom corners belong to the resize and turn grips.
+        Positioned(
+          right: -12,
+          top: -12,
+          child: Semantics(
+            button: true,
+            label: l10n?.stackCount(stackCount),
+            excludeSemantics: true,
+            child: KeyboardTappable(
+              circle: true,
+              onActivate: cb.onOpenStack,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: cb.onOpenStack,
+                child: SizedBox.square(
+                  dimension: 44,
+                  child: Center(
+                    child: Container(
+                      constraints: const BoxConstraints(minWidth: 26),
+                      height: 26,
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.ink,
+                        borderRadius: BorderRadius.circular(13),
+                        border: Border.all(color: AppColors.chalk, width: 1.5),
+                      ),
+                      child: Text(
+                        '$stackCount',
+                        style: const TextStyle(
+                          color: AppColors.chalk,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   /// A sheet of sticky paper: adhesive strip, curled corner, the body.
@@ -920,6 +1020,133 @@ class StickyNoteCard extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  /// A voice note: a little cassette in the note's paper colour — screws in
+  /// the corners, a cream label sticker with the title written on it and the
+  /// running time in the corner like "side A, 0:42", the tape window with its
+  /// two reels beside a play button, and the head notch along the bottom.
+  Widget _cassette(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final body = noteBodyStyle(context);
+    final shell = paperColorOf(context, note.colorIndex, note.guid);
+    final length = Duration(milliseconds: note.audioMs);
+    final hasFooter = note.emoji.isNotEmpty || note.reminderAt != null;
+    final small = body.copyWith(
+      fontSize: body.fontSize! * 0.78,
+      color: AppColors.inkSoft,
+    );
+    final label = DecoratedBox(
+      decoration: BoxDecoration(
+        color: printColorOf(context),
+        borderRadius: BorderRadius.circular(2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 1,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: CustomPaint(
+        painter: CassetteLabelPainter(
+          stripe: Color.lerp(shell, AppColors.ink, 0.22)!,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(7, 8, 7, 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'A',
+                style: small.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.ink,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  note.content.isEmpty ? (l10n?.typeAudio ?? '') : note.content,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: note.content.isEmpty
+                      ? body.copyWith(color: AppColors.inkSoft)
+                      : body.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+              if (note.audioMs > 0) ...[
+                const SizedBox(width: 4),
+                PlaybackCounter(
+                  stored: note.audioPath,
+                  length: length,
+                  style: small,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+    return Container(
+      width: double.infinity,
+      decoration: paperDecoration(
+        context,
+        note,
+        raised: raised,
+        selected: selected,
+      ).copyWith(borderRadius: BorderRadius.circular(6)),
+      child: CustomPaint(
+        painter: const CassetteShellPainter(notch: 11),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(11, 12, 11, 15),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              label,
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  VoicePlayButton(stored: note.audioPath),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: PlaybackTape(
+                      stored: note.audioPath,
+                      length: length,
+                      height: 30,
+                    ),
+                  ),
+                ],
+              ),
+              if (hasFooter)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(
+                    children: [
+                      if (note.emoji.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: Text(
+                            note.emoji,
+                            style: const TextStyle(fontSize: 20),
+                          ),
+                        ),
+                      if (note.reminderAt != null)
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: _ReminderChip(note: note),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1138,6 +1365,8 @@ class NoteListTile extends StatelessWidget {
       ? _Lead.list
       : note.type == NoteType.link
       ? _Lead.link
+      : note.type == NoteType.audio
+      ? _Lead.audio
       : note.emoji.isNotEmpty
       ? _Lead.emoji
       : _Lead.none;
@@ -1150,6 +1379,11 @@ class NoteListTile extends StatelessWidget {
       _Lead.sketch => _SketchThumb(note: note),
       _Lead.list => const Icon(Icons.checklist, size: 20, color: AppColors.ink),
       _Lead.link => const Icon(Icons.link, size: 20, color: AppColors.ink),
+      _Lead.audio => const Icon(
+        Icons.voicemail,
+        size: 22,
+        color: AppColors.ink,
+      ),
       _Lead.emoji => Text(note.emoji, style: const TextStyle(fontSize: 20)),
       _Lead.none => null,
     };
@@ -1191,6 +1425,11 @@ class NoteListTile extends StatelessWidget {
             child: Text(note.emoji, style: const TextStyle(fontSize: 20)),
           ),
         Expanded(child: _listContent(context)),
+        if (note.type == NoteType.audio && note.hasAudio)
+          Padding(
+            padding: const EdgeInsets.only(left: 6),
+            child: VoicePlayButton(stored: note.audioPath, size: 36),
+          ),
         if (note.reminderAt != null)
           Padding(
             padding: const EdgeInsets.only(left: 6),
@@ -1240,6 +1479,21 @@ class NoteListTile extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: body.copyWith(fontWeight: FontWeight.bold),
+        );
+      case NoteType.audio:
+        // The title (or the type name, in soft ink) and the running time.
+        final name = note.content.isEmpty
+            ? AppLocalizations.of(context)!.typeAudio
+            : note.content;
+        return Text(
+          note.audioMs > 0
+              ? '$name · ${formatClip(Duration(milliseconds: note.audioMs))}'
+              : name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: note.content.isEmpty
+              ? body.copyWith(color: AppColors.inkSoft)
+              : body,
         );
       case NoteType.link:
         return Wrap(

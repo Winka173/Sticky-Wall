@@ -477,3 +477,33 @@ class _Grip extends StatelessWidget {
     );
   }
 }
+
+/// The alignment guides of a drag: thin dashed lines through the edges the
+/// card has clicked into line with.
+class _GuidePainter extends CustomPainter {
+  const _GuidePainter(this.lines, this.color);
+
+  final List<(Offset, Offset)> lines;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.5;
+    for (final (a, b) in lines) {
+      final length = (b - a).distance;
+      final step = (b - a) / length;
+      for (var d = 0.0; d < length; d += 10) {
+        canvas.drawLine(
+          a + step * d,
+          a + step * math.min(d + 6, length),
+          paint,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GuidePainter old) => old.lines != lines;
+}

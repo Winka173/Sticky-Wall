@@ -7,10 +7,11 @@ import 'package:share_plus/share_plus.dart';
 
 import '../models/board.dart';
 import '../models/note.dart';
+import 'audio_service.dart';
 import 'image_service.dart';
 
 /// A parsed backup: boards, notes and the threads between them, plus the
-/// photo files they show (stored name → bytes).
+/// photo and voice-note files they use (stored name → bytes).
 class Backup {
   Backup({
     required this.boards,
@@ -18,6 +19,7 @@ class Backup {
     this.links,
     this.photos = const {},
     this.wallPhotos = const {},
+    this.audios = const {},
   });
 
   final List<Board> boards;
@@ -28,6 +30,9 @@ class Backup {
   final List<NoteLink>? links;
   final Map<String, Uint8List> photos;
   final Map<String, Uint8List> wallPhotos;
+
+  /// Voice-note recordings; empty for a backup from before voice notes.
+  final Map<String, Uint8List> audios;
 }
 
 /// Why a document could not be read as a backup, so the import dialog can
@@ -45,7 +50,9 @@ class BackupFormatException extends FormatException {
 /// move their notes to a new device or keep a safety copy.
 ///
 /// Version 2 adds the photo files (base64 under `photos` / `wallPhotos`, by
-/// stored name); version 1 documents have none and still load.
+/// stored name) and the voice-note recordings (`audios`, likewise — an
+/// optional section, so older version 2 documents simply have none);
+/// version 1 documents have no files and still load.
 class BackupService {
   static const _version = 2;
 
@@ -55,6 +62,7 @@ class BackupService {
     List<NoteLink> links = const [],
     Map<String, Uint8List> photos = const {},
     Map<String, Uint8List> wallPhotos = const {},
+    Map<String, Uint8List> audios = const {},
   ]) {
     return const JsonEncoder.withIndent('  ').convert({
       'version': _version,
@@ -66,12 +74,14 @@ class BackupService {
         'photos': photos.map((k, v) => MapEntry(k, base64Encode(v))),
       if (wallPhotos.isNotEmpty)
         'wallPhotos': wallPhotos.map((k, v) => MapEntry(k, base64Encode(v))),
+      if (audios.isNotEmpty)
+        'audios': audios.map((k, v) => MapEntry(k, base64Encode(v))),
     });
   }
 
-  /// [encode] with the bytes of every photo the notes and walls refer to
-  /// (trashed notes included, since the trash round-trips). A file that has
-  /// gone missing is skipped rather than failing the whole backup.
+  /// [encode] with the bytes of every photo and recording the notes and
+  /// walls refer to (trashed notes included, since the trash round-trips). A
+  /// file that has gone missing is skipped rather than failing the backup.
   Future<String> encodeWithPhotos(
     List<Board> boards,
     List<Note> notes,
@@ -89,7 +99,12 @@ class BackupService {
       final bytes = await ImageService.readStored(name, wall: true);
       if (bytes != null) wallPhotos[name] = bytes;
     }
-    return encode(boards, notes, links, photos, wallPhotos);
+    final audios = <String, Uint8List>{};
+    for (final name in {for (final n in notes) n.audioPath}) {
+      final bytes = await AudioService.readStored(name);
+      if (bytes != null) audios[name] = bytes;
+    }
+    return encode(boards, notes, links, photos, wallPhotos, audios);
   }
 
   /// Parses a backup document. Throws [BackupFormatException] (a
@@ -133,6 +148,7 @@ class BackupService {
         links: links,
         photos: _files(data['photos']),
         wallPhotos: _files(data['wallPhotos']),
+        audios: _files(data['audios']),
       );
     } catch (_) {
       // Valid JSON in some other shape (or a backup with no boards).
@@ -151,8 +167,8 @@ class BackupService {
     };
   }
 
-  /// Puts the backup's photo files back in the app's folders, before the
-  /// notes that show them are restored.
+  /// Puts the backup's photo and recording files back in the app's folders,
+  /// before the notes that use them are restored.
   Future<void> restorePhotos(Backup backup) async {
     for (final e in backup.photos.entries) {
       await ImageService.writeStored(e.key, e.value);
@@ -160,11 +176,14 @@ class BackupService {
     for (final e in backup.wallPhotos.entries) {
       await ImageService.writeStored(e.key, e.value, wall: true);
     }
+    for (final e in backup.audios.entries) {
+      await AudioService.writeStored(e.key, e.value);
+    }
   }
 
   /// Writes the same document as [encodeWithPhotos] straight into [file],
-  /// one photo at a time: a wall with hundreds of photos never holds them
-  /// all — and their base64 copies — in memory at once.
+  /// one file at a time: a wall with hundreds of photos and recordings never
+  /// holds them all — and their base64 copies — in memory at once.
   Future<void> writeTo(
     File file,
     List<Board> boards,
@@ -185,11 +204,11 @@ class BackupService {
       Future<void> section(
         String name,
         Iterable<String> files,
-        bool wall,
+        Future<Uint8List?> Function(String stored) read,
       ) async {
         var first = true;
         for (final stored in files) {
-          final bytes = await ImageService.readStored(stored, wall: wall);
+          final bytes = await read(stored);
           if (bytes == null) continue;
           sink
             ..write(first ? ',${key(name)}:{' : ',')
@@ -204,12 +223,16 @@ class BackupService {
       await section('photos', {
         for (final n in notes)
           if (n.imagePath.isNotEmpty) n.imagePath,
-      }, false);
+      }, ImageService.readStored);
       await section('wallPhotos', {
         for (final b in boards)
           for (final w in [b.wallImage, b.savedWallImage])
             if (w.isNotEmpty) w,
-      }, true);
+      }, (stored) => ImageService.readStored(stored, wall: true));
+      await section('audios', {
+        for (final n in notes)
+          if (n.audioPath.isNotEmpty) n.audioPath,
+      }, AudioService.readStored);
       sink.write('}');
     } finally {
       await sink.close();

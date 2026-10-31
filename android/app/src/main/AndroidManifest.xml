@@ -10,11 +10,21 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="29"/>
+    <!-- Voice notes (record). Asked for only when the user starts recording;
+         recordings stay in the app's own files. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
+    <!-- Android Auto Backup / phone-to-phone transfer: the notes (shared
+         preferences) plus the photo and voice-note files. The rules are in
+         res/xml: data_extraction_rules (Android 12+) and backup_rules
+         (Android 6-11). -->
     <application
         android:label="Sticky Wall"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
             android:name=".MainActivity"
             android:exported="true"

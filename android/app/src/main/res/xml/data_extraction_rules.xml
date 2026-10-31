@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Backup and restore on Android 12+ (API 31+); older versions read
+     backup_rules.xml. Same data as there: the notes, boards and settings
+     (shared_preferences) and the photo, wall-photo and voice-note files.
+     A phone-to-phone transfer has no size quota, so it also carries the
+     weekly backups/ folder; the cloud backup leaves it out to stay under
+     the 25 MB limit (see backup_rules.xml). -->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="sharedpref" path="FlutterSharedPreferences.xml"/>
+        <include domain="root" path="app_flutter/note_images/"/>
+        <include domain="root" path="app_flutter/wall_images/"/>
+        <include domain="root" path="app_flutter/note_audio/"/>
+    </cloud-backup>
+    <device-transfer>
+        <include domain="sharedpref" path="FlutterSharedPreferences.xml"/>
+        <include domain="root" path="app_flutter/note_images/"/>
+        <include domain="root" path="app_flutter/wall_images/"/>
+        <include domain="root" path="app_flutter/note_audio/"/>
+        <include domain="root" path="app_flutter/backups/"/>
+    </device-transfer>
+</data-extraction-rules>

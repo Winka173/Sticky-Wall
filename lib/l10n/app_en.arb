@@ -256,6 +256,32 @@
   "importSuccess": "Backup loaded",
   "importFailed": "Could not read that backup",
   "importReplaceWarning": "Loading a backup replaces all current boards and notes.",
+  "typeAudio": "Voice note",
+  "recordHint": "Tap to record, or hold and let go",
+  "recordStart": "Start recording",
+  "recordStop": "Stop recording",
+  "recordingNow": "Recording",
+  "recordAgain": "Record again",
+  "deleteRecording": "Delete recording",
+  "playVoice": "Play voice note",
+  "pauseVoice": "Pause voice note",
+  "recordingRequired": "Record something first",
+  "micDenied": "The microphone is off for Sticky Wall. Allow it in the phone's settings to record.",
+  "recordFailed": "Could not record. Try again.",
+  "recordingMissing": "This recording is no longer on the device",
+  "autoBackup": "Automatic weekly backup",
+  "autoBackupHint": "Keeps the last 4 copies on this device",
+  "autoBackupLast": "Last automatic backup: {date}",
+  "@autoBackupLast": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "autoBackupNone": "No automatic backup yet",
+  "autoBackupRestore": "Restore it",
+  "autoBackupRestoreTitle": "Restore the backup from {date}?",
+  "@autoBackupRestoreTitle": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "autoBackupMissing": "No automatic backup found on this device",
   "importChooseFile": "Choose file",
   "importNotJson": "This isn't a backup file: the text is not valid JSON. Paste the whole file, with nothing cut off.",
   "importNotBackup": "This isn't a Sticky Wall backup.",
@@ -348,5 +374,34 @@
   "resize": "Resize",
   "untitledNote": "Untitled note",
   "remindersChannel": "Reminders",
-  "remindersChannelDescription": "Reminders you set on your notes"
+  "remindersChannelDescription": "Reminders you set on your notes",
+  "boardTemplate": "Start from",
+  "templateBlank": "Blank",
+  "templateKanban": "Kanban",
+  "templateWeek": "Week planner",
+  "templateBrainstorm": "Brainstorm",
+  "kanbanTodo": "To do",
+  "kanbanDoing": "Doing",
+  "kanbanDone": "Done",
+  "brainstormCenter": "Big idea",
+  "stackNotes": "Stack with…",
+  "stackSelected": "Stack",
+  "stackCount": "{count, plural, =1{1 note in this stack} other{{count} notes in this stack}}",
+  "@stackCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "unstack": "Spread out",
+  "stackOpen": "Open stack",
+  "otherBoardsMatches": "{count, plural, =1{1 more on other walls} other{{count} more on other walls}}",
+  "@otherBoardsMatches": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "onOtherBoards": "On other walls",
+  "dayMonday": "Monday",
+  "dayTuesday": "Tuesday",
+  "dayWednesday": "Wednesday",
+  "dayThursday": "Thursday",
+  "dayFriday": "Friday",
+  "daySaturday": "Saturday",
+  "daySunday": "Sunday"
 }

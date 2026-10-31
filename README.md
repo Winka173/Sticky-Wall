@@ -37,13 +37,22 @@ then taken well beyond it.
 ## Features
 
 **Notes**
-- Six types: **Normal** (multi-line text), **Link** (label + URL),
+- Seven types: **Normal** (multi-line text), **Link** (label + URL),
   **Checklist** (tickable items with done-count), **Drawing** (freehand
   sketch with a color/size pen and eraser, on a canvas whose **paper tone**
   and **guide pattern** — plain, ruled, grid, dots — you pick), **Photo**
   (a print pinned straight on the wall, see below) and **Label** (a strip
   of tape with a word or two on it — the heading of a column or corner of a
-  planning board; no pin, no body)
+  planning board; no pin, no body) and **Voice note** (see below)
+- **Voice notes** — tap the microphone in the editor (or hold it and let
+  go) to record; the note lands on the wall as a little **cassette** in the
+  note's paper colour, its title written on the label sticker with the
+  running time in the corner, and a play / pause button beside the tape
+  window whose reels turn while it plays (they hold still when the system
+  asks for less motion). Play from the card, the list row or the editor;
+  the editor also records again or deletes the recording. The microphone
+  permission is asked for only on the first press, and a refusal is said
+  on the paper. One recording plays at a time, like a real tape deck
 - **Lock in place** (long-press → Lock) holds a note where it is: it cannot
   be dragged, turned or resized, a tidy-up flows the other notes beneath
   it, and a small padlock marks it on the card
@@ -150,6 +159,13 @@ then taken well beyond it.
   the widget; until then it lists the current board's pinned notes
 - **Gesture tips** (⋮ → *Gesture tips*): a short tour of what fingers can do
   on the wall, offered once on a fresh install
+- **Stacks** — long-press a note → *Stack with…* (or select several →
+  *Stack*) piles them in one place: the top card shows with the sheets
+  under it peeking out and a count on the corner that lists them; the pile
+  moves, tidies and undoes as one; *Spread out* fans them back
+- **Alignment guides** — a dragged card clicks into line with the edges
+  and centres of the cards near it, with a dashed guide and a tick of
+  haptics
 - **Tidy up** (⋮ menu) flies every note into a neat grid (squaring up any
   you had turned), or groups them **by color**. Rows are packed from the cards' real rendered heights (an
   offstage measuring pass), so short and long notes sit a pin's length apart
@@ -158,10 +174,12 @@ then taken well beyond it.
 - The **add-note button** is a little sticky note with a pencil, at home on
   any wall; in grid / list and on an empty wall it grows a "New note" label.
   **Long-press** it to pick the note type (text, link, to-do, drawing,
-  photo) straight away
+  photo, label, voice note) straight away
 - **Grid** — masonry layout; the column count follows the screen width
   (2 on phones, up to 6 on tablets / desktop)
 - **List** — compact rows, swipe-to-delete
+- Search reaches every wall: a pill under the box says how many more it
+  found on the other walls and lists them, each opening on its own wall
 - Live, diacritic-insensitive search ("tuoi" finds "Tưới") with a result
   count, and a type filter; on the wall, notes that don't match are dimmed in
   place rather than removed. Grid/list add a sort menu (newest, oldest, A–Z,
@@ -196,6 +214,9 @@ then taken well beyond it.
   it on iOS.
 
 **Boards**
+- A new board can start from a **template**: Kanban (To do / Doing /
+  Done), Week planner (the seven days) or Brainstorm — locked tape labels
+  to stick notes under
 - Multiple named boards ("My Wall", "Work", …); each remembers its own wall
   texture or **custom wall photo**
 - One dialog creates or edits a board: name, an optional **emoji icon**, and
@@ -230,7 +251,8 @@ then taken well beyond it.
   — all with full Vietnamese diacritics; Pacifico for the title. Each is
   size-balanced so switching fonts does not reflow the cards, and the font
   picker previews each as a real sample sticky note
-- Full English / Tiếng Việt UI, following the system locale or set manually
+- English by default, with a full Tiếng Việt translation (or follow the
+  phone's language) one tap away in Customize
 
 **First launch**
 - A fresh install seeds five sample notes (with one thread tied between two
@@ -244,10 +266,18 @@ then taken well beyond it.
 - Photos are copied into the app's documents folder and referenced by file
   name, so they survive iOS container moves; a file is removed only once no
   note — live or in the trash — refers to it
-- **Back up** the whole wall — boards, notes, threads and photos — to one
-  JSON file (share sheet) and **load** it back from the file or pasted text;
-  a load can be undone from its snackbar, and a backup from a newer version
-  is refused rather than half-read
+- **Back up** the whole wall — boards, notes, threads, photos and voice
+  recordings — to one JSON file (share sheet) and **load** it back from the
+  file or pasted text; a load can be undone from its snackbar, and a backup
+  from a newer version is refused rather than half-read
+- **Automatic weekly backup** (on by default, Customize → Backup): on start
+  the app writes a backup into its own `backups/` folder when the last one is
+  a week old, keeps the newest four, and the sheet shows when the last one
+  was made, with *Restore it* (Undo-able like any load) and *Share*
+- **New phone**: Android's own backup / phone-to-phone transfer carries the
+  notes (shared preferences) and the photo and voice files (rules in
+  `android/app/src/main/res/xml/`); the weekly backups go along on a
+  transfer but stay out of the cloud copy, which Google caps at 25 MB
 
 ## Getting started
 
@@ -305,7 +335,9 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/services/reminder_service.dart` | Local notifications, incl. repeating reminders |
 | `lib/services/share_service.dart` | Receives shares from other apps (`receive_sharing_intent`) |
 | `lib/services/sample_notes.dart` | First-launch sample notes |
-| `lib/services/backup_service.dart` | Export / import JSON |
+| `lib/services/backup_service.dart` | Export / import JSON (with photo and voice files) |
+| `lib/services/auto_backup.dart` | Weekly automatic backup into the app's `backups/` folder, keep 4, restore / share the latest |
+| `lib/services/audio_service.dart` | Voice-note files (`note_audio/`, by name), the recorder, and the one shared player |
 | `lib/services/image_service.dart` | Pick a photo (or several, for prints) / wall photo, capture note→PNG, share, save to gallery |
 | `lib/services/widget_service.dart` | Push pinned notes to the home-screen widget |
 | `lib/screens/home_screen.dart` | Header, board bar, toolbar, the three views, multi-select |
@@ -317,6 +349,7 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/widgets/drawing_canvas.dart` | Freehand drawing editor (pen, eraser, paper tone + guide pattern) and the painters that draw a sketch anywhere |
 | `lib/widgets/note_dialog.dart` | Create/Edit dialog (type, color, pin, reminder + repeat, emote, photo tile) |
 | `lib/widgets/note_views.dart` | Sticky card (paper sheet, edge-to-edge sketch, framed photo print, tape label), the animated card turn, list tile, night shade |
+| `lib/widgets/audio_note.dart` | Voice-note pieces: play button, tape window with turning reels, cassette painters, the editor's record panel |
 | `lib/widgets/photo_viewer.dart` | Full-screen photo (pinch / double-tap to zoom) |
 | `lib/widgets/action_sheet.dart` | Bottom action sheet that sizes to its content (long-press menus) |
 | `lib/widgets/add_note_button.dart` | The sticky-note-with-a-pencil FAB |
@@ -414,8 +447,12 @@ What only you can do, once:
 Permissions worth knowing when you fill in the forms: notifications and
 `SCHEDULE_EXACT_ALARM` for reminders (user-granted; the app falls back to
 inexact alarms when denied), `RECEIVE_BOOT_COMPLETED` to re-arm reminders
-after a reboot, and `WRITE_EXTERNAL_STORAGE` only up to Android 10 for
-*Save image*. `USE_EXACT_ALARM` is deliberately not requested: Play limits
+after a reboot, `WRITE_EXTERNAL_STORAGE` only up to Android 10 for
+*Save image*, and `RECORD_AUDIO` for voice notes (asked for on the first
+press of record). For Data safety: *Audio → Voice or sound recordings* is
+handled on the device only — not collected, not shared (recordings never
+leave the phone unless the user shares a backup), so the answer stays "no
+data collected". `USE_EXACT_ALARM` is deliberately not requested: Play limits
 it to alarm-clock and calendar apps.
 
 ## Assets & credits

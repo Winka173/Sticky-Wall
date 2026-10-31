@@ -311,6 +311,20 @@ extension _Chrome on _HomeScreenState {
                 color: wall.wallText,
                 onTap: any ? _recolorSelected : null,
               ),
+              // Piling is a wall thing: grid and list show every card.
+              if (_notes.viewMode == ViewMode.wall)
+                _BarAction(
+                  icon: Icons.layers_outlined,
+                  label: l10n.stackSelected,
+                  color: wall.wallText,
+                  onTap: notes.length > 1
+                      ? () {
+                          HapticFeedback.lightImpact();
+                          _notes.stackNotes(notes);
+                          _exitSelecting();
+                        }
+                      : null,
+                ),
               if (_notes.boards.length > 1) ...[
                 _BarAction(
                   icon: Icons.drive_file_move_outlined,
@@ -514,6 +528,7 @@ extension _Chrome on _HomeScreenState {
       (3, l10n.typeDrawing, Icons.brush_outlined),
       (4, l10n.typePhoto, Icons.photo_outlined),
       (5, l10n.typeLabel, Icons.label_outline),
+      (6, l10n.typeAudio, Icons.voicemail),
     ];
     return PopupMenuButton<int>(
       tooltip: l10n.type,

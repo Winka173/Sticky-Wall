@@ -746,6 +746,71 @@ class AppLocalizationsEn extends AppLocalizations {
       'Loading a backup replaces all current boards and notes.';
 
   @override
+  String get typeAudio => 'Voice note';
+
+  @override
+  String get recordHint => 'Tap to record, or hold and let go';
+
+  @override
+  String get recordStart => 'Start recording';
+
+  @override
+  String get recordStop => 'Stop recording';
+
+  @override
+  String get recordingNow => 'Recording';
+
+  @override
+  String get recordAgain => 'Record again';
+
+  @override
+  String get deleteRecording => 'Delete recording';
+
+  @override
+  String get playVoice => 'Play voice note';
+
+  @override
+  String get pauseVoice => 'Pause voice note';
+
+  @override
+  String get recordingRequired => 'Record something first';
+
+  @override
+  String get micDenied =>
+      'The microphone is off for Sticky Wall. Allow it in the phone\'s settings to record.';
+
+  @override
+  String get recordFailed => 'Could not record. Try again.';
+
+  @override
+  String get recordingMissing => 'This recording is no longer on the device';
+
+  @override
+  String get autoBackup => 'Automatic weekly backup';
+
+  @override
+  String get autoBackupHint => 'Keeps the last 4 copies on this device';
+
+  @override
+  String autoBackupLast(String date) {
+    return 'Last automatic backup: $date';
+  }
+
+  @override
+  String get autoBackupNone => 'No automatic backup yet';
+
+  @override
+  String get autoBackupRestore => 'Restore it';
+
+  @override
+  String autoBackupRestoreTitle(String date) {
+    return 'Restore the backup from $date?';
+  }
+
+  @override
+  String get autoBackupMissing => 'No automatic backup found on this device';
+
+  @override
   String get importChooseFile => 'Choose file';
 
   @override
@@ -1006,4 +1071,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get remindersChannelDescription => 'Reminders you set on your notes';
+
+  @override
+  String get boardTemplate => 'Start from';
+
+  @override
+  String get templateBlank => 'Blank';
+
+  @override
+  String get templateKanban => 'Kanban';
+
+  @override
+  String get templateWeek => 'Week planner';
+
+  @override
+  String get templateBrainstorm => 'Brainstorm';
+
+  @override
+  String get kanbanTodo => 'To do';
+
+  @override
+  String get kanbanDoing => 'Doing';
+
+  @override
+  String get kanbanDone => 'Done';
+
+  @override
+  String get brainstormCenter => 'Big idea';
+
+  @override
+  String get stackNotes => 'Stack with…';
+
+  @override
+  String get stackSelected => 'Stack';
+
+  @override
+  String stackCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes in this stack',
+      one: '1 note in this stack',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get unstack => 'Spread out';
+
+  @override
+  String get stackOpen => 'Open stack';
+
+  @override
+  String otherBoardsMatches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count more on other walls',
+      one: '1 more on other walls',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get onOtherBoards => 'On other walls';
+
+  @override
+  String get dayMonday => 'Monday';
+
+  @override
+  String get dayTuesday => 'Tuesday';
+
+  @override
+  String get dayWednesday => 'Wednesday';
+
+  @override
+  String get dayThursday => 'Thursday';
+
+  @override
+  String get dayFriday => 'Friday';
+
+  @override
+  String get daySaturday => 'Saturday';
+
+  @override
+  String get daySunday => 'Sunday';
 }

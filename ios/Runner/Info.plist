@@ -70,6 +70,8 @@
 		<false/>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Sticky Wall needs access to your photos so you can pin a picture onto a note.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Sticky Wall uses the microphone only while you record a voice note. Recordings stay on your device.</string>
 		<key>NSCameraUsageDescription</key>
 		<string>Sticky Wall uses the camera so you can take a photo straight onto a note.</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/board.dart';
 import '../screens/trash_screen.dart';
+import '../services/auto_backup.dart';
 import '../services/backup_service.dart';
 import '../services/image_service.dart';
 import '../services/notes_controller.dart';
@@ -263,10 +265,11 @@ class _SettingsSheet extends StatelessWidget {
           Wrap(
             spacing: 8,
             children: [
+              // English first: it is the default.
               for (final (code, label) in [
-                ('system', l10n.langSystem),
-                ('vi', 'Tiếng Việt'),
                 ('en', 'English'),
+                ('vi', 'Tiếng Việt'),
+                ('system', l10n.langSystem),
               ])
                 _choiceChip(
                   label: label,
@@ -338,6 +341,35 @@ class _SettingsSheet extends StatelessWidget {
               if (on) notes.sweepCompleted();
             },
           ),
+          _autoBackupTile(context, l10n),
+          if (settings.lastAutoBackup != null)
+            Padding(
+              // In line with the switch's words, past its icon.
+              padding: const EdgeInsets.only(left: 40),
+              child: Wrap(
+                spacing: 4,
+                children: [
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.ink,
+                      minimumSize: const Size(44, 44),
+                    ),
+                    onPressed: () => _restoreAutoBackup(context, l10n),
+                    icon: const Icon(Icons.settings_backup_restore, size: 20),
+                    label: Text(l10n.autoBackupRestore),
+                  ),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.ink,
+                      minimumSize: const Size(44, 44),
+                    ),
+                    onPressed: () => _shareAutoBackup(context, l10n),
+                    icon: const Icon(Icons.share_outlined, size: 20),
+                    label: Text(l10n.share),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -414,6 +446,105 @@ class _SettingsSheet extends StatelessWidget {
     }
   }
 
+  /// The weekly backup switch, saying when the last one was made.
+  Widget _autoBackupTile(BuildContext context, AppLocalizations l10n) {
+    final last = settings.lastAutoBackup;
+    final when = last == null
+        ? l10n.autoBackupNone
+        : l10n.autoBackupLast(
+            MaterialLocalizations.of(context).formatMediumDate(last),
+          );
+    return SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        l10n.autoBackup,
+        style: const TextStyle(fontSize: 16, color: AppColors.ink),
+      ),
+      subtitle: Text(
+        '${l10n.autoBackupHint}\n$when',
+        style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+      ),
+      isThreeLine: true,
+      secondary: const Icon(Icons.update, color: AppColors.ink),
+      value: settings.autoBackup,
+      onChanged: (on) {
+        settings.setAutoBackup(on);
+        // Switched back on after a long pause: the copy owed is made now.
+        if (on) unawaited(AutoBackup.runIfDue(settings, notes));
+      },
+    );
+  }
+
+  /// Loads the newest automatic backup, after saying from when it is and
+  /// that it replaces the wall; Undo is offered as for any loaded backup.
+  Future<void> _restoreAutoBackup(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final file = await AutoBackup.latest();
+    if (!context.mounted) return;
+    if (file == null) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(l10n.autoBackupMissing)));
+      return;
+    }
+    final day = AutoBackup.dateOf(file) ?? settings.lastAutoBackup;
+    final date = day == null
+        ? ''
+        : MaterialLocalizations.of(context).formatMediumDate(day);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.autoBackupRestoreTitle(date)),
+        content: Text(l10n.importReplaceWarning),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.restore),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    final Backup backup;
+    try {
+      backup = BackupService().decode(await file.readAsString());
+    } catch (_) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(l10n.importFailed)));
+      return;
+    }
+    if (context.mounted) await _applyBackup(context, l10n, backup);
+  }
+
+  Future<void> _shareAutoBackup(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final file = await AutoBackup.latest();
+      if (file == null) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(l10n.autoBackupMissing)));
+        return;
+      }
+      await AutoBackup.share(file, subject: l10n.backupShareSubject);
+    } catch (_) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
+    }
+  }
+
   /// The dialog only hands back a backup it has already read, so a bad file
   /// is explained there, with the text still in place to fix.
   Future<void> _importFlow(BuildContext context, AppLocalizations l10n) async {
@@ -422,7 +553,16 @@ class _SettingsSheet extends StatelessWidget {
       builder: (context) => _ImportDialog(l10n: l10n),
     );
     if (backup == null || !context.mounted) return;
+    await _applyBackup(context, l10n, backup);
+  }
 
+  /// Replaces the wall with [backup] (its files first), with Undo on the
+  /// snackbar, and closes the sheet so the snackbar shows.
+  Future<void> _applyBackup(
+    BuildContext context,
+    AppLocalizations l10n,
+    Backup backup,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     // Kept for Undo. replaceAll never deletes photo files, so the photos
