@@ -481,10 +481,18 @@ extension _NoteActions on _HomeScreenState {
           imageService: _imageService,
           viewport: _notes.viewMode == ViewMode.wall ? _visibleWallRect : null,
           selected: _selecting ? Set.of(_selected) : const {},
-          onShowOnWidget: hasWidget ? WidgetService.showWallImage : null,
+          onShowOnWidget: hasWidget ? _showOnWidget : null,
         ),
       ),
     );
+  }
+
+  /// Sends the board picture to the home-screen widget and switches the
+  /// widget to showing it.
+  Future<bool> _showOnWidget(Uint8List png) async {
+    final ok = await WidgetService.showWallImage(png);
+    if (ok) widget.settings.setWidgetContent(WidgetContent.picture);
+    return ok;
   }
 
   Future<void> _captureAndShare(Note note) async {

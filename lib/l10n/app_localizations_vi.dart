@@ -1145,4 +1145,205 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get daySunday => 'Chủ Nhật';
+
+  @override
+  String get proTitle => 'Sticky Wall Pro';
+
+  @override
+  String get proPitch =>
+      'Trả một lần, dùng mãi mãi. Mọi thứ bạn đang có vẫn miễn phí.';
+
+  @override
+  String get proPerkPapers => 'Thêm 6 màu giấy';
+
+  @override
+  String get proPerkWalls => 'Thêm 5 kiểu tường';
+
+  @override
+  String get proPerkFonts => 'Thêm 5 phông chữ';
+
+  @override
+  String get proPerkPins =>
+      'Thêm 5 kiểu ghim note: ghim nhiều màu, đinh bấm, băng dính washi, kẹp giấy và nam châm';
+
+  @override
+  String proBuy(String price) {
+    return 'Mở khóa với giá $price';
+  }
+
+  @override
+  String get proBuyNoPrice => 'Mở khóa Pro';
+
+  @override
+  String get proRestore => 'Khôi phục giao dịch';
+
+  @override
+  String get proRestored => 'Đã khôi phục Pro. Chào mừng bạn trở lại!';
+
+  @override
+  String get proRestoreNone =>
+      'Không tìm thấy giao dịch nào với tài khoản Google này.';
+
+  @override
+  String get proUnlocked => 'Đã mở khóa Pro. Cảm ơn bạn!';
+
+  @override
+  String get proPending =>
+      'Đang chờ thanh toán. Pro sẽ mở ngay khi Google Play xác nhận.';
+
+  @override
+  String get proFailed => 'Giao dịch chưa thành công. Bạn thử lại nhé.';
+
+  @override
+  String get proUnavailable =>
+      'Hiện chưa mua được. Hãy kiểm tra kết nối mạng và Google Play rồi thử lại.';
+
+  @override
+  String get proKeepsLook =>
+      'Note vẫn giữ màu giấy và tường Pro dù được chuyển đi đâu.';
+
+  @override
+  String proLocked(String name) {
+    return '$name, Pro';
+  }
+
+  @override
+  String get proSettingsHint => 'Thêm màu giấy, tường, phông chữ và kiểu ghim';
+
+  @override
+  String get proSettingsThanks => 'Đã mở khóa. Cảm ơn bạn!';
+
+  @override
+  String get paperLime => 'Xanh chanh';
+
+  @override
+  String get paperCoral => 'San hô';
+
+  @override
+  String get paperPeriwinkle => 'Tím xanh';
+
+  @override
+  String get paperSage => 'Xanh xám';
+
+  @override
+  String get paperKraft => 'Giấy kraft';
+
+  @override
+  String get paperWhite => 'Trắng';
+
+  @override
+  String get wallChalkNavy => 'Bảng xanh navy';
+
+  @override
+  String get wallChalkWine => 'Bảng đỏ rượu';
+
+  @override
+  String get wallBlush => 'Vữa hồng';
+
+  @override
+  String get wallSage => 'Vữa xanh xám';
+
+  @override
+  String get wallSky => 'Vải xanh trời';
+
+  @override
+  String get pinSection => 'Kiểu ghim';
+
+  @override
+  String get pinClassic => 'Ghim đỏ';
+
+  @override
+  String get pinColorful => 'Ghim nhiều màu';
+
+  @override
+  String get pinTack => 'Đinh bấm';
+
+  @override
+  String get pinWashi => 'Băng dính washi';
+
+  @override
+  String get pinClip => 'Kẹp giấy';
+
+  @override
+  String get pinMagnet => 'Nam châm';
+
+  @override
+  String get privacySection => 'Riêng tư';
+
+  @override
+  String get appLock => 'Khóa ứng dụng';
+
+  @override
+  String get appLockHint =>
+      'Hỏi vân tay, khuôn mặt hoặc khóa màn hình khi mở Sticky Wall, và khi quay lại sau hơn một phút.';
+
+  @override
+  String get appLockReason => 'Mở khóa Sticky Wall';
+
+  @override
+  String get appLockLocked => 'Sticky Wall đang khóa';
+
+  @override
+  String get appLockUnlock => 'Mở khóa';
+
+  @override
+  String get appLockNoLock => 'Hãy đặt khóa màn hình cho điện thoại trước.';
+
+  @override
+  String get widgetSection => 'Widget màn hình chính';
+
+  @override
+  String get widgetSettingsHint => 'Bảng nào, hiện gì, màu và cỡ chữ';
+
+  @override
+  String get widgetBoardLabel => 'Bảng';
+
+  @override
+  String get widgetBoardCurrent => 'Bảng đang mở';
+
+  @override
+  String get widgetContentLabel => 'Hiển thị';
+
+  @override
+  String get widgetContentPinned => 'Note đã ghim';
+
+  @override
+  String get widgetContentNewest => 'Note mới nhất';
+
+  @override
+  String get widgetContentPicture => 'Ảnh của bảng';
+
+  @override
+  String get widgetLookLabel => 'Màu';
+
+  @override
+  String get widgetLookWall => 'Nâu tường';
+
+  @override
+  String get widgetLookPaper => 'Giấy';
+
+  @override
+  String get widgetLookInk => 'Mực';
+
+  @override
+  String get widgetTextSizeLabel => 'Cỡ chữ';
+
+  @override
+  String get widgetTextSmall => 'Nhỏ';
+
+  @override
+  String get widgetTextNormal => 'Vừa';
+
+  @override
+  String get widgetTextLarge => 'Lớn';
+
+  @override
+  String get widgetEmptyPinned => 'Chưa ghim note nào';
+
+  @override
+  String get widgetEmptyNewest => 'Chưa có note nào';
+
+  @override
+  String get widgetAddHint =>
+      'Cách thêm: nhấn giữ màn hình chính, chọn Tiện ích → Sticky Wall.';
 }

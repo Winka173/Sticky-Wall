@@ -1,6 +1,6 @@
 # Privacy Policy · Chính sách quyền riêng tư
 
-**Sticky Wall** — last updated 31 October 2026 · cập nhật 31/10/2026
+**Sticky Wall** — last updated 1 November 2026 · cập nhật 01/11/2026
 
 ---
 
@@ -49,13 +49,27 @@ handled by Android under your Google account settings, not by us.)
   Wall to make a note. That content is stored on the device like any other note.
 - **Links** — tapping a link in a note opens it in your browser. Sticky Wall
   does not fetch or inspect the link itself.
-- **Home-screen widget** — shows your pinned notes, or a picture of your board,
-  on the home screen. The data stays on the device.
+- **Home-screen widget** — shows a board's pinned or newest notes, or a
+  picture of your board, on the home screen. The data stays on the device.
+- **App lock** (off unless you switch it on) — asks for your phone's own
+  fingerprint, face, PIN, pattern or password through the system prompt.
+  Sticky Wall never sees or stores your fingerprint, face or code; it only
+  learns whether the phone unlocked.
+
+### Sticky Wall Pro
+
+Pro is an optional one-time purchase made through Google Play (or the App
+Store). Payment is handled entirely by Google or Apple under their own privacy
+policies; we receive no card details, name or email. The app only asks the
+store whether Pro was bought on your account, and remembers the answer on the
+device.
 
 ### Network
 
-The app makes no network connections of its own. The only time it touches the
-internet is when *you* open a link from a note, which your browser handles.
+The app makes no network connections of its own. It touches the internet only
+when *you* open a link from a note, which your browser handles, and when the
+Google Play (or App Store) app on your phone is asked for the Pro price or
+whether Pro was bought.
 
 ### Children
 
@@ -118,13 +132,25 @@ và tài khoản Google của bạn quản lý, không phải chúng tôi.)
   Sticky Wall để tạo ghi chú. Nội dung đó được lưu trên máy như mọi ghi chú.
 - **Liên kết** — chạm vào liên kết trong ghi chú sẽ mở bằng trình duyệt.
   Sticky Wall không tự tải hay kiểm tra liên kết.
-- **Widget màn hình chính** — hiện các ghi chú đã ghim, hoặc ảnh tường, trên
-  màn hình chính. Dữ liệu vẫn nằm trên máy.
+- **Widget màn hình chính** — hiện các ghi chú đã ghim hoặc mới nhất của một
+  bảng, hoặc ảnh tường, trên màn hình chính. Dữ liệu vẫn nằm trên máy.
+- **Khóa ứng dụng** (chỉ bật khi bạn bật) — hỏi vân tay, khuôn mặt, mã PIN,
+  hình vẽ hoặc mật khẩu của chính điện thoại qua hộp thoại của hệ thống.
+  Sticky Wall không bao giờ thấy hay lưu vân tay, khuôn mặt hay mã của bạn;
+  ứng dụng chỉ biết điện thoại đã mở khóa hay chưa.
+
+### Sticky Wall Pro
+
+Pro là gói mua một lần, không bắt buộc, thanh toán qua Google Play (hoặc App
+Store). Việc thanh toán do Google hoặc Apple xử lý theo chính sách riêng của
+họ; chúng tôi không nhận thông tin thẻ, tên hay email. Ứng dụng chỉ hỏi cửa
+hàng xem tài khoản của bạn đã mua Pro chưa và ghi nhớ câu trả lời trên máy.
 
 ### Mạng
 
-Ứng dụng không tự tạo kết nối mạng nào. Lần duy nhất nó chạm tới Internet là
-khi *bạn* mở một liên kết từ ghi chú, và việc đó do trình duyệt xử lý.
+Ứng dụng không tự tạo kết nối mạng nào. Nó chỉ chạm tới Internet khi *bạn*
+mở một liên kết từ ghi chú (do trình duyệt xử lý), và khi ứng dụng Google
+Play (hoặc App Store) trên máy được hỏi giá Pro hoặc bạn đã mua Pro chưa.
 
 ### Trẻ em
 

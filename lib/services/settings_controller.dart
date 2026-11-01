@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import 'note_storage.dart';
 
-export 'note_storage.dart' show NightMode;
+export 'note_storage.dart'
+    show NightMode, WidgetContent, WidgetLook, WidgetTextSize;
 
 /// App-wide appearance and language settings (things that are not per-board).
 /// Persists through [NoteStorage] and notifies listeners so the app rebuilds.
@@ -19,7 +20,14 @@ class SettingsController extends ChangeNotifier {
       _nightEnd = _storage.nightEnd,
       _autoTrashDone = _storage.autoTrashDone,
       _autoBackup = _storage.autoBackup,
-      _lastAutoBackup = _storage.lastAutoBackup {
+      _lastAutoBackup = _storage.lastAutoBackup,
+      _pinStyle = pinStyleById(_storage.pinStyle),
+      _appLock = _storage.appLock,
+      _widgetBoard = _storage.widgetBoard,
+      _widgetContent = _storage.widgetContent,
+      _widgetLook = _storage.widgetLook,
+      _widgetTextSize = _storage.widgetTextSize,
+      _widgetPicture = _storage.widgetPicture {
     _watchClock();
   }
 
@@ -34,11 +42,42 @@ class SettingsController extends ChangeNotifier {
   bool _autoTrashDone;
   bool _autoBackup;
   DateTime? _lastAutoBackup;
+  PinStyle _pinStyle;
+  bool _appLock;
+  String _widgetBoard;
+  WidgetContent _widgetContent;
+  WidgetLook _widgetLook;
+  WidgetTextSize _widgetTextSize;
+  bool _widgetPicture;
 
   Timer? _clock;
   bool? _lastScheduledNight;
 
+  /// The chosen font, as picked — it may be a Pro one (see [fontFor]).
   FontChoice get font => fontChoiceById(_fontId);
+
+  /// The font to draw with: a Pro font only while Pro is unlocked.
+  FontChoice fontFor({required bool pro}) =>
+      font.pro && !pro ? fontChoices.first : font;
+
+  /// The chosen pin style, as picked (see [pinStyleFor]).
+  PinStyle get pinStyle => _pinStyle;
+
+  /// The pin style to draw: a Pro one only while Pro is unlocked.
+  PinStyle pinStyleFor({required bool pro}) =>
+      _pinStyle.pro && !pro ? PinStyle.classic : _pinStyle;
+
+  /// Whether opening the app asks for the phone's lock (off by default).
+  bool get appLock => _appLock;
+
+  /// The board the home-screen widget shows; empty = the open one.
+  String get widgetBoard => _widgetBoard;
+  WidgetContent get widgetContent => _widgetContent;
+  WidgetLook get widgetLook => _widgetLook;
+  WidgetTextSize get widgetTextSize => _widgetTextSize;
+
+  /// A board picture has been sent to the widget and can be shown again.
+  bool get widgetPicture => _widgetPicture;
 
   String get languageCode => _languageCode;
 
@@ -87,6 +126,46 @@ class SettingsController extends ChangeNotifier {
   void setFontId(String id) {
     _fontId = id;
     _storage.setFontId(id);
+    notifyListeners();
+  }
+
+  void setPinStyle(PinStyle style) {
+    _pinStyle = style;
+    _storage.setPinStyle(style.name);
+    notifyListeners();
+  }
+
+  void setAppLock(bool value) {
+    _appLock = value;
+    _storage.setAppLock(value);
+    notifyListeners();
+  }
+
+  void setWidgetBoard(String boardId) {
+    _widgetBoard = boardId;
+    _storage.setWidgetBoard(boardId);
+    notifyListeners();
+  }
+
+  void setWidgetContent(WidgetContent value) {
+    _widgetContent = value;
+    _storage.setWidgetContent(value);
+    if (value == WidgetContent.picture) {
+      _widgetPicture = true;
+      _storage.setWidgetPicture(true);
+    }
+    notifyListeners();
+  }
+
+  void setWidgetLook(WidgetLook value) {
+    _widgetLook = value;
+    _storage.setWidgetLook(value);
+    notifyListeners();
+  }
+
+  void setWidgetTextSize(WidgetTextSize value) {
+    _widgetTextSize = value;
+    _storage.setWidgetTextSize(value);
     notifyListeners();
   }
 

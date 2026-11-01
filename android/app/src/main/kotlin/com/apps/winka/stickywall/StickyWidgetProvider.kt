@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
@@ -13,9 +14,11 @@ import java.io.File
 
 /**
  * Home-screen widget. Shows a picture of the board when the app has exported
- * one to it ("Show on home-screen widget" in the board export), else the
- * current board's pinned notes as text. Data is pushed from Flutter via the
- * home_widget plugin (see lib/services/widget_service.dart).
+ * one to it and "Board picture" is chosen, else a board's pinned or newest
+ * notes as text, in the colours and text size chosen in the app (Customize →
+ * Home-screen widget). Data is pushed from Flutter via the home_widget plugin
+ * (see lib/services/widget_service.dart; the colours match widgetColors in
+ * lib/widgets/widget_settings_sheet.dart).
  */
 class StickyWidgetProvider : HomeWidgetProvider() {
     override fun onUpdate(
@@ -27,7 +30,13 @@ class StickyWidgetProvider : HomeWidgetProvider() {
         appWidgetIds.forEach { widgetId ->
             val views = RemoteViews(context.packageName, R.layout.sticky_widget)
 
-            val wall = widgetData.getString("wall", null)?.let { loadScaled(it, 900) }
+            // Before the app wrote a mode, a sent picture was always shown.
+            val mode = widgetData.getString("mode", null)
+            val wall = if (mode == null || mode == "picture") {
+                widgetData.getString("wall", null)?.let { loadScaled(it, 900) }
+            } else {
+                null
+            }
             if (wall != null) {
                 views.setImageViewBitmap(R.id.widget_wall, wall)
                 views.setViewVisibility(R.id.widget_wall, View.VISIBLE)
@@ -50,21 +59,37 @@ class StickyWidgetProvider : HomeWidgetProvider() {
     }
 
     private fun bindLines(views: RemoteViews, widgetData: SharedPreferences) {
+        val look = widgetData.getString("look", "wall")
+        val (background, text, faded) = when (look) {
+            "paper" -> Triple(R.drawable.widget_bg_paper, INK, INK_FADED)
+            "ink" -> Triple(R.drawable.widget_bg_ink, CHALK, CHALK_FADED)
+            else -> Triple(R.drawable.widget_bg, CHALK, CHALK_FADED)
+        }
+        val (titleSize, lineSize) = when (widgetData.getString("textSize", "normal")) {
+            "small" -> 14f to 12f
+            "large" -> 19f to 17f
+            else -> 16f to 14f
+        }
+        views.setInt(R.id.widget_root, "setBackgroundResource", background)
+
         val title = widgetData.getString("title", "Sticky Wall") ?: "Sticky Wall"
         views.setTextViewText(R.id.widget_title, title)
+        views.setTextColor(R.id.widget_title, text)
+        views.setTextViewTextSize(R.id.widget_title, TypedValue.COMPLEX_UNIT_SP, titleSize)
 
-        val lines = listOf(
-            widgetData.getString("line1", "") ?: "",
-            widgetData.getString("line2", "") ?: "",
-            widgetData.getString("line3", "") ?: "",
+        val ids = intArrayOf(
+            R.id.widget_line1, R.id.widget_line2, R.id.widget_line3,
+            R.id.widget_line4, R.id.widget_line5, R.id.widget_line6,
         )
-        val ids = intArrayOf(R.id.widget_line1, R.id.widget_line2, R.id.widget_line3)
-        lines.forEachIndexed { i, text ->
-            if (text.isBlank()) {
+        val lines = ids.indices.map { widgetData.getString("line${it + 1}", "") ?: "" }
+        lines.forEachIndexed { i, line ->
+            if (line.isBlank()) {
                 views.setViewVisibility(ids[i], View.GONE)
             } else {
                 views.setViewVisibility(ids[i], View.VISIBLE)
-                views.setTextViewText(ids[i], "• $text")
+                views.setTextViewText(ids[i], "• $line")
+                views.setTextColor(ids[i], text)
+                views.setTextViewTextSize(ids[i], TypedValue.COMPLEX_UNIT_SP, lineSize)
             }
         }
 
@@ -73,6 +98,11 @@ class StickyWidgetProvider : HomeWidgetProvider() {
             R.id.widget_empty,
             if (empty) View.VISIBLE else View.GONE,
         )
+        widgetData.getString("empty", null)?.let {
+            views.setTextViewText(R.id.widget_empty, it)
+        }
+        views.setTextColor(R.id.widget_empty, faded)
+        views.setTextViewTextSize(R.id.widget_empty, TypedValue.COMPLEX_UNIT_SP, lineSize)
     }
 
     /**
@@ -92,5 +122,12 @@ class StickyWidgetProvider : HomeWidgetProvider() {
         } catch (e: Exception) {
             null
         }
+    }
+
+    private companion object {
+        const val CHALK = 0xFFFDFBF3.toInt()
+        const val CHALK_FADED = 0xCCFDFBF3.toInt()
+        const val INK = 0xFF3B372F.toInt()
+        const val INK_FADED = 0xCC3B372F.toInt()
     }
 }

@@ -776,6 +776,7 @@ extension _EditorPieces on _NoteDialogState {
   }
 
   Widget _colorRow(AppLocalizations l10n) {
+    final pro = ProScope.unlockedOf(context);
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: Wrap(
@@ -788,12 +789,22 @@ extension _EditorPieces on _NoteDialogState {
             onTap: () => _pickColor(null),
           ),
           for (var i = 0; i < AppColors.notePapers.length; i++)
-            _swatch(
-              name: paperName(l10n, i),
-              color: AppColors.notePapers[i],
-              selected: _n.colorIndex == i,
-              onTap: () => _pickColor(i),
-            ),
+            if (!pro && i >= AppColors.freePapers)
+              _swatch(
+                name: l10n.proLocked(paperName(l10n, i)),
+                color: AppColors.notePapers[i],
+                // Kept when it came from a backup or a Pro phone.
+                selected: _n.colorIndex == i,
+                locked: true,
+                onTap: () => showProSheet(context),
+              )
+            else
+              _swatch(
+                name: paperName(l10n, i),
+                color: AppColors.notePapers[i],
+                selected: _n.colorIndex == i,
+                onTap: () => _pickColor(i),
+              ),
         ],
       ),
     );
@@ -813,6 +824,7 @@ extension _EditorPieces on _NoteDialogState {
     required bool selected,
     required VoidCallback onTap,
     bool auto = false,
+    bool locked = false,
   }) {
     return Semantics(
       button: true,
@@ -842,6 +854,12 @@ extension _EditorPieces on _NoteDialogState {
                       Icons.auto_awesome,
                       size: 13,
                       color: _NoteDialogState._ink.withValues(alpha: 0.7),
+                    )
+                  : locked
+                  ? Icon(
+                      Icons.lock_outline,
+                      size: 12,
+                      color: _NoteDialogState._ink.withValues(alpha: 0.6),
                     )
                   : null,
             ),

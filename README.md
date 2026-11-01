@@ -206,9 +206,12 @@ then taken well beyond it.
   plist entries) to enable it on iOS.
 
 **Home-screen widget** (Android)
-- A widget showing the current board's pinned notes; tap to open the app.
-  Data is pushed via `home_widget`; the native provider lives in
-  `android/app/src/main/kotlin/.../StickyWidgetProvider.kt`.
+- A widget showing a board's pinned notes (or its newest notes, or a
+  picture of the board sent from the export); tap to open the app.
+  *Customize → Home-screen widget* picks the board (or "the open wall"),
+  what it lists, its colours (wall brown / paper / ink) and text size, over a
+  live preview. Data is pushed via `home_widget`; the native provider lives
+  in `android/app/src/main/kotlin/.../StickyWidgetProvider.kt`.
 - iOS: the Dart side already pushes data; add a WidgetKit extension target in
   Xcode (named `StickyWidget`) reading the shared `home_widget` data to enable
   it on iOS.
@@ -234,7 +237,8 @@ then taken well beyond it.
   plaster, brick, wood, kraft paper, marble, terrazzo, denim, felt, linen,
   cardboard, cement, white cotton, white paper, moss, red leather, dark
   marble, dark planks, checker tiles — each under a tuned scrim so writing
-  keeps contrast
+  keeps contrast; Pro adds navy and wine chalkboards and blush, sage and sky
+  walls
 - Or pick **your own photo** as the wall; its brightness is sampled to choose
   a scrim so the writing on it stays legible
 - Procedural **stains** layer (water rings, drips, paint splatters, smudges,
@@ -248,7 +252,9 @@ then taken well beyond it.
 **Fonts & language**
 - Eleven note fonts — Patrick Hand, Itim, Dancing Script, Be Vietnam Pro,
   Mali, Sriracha, Mynerve, Fuzzy Bubbles, Amatic SC, Charm and IBM Plex Mono
-  — all with full Vietnamese diacritics; Pacifico for the title. Each is
+  — all with full Vietnamese diacritics; Pacifico for the title. Pro adds
+  Shantell Sans, Coiny, Lobster, Sedgwick Ave and Lora (also checked glyph by
+  glyph for Vietnamese). Each is
   size-balanced so switching fonts does not reflow the cards, and the font
   picker previews each as a real sample sticky note
 - English by default, with a full Tiếng Việt translation (or follow the
@@ -259,6 +265,25 @@ then taken well beyond it.
   of them) that teach the gestures: drag, long-press, tick a checklist, pull
   a thread, plus a doodle so the drawing type is discovered. Delete them like
   any other note
+
+**Privacy**
+- **App lock** (off by default, *Customize → Privacy*): asks for the phone's
+  fingerprint, face or screen lock (`local_auth`) when the app opens and when
+  it comes back after a minute away; switching it on asks once first, so a
+  phone without a screen lock says so instead. The lock covers open dialogs
+  too, and a phone whose screen lock was later removed is let in rather than
+  locked out
+
+**Sticky Wall Pro** (one-time purchase, `in_app_purchase`)
+- Adds 6 paper colours, 5 walls (tinted variants of the bundled textures),
+  5 fonts and 5 pin styles (colourful pins, thumbtack, washi tape, paper clip,
+  magnet — gold when pinned to the top, like the red pin). Pro items show a
+  PRO mark and open the Pro sheet (price, Unlock, Restore purchase) when
+  tapped without Pro. Nothing that was free is locked, and notes keep their
+  Pro paper or wall on a phone without Pro
+- Product id `sticky_wall_pro`, a non-consumable; the unlock is cached in
+  preferences and re-checked with the store at every start (which also
+  settles a pending payment and unlocks a reinstall)
 
 **Data**
 - Everything persists locally (no backend). A single corrupt record is
@@ -339,7 +364,11 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/services/auto_backup.dart` | Weekly automatic backup into the app's `backups/` folder, keep 4, restore / share the latest |
 | `lib/services/audio_service.dart` | Voice-note files (`note_audio/`, by name), the recorder, and the one shared player |
 | `lib/services/image_service.dart` | Pick a photo (or several, for prints) / wall photo, capture note→PNG, share, save to gallery |
-| `lib/services/widget_service.dart` | Push pinned notes to the home-screen widget |
+| `lib/services/widget_service.dart` | Push a board's pinned or newest notes, colours and text size to the home-screen widget |
+| `lib/services/pro_controller.dart` | Sticky Wall Pro: price, purchase, restore, the cached unlock; `ProScope` makes it reachable from any route |
+| `lib/services/app_lock.dart` · `lib/widgets/lock_gate.dart` | App lock: the phone's own lock prompt, and the cover over the whole app (above the navigator) |
+| `lib/widgets/pro_sheet.dart` | The Pro sheet and the PRO mark |
+| `lib/widgets/widget_settings_sheet.dart` | Home-screen widget settings with a live preview (part of `settings_sheet.dart`) |
 | `lib/screens/home_screen.dart` | Header, board bar, toolbar, the three views, multi-select |
 | `lib/screens/trash_screen.dart` | Trash: restore / delete forever / empty |
 | `lib/widgets/wall_view.dart` | Free drag-and-drop canvas, resize / rotate grips, two-finger twist / pinch, lasso, drop tray, marker mode, threads, measured tidy animation |
@@ -449,11 +478,21 @@ Permissions worth knowing when you fill in the forms: notifications and
 inexact alarms when denied), `RECEIVE_BOOT_COMPLETED` to re-arm reminders
 after a reboot, `WRITE_EXTERNAL_STORAGE` only up to Android 10 for
 *Save image*, and `RECORD_AUDIO` for voice notes (asked for on the first
-press of record). For Data safety: *Audio → Voice or sound recordings* is
+press of record), `USE_BIOMETRIC` for the optional app lock, and Play
+Billing (added by `in_app_purchase`) for Pro. For Data safety: *Audio → Voice or sound recordings* is
 handled on the device only — not collected, not shared (recordings never
 leave the phone unless the user shares a backup), so the answer stays "no
-data collected". `USE_EXACT_ALARM` is deliberately not requested: Play limits
+data collected". The app lock uses the system prompt and stores nothing
+biometric. `USE_EXACT_ALARM` is deliberately not requested: Play limits
 it to alarm-clock and calendar apps.
+
+**Pro in Play Console.** In-app products can be created only after a bundle
+with the billing permission has been uploaded (any testing track). Then
+*Monetize → Products → In-app products → Create*: product id
+`sticky_wall_pro`, a name and description, a price, and activate it. Add
+your test Google accounts under *Settings → License testing* so their
+purchases are free test orders. A merchant (payments) profile must be set up
+first.
 
 ## Assets & credits
 
@@ -476,5 +515,11 @@ it to alarm-clock and calendar apps.
   [Amatic SC](https://fonts.google.com/specimen/Amatic+SC),
   [Charm](https://fonts.google.com/specimen/Charm),
   [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono),
-  [Pacifico](https://fonts.google.com/specimen/Pacifico). All include the
-  Vietnamese subset.
+  [Pacifico](https://fonts.google.com/specimen/Pacifico), and for Pro
+  [Shantell Sans](https://fonts.google.com/specimen/Shantell+Sans) (static
+  Regular instanced from the variable font, Informal axis 100),
+  [Coiny](https://fonts.google.com/specimen/Coiny),
+  [Lobster](https://fonts.google.com/specimen/Lobster),
+  [Sedgwick Ave](https://fonts.google.com/specimen/Sedgwick+Ave) and
+  [Lora](https://fonts.google.com/specimen/Lora) (the upstream static
+  Regular). All include the Vietnamese subset.

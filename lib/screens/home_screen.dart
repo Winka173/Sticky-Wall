@@ -18,6 +18,7 @@ import '../models/view_mode.dart';
 import '../services/audio_service.dart';
 import '../services/image_service.dart';
 import '../services/notes_controller.dart';
+import '../services/pro_controller.dart';
 import '../services/reminder_service.dart';
 import '../services/settings_controller.dart';
 import '../services/share_service.dart';
@@ -34,6 +35,7 @@ import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
 import '../widgets/peel_away.dart';
 import '../widgets/photo_viewer.dart';
+import '../widgets/pro_sheet.dart';
 import '../widgets/settings_sheet.dart';
 import '../widgets/wall_background.dart';
 import '../widgets/wall_view.dart';
@@ -628,6 +630,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final notes = _selectedNotes;
     if (notes.isEmpty) return;
     final l10n = _l10n;
+    final pro = ProScope.unlockedOf(context);
     final picked = await showModalBottomSheet<int>(
       context: context,
       builder: (context) => SafeArea(
@@ -660,7 +663,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     _Swatch(
                       name: paperName(_l10n, i),
                       color: c,
-                      onTap: () => Navigator.pop(context, i),
+                      locked: !pro && i >= AppColors.freePapers,
+                      // A Pro paper without Pro: -2 opens the Pro sheet.
+                      onTap: () => Navigator.pop(
+                        context,
+                        !pro && i >= AppColors.freePapers ? -2 : i,
+                      ),
                     ),
                 ],
               ),
@@ -670,6 +678,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     if (picked == null || !mounted) return;
+    if (picked == -2) {
+      await showProSheet(context);
+      return;
+    }
     _notes.recolor(notes, picked < 0 ? null : picked);
   }
 

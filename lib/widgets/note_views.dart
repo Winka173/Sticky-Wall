@@ -23,7 +23,14 @@ String paperName(AppLocalizations l10n, int? index) => switch (index) {
   2 => l10n.paperMint,
   3 => l10n.paperBlue,
   4 => l10n.paperOrange,
-  _ => l10n.paperLilac,
+  5 => l10n.paperLilac,
+  6 => l10n.paperLime,
+  7 => l10n.paperCoral,
+  8 => l10n.paperPeriwinkle,
+  9 => l10n.paperSage,
+  10 => l10n.paperKraft,
+  11 => l10n.paperWhite,
+  _ => l10n.paperAuto,
 };
 
 /// Opens [url] in the browser, defaulting to https when no scheme is given,
@@ -259,12 +266,17 @@ BoxDecoration paperDecoration(
   );
 }
 
-/// The push-pin at the top of a card; gold and larger when the note is
-/// pinned, with a little bounce whenever that changes.
+/// What holds a card to the wall, in the chosen [PinStyle]: gold and a
+/// little larger when the note is pinned to the top, with a bounce whenever
+/// that changes.
 class NotePin extends StatefulWidget {
-  const NotePin({super.key, required this.pinned});
+  const NotePin({super.key, required this.pinned, this.seed = ''});
 
   final bool pinned;
+
+  /// The note's id: styles that come in several colours pick one from it,
+  /// so a note keeps its pin colour.
+  final String seed;
 
   @override
   State<NotePin> createState() => _NotePinState();
@@ -295,41 +307,255 @@ class _NotePinState extends State<NotePin> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final pinned = widget.pinned;
+    final shade = stableHash(widget.seed);
+    final look = switch (pinStyleOf(context)) {
+      PinStyle.classic => _pushPin(
+        pinned ? _gold : const [Color(0xFFEF9A9A), Color(0xFFD32F2F)],
+      ),
+      PinStyle.colorful => _pushPin(
+        pinned ? _gold : _pinColors[shade % _pinColors.length],
+      ),
+      PinStyle.tack => _tack(pinned),
+      PinStyle.washi => _washi(pinned, shade),
+      PinStyle.clip => _clip(pinned),
+      PinStyle.magnet => _magnet(
+        pinned ? _gold : _pinColors[shade % _pinColors.length],
+      ),
+    };
+    return ScaleTransition(scale: _scale, child: look);
+  }
+
+  static const _gold = [Color(0xFFFFE082), Color(0xFFF9A825)];
+
+  /// Highlight and body colour of the coloured pins and magnets.
+  static const _pinColors = [
+    [Color(0xFFEF9A9A), Color(0xFFD32F2F)], // red
+    [Color(0xFF90CAF9), Color(0xFF1565C0)], // blue
+    [Color(0xFFA5D6A7), Color(0xFF2E7D32)], // green
+    [Color(0xFFCE93D8), Color(0xFF6A1B9A)], // purple
+    [Color(0xFFFFCC80), Color(0xFFEF6C00)], // orange
+    [Color(0xFF80CBC4), Color(0xFF00695C)], // teal
+  ];
+
+  static const _dropShadow = [
+    BoxShadow(color: Colors.black38, blurRadius: 3, offset: Offset(1, 2)),
+  ];
+
+  /// A round plastic push-pin head.
+  Widget _pushPin(List<Color> colors) {
     final size = widget.pinned ? 16.0 : 12.0;
-    return ScaleTransition(
-      scale: _scale,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            colors: widget.pinned
-                ? const [Color(0xFFFFE082), Color(0xFFF9A825)]
-                : const [Color(0xFFEF9A9A), Color(0xFFD32F2F)],
-            center: const Alignment(-0.3, -0.3),
-          ),
-          shape: BoxShape.circle,
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black38,
-              blurRadius: 3,
-              offset: Offset(1, 2),
-            ),
-          ],
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          colors: colors,
+          center: const Alignment(-0.3, -0.3),
         ),
+        shape: BoxShape.circle,
+        boxShadow: _dropShadow,
+      ),
+    );
+  }
+
+  /// A flat metal thumbtack: steel, or brass when pinned to the top.
+  Widget _tack(bool pinned) {
+    final size = pinned ? 18.0 : 15.0;
+    final (light, dark) = pinned
+        ? (const Color(0xFFFFF3C4), const Color(0xFFB8892E))
+        : (const Color(0xFFF5F5F5), const Color(0xFF8D8D8D));
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [light, dark],
+        ),
+        border: Border.all(color: dark, width: 1.2),
+        boxShadow: _dropShadow,
+      ),
+      child: Center(
+        child: Container(
+          width: size * 0.3,
+          height: size * 0.3,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: dark.withValues(alpha: 0.6),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// A strip of washi tape across the top edge, slightly askew.
+  Widget _washi(bool pinned, int shade) {
+    const tapes = [
+      Color(0xB3F48FB1), // pink
+      Color(0xB381D4FA), // sky
+      Color(0xB3A5D6A7), // green
+      Color(0xB3FFCC80), // apricot
+      Color(0xB3B39DDB), // lavender
+    ];
+    final color = pinned
+        ? const Color(0xCCFFD54F)
+        : tapes[shade % tapes.length];
+    final tilt = ((shade >> 4) % 9 - 4) * 0.025;
+    return Transform.rotate(
+      angle: tilt,
+      child: CustomPaint(
+        size: Size(pinned ? 42 : 38, pinned ? 16 : 14),
+        painter: _WashiPainter(color: color, dots: shade.isEven),
+      ),
+    );
+  }
+
+  /// A wire paper clip over the top edge: steel, or gold when pinned.
+  Widget _clip(bool pinned) {
+    return CustomPaint(
+      size: const Size(12, 26),
+      painter: _ClipPainter(
+        color: pinned ? const Color(0xFFD4A017) : const Color(0xFF8A8F96),
+      ),
+    );
+  }
+
+  /// A round fridge magnet: larger and flatter than a push-pin.
+  Widget _magnet(List<Color> colors) {
+    final size = widget.pinned ? 22.0 : 19.0;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: colors[1],
+        border: Border.all(color: colors[0], width: 2.5),
+        boxShadow: _dropShadow,
       ),
     );
   }
 }
 
+/// Translucent tape with stripes or dots and torn, zigzag ends.
+class _WashiPainter extends CustomPainter {
+  const _WashiPainter({required this.color, required this.dots});
+
+  final Color color;
+  final bool dots;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const tooth = 3.0;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0);
+    for (var y = 0.0; y < size.height; y += tooth) {
+      path
+        ..lineTo(size.width - tooth / 2, y + tooth / 2)
+        ..lineTo(size.width, math.min(y + tooth, size.height));
+    }
+    path.lineTo(0, size.height);
+    for (var y = size.height; y > 0; y -= tooth) {
+      path
+        ..lineTo(tooth / 2, y - tooth / 2)
+        ..lineTo(0, math.max(y - tooth, 0));
+    }
+    path.close();
+    canvas
+      ..drawShadow(path, Colors.black26, 1.5, true)
+      ..drawPath(path, Paint()..color = color)
+      ..save()
+      ..clipPath(path);
+    final pattern = Paint()
+      ..color = Colors.white.withValues(alpha: 0.45)
+      ..strokeWidth = 2;
+    if (dots) {
+      for (var x = 5.0; x < size.width; x += 7) {
+        for (var y = 3.5; y < size.height; y += 7) {
+          canvas.drawCircle(Offset(x, y), 1.4, pattern);
+        }
+      }
+    } else {
+      for (var x = -size.height; x < size.width; x += 6) {
+        canvas.drawLine(
+          Offset(x, size.height),
+          Offset(x + size.height, 0),
+          pattern,
+        );
+      }
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_WashiPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.dots != dots;
+}
+
+/// A paper clip: two nested wire loops, drawn top to bottom.
+class _ClipPainter extends CustomPainter {
+  const _ClipPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final wire = Path()
+      ..moveTo(w * 0.72, h * 0.30)
+      ..lineTo(w * 0.72, h * 0.80)
+      ..arcToPoint(
+        Offset(w * 0.28, h * 0.80),
+        radius: Radius.circular(w * 0.22),
+      )
+      ..lineTo(w * 0.28, h * 0.14)
+      ..arcToPoint(
+        Offset(w * 0.92, h * 0.14),
+        radius: Radius.circular(w * 0.32),
+      )
+      ..lineTo(w * 0.92, h * 0.86)
+      ..arcToPoint(
+        Offset(w * 0.08, h * 0.86),
+        radius: Radius.circular(w * 0.42),
+      )
+      ..lineTo(w * 0.08, h * 0.36);
+    final wireShadow = Paint()
+      ..color = Colors.black26
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round;
+    final wirePaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round;
+    canvas
+      ..save()
+      ..translate(0.8, 1.2)
+      ..drawPath(wire, wireShadow)
+      ..restore()
+      ..drawPath(wire, wirePaint);
+  }
+
+  @override
+  bool shouldRepaint(_ClipPainter oldDelegate) => oldDelegate.color != color;
+}
+
 /// A comfortably tappable pin: 44 wide, centered on the paper's top edge.
 /// On the wall it can also be dragged to pull a thread out of it.
 class _PinTarget extends StatelessWidget {
-  const _PinTarget({required this.pinned, required this.cb});
+  const _PinTarget({required this.pinned, required this.cb, this.seed = ''});
 
   final bool pinned;
   final NoteCallbacks cb;
+  final String seed;
 
   @override
   Widget build(BuildContext context) {
@@ -362,7 +588,9 @@ class _PinTarget extends StatelessWidget {
           child: SizedBox(
             width: 44,
             height: _pinInset * 2,
-            child: Center(child: NotePin(pinned: pinned)),
+            child: Center(
+              child: NotePin(pinned: pinned, seed: seed),
+            ),
           ),
         ),
       ),
@@ -749,7 +977,7 @@ class StickyNoteCard extends StatelessWidget {
           if (note.type != NoteType.label)
             Positioned(
               top: 0,
-              child: _PinTarget(pinned: note.pinned, cb: cb),
+              child: _PinTarget(pinned: note.pinned, cb: cb, seed: note.guid),
             ),
           if (note.locked)
             Positioned(
@@ -1417,7 +1645,7 @@ class NoteListTile extends StatelessWidget {
             child: Icon(Icons.label, size: 18, color: AppColors.inkSoft),
           )
         else
-          _PinTarget(pinned: note.pinned, cb: cb),
+          _PinTarget(pinned: note.pinned, cb: cb, seed: note.guid),
         _leading(),
         if (note.emoji.isNotEmpty && _leadingKind != _Lead.emoji)
           Padding(

@@ -1,7 +1,8 @@
 import 'dart:async';
-import 'dart:ui' show PlatformDispatcher;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 import 'l10n/app_localizations.dart';
 import 'models/view_mode.dart';
@@ -11,12 +12,14 @@ import 'services/auto_backup.dart';
 import 'services/image_service.dart';
 import 'services/note_storage.dart';
 import 'services/notes_controller.dart';
+import 'services/pro_controller.dart';
 import 'services/reminder_service.dart';
 import 'services/sample_notes.dart';
 import 'services/settings_controller.dart';
 import 'services/share_service.dart';
 import 'services/widget_service.dart';
 import 'theme.dart';
+import 'widgets/lock_gate.dart';
 
 /// Boots storage, reminders and the image cache, seeds the sample notes on a
 /// first run, wires the home-screen widget, then starts the app.
@@ -36,6 +39,13 @@ Future<void> main() async {
     deleteAudio: AudioService.deleteFile,
   );
   final settings = SettingsController(storage);
+  final pro = ProController(
+    storage,
+    store: kIsWeb ? null : InAppPurchase.instance,
+  );
+  // The price and an earlier purchase arrive in the background; until then
+  // Pro is whatever it was last time.
+  unawaited(pro.init());
   // What Android's notification settings call the channel, in the app's
   // language rather than always in English.
   final words = _localizationsFor(settings.localeOverride);
@@ -62,20 +72,29 @@ Future<void> main() async {
     await storage.setTipsPending(true);
   }
 
-  // Keep the home-screen widget in sync with the current board's pinned notes
+  // Keep the home-screen widget in sync with the board and notes it shows
   // (and with the language, so untitled notes get the right placeholder).
   final widgetService = WidgetService();
   await WidgetService.init();
   void syncWidget() {
     final l10n = _localizationsFor(settings.localeOverride);
-    final board = notes.currentBoard;
+    final board =
+        notes.boards.where((b) => b.id == settings.widgetBoard).firstOrNull ??
+        notes.currentBoard;
+    final content = settings.widgetContent;
     widgetService.update(
       title: board.name.isEmpty ? l10n.defaultBoardName : board.name,
-      pinned: notes.boardNotes.where((n) => n.pinned).toList(growable: false),
+      notes: WidgetService.notesFor(notes.allNotes, board.id, content),
+      empty: content == WidgetContent.newest
+          ? l10n.widgetEmptyNewest
+          : l10n.widgetEmptyPinned,
       checklistLabel: l10n.typeChecklist,
       drawingLabel: l10n.typeDrawing,
       photoLabel: l10n.typePhoto,
       audioLabel: l10n.typeAudio,
+      content: content,
+      look: settings.widgetLook,
+      textSize: settings.widgetTextSize,
     );
   }
 
@@ -96,6 +115,7 @@ Future<void> main() async {
     StickyWallApp(
       settings: settings,
       notes: notes,
+      pro: pro,
       shareReceiver: ShareReceiver(),
     ),
   );
@@ -121,38 +141,55 @@ class StickyWallApp extends StatelessWidget {
     super.key,
     required this.settings,
     required this.notes,
+    this.pro,
     this.shareReceiver,
   });
 
   final SettingsController settings;
   final NotesController notes;
+
+  /// Sticky Wall Pro; null in tests that don't need it (Pro then counts as
+  /// not bought).
+  final ProController? pro;
   final ShareReceiver? shareReceiver;
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: settings,
-      builder: (context, _) => MaterialApp(
-        title: 'Sticky Wall',
-        debugShowCheckedModeBanner: false,
-        theme: buildAppTheme(settings.font),
-        // "Lights off": the same warm theme, dimmed — never a grey dark mode.
-        darkTheme: buildAppTheme(settings.font, night: true),
-        themeMode: settings.themeMode,
-        locale: settings.localeOverride,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        // Notes carry their own depth; the platform's injected scrollbar
-        // (desktop/web) clutters the wall, so hide it globally.
-        scrollBehavior: const _NoScrollbarBehavior(),
-        home: HomeScreen(
-          notes: notes,
-          settings: settings,
-          shareReceiver: shareReceiver,
-        ),
-      ),
+    final pro = this.pro;
+    final app = ListenableBuilder(
+      listenable: Listenable.merge([settings, ?pro]),
+      builder: (context, _) {
+        final unlocked = pro?.unlocked ?? false;
+        final font = settings.fontFor(pro: unlocked);
+        final pin = settings.pinStyleFor(pro: unlocked);
+        return _app(font, pin);
+      },
     );
+    return pro == null ? app : ProScope(controller: pro, child: app);
   }
+
+  Widget _app(FontChoice font, PinStyle pin) => MaterialApp(
+    title: 'Sticky Wall',
+    debugShowCheckedModeBanner: false,
+    theme: buildAppTheme(font, pin: pin),
+    // "Lights off": the same warm theme, dimmed — never a grey dark mode.
+    darkTheme: buildAppTheme(font, night: true, pin: pin),
+    themeMode: settings.themeMode,
+    locale: settings.localeOverride,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    // Notes carry their own depth; the platform's injected scrollbar
+    // (desktop/web) clutters the wall, so hide it globally.
+    scrollBehavior: const _NoScrollbarBehavior(),
+    // Above the navigator, so a lock covers open dialogs and sheets too.
+    builder: (context, child) =>
+        LockGate(enabled: settings.appLock, child: child!),
+    home: HomeScreen(
+      notes: notes,
+      settings: settings,
+      shareReceiver: shareReceiver,
+    ),
+  );
 }
 
 /// Material scroll physics without the platform scrollbar.

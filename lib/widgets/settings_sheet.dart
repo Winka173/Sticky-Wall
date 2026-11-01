@@ -3,19 +3,27 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/board.dart';
 import '../screens/trash_screen.dart';
+import '../services/app_lock.dart';
 import '../services/auto_backup.dart';
 import '../services/backup_service.dart';
 import '../services/image_service.dart';
 import '../services/notes_controller.dart';
+import '../services/pro_controller.dart';
 import '../services/settings_controller.dart';
+import '../services/widget_service.dart';
 import '../theme.dart';
 import 'action_sheet.dart';
 import 'keyboard_tappable.dart';
+import 'note_views.dart';
+import 'pro_sheet.dart';
+
+part 'widget_settings_sheet.dart';
 
 /// Localized display name for a bundled wall texture.
 String wallLabel(AppLocalizations l10n, String id) => switch (id) {
@@ -40,8 +48,26 @@ String wallLabel(AppLocalizations l10n, String id) => switch (id) {
   'dark_marble' => l10n.wallDarkMarble,
   'dark_wood' => l10n.wallDarkWood,
   'tiles' => l10n.wallTiles,
+  'chalk_navy' => l10n.wallChalkNavy,
+  'chalk_wine' => l10n.wallChalkWine,
+  'blush' => l10n.wallBlush,
+  'sage' => l10n.wallSage,
+  'sky' => l10n.wallSky,
   _ => id,
 };
+
+/// Localized name of a pin style.
+String pinStyleLabel(AppLocalizations l10n, PinStyle style) => switch (style) {
+  PinStyle.classic => l10n.pinClassic,
+  PinStyle.colorful => l10n.pinColorful,
+  PinStyle.tack => l10n.pinTack,
+  PinStyle.washi => l10n.pinWashi,
+  PinStyle.clip => l10n.pinClip,
+  PinStyle.magnet => l10n.pinMagnet,
+};
+
+/// Whether this platform has a home-screen widget to set up.
+bool get _hasHomeWidget => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
 /// Localized label for a lights setting.
 String nightModeLabel(AppLocalizations l10n, NightMode mode) => switch (mode) {
@@ -85,8 +111,8 @@ Widget _choiceChip({
   );
 }
 
-/// Opens the customization sheet: wall texture, font, lights, language,
-/// auto-tidy and backup.
+/// Opens the customization sheet: Pro, wall texture, lights, font, pins,
+/// language, privacy, the home-screen widget, auto-tidy and backup.
 Future<void> showSettingsSheet(
   BuildContext context, {
   required SettingsController settings,
@@ -113,6 +139,7 @@ class _SettingsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final board = notes.currentBoard;
+    final pro = ProScope.unlockedOf(context);
 
     return DraggableScrollableSheet(
       expand: false,
@@ -130,7 +157,23 @@ class _SettingsSheet extends StatelessWidget {
               style: const TextStyle(fontSize: 24, color: AppColors.ink),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const ProMark(),
+            title: Text(
+              l10n.proTitle,
+              style: const TextStyle(fontSize: 16, color: AppColors.ink),
+            ),
+            subtitle: Text(
+              pro ? l10n.proSettingsThanks : l10n.proSettingsHint,
+              style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+            ),
+            trailing: pro
+                ? const Icon(Icons.check_circle, color: AppColors.ink)
+                : const Icon(Icons.chevron_right, color: AppColors.inkSoft),
+            onTap: () => showProSheet(context),
+          ),
           _SectionTitle(l10n.wallSection),
           SizedBox(
             height: 116,
@@ -159,10 +202,14 @@ class _SettingsSheet extends StatelessWidget {
                 final wall = walls[index];
                 final selected =
                     !board.hasWallImage && index == board.wallIndex;
+                final locked = wall.pro && !pro;
                 return _WallTile(
                   label: wallLabel(l10n, wall.id),
                   selected: selected,
-                  onTap: () => notes.setCurrentBoardWall(index),
+                  locked: locked,
+                  onTap: locked
+                      ? () => showProSheet(context)
+                      : () => notes.setCurrentBoardWall(index),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
@@ -250,12 +297,40 @@ class _SettingsSheet extends StatelessWidget {
               separatorBuilder: (_, _) => const SizedBox(width: 14),
               itemBuilder: (context, index) {
                 final font = fontChoices[index];
+                final locked = font.pro && !pro;
                 return _FontPaper(
                   font: font,
                   preview: l10n.fontPreview,
-                  selected: settings.font.id == font.id,
+                  selected: settings.fontFor(pro: pro).id == font.id,
+                  locked: locked,
                   tilt: (index.isEven ? -1 : 1) * 0.03,
-                  onTap: () => settings.setFontId(font.id),
+                  onTap: locked
+                      ? () => showProSheet(context)
+                      : () => settings.setFontId(font.id),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 8),
+          _SectionTitle(l10n.pinSection),
+          SizedBox(
+            height: 104,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              clipBehavior: Clip.none,
+              itemCount: PinStyle.values.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final style = PinStyle.values[index];
+                final locked = style.pro && !pro;
+                return _PinTile(
+                  style: style,
+                  label: pinStyleLabel(l10n, style),
+                  selected: settings.pinStyleFor(pro: pro) == style,
+                  locked: locked,
+                  onTap: locked
+                      ? () => showProSheet(context)
+                      : () => settings.setPinStyle(style),
                 );
               },
             ),
@@ -279,6 +354,45 @@ class _SettingsSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
+          _SectionTitle(l10n.privacySection),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            secondary: const Icon(Icons.lock_outline, color: AppColors.ink),
+            title: Text(
+              l10n.appLock,
+              style: const TextStyle(fontSize: 16, color: AppColors.ink),
+            ),
+            subtitle: Text(
+              l10n.appLockHint,
+              style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+            ),
+            isThreeLine: true,
+            value: settings.appLock,
+            onChanged: (on) => _setAppLock(context, l10n, on),
+          ),
+          if (_hasHomeWidget)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.widgets_outlined, color: AppColors.ink),
+              title: Text(
+                l10n.widgetSection,
+                style: const TextStyle(fontSize: 16, color: AppColors.ink),
+              ),
+              subtitle: Text(
+                l10n.widgetSettingsHint,
+                style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+              ),
+              trailing: const Icon(
+                Icons.chevron_right,
+                color: AppColors.inkSoft,
+              ),
+              onTap: () => showWidgetSettingsSheet(
+                context,
+                settings: settings,
+                notes: notes,
+              ),
+            ),
+          const SizedBox(height: 8),
           _SectionTitle(l10n.dataSection),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -393,6 +507,40 @@ class _SettingsSheet extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Switching the lock on asks for the phone's lock first: that proves
+  /// there is one, and that whoever holds the phone may set it.
+  Future<void> _setAppLock(
+    BuildContext context,
+    AppLocalizations l10n,
+    bool on,
+  ) async {
+    if (!on) {
+      settings.setAppLock(false);
+      return;
+    }
+    final result = await const AppLock().authenticate(l10n.appLockReason);
+    if (!context.mounted) return;
+    switch (result) {
+      case UnlockResult.unlocked:
+        settings.setAppLock(true);
+      case UnlockResult.noLock:
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            content: Text(l10n.appLockNoLock),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l10n.gotIt),
+              ),
+            ],
+          ),
+        );
+      case UnlockResult.failed:
+        break;
+    }
   }
 
   Future<void> _photoWallFlow(
@@ -601,6 +749,7 @@ class _WallTile extends StatelessWidget {
     required this.selected,
     required this.onTap,
     required this.child,
+    this.locked = false,
   });
 
   final String label;
@@ -608,12 +757,15 @@ class _WallTile extends StatelessWidget {
   final VoidCallback onTap;
   final Widget child;
 
+  /// A Pro wall without Pro: marked, and tapping it offers Pro.
+  final bool locked;
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
       selected: selected,
-      label: label,
+      label: locked ? AppLocalizations.of(context)!.proLocked(label) : label,
       excludeSemantics: true,
       child: KeyboardTappable(
         onActivate: onTap,
@@ -651,6 +803,8 @@ class _WallTile extends StatelessWidget {
                       size: 26,
                     ),
                   ),
+                if (locked)
+                  const Positioned(top: 5, right: 5, child: ProMark()),
               ],
             ),
           ),
@@ -774,6 +928,7 @@ class _FontPaper extends StatelessWidget {
     required this.selected,
     required this.tilt,
     required this.onTap,
+    this.locked = false,
   });
 
   final FontChoice font;
@@ -782,13 +937,18 @@ class _FontPaper extends StatelessWidget {
   final double tilt;
   final VoidCallback onTap;
 
+  /// A Pro font without Pro: marked, and tapping it offers Pro.
+  final bool locked;
+
   @override
   Widget build(BuildContext context) {
     final paper = paperColorOf(context, null, font.id);
     return Semantics(
       button: true,
       selected: selected,
-      label: font.label,
+      label: locked
+          ? AppLocalizations.of(context)!.proLocked(font.label)
+          : font.label,
       excludeSemantics: true,
       child: KeyboardTappable(
         onActivate: onTap,
@@ -876,7 +1036,136 @@ class _FontPaper extends StatelessWidget {
                 bottom: 0,
                 child: Icon(Icons.check_circle, color: AppColors.ink, size: 18),
               ),
+            if (locked) const Positioned(right: 0, bottom: 0, child: ProMark()),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A pin style shown for real: a scrap of paper held up by it.
+class _PinTile extends StatelessWidget {
+  const _PinTile({
+    required this.style,
+    required this.label,
+    required this.selected,
+    required this.locked,
+    required this.onTap,
+  });
+
+  final PinStyle style;
+  final String label;
+  final bool selected;
+  final bool locked;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // The card's pin reads its style from the theme; this tile shows its
+    // own style whatever is chosen.
+    final shown = theme.copyWith(
+      extensions: [
+        ...theme.extensions.values.where((e) => e is! PinLook),
+        PinLook(style),
+      ],
+    );
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: locked ? AppLocalizations.of(context)!.proLocked(label) : label,
+      excludeSemantics: true,
+      child: KeyboardTappable(
+        onActivate: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.control),
+        child: GestureDetector(
+          onTap: onTap,
+          child: SizedBox(
+            width: 84,
+            child: Column(
+              children: [
+                SizedBox(
+                  width: 84,
+                  height: 70,
+                  child: Stack(
+                    alignment: Alignment.topCenter,
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned(
+                        top: 14,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          width: 60,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: paperColorOf(context, 0, ''),
+                            border: Border.all(
+                              color: selected
+                                  ? AppColors.ink
+                                  : Colors.transparent,
+                              width: 2.5,
+                            ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 4,
+                                offset: Offset(1, 2),
+                              ),
+                            ],
+                          ),
+                          child: selected
+                              ? const Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(2),
+                                    child: Icon(
+                                      Icons.check_circle,
+                                      color: AppColors.ink,
+                                      size: 16,
+                                    ),
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      Positioned(
+                        top: 0,
+                        child: SizedBox(
+                          width: 44,
+                          height: 28,
+                          child: Center(
+                            child: Theme(
+                              data: shown,
+                              child: const NotePin(
+                                pinned: false,
+                                seed: 'pin-tile',
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (locked)
+                        const Positioned(right: 4, bottom: 0, child: ProMark()),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.1,
+                    color: AppColors.ink,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

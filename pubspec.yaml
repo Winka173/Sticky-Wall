@@ -6,7 +6,7 @@ publish_to: 'none'
 # Version name + build number. Android: versionName / versionCode.
 # iOS: CFBundleShortVersionString / CFBundleVersion. Bump the build number on
 # every store upload; bump the version name for user-visible releases.
-version: 1.1.0+4
+version: 1.2.0+5
 
 environment:
   sdk: ^3.12.2
@@ -41,6 +41,8 @@ dependencies:
   # Voice notes: record (microphone → .m4a) and play back.
   record: ^7.1.2
   audioplayers: ^6.8.1
+  in_app_purchase: ^3.3.1
+  local_auth: ^3.0.2
 
 dev_dependencies:
   flutter_test:
@@ -122,3 +124,19 @@ flutter:
     - family: IBMPlexMono
       fonts:
         - asset: assets/fonts/IBMPlexMono-Regular.ttf
+    # Sticky Wall Pro.
+    - family: ShantellSans
+      fonts:
+        - asset: assets/fonts/ShantellSans-Regular.ttf
+    - family: Coiny
+      fonts:
+        - asset: assets/fonts/Coiny-Regular.ttf
+    - family: Lobster
+      fonts:
+        - asset: assets/fonts/Lobster-Regular.ttf
+    - family: SedgwickAve
+      fonts:
+        - asset: assets/fonts/SedgwickAve-Regular.ttf
+    - family: Lora
+      fonts:
+        - asset: assets/fonts/Lora-Regular.ttf

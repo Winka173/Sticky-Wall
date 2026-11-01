@@ -9,6 +9,7 @@ import '../l10n/app_localizations.dart';
 import '../models/note.dart';
 import '../services/audio_service.dart';
 import '../services/image_service.dart';
+import '../services/pro_controller.dart';
 import '../services/reminder_service.dart';
 import '../theme.dart';
 import 'action_sheet.dart';
@@ -17,6 +18,7 @@ import 'drawing_canvas.dart';
 import 'keyboard_tappable.dart';
 import 'note_views.dart';
 import 'photo_viewer.dart';
+import 'pro_sheet.dart';
 
 part 'note_dialog_pieces.dart';
 
@@ -637,7 +639,7 @@ class _NoteDialogState extends State<_NoteDialog>
                               horizontal: 14,
                               vertical: 6,
                             ),
-                            child: NotePin(pinned: _n.pinned),
+                            child: NotePin(pinned: _n.pinned, seed: _n.guid),
                           ),
                         ),
                       ),

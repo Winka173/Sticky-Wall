@@ -64,7 +64,9 @@ abstract class AppColors {
     0xFFFDFBF3, // chalk
   ];
 
-  /// Pastel sticky-note paper colors.
+  /// Pastel sticky-note paper colors. The first [freePapers] come with the
+  /// app; the rest are Sticky Wall Pro's. Notes store the index, so new
+  /// papers are appended, never inserted.
   static const notePapers = [
     Color(0xFFFFF59D), // yellow
     Color(0xFFF8BBD0), // pink
@@ -72,7 +74,17 @@ abstract class AppColors {
     Color(0xFFB3E5FC), // blue
     Color(0xFFFFE0B2), // orange
     Color(0xFFE1BEE7), // lilac
+    // Pro — each still keeps ink at 5:1 with the lights off.
+    Color(0xFFE6EE9C), // lime
+    Color(0xFFFFCCBC), // coral
+    Color(0xFFC5CAE9), // periwinkle
+    Color(0xFFD6E2C3), // sage
+    Color(0xFFE4D2B0), // kraft
+    Color(0xFFFAFAF7), // white
   ];
+
+  /// How many of [notePapers] are free; the rest need Pro.
+  static const freePapers = 6;
 }
 
 /// Corner radii: paper is barely rounded; controls and sheets more so.
@@ -83,9 +95,10 @@ abstract class AppRadii {
 }
 
 /// A note's paper color: the explicit [colorIndex] if set, else one derived
-/// deterministically from the [guid] so it stays stable across runs.
+/// deterministically from the [guid] so it stays stable across runs — always
+/// one of the free papers, so adding papers never recolours old notes.
 Color noteColor(int? colorIndex, String guid) {
-  final i = colorIndex ?? (stableHash(guid) % AppColors.notePapers.length);
+  final i = colorIndex ?? (stableHash(guid) % AppColors.freePapers);
   return AppColors.notePapers[i % AppColors.notePapers.length];
 }
 
@@ -132,6 +145,7 @@ class WallStyle {
     required this.overlay,
     required this.dark,
     this.imageFile,
+    this.pro = false,
   });
 
   /// A wall made of the user's own photo (an absolute file path). A dark
@@ -160,6 +174,9 @@ class WallStyle {
 
   bool get isPhoto => imageFile != null;
 
+  /// Part of Sticky Wall Pro: shown to everyone, chosen only once bought.
+  final bool pro;
+
   /// The same wall with the lights off: whatever the texture, text turns to
   /// chalk because the room is dark.
   WallStyle get atNight => WallStyle(
@@ -168,6 +185,7 @@ class WallStyle {
     overlay: overlay,
     dark: true,
     imageFile: imageFile,
+    pro: pro,
   );
 
   Color get wallText => dark ? AppColors.chalk : AppColors.ink;
@@ -315,6 +333,42 @@ const walls = [
     overlay: Color(0x8C1C1714),
     dark: true,
   ),
+  // Pro: the bundled textures tinted, so they cost no download size.
+  WallStyle(
+    id: 'chalk_navy',
+    asset: 'assets/images/wall_concrete.jpg',
+    overlay: Color(0xE0182640),
+    dark: true,
+    pro: true,
+  ),
+  WallStyle(
+    id: 'chalk_wine',
+    asset: 'assets/images/wall_concrete.jpg',
+    overlay: Color(0xDE3A1622),
+    dark: true,
+    pro: true,
+  ),
+  WallStyle(
+    id: 'blush',
+    asset: 'assets/images/wall_plaster.jpg',
+    overlay: Color(0x47F2A7A0),
+    dark: false,
+    pro: true,
+  ),
+  WallStyle(
+    id: 'sage',
+    asset: 'assets/images/wall_plaster.jpg',
+    overlay: Color(0x4D9DB58C),
+    dark: false,
+    pro: true,
+  ),
+  WallStyle(
+    id: 'sky',
+    asset: 'assets/images/wall_cotton.jpg',
+    overlay: Color(0x4D8DB8E0),
+    dark: false,
+    pro: true,
+  ),
 ];
 
 /// The bundled wall with the given [WallStyle.id], or the first one.
@@ -329,6 +383,7 @@ class FontChoice {
     required this.family,
     required this.label,
     this.scale = 1.0,
+    this.pro = false,
   });
 
   final String id;
@@ -340,6 +395,9 @@ class FontChoice {
   /// Script faces with a small x-height get a size boost so all fonts read
   /// at a similar optical size.
   final double scale;
+
+  /// Part of Sticky Wall Pro.
+  final bool pro;
 }
 
 const fontChoices = [
@@ -386,6 +444,41 @@ const fontChoices = [
     label: 'Plex Mono',
     scale: 0.85,
   ),
+  // Pro — every one checked for the full Vietnamese set too.
+  // Lively, slightly wobbly marker handwriting.
+  FontChoice(
+    id: 'shantell',
+    family: 'ShantellSans',
+    label: 'Shantell Sans',
+    scale: 0.95,
+    pro: true,
+  ),
+  // Chunky rounded poster lettering.
+  FontChoice(
+    id: 'coiny',
+    family: 'Coiny',
+    label: 'Coiny',
+    scale: 0.9,
+    pro: true,
+  ),
+  // Retro sign-painter script.
+  FontChoice(
+    id: 'lobster',
+    family: 'Lobster',
+    label: 'Lobster',
+    scale: 0.9,
+    pro: true,
+  ),
+  // Fast, slanted graffiti hand.
+  FontChoice(
+    id: 'sedgwick',
+    family: 'SedgwickAve',
+    label: 'Sedgwick Ave',
+    scale: 0.8,
+    pro: true,
+  ),
+  // A calm book serif.
+  FontChoice(id: 'lora', family: 'Lora', label: 'Lora', scale: 0.95, pro: true),
 ];
 
 /// The font with the given [FontChoice.id], or the default one.
@@ -406,6 +499,41 @@ class NoteTextScale extends ThemeExtension<NoteTextScale> {
   NoteTextScale lerp(ThemeExtension<NoteTextScale>? other, double t) => this;
 }
 
+/// How notes are held to the wall. The red push-pin comes with the app; the
+/// others are Sticky Wall Pro's. Whatever the style, a note pinned to the top
+/// shows it in gold.
+enum PinStyle {
+  classic,
+  colorful,
+  tack,
+  washi,
+  clip,
+  magnet;
+
+  bool get pro => this != classic;
+}
+
+/// The pin style with the given name, or the red push-pin.
+PinStyle pinStyleById(String id) =>
+    PinStyle.values.where((p) => p.name == id).firstOrNull ?? PinStyle.classic;
+
+/// The chosen [PinStyle], for the cards. Read through [pinStyleOf]; set by
+/// [buildAppTheme].
+class PinLook extends ThemeExtension<PinLook> {
+  const PinLook(this.style);
+
+  final PinStyle style;
+
+  @override
+  PinLook copyWith({PinStyle? style}) => PinLook(style ?? this.style);
+
+  @override
+  PinLook lerp(ThemeExtension<PinLook>? other, double t) => this;
+}
+
+PinStyle pinStyleOf(BuildContext context) =>
+    Theme.of(context).extension<PinLook>()?.style ?? PinStyle.classic;
+
 /// Whether the room lights are off — the wall darkens and paper dims. Read
 /// through [isNight]; set by [buildAppTheme].
 class NightMood extends ThemeExtension<NightMood> {
@@ -423,7 +551,12 @@ class NightMood extends ThemeExtension<NightMood> {
 /// The app theme: everything Material draws is "ink on paper", matching the
 /// notes themselves. [font] is the user's chosen face; [night] dims every
 /// paper surface to the lamp-lit tone the notes take when the lights are off.
-ThemeData buildAppTheme(FontChoice font, {bool night = false}) {
+/// [pin] is how the notes are held up.
+ThemeData buildAppTheme(
+  FontChoice font, {
+  bool night = false,
+  PinStyle pin = PinStyle.classic,
+}) {
   // At night every sheet of paper the UI is made of — dialogs, menus, bottom
   // sheets — dims to the same lamp-lit tone as the notes.
   final paper = night ? const Color(0xFFE9DFC6) : AppColors.paper;
@@ -468,7 +601,7 @@ ThemeData buildAppTheme(FontChoice font, {bool night = false}) {
   );
 
   return base.copyWith(
-    extensions: [NoteTextScale(font.scale), NightMood(night)],
+    extensions: [NoteTextScale(font.scale), NightMood(night), PinLook(pin)],
     splashFactory: InkSparkle.splashFactory,
     iconTheme: const IconThemeData(color: AppColors.ink),
     dividerTheme: const DividerThemeData(color: AppColors.inkHint, space: 1),

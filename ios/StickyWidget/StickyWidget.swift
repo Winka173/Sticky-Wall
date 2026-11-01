@@ -2,10 +2,10 @@ import SwiftUI
 import WidgetKit
 
 /// Home-screen widget for iOS. Shows a picture of the board when the app has
-/// exported one to it ("Show on the home-screen widget" in the board export),
-/// else the current board's pinned notes as text — the same data the Android
-/// widget reads, written by the home_widget plugin into the shared app group
-/// (see lib/services/widget_service.dart).
+/// exported one to it and "Board picture" is chosen, else a board's pinned or
+/// newest notes as text, in the colours and text size chosen in the app —
+/// the same data the Android widget reads, written by the home_widget plugin
+/// into the shared app group (see lib/services/widget_service.dart).
 ///
 /// Adding the extension target to the Xcode project is a one-time manual
 /// step; see README → "iOS widget".
@@ -15,12 +15,17 @@ struct BoardEntry: TimelineEntry {
   let date: Date
   let title: String
   let lines: [String]
+  let empty: String
+  let look: String
+  let textSize: String
   let wallImage: UIImage?
 }
 
 struct BoardProvider: TimelineProvider {
   func placeholder(in context: Context) -> BoardEntry {
-    BoardEntry(date: Date(), title: "Sticky Wall", lines: ["…"], wallImage: nil)
+    BoardEntry(
+      date: Date(), title: "Sticky Wall", lines: ["…"], empty: "",
+      look: "wall", textSize: "normal", wallImage: nil)
   }
 
   func getSnapshot(in context: Context, completion: @escaping (BoardEntry) -> Void) {
@@ -37,13 +42,22 @@ struct BoardProvider: TimelineProvider {
   private func read() -> BoardEntry {
     let defaults = UserDefaults(suiteName: appGroup)
     let title = defaults?.string(forKey: "title") ?? "Sticky Wall"
-    let lines = (1...3).compactMap { defaults?.string(forKey: "line\($0)") }
+    let lines = (1...6).compactMap { defaults?.string(forKey: "line\($0)") }
       .filter { !$0.isEmpty }
+    // Before the app wrote a mode, a sent picture was always shown.
+    let mode = defaults?.string(forKey: "mode")
     var image: UIImage? = nil
-    if let path = defaults?.string(forKey: "wall"), FileManager.default.fileExists(atPath: path) {
+    if mode == nil || mode == "picture",
+      let path = defaults?.string(forKey: "wall"), FileManager.default.fileExists(atPath: path)
+    {
       image = downscaled(UIImage(contentsOfFile: path), maxEdge: 900)
     }
-    return BoardEntry(date: Date(), title: title, lines: lines, wallImage: image)
+    return BoardEntry(
+      date: Date(), title: title, lines: lines,
+      empty: defaults?.string(forKey: "empty") ?? "No pinned notes",
+      look: defaults?.string(forKey: "look") ?? "wall",
+      textSize: defaults?.string(forKey: "textSize") ?? "normal",
+      wallImage: image)
   }
 
   /// WidgetKit caps the memory a widget may use; the export is a 3× render,
@@ -62,12 +76,29 @@ struct BoardProvider: TimelineProvider {
 struct StickyWidgetView: View {
   let entry: BoardEntry
 
-  private let wallBrown = Color(red: 0x6B / 255, green: 0x58 / 255, blue: 0x49 / 255)
-  private let chalk = Color(red: 0xFD / 255, green: 0xFB / 255, blue: 0xF3 / 255)
+  // Matches widgetColors in lib/widgets/widget_settings_sheet.dart.
+  private var background: Color {
+    switch entry.look {
+    case "paper": return Color(red: 0xFF / 255, green: 0xF9 / 255, blue: 0xE6 / 255)
+    case "ink": return Color(red: 0x2B / 255, green: 0x2A / 255, blue: 0x25 / 255)
+    default: return Color(red: 0x6B / 255, green: 0x58 / 255, blue: 0x49 / 255)
+    }
+  }
+  private var ink: Color {
+    entry.look == "paper"
+      ? Color(red: 0x3B / 255, green: 0x37 / 255, blue: 0x2F / 255)
+      : Color(red: 0xFD / 255, green: 0xFB / 255, blue: 0xF3 / 255)
+  }
+  private var titleSize: CGFloat {
+    entry.textSize == "small" ? 14 : entry.textSize == "large" ? 19 : 16
+  }
+  private var lineSize: CGFloat {
+    entry.textSize == "small" ? 12 : entry.textSize == "large" ? 17 : 14
+  }
 
   var body: some View {
     ZStack {
-      wallBrown
+      background
       if let image = entry.wallImage {
         Image(uiImage: image)
           .resizable()
@@ -75,17 +106,18 @@ struct StickyWidgetView: View {
       } else {
         VStack(alignment: .leading, spacing: 6) {
           Text(entry.title)
-            .font(.system(size: 16, weight: .bold))
-            .foregroundColor(chalk)
+            .font(.system(size: titleSize, weight: .bold))
+            .foregroundColor(ink)
+            .lineLimit(1)
           if entry.lines.isEmpty {
-            Text("No pinned notes")
-              .font(.system(size: 14))
-              .foregroundColor(chalk.opacity(0.8))
+            Text(entry.empty)
+              .font(.system(size: lineSize))
+              .foregroundColor(ink.opacity(0.8))
           } else {
             ForEach(entry.lines, id: \.self) { line in
               Text("• \(line)")
-                .font(.system(size: 14))
-                .foregroundColor(chalk)
+                .font(.system(size: lineSize))
+                .foregroundColor(ink)
                 .lineLimit(1)
             }
           }
@@ -94,7 +126,7 @@ struct StickyWidgetView: View {
         .padding(14)
       }
     }
-    .widgetBackground(wallBrown)
+    .widgetBackground(background)
   }
 }
 

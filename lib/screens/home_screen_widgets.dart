@@ -79,6 +79,7 @@ class _Swatch extends StatelessWidget {
     required this.onTap,
     this.auto = false,
     this.selected = false,
+    this.locked = false,
   });
 
   final String name;
@@ -86,6 +87,9 @@ class _Swatch extends StatelessWidget {
   final VoidCallback onTap;
   final bool auto;
   final bool selected;
+
+  /// A Pro paper without Pro: marked, and tapping it offers Pro.
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +99,7 @@ class _Swatch extends StatelessWidget {
       child: Semantics(
         button: true,
         selected: selected,
-        label: name,
+        label: locked ? AppLocalizations.of(context)!.proLocked(name) : name,
         child: GestureDetector(
           onTap: onTap,
           child: Container(
@@ -117,6 +121,12 @@ class _Swatch extends StatelessWidget {
             ),
             child: auto
                 ? const Icon(Icons.auto_awesome, size: 20, color: AppColors.ink)
+                : locked
+                ? const Icon(
+                    Icons.lock_outline,
+                    size: 16,
+                    color: AppColors.inkSoft,
+                  )
                 : null,
           ),
         ),

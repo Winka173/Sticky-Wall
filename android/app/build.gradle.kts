@@ -83,4 +83,9 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    // LaunchTheme in res/values*/styles.xml is AppCompat: local_auth's
+    // fingerprint dialog crashes on Android 8 and older without it.
+    // NormalTheme stays a platform theme: as AppCompat it dims the whole
+    // Flutter surface once the device has shown a lock prompt.
+    implementation("androidx.appcompat:appcompat:1.7.1")
 }

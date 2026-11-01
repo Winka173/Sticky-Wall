@@ -11,6 +11,17 @@ import '../models/view_mode.dart';
 /// two hours of the day.
 enum NightMode { off, on, system, schedule }
 
+/// What the home-screen widget lists: the pinned notes, the newest notes, or
+/// the picture of the board last sent to it from the board export.
+enum WidgetContent { pinned, newest, picture }
+
+/// The home-screen widget's colours: the cork-brown wall, a sheet of paper,
+/// or dark ink.
+enum WidgetLook { wall, paper, ink }
+
+/// The home-screen widget's text size.
+enum WidgetTextSize { small, normal, large }
+
 /// Persists notes, boards and preferences locally as JSON.
 class NoteStorage {
   NoteStorage(this._prefs);
@@ -33,6 +44,14 @@ class NoteStorage {
   static const _tipsPendingKey = 'tipsPending';
   static const _autoBackupKey = 'autoBackup';
   static const _lastAutoBackupKey = 'lastAutoBackup';
+  static const _pinStyleKey = 'pinStyle';
+  static const _appLockKey = 'appLock';
+  static const _proKey = 'pro';
+  static const _widgetBoardKey = 'widgetBoard';
+  static const _widgetContentKey = 'widgetContent';
+  static const _widgetLookKey = 'widgetLook';
+  static const _widgetTextSizeKey = 'widgetTextSize';
+  static const _widgetPictureKey = 'widgetPicture';
 
   final SharedPreferences _prefs;
 
@@ -193,4 +212,54 @@ class NoteStorage {
 
   Future<void> setLastAutoBackup(DateTime at) =>
       _prefs.setString(_lastAutoBackupKey, at.toIso8601String());
+
+  // --- Pins, lock and Pro --------------------------------------------------
+
+  /// The id of the chosen pin style (see `PinStyle` in theme.dart).
+  String get pinStyle => _prefs.getString(_pinStyleKey) ?? 'classic';
+  Future<void> setPinStyle(String id) => _prefs.setString(_pinStyleKey, id);
+
+  /// Whether opening the app asks for the phone's fingerprint, face or
+  /// screen lock (off until switched on in Customize).
+  bool get appLock => _prefs.getBool(_appLockKey) ?? false;
+  Future<void> setAppLock(bool value) => _prefs.setBool(_appLockKey, value);
+
+  /// Whether Sticky Wall Pro has been bought on this install — a cache of
+  /// what Google Play says, re-checked at every start.
+  bool get proUnlocked => _prefs.getBool(_proKey) ?? false;
+  Future<void> setProUnlocked(bool value) => _prefs.setBool(_proKey, value);
+
+  // --- Home-screen widget --------------------------------------------------
+
+  /// The board the widget shows; empty = whichever board is open.
+  String get widgetBoard => _prefs.getString(_widgetBoardKey) ?? '';
+  Future<void> setWidgetBoard(String id) =>
+      _prefs.setString(_widgetBoardKey, id);
+
+  WidgetContent get widgetContent =>
+      _enumOf(WidgetContent.values, _widgetContentKey) ?? WidgetContent.pinned;
+  Future<void> setWidgetContent(WidgetContent value) =>
+      _prefs.setString(_widgetContentKey, value.name);
+
+  WidgetLook get widgetLook =>
+      _enumOf(WidgetLook.values, _widgetLookKey) ?? WidgetLook.wall;
+  Future<void> setWidgetLook(WidgetLook value) =>
+      _prefs.setString(_widgetLookKey, value.name);
+
+  WidgetTextSize get widgetTextSize =>
+      _enumOf(WidgetTextSize.values, _widgetTextSizeKey) ??
+      WidgetTextSize.normal;
+  Future<void> setWidgetTextSize(WidgetTextSize value) =>
+      _prefs.setString(_widgetTextSizeKey, value.name);
+
+  /// Whether a picture of a board has ever been sent to the widget, so it
+  /// can be offered again after switching to a list.
+  bool get widgetPicture => _prefs.getBool(_widgetPictureKey) ?? false;
+  Future<void> setWidgetPicture(bool value) =>
+      _prefs.setBool(_widgetPictureKey, value);
+
+  T? _enumOf<T extends Enum>(List<T> values, String key) {
+    final name = _prefs.getString(key);
+    return values.where((v) => v.name == name).firstOrNull;
+  }
 }

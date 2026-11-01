@@ -2143,6 +2143,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sunday'**
   String get daySunday;
+
+  /// No description provided for @proTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticky Wall Pro'**
+  String get proTitle;
+
+  /// No description provided for @proPitch.
+  ///
+  /// In en, this message translates to:
+  /// **'One payment, yours for good. Everything you have now stays free.'**
+  String get proPitch;
+
+  /// No description provided for @proPerkPapers.
+  ///
+  /// In en, this message translates to:
+  /// **'6 more paper colors'**
+  String get proPerkPapers;
+
+  /// No description provided for @proPerkWalls.
+  ///
+  /// In en, this message translates to:
+  /// **'5 more walls'**
+  String get proPerkWalls;
+
+  /// No description provided for @proPerkFonts.
+  ///
+  /// In en, this message translates to:
+  /// **'5 more fonts'**
+  String get proPerkFonts;
+
+  /// No description provided for @proPerkPins.
+  ///
+  /// In en, this message translates to:
+  /// **'5 more ways to hold notes up: colorful pins, thumbtacks, washi tape, paper clips and magnets'**
+  String get proPerkPins;
+
+  /// No description provided for @proBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock for {price}'**
+  String proBuy(String price);
+
+  /// No description provided for @proBuyNoPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Pro'**
+  String get proBuyNoPrice;
+
+  /// No description provided for @proRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchase'**
+  String get proRestore;
+
+  /// No description provided for @proRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro restored. Welcome back!'**
+  String get proRestored;
+
+  /// No description provided for @proRestoreNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No earlier purchase found for this Google account.'**
+  String get proRestoreNone;
+
+  /// No description provided for @proUnlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro is unlocked. Thank you!'**
+  String get proUnlocked;
+
+  /// No description provided for @proPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment pending. Pro unlocks as soon as Google Play confirms it.'**
+  String get proPending;
+
+  /// No description provided for @proFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The purchase didn\'t go through. Please try again.'**
+  String get proFailed;
+
+  /// No description provided for @proUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases aren\'t available right now. Check your connection and Google Play, then try again.'**
+  String get proUnavailable;
+
+  /// No description provided for @proKeepsLook.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes keep their Pro paper and wall, wherever they go.'**
+  String get proKeepsLook;
+
+  /// No description provided for @proLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, Pro'**
+  String proLocked(String name);
+
+  /// No description provided for @proSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'More papers, walls, fonts and pins'**
+  String get proSettingsHint;
+
+  /// No description provided for @proSettingsThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked. Thank you!'**
+  String get proSettingsThanks;
+
+  /// No description provided for @paperLime.
+  ///
+  /// In en, this message translates to:
+  /// **'Lime'**
+  String get paperLime;
+
+  /// No description provided for @paperCoral.
+  ///
+  /// In en, this message translates to:
+  /// **'Coral'**
+  String get paperCoral;
+
+  /// No description provided for @paperPeriwinkle.
+  ///
+  /// In en, this message translates to:
+  /// **'Periwinkle'**
+  String get paperPeriwinkle;
+
+  /// No description provided for @paperSage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sage'**
+  String get paperSage;
+
+  /// No description provided for @paperKraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Kraft'**
+  String get paperKraft;
+
+  /// No description provided for @paperWhite.
+  ///
+  /// In en, this message translates to:
+  /// **'White'**
+  String get paperWhite;
+
+  /// No description provided for @wallChalkNavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Navy chalkboard'**
+  String get wallChalkNavy;
+
+  /// No description provided for @wallChalkWine.
+  ///
+  /// In en, this message translates to:
+  /// **'Wine chalkboard'**
+  String get wallChalkWine;
+
+  /// No description provided for @wallBlush.
+  ///
+  /// In en, this message translates to:
+  /// **'Blush plaster'**
+  String get wallBlush;
+
+  /// No description provided for @wallSage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sage plaster'**
+  String get wallSage;
+
+  /// No description provided for @wallSky.
+  ///
+  /// In en, this message translates to:
+  /// **'Sky cotton'**
+  String get wallSky;
+
+  /// No description provided for @pinSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Pins'**
+  String get pinSection;
+
+  /// No description provided for @pinClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'Red pin'**
+  String get pinClassic;
+
+  /// No description provided for @pinColorful.
+  ///
+  /// In en, this message translates to:
+  /// **'Colorful pins'**
+  String get pinColorful;
+
+  /// No description provided for @pinTack.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbtack'**
+  String get pinTack;
+
+  /// No description provided for @pinWashi.
+  ///
+  /// In en, this message translates to:
+  /// **'Washi tape'**
+  String get pinWashi;
+
+  /// No description provided for @pinClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper clip'**
+  String get pinClip;
+
+  /// No description provided for @pinMagnet.
+  ///
+  /// In en, this message translates to:
+  /// **'Magnet'**
+  String get pinMagnet;
+
+  /// No description provided for @privacySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get privacySection;
+
+  /// No description provided for @appLock.
+  ///
+  /// In en, this message translates to:
+  /// **'App lock'**
+  String get appLock;
+
+  /// No description provided for @appLockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Asks for your fingerprint, face or screen lock when Sticky Wall opens, and when it comes back after a minute away.'**
+  String get appLockHint;
+
+  /// No description provided for @appLockReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Sticky Wall'**
+  String get appLockReason;
+
+  /// No description provided for @appLockLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticky Wall is locked'**
+  String get appLockLocked;
+
+  /// No description provided for @appLockUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get appLockUnlock;
+
+  /// No description provided for @appLockNoLock.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a screen lock on this phone first.'**
+  String get appLockNoLock;
+
+  /// No description provided for @widgetSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Home-screen widget'**
+  String get widgetSection;
+
+  /// No description provided for @widgetSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Which wall, what it lists, colors and text size'**
+  String get widgetSettingsHint;
+
+  /// No description provided for @widgetBoardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall'**
+  String get widgetBoardLabel;
+
+  /// No description provided for @widgetBoardCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'The open wall'**
+  String get widgetBoardCurrent;
+
+  /// No description provided for @widgetContentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows'**
+  String get widgetContentLabel;
+
+  /// No description provided for @widgetContentPinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned notes'**
+  String get widgetContentPinned;
+
+  /// No description provided for @widgetContentNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest notes'**
+  String get widgetContentNewest;
+
+  /// No description provided for @widgetContentPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Board picture'**
+  String get widgetContentPicture;
+
+  /// No description provided for @widgetLookLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Colors'**
+  String get widgetLookLabel;
+
+  /// No description provided for @widgetLookWall.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall brown'**
+  String get widgetLookWall;
+
+  /// No description provided for @widgetLookPaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper'**
+  String get widgetLookPaper;
+
+  /// No description provided for @widgetLookInk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ink'**
+  String get widgetLookInk;
+
+  /// No description provided for @widgetTextSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Text size'**
+  String get widgetTextSizeLabel;
+
+  /// No description provided for @widgetTextSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get widgetTextSmall;
+
+  /// No description provided for @widgetTextNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get widgetTextNormal;
+
+  /// No description provided for @widgetTextLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get widgetTextLarge;
+
+  /// No description provided for @widgetEmptyPinned.
+  ///
+  /// In en, this message translates to:
+  /// **'No pinned notes'**
+  String get widgetEmptyPinned;
+
+  /// No description provided for @widgetEmptyNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet'**
+  String get widgetEmptyNewest;
+
+  /// No description provided for @widgetAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To add it: touch and hold your home screen, then Widgets → Sticky Wall.'**
+  String get widgetAddHint;
 }
 
 class _AppLocalizationsDelegate

@@ -1156,4 +1156,206 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daySunday => 'Sunday';
+
+  @override
+  String get proTitle => 'Sticky Wall Pro';
+
+  @override
+  String get proPitch =>
+      'One payment, yours for good. Everything you have now stays free.';
+
+  @override
+  String get proPerkPapers => '6 more paper colors';
+
+  @override
+  String get proPerkWalls => '5 more walls';
+
+  @override
+  String get proPerkFonts => '5 more fonts';
+
+  @override
+  String get proPerkPins =>
+      '5 more ways to hold notes up: colorful pins, thumbtacks, washi tape, paper clips and magnets';
+
+  @override
+  String proBuy(String price) {
+    return 'Unlock for $price';
+  }
+
+  @override
+  String get proBuyNoPrice => 'Unlock Pro';
+
+  @override
+  String get proRestore => 'Restore purchase';
+
+  @override
+  String get proRestored => 'Pro restored. Welcome back!';
+
+  @override
+  String get proRestoreNone =>
+      'No earlier purchase found for this Google account.';
+
+  @override
+  String get proUnlocked => 'Pro is unlocked. Thank you!';
+
+  @override
+  String get proPending =>
+      'Payment pending. Pro unlocks as soon as Google Play confirms it.';
+
+  @override
+  String get proFailed => 'The purchase didn\'t go through. Please try again.';
+
+  @override
+  String get proUnavailable =>
+      'Purchases aren\'t available right now. Check your connection and Google Play, then try again.';
+
+  @override
+  String get proKeepsLook =>
+      'Notes keep their Pro paper and wall, wherever they go.';
+
+  @override
+  String proLocked(String name) {
+    return '$name, Pro';
+  }
+
+  @override
+  String get proSettingsHint => 'More papers, walls, fonts and pins';
+
+  @override
+  String get proSettingsThanks => 'Unlocked. Thank you!';
+
+  @override
+  String get paperLime => 'Lime';
+
+  @override
+  String get paperCoral => 'Coral';
+
+  @override
+  String get paperPeriwinkle => 'Periwinkle';
+
+  @override
+  String get paperSage => 'Sage';
+
+  @override
+  String get paperKraft => 'Kraft';
+
+  @override
+  String get paperWhite => 'White';
+
+  @override
+  String get wallChalkNavy => 'Navy chalkboard';
+
+  @override
+  String get wallChalkWine => 'Wine chalkboard';
+
+  @override
+  String get wallBlush => 'Blush plaster';
+
+  @override
+  String get wallSage => 'Sage plaster';
+
+  @override
+  String get wallSky => 'Sky cotton';
+
+  @override
+  String get pinSection => 'Pins';
+
+  @override
+  String get pinClassic => 'Red pin';
+
+  @override
+  String get pinColorful => 'Colorful pins';
+
+  @override
+  String get pinTack => 'Thumbtack';
+
+  @override
+  String get pinWashi => 'Washi tape';
+
+  @override
+  String get pinClip => 'Paper clip';
+
+  @override
+  String get pinMagnet => 'Magnet';
+
+  @override
+  String get privacySection => 'Privacy';
+
+  @override
+  String get appLock => 'App lock';
+
+  @override
+  String get appLockHint =>
+      'Asks for your fingerprint, face or screen lock when Sticky Wall opens, and when it comes back after a minute away.';
+
+  @override
+  String get appLockReason => 'Unlock Sticky Wall';
+
+  @override
+  String get appLockLocked => 'Sticky Wall is locked';
+
+  @override
+  String get appLockUnlock => 'Unlock';
+
+  @override
+  String get appLockNoLock => 'Set a screen lock on this phone first.';
+
+  @override
+  String get widgetSection => 'Home-screen widget';
+
+  @override
+  String get widgetSettingsHint =>
+      'Which wall, what it lists, colors and text size';
+
+  @override
+  String get widgetBoardLabel => 'Wall';
+
+  @override
+  String get widgetBoardCurrent => 'The open wall';
+
+  @override
+  String get widgetContentLabel => 'Shows';
+
+  @override
+  String get widgetContentPinned => 'Pinned notes';
+
+  @override
+  String get widgetContentNewest => 'Newest notes';
+
+  @override
+  String get widgetContentPicture => 'Board picture';
+
+  @override
+  String get widgetLookLabel => 'Colors';
+
+  @override
+  String get widgetLookWall => 'Wall brown';
+
+  @override
+  String get widgetLookPaper => 'Paper';
+
+  @override
+  String get widgetLookInk => 'Ink';
+
+  @override
+  String get widgetTextSizeLabel => 'Text size';
+
+  @override
+  String get widgetTextSmall => 'Small';
+
+  @override
+  String get widgetTextNormal => 'Normal';
+
+  @override
+  String get widgetTextLarge => 'Large';
+
+  @override
+  String get widgetEmptyPinned => 'No pinned notes';
+
+  @override
+  String get widgetEmptyNewest => 'No notes yet';
+
+  @override
+  String get widgetAddHint =>
+      'To add it: touch and hold your home screen, then Widgets → Sticky Wall.';
 }
