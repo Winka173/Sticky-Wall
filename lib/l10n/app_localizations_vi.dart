@@ -1208,7 +1208,8 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get proSettingsHint => 'Thêm màu giấy, tường, phông chữ và kiểu ghim';
+  String get proSettingsHint =>
+      'Sticker, kiểu giấy, tường, phông chữ, kiểu ghim và nhiều thứ khác';
 
   @override
   String get proSettingsThanks => 'Đã mở khóa. Cảm ơn bạn!';
@@ -1346,4 +1347,226 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get widgetAddHint =>
       'Cách thêm: nhấn giữ màn hình chính, chọn Tiện ích → Sticky Wall.';
+
+  @override
+  String get swatchPink => 'Hồng';
+
+  @override
+  String get swatchTeal => 'Xanh mòng két';
+
+  @override
+  String get swatchBrown => 'Nâu';
+
+  @override
+  String get swatchWhite => 'Trắng';
+
+  @override
+  String get swatchYellow => 'Vàng chanh';
+
+  @override
+  String get paperPlain => 'Trơn';
+
+  @override
+  String get paperLined => 'Kẻ dòng';
+
+  @override
+  String get paperGrid => 'Ô vuông';
+
+  @override
+  String get paperDots => 'Chấm';
+
+  @override
+  String get paperIndex => 'Thẻ ghi chú';
+
+  @override
+  String get paperNotebook => 'Trang vở';
+
+  @override
+  String get typeSticker => 'Sticker';
+
+  @override
+  String get stickerHere => 'Dán sticker ở đây';
+
+  @override
+  String get stickerPick => 'Chọn sticker';
+
+  @override
+  String get stampUrgent => 'Gấp';
+
+  @override
+  String get stampDone => 'Xong';
+
+  @override
+  String get stampImportant => 'Quan trọng';
+
+  @override
+  String get stampLater => 'Để sau';
+
+  @override
+  String get stickerArrow => 'Mũi tên';
+
+  @override
+  String get stickerCircle => 'Khoanh tròn';
+
+  @override
+  String get stickerUnderline => 'Gạch chân';
+
+  @override
+  String get stickerRing => 'Vết cà phê';
+
+  @override
+  String get highlighter => 'Bút dạ quang';
+
+  @override
+  String get threadStyle => 'Loại dây';
+
+  @override
+  String get threadYarn => 'Len';
+
+  @override
+  String get threadTwine => 'Dây đay';
+
+  @override
+  String get threadRibbon => 'Ruy băng';
+
+  @override
+  String get threadDashed => 'Nét đứt';
+
+  @override
+  String get threadBeads => 'Chuỗi hạt';
+
+  @override
+  String get tryingOn =>
+      'Đang thử: trông sẽ như thế này. Mở khóa Pro để giữ lại.';
+
+  @override
+  String get tryOnStop => 'Trả lại như cũ';
+
+  @override
+  String get tryOnKeep => 'Giữ lại';
+
+  @override
+  String get proNudge =>
+      'Bạn thích Sticky Wall? Bản Pro có thêm sticker, kiểu giấy, tường, phông chữ và nhiều thứ khác, chỉ trả một lần.';
+
+  @override
+  String get proNudgeAction => 'Xem Pro';
+
+  @override
+  String get proPerkPaperStyles =>
+      '5 kiểu giấy: kẻ dòng, ô vuông, chấm, thẻ ghi chú, trang vở';
+
+  @override
+  String get proPerkStickers =>
+      'Thêm 15 sticker: con dấu, emoji và hình vẽ tay';
+
+  @override
+  String get proPerkMarkers => 'Thêm 5 màu bút và bút dạ quang để vẽ lên tường';
+
+  @override
+  String get proPerkThreads =>
+      '4 loại dây (dây đay, ruy băng, nét đứt, chuỗi hạt) và thêm 4 màu';
+
+  @override
+  String get proTryHint =>
+      'Chạm vào tường, phông chữ hoặc kiểu ghim có nhãn PRO trong Tùy chỉnh để thử ngay trên tường của bạn.';
+
+  @override
+  String get paperCustom => 'Màu của bạn';
+
+  @override
+  String get paperCustomTitle => 'Pha màu giấy';
+
+  @override
+  String get paperCustomHue => 'Màu';
+
+  @override
+  String get paperCustomStrength => 'Độ đậm';
+
+  @override
+  String get paperCustomLightness => 'Độ sáng';
+
+  @override
+  String get boardMakePrivate => 'Đặt làm riêng tư';
+
+  @override
+  String get boardMakePublic => 'Bỏ riêng tư';
+
+  @override
+  String get boardPrivateHint =>
+      'Mở bằng vân tay hoặc khóa màn hình; không hiện trên widget, khi tìm kiếm và trong nội dung lời nhắc';
+
+  @override
+  String get boardPrivate => 'Bảng riêng tư';
+
+  @override
+  String get boardShutHint =>
+      'Ghi chú trong bảng được ẩn cho tới khi bạn mở khóa.';
+
+  @override
+  String get boardUnlockReason => 'Mở bảng riêng tư';
+
+  @override
+  String get reminderPrivate => 'Lời nhắc trong một bảng riêng tư';
+
+  @override
+  String get widgetPrivate => 'Bảng riêng tư';
+
+  @override
+  String get packEveryday => 'Thường ngày';
+
+  @override
+  String get packTet => 'Tết';
+
+  @override
+  String get packChristmas => 'Giáng Sinh';
+
+  @override
+  String get packMidAutumn => 'Trung Thu';
+
+  @override
+  String get packValentine => 'Valentine';
+
+  @override
+  String get stampNewYear => 'Chúc mừng năm mới';
+
+  @override
+  String get stampMerry => 'Giáng Sinh an lành';
+
+  @override
+  String get stampMidAutumn => 'Trung Thu';
+
+  @override
+  String get stampLove => 'Thương nhiều';
+
+  @override
+  String get stickerMai => 'Hoa mai';
+
+  @override
+  String get stickerDao => 'Hoa đào';
+
+  @override
+  String get stickerStarLantern => 'Đèn ông sao';
+
+  @override
+  String get wallTet => 'Đỏ Tết';
+
+  @override
+  String get wallXmas => 'Xanh Giáng Sinh';
+
+  @override
+  String get wallMoon => 'Đêm Trung Thu';
+
+  @override
+  String get wallLove => 'Hồng Valentine';
+
+  @override
+  String get proPerkSeasons =>
+      'Gói theo mùa: tường và sticker Tết, Giáng Sinh, Trung Thu, Valentine';
+
+  @override
+  String get proPerkPrivate => 'Bảng riêng tư, mở bằng vân tay';
+
+  @override
+  String get proPerkCustomColor => 'Tự pha màu giấy theo ý thích';
 }

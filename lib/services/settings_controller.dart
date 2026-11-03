@@ -27,7 +27,11 @@ class SettingsController extends ChangeNotifier {
       _widgetContent = _storage.widgetContent,
       _widgetLook = _storage.widgetLook,
       _widgetTextSize = _storage.widgetTextSize,
-      _widgetPicture = _storage.widgetPicture {
+      _widgetPicture = _storage.widgetPicture,
+      _installedAt = _storage.installedAt ?? DateTime.now() {
+    if (_storage.installedAt == null) {
+      unawaited(_storage.setInstalledAt(_installedAt));
+    }
     _watchClock();
   }
 
@@ -49,6 +53,13 @@ class SettingsController extends ChangeNotifier {
   WidgetLook _widgetLook;
   WidgetTextSize _widgetTextSize;
   bool _widgetPicture;
+  final DateTime _installedAt;
+
+  // Trying on a Pro wall, font or pin from Customize before buying: shown,
+  // never saved, and gone when the sheet closes.
+  int? _tryWall;
+  String? _tryFont;
+  PinStyle? _tryPin;
 
   Timer? _clock;
   bool? _lastScheduledNight;
@@ -56,16 +67,73 @@ class SettingsController extends ChangeNotifier {
   /// The chosen font, as picked — it may be a Pro one (see [fontFor]).
   FontChoice get font => fontChoiceById(_fontId);
 
-  /// The font to draw with: a Pro font only while Pro is unlocked.
-  FontChoice fontFor({required bool pro}) =>
-      font.pro && !pro ? fontChoices.first : font;
+  /// The font to draw with: one being tried on, else the chosen one — a Pro
+  /// font only while Pro is unlocked.
+  FontChoice fontFor({required bool pro}) {
+    final tried = _tryFont;
+    if (tried != null) return fontChoiceById(tried);
+    return font.pro && !pro ? fontChoices.first : font;
+  }
 
   /// The chosen pin style, as picked (see [pinStyleFor]).
   PinStyle get pinStyle => _pinStyle;
 
-  /// The pin style to draw: a Pro one only while Pro is unlocked.
+  /// The pin style to draw: one being tried on, else the chosen one — a Pro
+  /// one only while Pro is unlocked.
   PinStyle pinStyleFor({required bool pro}) =>
-      _pinStyle.pro && !pro ? PinStyle.classic : _pinStyle;
+      _tryPin ?? (_pinStyle.pro && !pro ? PinStyle.classic : _pinStyle);
+
+  /// The bundled wall being tried on, if any (an index into `walls`).
+  int? get tryWall => _tryWall;
+  String? get tryFont => _tryFont;
+  PinStyle? get tryPin => _tryPin;
+
+  /// Whether a Pro wall, font or pin is on show without being bought.
+  bool get tryingOn => _tryWall != null || _tryFont != null || _tryPin != null;
+
+  /// Null stops trying a wall on.
+  void setTryWall(int? index) {
+    _tryWall = index;
+    notifyListeners();
+  }
+
+  void setTryFont(String? id) {
+    _tryFont = id;
+    notifyListeners();
+  }
+
+  void setTryPin(PinStyle? style) {
+    _tryPin = style;
+    notifyListeners();
+  }
+
+  /// Puts back what was chosen before trying on.
+  void endTryOn() {
+    if (!tryingOn) return;
+    _tryWall = null;
+    _tryFont = null;
+    _tryPin = null;
+    notifyListeners();
+  }
+
+  /// Keeps the font and pin tried on (once Pro is bought); the wall belongs
+  /// to the board, so the caller keeps that. Ends the try-on.
+  void keepTryOn() {
+    final font = _tryFont;
+    final pin = _tryPin;
+    if (font != null) setFontId(font);
+    if (pin != null) setPinStyle(pin);
+    endTryOn();
+  }
+
+  /// Whether to say a word about Pro now: once, to someone who has used
+  /// the app for a week and has a good few notes up.
+  bool shouldOfferPro({required int noteCount, DateTime? now}) =>
+      !_storage.proOffered &&
+      noteCount >= 20 &&
+      (now ?? DateTime.now()).difference(_installedAt).inDays >= 7;
+
+  void markProOffered() => unawaited(_storage.setProOffered(true));
 
   /// Whether opening the app asks for the phone's lock (off by default).
   bool get appLock => _appLock;

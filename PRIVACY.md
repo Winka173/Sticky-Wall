@@ -1,6 +1,6 @@
 # Privacy Policy · Chính sách quyền riêng tư
 
-**Sticky Wall** — last updated 1 November 2026 · cập nhật 01/11/2026
+**Sticky Wall** — last updated 3 November 2026 · cập nhật 03/11/2026
 
 ---
 
@@ -54,7 +54,7 @@ handled by Android under your Google account settings, not by us.)
 - **App lock** (off unless you switch it on) — asks for your phone's own
   fingerprint, face, PIN, pattern or password through the system prompt.
   Sticky Wall never sees or stores your fingerprint, face or code; it only
-  learns whether the phone unlocked.
+  learns whether the phone unlocked. Private boards are opened the same way.
 
 ### Sticky Wall Pro
 
@@ -137,7 +137,8 @@ và tài khoản Google của bạn quản lý, không phải chúng tôi.)
 - **Khóa ứng dụng** (chỉ bật khi bạn bật) — hỏi vân tay, khuôn mặt, mã PIN,
   hình vẽ hoặc mật khẩu của chính điện thoại qua hộp thoại của hệ thống.
   Sticky Wall không bao giờ thấy hay lưu vân tay, khuôn mặt hay mã của bạn;
-  ứng dụng chỉ biết điện thoại đã mở khóa hay chưa.
+  ứng dụng chỉ biết điện thoại đã mở khóa hay chưa. Bảng riêng tư cũng được
+  mở theo cách này.
 
 ### Sticky Wall Pro
 

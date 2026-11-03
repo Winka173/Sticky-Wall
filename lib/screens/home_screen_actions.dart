@@ -403,6 +403,7 @@ extension _NoteActions on _HomeScreenState {
     if (note.type == NoteType.photo) return _l10n.typePhoto;
     if (note.type == NoteType.drawing) return _l10n.typeDrawing;
     if (note.type == NoteType.audio) return _l10n.typeAudio;
+    if (note.type == NoteType.sticker) return _l10n.typeSticker;
     return _l10n.untitledNote;
   }
 

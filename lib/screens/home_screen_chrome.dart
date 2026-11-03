@@ -15,7 +15,7 @@ extension _Chrome on _HomeScreenState {
       _inkPast.clear();
       // Ink on a light wall, chalk on a dark one.
       _marker = WallMarker(
-        color: wall.dark ? AppColors.markers.last : AppColors.markers.first,
+        color: wall.dark ? AppColors.markerChalk : AppColors.markers.first,
       );
     });
   }
@@ -70,6 +70,7 @@ extension _Chrome on _HomeScreenState {
   /// drawing on the wall. Compact enough for a 360dp phone in one row.
   Widget _markerBar(WallStyle wall) {
     final l10n = _l10n;
+    final pro = ProScope.unlockedOf(context);
     final text = wall.wallText;
     const widths = [3.0, 6.0, 11.0];
     final nextWidth =
@@ -110,16 +111,38 @@ extension _Chrome on _HomeScreenState {
                           name: _markerName(l10n, i),
                           color: Color(c),
                           selected: !_marker.eraser && _marker.color == c,
-                          onTap: () => _update(
-                            () => _marker = _marker.copyWith(
-                              color: c,
-                              eraser: false,
-                            ),
-                          ),
+                          locked: !pro && i >= AppColors.freeMarkers,
+                          onTap: !pro && i >= AppColors.freeMarkers
+                              ? () => showProSheet(context)
+                              : () => _update(
+                                  () => _marker = _marker.copyWith(
+                                    color: c,
+                                    eraser: false,
+                                  ),
+                                ),
                         ),
                     ],
                   ),
                 ),
+              ),
+              tool(
+                tooltip: pro
+                    ? l10n.highlighter
+                    : l10n.proLocked(l10n.highlighter),
+                icon: Icon(
+                  _marker.highlighter
+                      ? Icons.border_color
+                      : Icons.border_color_outlined,
+                ),
+                color: _marker.highlighter ? AppColors.accent : text,
+                onTap: !pro
+                    ? () => showProSheet(context)
+                    : () => _update(
+                        () => _marker = _marker.copyWith(
+                          highlighter: !_marker.highlighter,
+                          eraser: false,
+                        ),
+                      ),
               ),
               tool(
                 tooltip: l10n.penSize,

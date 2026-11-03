@@ -4,12 +4,15 @@ import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 
 import '../l10n/app_localizations.dart';
 import '../models/board.dart';
+import '../services/app_lock.dart';
 import '../services/board_templates.dart';
 import '../services/notes_controller.dart';
+import '../services/pro_controller.dart';
 import '../theme.dart';
 import 'action_sheet.dart';
 import 'board_dialog.dart';
 import 'keyboard_tappable.dart';
+import 'pro_sheet.dart';
 
 /// Horizontal strip of board "tabs" with add / edit / delete.
 ///
@@ -200,6 +203,41 @@ class _BoardBarState extends State<BoardBar> {
     );
   }
 
+  /// Asks for the phone's lock, then makes [board] private or public. A
+  /// phone without a screen lock cannot keep a board private.
+  Future<void> _togglePrivate(
+    BuildContext context,
+    AppLocalizations l10n,
+    Board board,
+  ) async {
+    final result = await const AppLock().authenticate(l10n.appLockReason);
+    if (!context.mounted) return;
+    switch (result) {
+      case UnlockResult.unlocked:
+        widget.notes.setBoardPrivate(board.id, !board.isPrivate);
+      case UnlockResult.noLock:
+        if (board.isPrivate) {
+          // Its lock was removed: let it go public rather than stay stuck.
+          widget.notes.setBoardPrivate(board.id, false);
+          return;
+        }
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            content: Text(l10n.appLockNoLock),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l10n.gotIt),
+              ),
+            ],
+          ),
+        );
+      case UnlockResult.failed:
+        break;
+    }
+  }
+
   Future<void> _create(BuildContext context) async {
     final draft = await showBoardDialog(context);
     if (draft == null || draft.name.isEmpty || !context.mounted) return;
@@ -220,6 +258,12 @@ class _BoardBarState extends State<BoardBar> {
     AppLocalizations l10n,
     Board board,
   ) async {
+    // A shut private board is managed only once it has been opened.
+    if (!widget.notes.isOpen(board)) {
+      if (!await unlockPrivateBoard(context, widget.notes, board)) return;
+      if (!context.mounted) return;
+    }
+    final pro = ProScope.unlockedOf(context);
     final index = widget.notes.boards.indexWhere((b) => b.id == board.id);
     final action = await showActionSheet<String>(
       context,
@@ -234,6 +278,21 @@ class _BoardBarState extends State<BoardBar> {
           leading: const Icon(Icons.edit_outlined),
           title: Text(l10n.editBoard),
           onTap: () => Navigator.pop(context, 'edit'),
+        ),
+        // Making a board private is Pro; making it public again never is.
+        ListTile(
+          leading: Icon(
+            board.isPrivate ? Icons.lock_open_outlined : Icons.lock_outline,
+          ),
+          title: Text(
+            board.isPrivate ? l10n.boardMakePublic : l10n.boardMakePrivate,
+          ),
+          subtitle: board.isPrivate ? null : Text(l10n.boardPrivateHint),
+          trailing: board.isPrivate || pro ? null : const ProMark(),
+          onTap: () => Navigator.pop(
+            context,
+            board.isPrivate || pro ? 'private' : 'pro',
+          ),
         ),
         // Reordering is otherwise a long-press drag of the tab.
         if (index > 0)
@@ -264,6 +323,14 @@ class _BoardBarState extends State<BoardBar> {
     );
     if (action == null || !context.mounted) return;
 
+    if (action == 'pro') {
+      await showProSheet(context);
+      return;
+    }
+    if (action == 'private') {
+      await _togglePrivate(context, l10n, board);
+      return;
+    }
     if (action == 'left' || action == 'right') {
       widget.notes.reorderBoards(index, index + (action == 'left' ? -1 : 1));
       return;
@@ -375,6 +442,18 @@ class _BoardChip extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (board.isPrivate)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Icon(
+                        Icons.lock_outline,
+                        size: 15,
+                        color: textColor,
+                        semanticLabel: AppLocalizations.of(
+                          context,
+                        )?.boardPrivate,
+                      ),
+                    ),
                   if (icon.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(right: 6),
@@ -456,4 +535,20 @@ class _AddChip extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Asks for the phone's lock to open private [board] until the app next goes
+/// to the background. True when it may be shown. A phone whose screen lock
+/// was removed since is let in, as with the app lock.
+Future<bool> unlockPrivateBoard(
+  BuildContext context,
+  NotesController notes,
+  Board board,
+) async {
+  if (notes.isOpen(board)) return true;
+  final reason = AppLocalizations.of(context)!.boardUnlockReason;
+  final result = await const AppLock().authenticate(reason);
+  if (result == UnlockResult.failed) return false;
+  notes.openPrivateBoard(board.id);
+  return true;
 }

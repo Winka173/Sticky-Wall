@@ -10,8 +10,11 @@ import 'wall_view.dart' show WallCamera, WallView;
 
 /// The wall a board shows right now: its bundled texture or its own photo,
 /// switched to chalk-on-dark when the lights are off.
-WallStyle wallFor(Board board, {required bool night}) {
-  final wall = board.hasWallImage
+WallStyle wallFor(Board board, {required bool night, int? tryWall}) {
+  // A Pro wall being tried on in Customize shows over the board's own.
+  final wall = tryWall != null
+      ? walls[tryWall % walls.length]
+      : board.hasWallImage
       ? WallStyle.photo(
           ImageService.resolveWall(board.wallImage),
           dark: board.wallImageDark,

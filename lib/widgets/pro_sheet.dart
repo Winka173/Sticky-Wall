@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/note.dart';
 import '../services/pro_controller.dart';
 import '../theme.dart';
+import 'note_views.dart';
+import 'stickers.dart';
+import 'thread_style.dart';
 
 /// Opens the Sticky Wall Pro sheet: what Pro adds, the price, Unlock and
 /// Restore. Every Pro thing in the app (a paper, wall, font or pin with the
@@ -96,6 +100,20 @@ class _ProBodyState extends State<_ProBody> {
             style: const TextStyle(fontSize: 16, color: AppColors.inkSoft),
           ),
           const SizedBox(height: 20),
+          _Perk(
+            lead: StickerArt(sticker: stickerById('mai'), width: 38),
+            text: l10n.proPerkSeasons,
+          ),
+          _Perk(
+            lead: StickerArt(sticker: stickerById('urgent'), width: 42),
+            text: l10n.proPerkStickers,
+          ),
+          _Perk(
+            lead: const Icon(Icons.lock_outline, color: AppColors.ink),
+            text: l10n.proPerkPrivate,
+          ),
+          _Perk(lead: const _MixedPaper(), text: l10n.proPerkCustomColor),
+          _Perk(lead: const _RuledScrap(), text: l10n.proPerkPaperStyles),
           _Perk(lead: const _PaperFan(), text: l10n.proPerkPapers),
           _Perk(lead: const _WallChip(), text: l10n.proPerkWalls),
           _Perk(lead: const _FontChip(), text: l10n.proPerkFonts),
@@ -103,9 +121,20 @@ class _ProBodyState extends State<_ProBody> {
             lead: const Icon(Icons.push_pin_outlined, color: AppColors.ink),
             text: l10n.proPerkPins,
           ),
+          _Perk(
+            lead: const Icon(Icons.border_color_outlined, color: AppColors.ink),
+            text: l10n.proPerkMarkers,
+          ),
+          _Perk(
+            lead: const ThreadSample(
+              style: ThreadStyle.twine,
+              color: Color(0xFF8D6E63),
+            ),
+            text: l10n.proPerkThreads,
+          ),
           const SizedBox(height: 4),
           Text(
-            l10n.proKeepsLook,
+            unlocked ? l10n.proKeepsLook : l10n.proTryHint,
             style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
           ),
           const SizedBox(height: 20),
@@ -203,6 +232,54 @@ class _Perk extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A rainbow scrap: any colour of paper.
+class _MixedPaper extends StatelessWidget {
+  const _MixedPaper();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 30,
+      height: 30,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: SweepGradient(
+          colors: [
+            Color(0xFFF8BBD0),
+            Color(0xFFFFF59D),
+            Color(0xFFB2DFDB),
+            Color(0xFFB3E5FC),
+            Color(0xFFE1BEE7),
+            Color(0xFFF8BBD0),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A scrap of notebook paper: what the paper styles look like.
+class _RuledScrap extends StatelessWidget {
+  const _RuledScrap();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 34,
+      height: 34,
+      decoration: BoxDecoration(
+        color: paperColorOf(context, 0, ''),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 2, offset: Offset(1, 1)),
+        ],
+      ),
+      child: const CustomPaint(
+        painter: PaperPatternPainter(PaperStyle.notebook, line: 10, top: 0),
       ),
     );
   }

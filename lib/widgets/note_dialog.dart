@@ -17,6 +17,7 @@ import 'audio_note.dart';
 import 'drawing_canvas.dart';
 import 'keyboard_tappable.dart';
 import 'note_views.dart';
+import 'paper_color_dialog.dart';
 import 'photo_viewer.dart';
 import 'pro_sheet.dart';
 
@@ -298,6 +299,9 @@ class _NoteDialogState extends State<_NoteDialog>
         if (content.isEmpty) error = l10n.contentRequired;
       case NoteType.audio:
         if (!_n.hasAudio) error = l10n.recordingRequired;
+      case NoteType.sticker:
+        // Stickers never open the editor; nothing to check.
+        break;
     }
     if (error != null) {
       _fail(error);
@@ -365,6 +369,7 @@ class _NoteDialogState extends State<_NoteDialog>
     NoteType.photo => l10n.typePhoto,
     NoteType.label => l10n.typeLabel,
     NoteType.audio => l10n.typeAudio,
+    NoteType.sticker => l10n.typeSticker,
   };
 
   // --- reminder / photo / checklist ---------------------------------------------

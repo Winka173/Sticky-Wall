@@ -191,15 +191,6 @@ class _ThreadPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..color = const Color(0x55000000)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
-    final yarn = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round;
-    final sheen = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.7
-      ..strokeCap = StrokeCap.round
-      ..color = const Color(0x66FFFFFF);
 
     for (final t in threads) {
       final path = t.path;
@@ -212,14 +203,13 @@ class _ThreadPainter extends CustomPainter {
         shadow..color = Color.fromRGBO(0, 0, 0, 0.33 * alpha),
       );
       canvas.restore();
-      canvas.drawPath(path, yarn..color = color);
-      canvas.save();
-      canvas.translate(0, -0.6);
-      canvas.drawPath(
+      paintThreadLine(
+        canvas,
         path,
-        sheen..color = Color.fromRGBO(255, 255, 255, 0.4 * alpha),
+        t.color,
+        t.link?.style ?? ThreadStyle.yarn,
+        alpha: alpha,
       );
-      canvas.restore();
       // Little knot where the yarn is wound round each pin.
       final knot = Paint()..color = color;
       canvas.drawCircle(t.a, 3.2, knot);
@@ -313,7 +303,8 @@ class _ThreadPainter extends CustomPainter {
           p.faded != q.faded ||
           p.link?.color != q.link?.color ||
           p.link?.label != q.link?.label ||
-          p.link?.arrow != q.link?.arrow) {
+          p.link?.arrow != q.link?.arrow ||
+          p.link?.style != q.link?.style) {
         return false;
       }
     }

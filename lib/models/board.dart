@@ -16,6 +16,7 @@ class Board {
     this.bold = false,
     this.italic = false,
     this.underline = false,
+    this.isPrivate = false,
     List<DrawStroke>? strokes,
   }) : strokes = strokes ?? [],
        savedWallImage = savedWallImage ?? wallImage,
@@ -50,6 +51,11 @@ class Board {
   bool italic;
   bool underline;
 
+  /// A private board (Sticky Wall Pro) opens only after the phone's lock,
+  /// and keeps its notes off the widget, out of search from other boards,
+  /// out of the trash list and out of reminder texts while shut.
+  bool isPrivate;
+
   /// Marker strokes drawn straight on this wall (behind the notes), with
   /// points as fractions of the wall's size so they scale like the notes do.
   final List<DrawStroke> strokes;
@@ -79,6 +85,7 @@ class Board {
     bold: json['bold'] as bool? ?? false,
     italic: json['italic'] as bool? ?? false,
     underline: json['underline'] as bool? ?? false,
+    isPrivate: json['private'] as bool? ?? false,
     strokes: (json['strokes'] as List<dynamic>? ?? [])
         .map((e) => DrawStroke.fromJson(e as Map<String, dynamic>))
         .toList(),
@@ -96,6 +103,7 @@ class Board {
     'bold': bold,
     'italic': italic,
     'underline': underline,
+    if (isPrivate) 'private': true,
     if (strokes.isNotEmpty) 'strokes': strokes.map((s) => s.toJson()).toList(),
   };
 }

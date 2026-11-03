@@ -53,6 +53,10 @@ String wallLabel(AppLocalizations l10n, String id) => switch (id) {
   'blush' => l10n.wallBlush,
   'sage' => l10n.wallSage,
   'sky' => l10n.wallSky,
+  'tet' => l10n.wallTet,
+  'xmas' => l10n.wallXmas,
+  'moon' => l10n.wallMoon,
+  'love' => l10n.wallLove,
   _ => id,
 };
 
@@ -118,14 +122,34 @@ Future<void> showSettingsSheet(
   required SettingsController settings,
   required NotesController notes,
 }) {
-  return showModalBottomSheet(
+  final pro = ProScope.maybeOf(context);
+  return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (context) => ListenableBuilder(
       listenable: Listenable.merge([settings, notes]),
       builder: (context, _) => _SettingsSheet(settings: settings, notes: notes),
     ),
+  ).whenComplete(
+    () => _endTryOn(settings, notes, keep: pro?.unlocked ?? false),
   );
+}
+
+/// Ends trying on Pro things: bought meanwhile, they are kept (the wall on
+/// the open board); otherwise everything is put back as it was.
+void _endTryOn(
+  SettingsController settings,
+  NotesController notes, {
+  required bool keep,
+}) {
+  if (!settings.tryingOn) return;
+  if (!keep) {
+    settings.endTryOn();
+    return;
+  }
+  final wall = settings.tryWall;
+  if (wall != null) notes.setCurrentBoardWall(wall);
+  settings.keepTryOn();
 }
 
 /// Body of [showSettingsSheet]; rebuilds as the settings change.
@@ -138,8 +162,13 @@ class _SettingsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final board = notes.currentBoard;
     final pro = ProScope.unlockedOf(context);
+    // Bought while trying on: what was on show is simply kept.
+    if (pro && settings.tryingOn) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _endTryOn(settings, notes, keep: true),
+      );
+    }
 
     return DraggableScrollableSheet(
       expand: false,
@@ -147,365 +176,398 @@ class _SettingsSheet extends StatelessWidget {
       initialChildSize: 0.58,
       maxChildSize: 0.92,
       minChildSize: 0.4,
-      builder: (context, scrollController) => ListView(
-        controller: scrollController,
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+      // While something is tried on, the bar to keep or put it back stays
+      // at the foot of the sheet, wherever the list is scrolled.
+      builder: (context, scrollController) => Column(
         children: [
-          Center(
-            child: Text(
-              l10n.customize,
-              style: const TextStyle(fontSize: 24, color: AppColors.ink),
+          Expanded(child: _list(context, l10n, scrollController, pro)),
+          if (settings.tryingOn && !pro)
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                child: _TryOnBar(settings: settings),
+              ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _list(
+    BuildContext context,
+    AppLocalizations l10n,
+    ScrollController scrollController,
+    bool pro,
+  ) {
+    final board = notes.currentBoard;
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+      children: [
+        Center(
+          child: Text(
+            l10n.customize,
+            style: const TextStyle(fontSize: 24, color: AppColors.ink),
           ),
-          const SizedBox(height: 4),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const ProMark(),
-            title: Text(
-              l10n.proTitle,
-              style: const TextStyle(fontSize: 16, color: AppColors.ink),
-            ),
-            subtitle: Text(
-              pro ? l10n.proSettingsThanks : l10n.proSettingsHint,
-              style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
-            ),
-            trailing: pro
-                ? const Icon(Icons.check_circle, color: AppColors.ink)
-                : const Icon(Icons.chevron_right, color: AppColors.inkSoft),
-            onTap: () => showProSheet(context),
+        ),
+        const SizedBox(height: 4),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const ProMark(),
+          title: Text(
+            l10n.proTitle,
+            style: const TextStyle(fontSize: 16, color: AppColors.ink),
           ),
-          _SectionTitle(l10n.wallSection),
-          SizedBox(
-            height: 116,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              // Tiles run on past the sheet's margin to its edge: a tile
-              // cut there reads as "more this way", not as clipped.
-              clipBehavior: Clip.none,
-              itemCount: walls.length + 1,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                if (index == walls.length) {
-                  return _PhotoWallTile(
-                    board: board,
-                    l10n: l10n,
-                    // The kept photo comes back in one tap; once it is on
-                    // show, a tap offers to change or remove it.
-                    onTap: !board.hasWallImage && board.hasSavedWallImage
-                        ? () => notes.setCurrentBoardWallImage(
-                            board.savedWallImage,
-                            dark: board.savedWallImageDark,
-                          )
-                        : () => _photoWallFlow(context, l10n),
-                  );
-                }
-                final wall = walls[index];
-                final selected =
-                    !board.hasWallImage && index == board.wallIndex;
-                final locked = wall.pro && !pro;
-                return _WallTile(
-                  label: wallLabel(l10n, wall.id),
-                  selected: selected,
-                  locked: locked,
-                  onTap: locked
-                      ? () => showProSheet(context)
-                      : () => notes.setCurrentBoardWall(index),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(wall.asset, fit: BoxFit.cover),
-                      ColoredBox(color: wall.overlay),
-                    ],
-                  ),
+          subtitle: Text(
+            pro ? l10n.proSettingsThanks : l10n.proSettingsHint,
+            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+          ),
+          trailing: pro
+              ? const Icon(Icons.check_circle, color: AppColors.ink)
+              : const Icon(Icons.chevron_right, color: AppColors.inkSoft),
+          onTap: () => showProSheet(context),
+        ),
+        _SectionTitle(l10n.wallSection),
+        SizedBox(
+          height: 116,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            // Tiles run on past the sheet's margin to its edge: a tile
+            // cut there reads as "more this way", not as clipped.
+            clipBehavior: Clip.none,
+            itemCount: walls.length + 1,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              if (index == walls.length) {
+                return _PhotoWallTile(
+                  board: board,
+                  l10n: l10n,
+                  // The kept photo comes back in one tap; once it is on
+                  // show, a tap offers to change or remove it.
+                  onTap: !board.hasWallImage && board.hasSavedWallImage
+                      ? () => notes.setCurrentBoardWallImage(
+                          board.savedWallImage,
+                          dark: board.savedWallImageDark,
+                        )
+                      : () => _photoWallFlow(context, l10n),
                 );
-              },
-            ),
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              l10n.wallDecor,
-              style: const TextStyle(fontSize: 16, color: AppColors.ink),
-            ),
-            value: settings.wallDecor,
-            onChanged: settings.setWallDecor,
-          ),
-          const SizedBox(height: 8),
-          _SectionTitle(l10n.nightSection),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: [
-              for (final mode in NightMode.values)
-                _choiceChip(
-                  icon: switch (mode) {
-                    NightMode.off => Icons.light_mode_outlined,
-                    NightMode.on => Icons.dark_mode_outlined,
-                    NightMode.system => Icons.phone_android_outlined,
-                    NightMode.schedule => Icons.schedule_outlined,
-                  },
-                  label: nightModeLabel(l10n, mode),
-                  selected: settings.nightMode == mode,
-                  onSelected: () => settings.setNightMode(mode),
-                ),
-            ],
-          ),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 200),
-            alignment: Alignment.topCenter,
-            child: settings.nightMode == NightMode.schedule
-                ? Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _HourField(
-                            label: l10n.nightStart,
-                            value: settings.nightStart,
-                            onChanged: (h) => settings.setNightHours(
-                              start: h,
-                              end: settings.nightEnd,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _HourField(
-                            label: l10n.nightEnd,
-                            value: settings.nightEnd,
-                            onChanged: (h) => settings.setNightHours(
-                              start: settings.nightStart,
-                              end: h,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : const SizedBox(width: double.infinity),
-          ),
-          const SizedBox(height: 8),
-          _SectionTitle(l10n.fontSection),
-          SizedBox(
-            height: 150,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              // Tiles run on past the sheet's margin to its edge: a tile
-              // cut there reads as "more this way", not as clipped.
-              clipBehavior: Clip.none,
-              itemCount: fontChoices.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 14),
-              itemBuilder: (context, index) {
-                final font = fontChoices[index];
-                final locked = font.pro && !pro;
-                return _FontPaper(
-                  font: font,
-                  preview: l10n.fontPreview,
-                  selected: settings.fontFor(pro: pro).id == font.id,
-                  locked: locked,
-                  tilt: (index.isEven ? -1 : 1) * 0.03,
-                  onTap: locked
-                      ? () => showProSheet(context)
-                      : () => settings.setFontId(font.id),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-          _SectionTitle(l10n.pinSection),
-          SizedBox(
-            height: 104,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              clipBehavior: Clip.none,
-              itemCount: PinStyle.values.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final style = PinStyle.values[index];
-                final locked = style.pro && !pro;
-                return _PinTile(
-                  style: style,
-                  label: pinStyleLabel(l10n, style),
-                  selected: settings.pinStyleFor(pro: pro) == style,
-                  locked: locked,
-                  onTap: locked
-                      ? () => showProSheet(context)
-                      : () => settings.setPinStyle(style),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-          _SectionTitle(l10n.languageSection),
-          Wrap(
-            spacing: 8,
-            children: [
-              // English first: it is the default.
-              for (final (code, label) in [
-                ('en', 'English'),
-                ('vi', 'Tiếng Việt'),
-                ('system', l10n.langSystem),
-              ])
-                _choiceChip(
-                  label: label,
-                  selected: settings.languageCode == code,
-                  onSelected: () => settings.setLanguageCode(code),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _SectionTitle(l10n.privacySection),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            secondary: const Icon(Icons.lock_outline, color: AppColors.ink),
-            title: Text(
-              l10n.appLock,
-              style: const TextStyle(fontSize: 16, color: AppColors.ink),
-            ),
-            subtitle: Text(
-              l10n.appLockHint,
-              style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
-            ),
-            isThreeLine: true,
-            value: settings.appLock,
-            onChanged: (on) => _setAppLock(context, l10n, on),
-          ),
-          if (_hasHomeWidget)
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.widgets_outlined, color: AppColors.ink),
-              title: Text(
-                l10n.widgetSection,
-                style: const TextStyle(fontSize: 16, color: AppColors.ink),
-              ),
-              subtitle: Text(
-                l10n.widgetSettingsHint,
-                style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
-              ),
-              trailing: const Icon(
-                Icons.chevron_right,
-                color: AppColors.inkSoft,
-              ),
-              onTap: () => showWidgetSettingsSheet(
-                context,
-                settings: settings,
-                notes: notes,
-              ),
-            ),
-          const SizedBox(height: 8),
-          _SectionTitle(l10n.dataSection),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.delete_outline, color: AppColors.ink),
-            title: Text(
-              l10n.trash,
-              style: const TextStyle(fontSize: 16, color: AppColors.ink),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (notes.trashCount > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.ink.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${notes.trashCount}',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.ink,
-                      ),
-                    ),
-                  ),
-                const Icon(Icons.chevron_right, color: AppColors.inkSoft),
-              ],
-            ),
-            onTap: () {
-              final nav = Navigator.of(context);
-              nav.pop();
-              nav.push(
-                MaterialPageRoute<void>(
-                  builder: (_) => TrashScreen(notes: notes),
+              }
+              final wall = walls[index];
+              final tried = settings.tryWall;
+              final selected = tried != null
+                  ? index == tried
+                  : !board.hasWallImage && index == board.wallIndex;
+              final locked = wall.pro && !pro;
+              return _WallTile(
+                label: wallLabel(l10n, wall.id),
+                selected: selected,
+                locked: locked,
+                // A Pro wall is tried on first; a second tap offers Pro.
+                onTap: locked
+                    ? (tried == index
+                          ? () => showProSheet(context)
+                          : () => settings.setTryWall(index))
+                    : () {
+                        settings.setTryWall(null);
+                        notes.setCurrentBoardWall(index);
+                      },
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(wall.asset, fit: BoxFit.cover),
+                    ColoredBox(color: wall.overlay),
+                  ],
                 ),
               );
             },
           ),
-          SwitchListTile(
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(
+            l10n.wallDecor,
+            style: const TextStyle(fontSize: 16, color: AppColors.ink),
+          ),
+          value: settings.wallDecor,
+          onChanged: settings.setWallDecor,
+        ),
+        const SizedBox(height: 8),
+        _SectionTitle(l10n.nightSection),
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            for (final mode in NightMode.values)
+              _choiceChip(
+                icon: switch (mode) {
+                  NightMode.off => Icons.light_mode_outlined,
+                  NightMode.on => Icons.dark_mode_outlined,
+                  NightMode.system => Icons.phone_android_outlined,
+                  NightMode.schedule => Icons.schedule_outlined,
+                },
+                label: nightModeLabel(l10n, mode),
+                selected: settings.nightMode == mode,
+                onSelected: () => settings.setNightMode(mode),
+              ),
+          ],
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          alignment: Alignment.topCenter,
+          child: settings.nightMode == NightMode.schedule
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _HourField(
+                          label: l10n.nightStart,
+                          value: settings.nightStart,
+                          onChanged: (h) => settings.setNightHours(
+                            start: h,
+                            end: settings.nightEnd,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _HourField(
+                          label: l10n.nightEnd,
+                          value: settings.nightEnd,
+                          onChanged: (h) => settings.setNightHours(
+                            start: settings.nightStart,
+                            end: h,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
+        ),
+        const SizedBox(height: 8),
+        _SectionTitle(l10n.fontSection),
+        SizedBox(
+          height: 150,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            // Tiles run on past the sheet's margin to its edge: a tile
+            // cut there reads as "more this way", not as clipped.
+            clipBehavior: Clip.none,
+            itemCount: fontChoices.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 14),
+            itemBuilder: (context, index) {
+              final font = fontChoices[index];
+              final locked = font.pro && !pro;
+              return _FontPaper(
+                font: font,
+                preview: l10n.fontPreview,
+                selected: settings.fontFor(pro: pro).id == font.id,
+                locked: locked,
+                tilt: (index.isEven ? -1 : 1) * 0.03,
+                onTap: locked
+                    ? (settings.tryFont == font.id
+                          ? () => showProSheet(context)
+                          : () => settings.setTryFont(font.id))
+                    : () {
+                        settings.setTryFont(null);
+                        settings.setFontId(font.id);
+                      },
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+        _SectionTitle(l10n.pinSection),
+        SizedBox(
+          height: 104,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            itemCount: PinStyle.values.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final style = PinStyle.values[index];
+              final locked = style.pro && !pro;
+              return _PinTile(
+                style: style,
+                label: pinStyleLabel(l10n, style),
+                selected: settings.pinStyleFor(pro: pro) == style,
+                locked: locked,
+                onTap: locked
+                    ? (settings.tryPin == style
+                          ? () => showProSheet(context)
+                          : () => settings.setTryPin(style))
+                    : () {
+                        settings.setTryPin(null);
+                        settings.setPinStyle(style);
+                      },
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+        _SectionTitle(l10n.languageSection),
+        Wrap(
+          spacing: 8,
+          children: [
+            // English first: it is the default.
+            for (final (code, label) in [
+              ('en', 'English'),
+              ('vi', 'Tiếng Việt'),
+              ('system', l10n.langSystem),
+            ])
+              _choiceChip(
+                label: label,
+                selected: settings.languageCode == code,
+                onSelected: () => settings.setLanguageCode(code),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _SectionTitle(l10n.privacySection),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          secondary: const Icon(Icons.lock_outline, color: AppColors.ink),
+          title: Text(
+            l10n.appLock,
+            style: const TextStyle(fontSize: 16, color: AppColors.ink),
+          ),
+          subtitle: Text(
+            l10n.appLockHint,
+            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+          ),
+          isThreeLine: true,
+          value: settings.appLock,
+          onChanged: (on) => _setAppLock(context, l10n, on),
+        ),
+        if (_hasHomeWidget)
+          ListTile(
             contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.widgets_outlined, color: AppColors.ink),
             title: Text(
-              l10n.autoTrashDone,
+              l10n.widgetSection,
               style: const TextStyle(fontSize: 16, color: AppColors.ink),
             ),
             subtitle: Text(
-              l10n.autoTrashDoneHint,
+              l10n.widgetSettingsHint,
               style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
             ),
-            secondary: const Icon(
-              Icons.task_alt_outlined,
-              color: AppColors.ink,
+            trailing: const Icon(Icons.chevron_right, color: AppColors.inkSoft),
+            onTap: () => showWidgetSettingsSheet(
+              context,
+              settings: settings,
+              notes: notes,
             ),
-            value: settings.autoTrashDone,
-            onChanged: (on) {
-              settings.setAutoTrashDone(on);
-              if (on) notes.sweepCompleted();
-            },
           ),
-          _autoBackupTile(context, l10n),
-          if (settings.lastAutoBackup != null)
-            Padding(
-              // In line with the switch's words, past its icon.
-              padding: const EdgeInsets.only(left: 40),
-              child: Wrap(
-                spacing: 4,
-                children: [
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.ink,
-                      minimumSize: const Size(44, 44),
-                    ),
-                    onPressed: () => _restoreAutoBackup(context, l10n),
-                    icon: const Icon(Icons.settings_backup_restore, size: 20),
-                    label: Text(l10n.autoBackupRestore),
-                  ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.ink,
-                      minimumSize: const Size(44, 44),
-                    ),
-                    onPressed: () => _shareAutoBackup(context, l10n),
-                    icon: const Icon(Icons.share_outlined, size: 20),
-                    label: Text(l10n.share),
-                  ),
-                ],
-              ),
-            ),
-          const SizedBox(height: 8),
-          Row(
+        const SizedBox(height: 8),
+        _SectionTitle(l10n.dataSection),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.delete_outline, color: AppColors.ink),
+          title: Text(
+            l10n.trash,
+            style: const TextStyle(fontSize: 16, color: AppColors.ink),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: _BusyButton(
-                  onPressed: () => _backupFlow(context, l10n),
-                  icon: const Icon(Icons.ios_share),
-                  label: Text(l10n.exportData),
+              if (notes.trashCount > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.ink.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${notes.trashCount}',
+                    style: const TextStyle(fontSize: 13, color: AppColors.ink),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _importFlow(context, l10n),
-                  icon: const Icon(Icons.download),
-                  label: Text(l10n.importData),
-                ),
-              ),
+              const Icon(Icons.chevron_right, color: AppColors.inkSoft),
             ],
           ),
-        ],
-      ),
+          onTap: () {
+            final nav = Navigator.of(context);
+            nav.pop();
+            nav.push(
+              MaterialPageRoute<void>(
+                builder: (_) => TrashScreen(notes: notes),
+              ),
+            );
+          },
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(
+            l10n.autoTrashDone,
+            style: const TextStyle(fontSize: 16, color: AppColors.ink),
+          ),
+          subtitle: Text(
+            l10n.autoTrashDoneHint,
+            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+          ),
+          secondary: const Icon(Icons.task_alt_outlined, color: AppColors.ink),
+          value: settings.autoTrashDone,
+          onChanged: (on) {
+            settings.setAutoTrashDone(on);
+            if (on) notes.sweepCompleted();
+          },
+        ),
+        _autoBackupTile(context, l10n),
+        if (settings.lastAutoBackup != null)
+          Padding(
+            // In line with the switch's words, past its icon.
+            padding: const EdgeInsets.only(left: 40),
+            child: Wrap(
+              spacing: 4,
+              children: [
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.ink,
+                    minimumSize: const Size(44, 44),
+                  ),
+                  onPressed: () => _restoreAutoBackup(context, l10n),
+                  icon: const Icon(Icons.settings_backup_restore, size: 20),
+                  label: Text(l10n.autoBackupRestore),
+                ),
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.ink,
+                    minimumSize: const Size(44, 44),
+                  ),
+                  onPressed: () => _shareAutoBackup(context, l10n),
+                  icon: const Icon(Icons.share_outlined, size: 20),
+                  label: Text(l10n.share),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _BusyButton(
+                onPressed: () => _backupFlow(context, l10n),
+                icon: const Icon(Icons.ios_share),
+                label: Text(l10n.exportData),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _importFlow(context, l10n),
+                icon: const Icon(Icons.download),
+                label: Text(l10n.importData),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -739,6 +801,67 @@ class _SettingsSheet extends StatelessWidget {
         ),
       );
     if (navigator.mounted) navigator.pop();
+  }
+}
+
+/// Shown while a Pro wall, font or pin is tried on: what it is, how to keep
+/// it, and how to put things back.
+class _TryOnBar extends StatelessWidget {
+  const _TryOnBar({required this.settings});
+
+  final SettingsController settings;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        margin: const EdgeInsets.only(top: 4, bottom: 4),
+        padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+        decoration: BoxDecoration(
+          color: AppColors.accent.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(AppRadii.control),
+          border: Border.all(color: AppColors.ink, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.visibility_outlined, color: AppColors.ink),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.tryingOn,
+                    style: const TextStyle(fontSize: 15, color: AppColors.ink),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              children: [
+                TextButton(
+                  style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
+                  onPressed: settings.endTryOn,
+                  child: Text(l10n.tryOnStop),
+                ),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(44, 44),
+                  ),
+                  onPressed: () => showProSheet(context),
+                  child: Text(l10n.tryOnKeep),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

@@ -52,6 +52,8 @@ class NoteStorage {
   static const _widgetLookKey = 'widgetLook';
   static const _widgetTextSizeKey = 'widgetTextSize';
   static const _widgetPictureKey = 'widgetPicture';
+  static const _installedAtKey = 'installedAt';
+  static const _proOfferedKey = 'proOffered';
 
   final SharedPreferences _prefs;
 
@@ -257,6 +259,23 @@ class NoteStorage {
   bool get widgetPicture => _prefs.getBool(_widgetPictureKey) ?? false;
   Future<void> setWidgetPicture(bool value) =>
       _prefs.setBool(_widgetPictureKey, value);
+
+  // --- Pro offer ------------------------------------------------------------
+
+  /// When this install (or, for one from before this was kept, this
+  /// version) was first started; null until [setInstalledAt].
+  DateTime? get installedAt {
+    final raw = _prefs.getString(_installedAtKey);
+    return raw == null ? null : DateTime.tryParse(raw);
+  }
+
+  Future<void> setInstalledAt(DateTime at) =>
+      _prefs.setString(_installedAtKey, at.toIso8601String());
+
+  /// Whether the one quiet line about Pro has been shown.
+  bool get proOffered => _prefs.getBool(_proOfferedKey) ?? false;
+  Future<void> setProOffered(bool value) =>
+      _prefs.setBool(_proOfferedKey, value);
 
   T? _enumOf<T extends Enum>(List<T> values, String key) {
     final name = _prefs.getString(key);

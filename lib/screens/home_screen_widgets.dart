@@ -59,7 +59,11 @@ String _yarnName(AppLocalizations l10n, int i) => switch (i) {
   3 => l10n.swatchGreen,
   4 => l10n.swatchBlue,
   5 => l10n.swatchPurple,
-  _ => l10n.swatchInk,
+  6 => l10n.swatchInk,
+  7 => l10n.swatchPink,
+  8 => l10n.swatchTeal,
+  9 => l10n.swatchBrown,
+  _ => l10n.swatchWhite,
 };
 
 /// The spoken name of marker colour [i] (see [AppColors.markers]).
@@ -68,7 +72,12 @@ String _markerName(AppLocalizations l10n, int i) => switch (i) {
   1 => l10n.swatchRed,
   2 => l10n.swatchBlue,
   3 => l10n.swatchGreen,
-  _ => l10n.swatchChalk,
+  4 => l10n.swatchChalk,
+  5 => l10n.swatchOrange,
+  6 => l10n.swatchPurple,
+  7 => l10n.swatchPink,
+  8 => l10n.swatchTeal,
+  _ => l10n.swatchYellow,
 };
 
 /// A colour choice in a sheet (paper colours, yarn colours).
@@ -170,6 +179,8 @@ class _ThreadSheetState extends State<_ThreadSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final pro = ProScope.unlockedOf(context);
+    final color = Color(_link.color ?? AppColors.yarns.first);
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -201,9 +212,36 @@ class _ThreadSheetState extends State<_ThreadSheet> {
                     name: _yarnName(AppLocalizations.of(context)!, i),
                     color: Color(c),
                     selected: (_link.color ?? AppColors.yarns.first) == c,
-                    onTap: () => _apply(_link.copyWith(color: c)),
+                    locked: !pro && i >= AppColors.freeYarns,
+                    onTap: !pro && i >= AppColors.freeYarns
+                        ? () => showProSheet(context)
+                        : () => _apply(_link.copyWith(color: c)),
                   ),
               ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.threadStyle,
+              style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+            ),
+            const SizedBox(height: 4),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final style in ThreadStyle.values)
+                    _ThreadStyleChoice(
+                      style: style,
+                      color: color,
+                      label: threadStyleLabel(l10n, style),
+                      selected: _link.style == style,
+                      locked: style.pro && !pro,
+                      onTap: style.pro && !pro
+                          ? () => showProSheet(context)
+                          : () => _apply(_link.copyWith(style: style)),
+                    ),
+                ],
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -246,6 +284,87 @@ class _ThreadSheetState extends State<_ThreadSheet> {
   }
 }
 
+/// Localized name of a thread style.
+String threadStyleLabel(AppLocalizations l10n, ThreadStyle style) =>
+    switch (style) {
+      ThreadStyle.yarn => l10n.threadYarn,
+      ThreadStyle.twine => l10n.threadTwine,
+      ThreadStyle.ribbon => l10n.threadRibbon,
+      ThreadStyle.dashed => l10n.threadDashed,
+      ThreadStyle.beads => l10n.threadBeads,
+    };
+
+/// One thread style in the thread sheet: a sample length of it and its name.
+class _ThreadStyleChoice extends StatelessWidget {
+  const _ThreadStyleChoice({
+    required this.style,
+    required this.color,
+    required this.label,
+    required this.selected,
+    required this.locked,
+    required this.onTap,
+  });
+
+  final ThreadStyle style;
+  final Color color;
+  final String label;
+  final bool selected;
+  final bool locked;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: locked ? l10n.proLocked(label) : label,
+      excludeSemantics: true,
+      child: KeyboardTappable(
+        onActivate: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.control),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadii.control),
+          child: Container(
+            width: 76,
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            margin: const EdgeInsets.only(right: 6),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppRadii.control),
+              border: Border.all(
+                color: selected ? AppColors.ink : Colors.transparent,
+                width: 2,
+              ),
+            ),
+            child: Column(
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ThreadSample(style: style, color: color),
+                    if (locked)
+                      const Positioned(right: -6, top: -6, child: ProMark()),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.ink,
+                    fontWeight: selected ? FontWeight.bold : null,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// One marker colour in the drawing bar.
 class _InkDot extends StatelessWidget {
   const _InkDot({
@@ -253,12 +372,16 @@ class _InkDot extends StatelessWidget {
     required this.color,
     required this.selected,
     required this.onTap,
+    this.locked = false,
   });
 
   final String name;
   final Color color;
   final bool selected;
   final VoidCallback onTap;
+
+  /// A Pro colour without Pro: marked, and tapping it offers Pro.
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
@@ -268,7 +391,7 @@ class _InkDot extends StatelessWidget {
       child: Semantics(
         button: true,
         selected: selected,
-        label: name,
+        label: locked ? AppLocalizations.of(context)!.proLocked(name) : name,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
@@ -295,6 +418,9 @@ class _InkDot extends StatelessWidget {
                   ),
                 ],
               ),
+              child: locked
+                  ? const Icon(Icons.lock, size: 11, color: Colors.white70)
+                  : null,
             ),
           ),
         ),
@@ -363,6 +489,62 @@ class _Glass extends StatelessWidget {
         padding: padding,
         decoration: decoration,
         child: child,
+      ),
+    );
+  }
+}
+
+/// What a shut private board shows in place of its notes: the bare wall,
+/// a lock, and a button that asks for the phone's lock.
+class _PrivateBoardCover extends StatelessWidget {
+  const _PrivateBoardCover({required this.wall, required this.onUnlock});
+
+  final WallStyle wall;
+  final VoidCallback onUnlock;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.lock_outline, size: 44, color: wall.wallText),
+            const SizedBox(height: 12),
+            Text(
+              l10n.boardPrivate,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 22,
+                color: wall.wallText,
+                shadows: wall.wallTextShadows,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l10n.boardShutHint,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: wall.wallTextFaded,
+                shadows: wall.wallTextShadows,
+              ),
+            ),
+            const SizedBox(height: 18),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: AppColors.ink,
+                minimumSize: const Size(44, 48),
+              ),
+              onPressed: onUnlock,
+              icon: const Icon(Icons.fingerprint),
+              label: Text(l10n.appLockUnlock),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -777,6 +777,99 @@ extension _EditorPieces on _NoteDialogState {
 
   Widget _colorRow(AppLocalizations l10n) {
     final pro = ProScope.unlockedOf(context);
+    // Ruling only goes on sheets of paper, not on prints, tape or tapes.
+    final ruled = switch (_n.type) {
+      NoteType.normal || NoteType.link || NoteType.checklist => true,
+      _ => false,
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [_paperColors(l10n, pro), if (ruled) _paperStyles(l10n, pro)],
+    );
+  }
+
+  /// The ruling on the paper: plain, or (with Pro) lined, grid, dots, an
+  /// index card or a notebook page — each shown on a scrap of the note's
+  /// own colour.
+  Widget _paperStyles(AppLocalizations l10n, bool pro) {
+    final paper = noteColor(_n.colorIndex, _n.guid);
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (final style in PaperStyle.values)
+              _paperStyleTile(
+                l10n,
+                style: style,
+                paper: paper,
+                selected: _n.paper == style,
+                locked: style.pro && !pro,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _paperStyleTile(
+    AppLocalizations l10n, {
+    required PaperStyle style,
+    required Color paper,
+    required bool selected,
+    required bool locked,
+  }) {
+    final name = paperStyleLabel(l10n, style);
+    void pick() {
+      if (locked) {
+        showProSheet(context);
+        return;
+      }
+      HapticFeedback.selectionClick();
+      _update(() => _n.paper = style);
+    }
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: locked ? l10n.proLocked(name) : name,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: name,
+        child: InkWell(
+          onTap: pick,
+          borderRadius: BorderRadius.circular(6),
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: paper,
+                    border: Border.all(
+                      color: selected ? _NoteDialogState._ink : Colors.black26,
+                      width: selected ? 2 : 1,
+                    ),
+                  ),
+                  child: CustomPaint(
+                    painter: PaperPatternPainter(style, line: 14, top: 2),
+                  ),
+                ),
+                if (locked)
+                  const Positioned(right: -6, bottom: -4, child: ProMark()),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _paperColors(AppLocalizations l10n, bool pro) {
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: Wrap(
@@ -805,9 +898,30 @@ extension _EditorPieces on _NoteDialogState {
                 selected: _n.colorIndex == i,
                 onTap: () => _pickColor(i),
               ),
+          // A colour of one's own: the rainbow until one is mixed, then it.
+          _swatch(
+            name: pro ? l10n.paperCustom : l10n.proLocked(l10n.paperCustom),
+            color: isCustomPaper(_n.colorIndex)
+                ? noteColor(_n.colorIndex, _n.guid)
+                : AppColors.paper,
+            selected: isCustomPaper(_n.colorIndex),
+            rainbow: !isCustomPaper(_n.colorIndex),
+            locked: !pro,
+            onTap: pro ? _mixColor : () => showProSheet(context),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _mixColor() async {
+    final mixed = await showPaperColorDialog(
+      context,
+      initial: isCustomPaper(_n.colorIndex)
+          ? noteColor(_n.colorIndex, _n.guid)
+          : null,
+    );
+    if (mixed != null) _pickColor(mixed);
   }
 
   void _pickColor(int? index) {
@@ -825,6 +939,7 @@ extension _EditorPieces on _NoteDialogState {
     required VoidCallback onTap,
     bool auto = false,
     bool locked = false,
+    bool rainbow = false,
   }) {
     return Semantics(
       button: true,
@@ -843,6 +958,18 @@ extension _EditorPieces on _NoteDialogState {
               height: selected ? 32 : 26,
               decoration: BoxDecoration(
                 color: color,
+                gradient: rainbow
+                    ? const SweepGradient(
+                        colors: [
+                          Color(0xFFF8BBD0),
+                          Color(0xFFFFF59D),
+                          Color(0xFFB2DFDB),
+                          Color(0xFFB3E5FC),
+                          Color(0xFFE1BEE7),
+                          Color(0xFFF8BBD0),
+                        ],
+                      )
+                    : null,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: selected ? _NoteDialogState._ink : Colors.black26,

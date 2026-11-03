@@ -10,6 +10,7 @@ import '../theme.dart';
 import '../util/angles.dart';
 import 'drawing_canvas.dart';
 import 'note_views.dart';
+import 'thread_style.dart';
 
 part 'wall_view_parts.dart';
 
@@ -85,6 +86,7 @@ class WallMarker {
     this.color = 0xFF3B372F,
     this.width = 4,
     this.eraser = false,
+    this.highlighter = false,
   });
 
   /// ARGB colour of new strokes.
@@ -94,10 +96,27 @@ class WallMarker {
   /// Rubbing out instead of drawing.
   final bool eraser;
 
-  WallMarker copyWith({int? color, double? width, bool? eraser}) => WallMarker(
+  /// A broad see-through stroke (Sticky Wall Pro) instead of the pen.
+  final bool highlighter;
+
+  /// The ARGB a new stroke is drawn in: see-through for the highlighter.
+  int get strokeColor => highlighter
+      ? (color & 0x00FFFFFF) | (AppColors.highlighterAlpha << 24)
+      : color;
+
+  /// The width a new stroke is drawn at: broad for the highlighter.
+  double get strokeWidth => highlighter ? 18 : width;
+
+  WallMarker copyWith({
+    int? color,
+    double? width,
+    bool? eraser,
+    bool? highlighter,
+  }) => WallMarker(
     color: color ?? this.color,
     width: width ?? this.width,
     eraser: eraser ?? this.eraser,
+    highlighter: highlighter ?? this.highlighter,
   );
 }
 
@@ -818,8 +837,8 @@ class _WallViewState extends State<WallView>
       setState(() {
         widget.strokes.add(
           DrawStroke(
-            color: widget.marker.color,
-            width: widget.marker.width,
+            color: widget.marker.strokeColor,
+            width: widget.marker.strokeWidth,
             points: [_inkNorm(e.localPosition)],
           ),
         );

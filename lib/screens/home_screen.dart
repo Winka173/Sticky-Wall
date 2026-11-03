@@ -37,6 +37,8 @@ import '../widgets/peel_away.dart';
 import '../widgets/photo_viewer.dart';
 import '../widgets/pro_sheet.dart';
 import '../widgets/settings_sheet.dart';
+import '../widgets/stickers.dart';
+import '../widgets/thread_style.dart';
 import '../widgets/wall_background.dart';
 import '../widgets/wall_view.dart';
 import 'trash_screen.dart';
@@ -98,7 +100,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _searchController = TextEditingController();
   final _imageService = ImageService();
   final _wallHandle = WallHandle();
@@ -156,9 +158,19 @@ class _HomeScreenState extends State<HomeScreen> {
   GlobalKey _keyFor(Note note, [ViewMode? mode]) =>
       _captureKeys.putIfAbsent(_captureId(note, mode), GlobalKey.new);
 
+  /// Private boards shut again whenever the app leaves the screen.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.paused) {
+      _notes.shutPrivateBoards();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _searchController.addListener(() => _notes.search = _searchController.text);
     widget.shareReceiver?.listen(_onShared);
     _reminderTaps = ReminderService.opened.listen(_openFromReminder);
@@ -185,6 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     widget.shareReceiver?.dispose();
     unawaited(_reminderTaps?.cancel());
     _searchController.dispose();
@@ -371,6 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
           (NoteType.photo, Icons.photo_outlined, l10n.typePhoto),
           (NoteType.label, Icons.label_outline, l10n.typeLabel),
           (NoteType.audio, Icons.voicemail, l10n.typeAudio),
+          (NoteType.sticker, Icons.emoji_emotions_outlined, l10n.typeSticker),
         ])
           ListTile(
             leading: Icon(icon),
@@ -380,7 +394,54 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
     if (type == null || !mounted) return;
+    if (type == NoteType.sticker) {
+      await _addSticker();
+      return;
+    }
     await _openEditor(_notes.draft()..type = type, isNew: true);
+  }
+
+  /// Picks a sticker and sticks it on the wall, at [x],[y] when the user
+  /// long-pressed a spot.
+  Future<void> _addSticker({double? x, double? y}) async {
+    final id = await showStickerPicker(context);
+    if (id == null || !mounted) return;
+    if (_notes.viewMode != ViewMode.wall) _notes.viewMode = ViewMode.wall;
+    _notes.addSticker(id, x: x, y: y);
+    _maybeOfferPro();
+  }
+
+  /// A tap on a sticker swaps it for another one.
+  Future<void> _changeSticker(Note note) async {
+    final id = await showStickerPicker(context, current: note.sticker);
+    if (id == null || id == note.sticker || !mounted) return;
+    _notes.update(note.clone()..sticker = id);
+  }
+
+  /// Once, for someone who has used the app for a week and filled a wall,
+  /// a quiet line about Pro — never a popup, never at start-up.
+  void _maybeOfferPro() {
+    final pro = ProScope.maybeOf(context);
+    if (pro == null || pro.unlocked) return;
+    final settings = widget.settings;
+    if (!settings.shouldOfferPro(
+      noteCount: _notes.allNotes.where((n) => !n.isTrashed).length,
+    )) {
+      return;
+    }
+    settings.markProOffered();
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(_l10n.proNudge),
+          duration: const Duration(seconds: 8),
+          action: SnackBarAction(
+            label: _l10n.proNudgeAction,
+            onPressed: () => showProSheet(context),
+          ),
+        ),
+      );
   }
 
   void _toast(String message) {
@@ -458,6 +519,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openEditor(Note note, {required bool isNew}) async {
+    // A sticker has nothing to write on: "editing" it picks another one.
+    if (note.type == NoteType.sticker && !isNew) {
+      await _changeSticker(note);
+      return;
+    }
     final oldPhoto = note.imagePath;
     final oldAudio = note.audioPath;
     final closed = _editorClosed = Completer<void>();
@@ -476,6 +542,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result == null || !mounted) return;
     if (isNew) {
       _notes.add(result);
+      _maybeOfferPro();
     } else {
       _notes.update(result);
     }
@@ -546,6 +613,11 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(l10n.photosHere),
           onTap: () => Navigator.pop(context, 'photos'),
         ),
+        ListTile(
+          leading: const Icon(Icons.emoji_emotions_outlined),
+          title: Text(l10n.stickerHere),
+          onTap: () => Navigator.pop(context, 'sticker'),
+        ),
       ],
     );
     if (choice == null || !mounted) return;
@@ -554,6 +626,8 @@ class _HomeScreenState extends State<HomeScreen> {
         await _openEditor(_notes.draftAt(x, y), isNew: true);
       case 'photos':
         await _pinPhotos(x: x, y: y);
+      case 'sticker':
+        await _addSticker(x: x, y: y);
     }
   }
 
@@ -714,7 +788,11 @@ class _HomeScreenState extends State<HomeScreen> {
         listenable: Listenable.merge([widget.notes, widget.settings]),
         builder: (context, _) {
           final night = isNight(context);
-          final wall = wallFor(_notes.currentBoard, night: night);
+          final wall = wallFor(
+            _notes.currentBoard,
+            night: night,
+            tryWall: widget.settings.tryWall,
+          );
           // Only a board or layout change may retarget the slide; unrelated
           // rebuilds (typing in search) must not yank a running transition.
           final boardIndex = _notes.currentBoardIndex;
@@ -771,7 +849,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 // squash the wall underneath would make every note slide about
                 // behind the barrier while you type.
                 resizeToAvoidBottomInset: false,
-                floatingActionButton: _selecting || _marking
+                floatingActionButton:
+                    _selecting || _marking || _notes.currentBoardShut
                     ? null
                     : AddNoteButton(
                         label: _l10n.addNote,
@@ -919,7 +998,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       // top row is all board tabs. The selection and marker
                       // bars take its place (the selection bar carries the ⋮
                       // menu, which exports the selection).
-                      if (!_selecting && !_marking)
+                      if (!_selecting && !_marking && !_notes.currentBoardShut)
                         Positioned(
                           // The same 16dp margin as the board tabs above.
                           left: 16,
@@ -964,6 +1043,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildContent(WallStyle wall) {
+    // A private board stays behind its cover until the phone's lock is given.
+    if (_notes.currentBoardShut) {
+      return _PrivateBoardCover(
+        wall: wall,
+        onUnlock: () =>
+            unlockPrivateBoard(context, _notes, _notes.currentBoard),
+      );
+    }
     // Wall mode: free-drag canvas with every note on the board. Search and
     // the type filter dim non-matches instead of removing them, so nothing
     // jumps around. Rendered even when empty so the wall still takes taps.

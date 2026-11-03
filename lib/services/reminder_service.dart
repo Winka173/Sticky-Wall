@@ -25,10 +25,12 @@ class ReminderService {
   /// Words the system shows for the reminder channel (in Android's app
   /// settings) and for a note with nothing to show. Set from the app's
   /// language at start-up; English until then.
-  static ({String channel, String description, String fallback}) labels = (
+  static ({String channel, String description, String fallback, String hidden})
+  labels = (
     channel: 'Reminders',
     description: 'Sticky Wall note reminders',
     fallback: 'Sticky Wall',
+    hidden: 'A reminder on a private board',
   );
 
   /// Guids of notes whose reminder the user tapped while the app was running.
@@ -142,7 +144,9 @@ class ReminderService {
   /// (Re)schedules the notification for [note]: the next occurrence of a
   /// repeating reminder, or the one date of a single reminder if it is still
   /// ahead. Trashed notes never ring.
-  Future<void> sync(Note note) async {
+  /// Schedules [note]'s next reminder. A [hidden] note (on a private board)
+  /// says only that there is a reminder, not what it is about.
+  Future<void> sync(Note note, {bool hidden = false}) async {
     await cancel(note);
     if (!_ready || note.isTrashed) return;
     final at = note.nextReminder();
@@ -160,7 +164,7 @@ class ReminderService {
       try {
         await _plugin.zonedSchedule(
           id: _idFor(note),
-          title: titleFor(note),
+          title: hidden ? labels.hidden : titleFor(note),
           body: null,
           scheduledDate: when,
           notificationDetails: _details,

@@ -53,6 +53,7 @@ Future<void> main() async {
     channel: words.remindersChannel,
     description: words.remindersChannelDescription,
     fallback: words.appTitle,
+    hidden: words.reminderPrivate,
   );
 
   if (firstRun) {
@@ -82,10 +83,16 @@ Future<void> main() async {
         notes.boards.where((b) => b.id == settings.widgetBoard).firstOrNull ??
         notes.currentBoard;
     final content = settings.widgetContent;
+    // The home screen is in plain view: a private board never lists its
+    // notes there, open or not.
     widgetService.update(
       title: board.name.isEmpty ? l10n.defaultBoardName : board.name,
-      notes: WidgetService.notesFor(notes.allNotes, board.id, content),
-      empty: content == WidgetContent.newest
+      notes: board.isPrivate
+          ? const []
+          : WidgetService.notesFor(notes.allNotes, board.id, content),
+      empty: board.isPrivate
+          ? l10n.widgetPrivate
+          : content == WidgetContent.newest
           ? l10n.widgetEmptyNewest
           : l10n.widgetEmptyPinned,
       checklistLabel: l10n.typeChecklist,

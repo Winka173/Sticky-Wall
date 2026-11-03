@@ -275,12 +275,40 @@ then taken well beyond it.
   locked out
 
 **Sticky Wall Pro** (one-time purchase, `in_app_purchase`)
-- Adds 6 paper colours, 5 walls (tinted variants of the bundled textures),
-  5 fonts and 5 pin styles (colourful pins, thumbtack, washi tape, paper clip,
-  magnet — gold when pinned to the top, like the red pin). Pro items show a
-  PRO mark and open the Pro sheet (price, Unlock, Restore purchase) when
-  tapped without Pro. Nothing that was free is locked, and notes keep their
-  Pro paper or wall on a phone without Pro
+- Adds 6 paper colours, 5 paper styles (lined, grid, dotted, index card,
+  notebook page — `PaperPatternPainter`), 5 walls (tinted variants of the
+  bundled textures), 5 fonts, 5 pin styles (colourful pins, thumbtack, washi
+  tape, paper clip, magnet — gold when pinned to the top, like the red pin),
+  15 more **stickers** (rubber stamps, emoji and marker doodles drawn in code;
+  three emoji stickers are free), 5 more marker colours plus a
+  **highlighter**, and 4 thread styles (twine, ribbon, dashed, beads) with 4
+  more yarn colours. Nothing that was free is locked, and notes keep their
+  Pro look on a phone without Pro
+- **Seasonal packs** (Pro): a wall and a shelf of stickers each for Tết
+  (red envelope, lantern, firecracker, apricot and peach blossom, a "Happy
+  New Year" stamp), Christmas, Mid-Autumn (with a star lantern) and
+  Valentine's. The sticker picker groups stickers by pack
+- **Private boards** (Pro; making one public again is always free): a board
+  opens only after the phone's fingerprint, face or screen lock and shuts
+  again whenever the app goes to the background. While shut its notes are
+  covered, left out of search from other boards and of the trash list, its
+  reminders say only "A reminder on a private board", and the home-screen
+  widget never lists a private board's notes
+- **Your own paper colour** (Pro): a hue / strength / lightness mixer in the
+  editor's colour row; lightness never drops below what keeps ink readable.
+  Stored in `colorIndex` as an ARGB value (`customPaperBase`), so older
+  versions just wrap it onto the palette
+- **Try before buying**: in Customize a Pro wall, font or pin is tried on
+  with the first tap — shown on the real wall, never saved — with a bar at
+  the foot of the sheet to keep it (opens the Pro sheet) or put it back;
+  closing the sheet puts it back, and buying meanwhile keeps it. Other Pro
+  items open the Pro sheet (price, Unlock, Restore purchase)
+- **One quiet offer**: after a week of use and 20 notes, adding a note shows
+  a single snackbar about Pro, once ever (`shouldOfferPro`)
+- **Stickers** are notes of type `sticker` (id in `Note.sticker`), so they
+  drag, turn, resize, move boards and go to the trash like notes; no pin, no
+  editor — a tap swaps the sticker. Add one from the add button's long-press
+  menu or by long-pressing empty wall
 - Product id `sticky_wall_pro`, a non-consumable; the unlock is cached in
   preferences and re-checked with the store at every start (which also
   settles a pending payment and unlocks a reinstall)
@@ -368,6 +396,8 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/services/pro_controller.dart` | Sticky Wall Pro: price, purchase, restore, the cached unlock; `ProScope` makes it reachable from any route |
 | `lib/services/app_lock.dart` · `lib/widgets/lock_gate.dart` | App lock: the phone's own lock prompt, and the cover over the whole app (above the navigator) |
 | `lib/widgets/pro_sheet.dart` | The Pro sheet and the PRO mark |
+| `lib/widgets/stickers.dart` | The sticker set, `StickerArt` and the sticker picker |
+| `lib/widgets/thread_style.dart` | Painting a thread as yarn, twine, ribbon, dashes or beads (`paintThreadLine`), and the samples in the thread sheet |
 | `lib/widgets/widget_settings_sheet.dart` | Home-screen widget settings with a live preview (part of `settings_sheet.dart`) |
 | `lib/screens/home_screen.dart` | Header, board bar, toolbar, the three views, multi-select |
 | `lib/screens/trash_screen.dart` | Trash: restore / delete forever / empty |
@@ -502,6 +532,11 @@ first.
   (linen), Cardboard004, Concrete034 (cement), Fabric019 (cotton), Paper001,
   Ground037 (moss), Leather011, Marble006 (dark marble), Planks020 (dark
   planks), Tiles074 (checker). License: CC0.
+- Seasonal walls (`wall_tet`, `wall_xmas`, `wall_moon`, `wall_love`):
+  generated for this app with OpenAI's image model through the Codex CLI,
+  checked to tile without seams and saved as JPEG. A trial of AI versions of
+  the cork wall, paper and app icon was not kept: the CC0 cork reads better
+  behind paper, and the drawn icon is more our own.
 - Fonts (Google Fonts, SIL OFL — licence files next to each in
   `assets/fonts/`):
   [Patrick Hand](https://fonts.google.com/specimen/Patrick+Hand),

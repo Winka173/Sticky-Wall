@@ -206,6 +206,57 @@ class NotesController extends ChangeNotifier {
     return board;
   }
 
+  // --- Private boards -----------------------------------------------------
+
+  /// Private boards opened with the phone's lock since the app last went to
+  /// the background.
+  final _openPrivate = <String>{};
+
+  /// Whether [board]'s notes may be shown: not private, or opened.
+  bool isOpen(Board board) =>
+      !board.isPrivate || _openPrivate.contains(board.id);
+
+  /// The open board is private and still shut.
+  bool get currentBoardShut => !isOpen(currentBoard);
+
+  bool _shut(String boardId) {
+    final board = _boards.where((b) => b.id == boardId).firstOrNull;
+    return board != null && !isOpen(board);
+  }
+
+  bool _onPrivateBoard(Note note) =>
+      _boards.where((b) => b.id == note.boardId).firstOrNull?.isPrivate ??
+      false;
+
+  void _syncReminder(Note note) =>
+      _reminders.sync(note, hidden: _onPrivateBoard(note));
+
+  /// The phone's lock was given for [boardId].
+  void openPrivateBoard(String boardId) {
+    if (_openPrivate.add(boardId)) notifyListeners();
+  }
+
+  /// Shuts every private board again (the app went to the background).
+  void shutPrivateBoards() {
+    if (_openPrivate.isEmpty) return;
+    _openPrivate.clear();
+    notifyListeners();
+  }
+
+  /// Makes a board private or not; its notes' reminders are scheduled again
+  /// so their texts are hidden or shown to match.
+  void setBoardPrivate(String id, bool value) {
+    final board = _boards.firstWhere((b) => b.id == id);
+    board.isPrivate = value;
+    // Whoever just made it private is looking at it.
+    if (value) _openPrivate.add(id);
+    _storage.saveBoards(_boards);
+    for (final note in _notes) {
+      if (note.boardId == id && !note.isTrashed) _syncReminder(note);
+    }
+    notifyListeners();
+  }
+
   /// Changes how a board's tab reads; anything left null keeps its value.
   void updateBoard(
     String id, {
@@ -377,7 +428,11 @@ class NotesController extends ChangeNotifier {
     if (_search.trim().isEmpty) return const [];
     return [
       for (final n in _notes)
-        if (!n.isTrashed && n.boardId != _currentBoardId && matches(n)) n,
+        if (!n.isTrashed &&
+            n.boardId != _currentBoardId &&
+            !_shut(n.boardId) &&
+            matches(n))
+          n,
     ];
   }
 
@@ -423,11 +478,21 @@ class NotesController extends ChangeNotifier {
 
   Note draftAt(double x, double y) => _newNoteAt(x, y);
 
+  /// Sticks sticker [id] on the current board, at [x],[y] or near the
+  /// middle of the wall. Returns the new sticker note.
+  Note addSticker(String id, {double? x, double? y}) {
+    final note = (x != null && y != null ? _newNoteAt(x, y) : draft())
+      ..type = NoteType.sticker
+      ..sticker = id;
+    add(note);
+    return note;
+  }
+
   void add(Note note) {
     _refreshCompleted(note);
     _notes.add(note);
     _persistNotes();
-    _reminders.sync(note);
+    _syncReminder(note);
     notifyListeners();
   }
 
@@ -471,7 +536,7 @@ class NotesController extends ChangeNotifier {
       _notes[i] = note;
     }
     _persistNotes();
-    _reminders.sync(note);
+    _syncReminder(note);
     notifyListeners();
   }
 
@@ -519,7 +584,7 @@ class NotesController extends ChangeNotifier {
       if (_boards.every((b) => b.id != note.boardId)) {
         note.boardId = _boards.first.id;
       }
-      _reminders.sync(note);
+      _syncReminder(note);
     }
     _lastDeleted = const [];
     _persistNotes();
@@ -527,11 +592,14 @@ class NotesController extends ChangeNotifier {
   }
 
   /// Notes in the trash, most recently deleted first.
+  /// The trash, newest first — without notes from a shut private board,
+  /// which wait there unseen until it is opened.
   List<Note> get trashed =>
-      _notes.where((n) => n.isTrashed).toList()
+      _notes.where((n) => n.isTrashed && !_shut(n.boardId)).toList()
         ..sort((a, b) => b.deletedAt!.compareTo(a.deletedAt!));
 
-  int get trashCount => _notes.where((n) => n.isTrashed).length;
+  int get trashCount =>
+      _notes.where((n) => n.isTrashed && !_shut(n.boardId)).length;
 
   /// Days before [note] is purged from the trash, rounded up so a note binned
   /// a minute ago still reads "30 days"; 0 means it goes on the next launch.
@@ -592,7 +660,7 @@ class NotesController extends ChangeNotifier {
     );
     _notes.add(copy);
     _persistNotes();
-    _reminders.sync(copy);
+    _syncReminder(copy);
     notifyListeners();
     return copy;
   }
@@ -614,7 +682,7 @@ class NotesController extends ChangeNotifier {
     _notes.addAll(copies);
     _persistNotes();
     for (final copy in copies) {
-      _reminders.sync(copy);
+      _syncReminder(copy);
     }
     notifyListeners();
     return copies;
@@ -1086,7 +1154,7 @@ class NotesController extends ChangeNotifier {
       ..saveLinks(_links)
       ..setCurrentBoardId(_currentBoardId);
     for (final note in _notes) {
-      if (!note.isTrashed) _reminders.sync(note);
+      if (!note.isTrashed) _syncReminder(note);
     }
     notifyListeners();
   }

@@ -1219,7 +1219,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get proSettingsHint => 'More papers, walls, fonts and pins';
+  String get proSettingsHint =>
+      'Stickers, paper styles, walls, fonts, pins and more';
 
   @override
   String get proSettingsThanks => 'Unlocked. Thank you!';
@@ -1358,4 +1359,226 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get widgetAddHint =>
       'To add it: touch and hold your home screen, then Widgets → Sticky Wall.';
+
+  @override
+  String get swatchPink => 'Pink';
+
+  @override
+  String get swatchTeal => 'Teal';
+
+  @override
+  String get swatchBrown => 'Brown';
+
+  @override
+  String get swatchWhite => 'White';
+
+  @override
+  String get swatchYellow => 'Yellow';
+
+  @override
+  String get paperPlain => 'Plain';
+
+  @override
+  String get paperLined => 'Lined';
+
+  @override
+  String get paperGrid => 'Grid';
+
+  @override
+  String get paperDots => 'Dotted';
+
+  @override
+  String get paperIndex => 'Index card';
+
+  @override
+  String get paperNotebook => 'Notebook page';
+
+  @override
+  String get typeSticker => 'Sticker';
+
+  @override
+  String get stickerHere => 'Sticker here';
+
+  @override
+  String get stickerPick => 'Pick a sticker';
+
+  @override
+  String get stampUrgent => 'Urgent';
+
+  @override
+  String get stampDone => 'Done';
+
+  @override
+  String get stampImportant => 'Important';
+
+  @override
+  String get stampLater => 'Later';
+
+  @override
+  String get stickerArrow => 'Arrow';
+
+  @override
+  String get stickerCircle => 'Circled';
+
+  @override
+  String get stickerUnderline => 'Underline';
+
+  @override
+  String get stickerRing => 'Coffee ring';
+
+  @override
+  String get highlighter => 'Highlighter';
+
+  @override
+  String get threadStyle => 'Made of';
+
+  @override
+  String get threadYarn => 'Yarn';
+
+  @override
+  String get threadTwine => 'Twine';
+
+  @override
+  String get threadRibbon => 'Ribbon';
+
+  @override
+  String get threadDashed => 'Dashed';
+
+  @override
+  String get threadBeads => 'Beads';
+
+  @override
+  String get tryingOn =>
+      'Trying it on: this is how it looks. Unlock Pro to keep it.';
+
+  @override
+  String get tryOnStop => 'Put back';
+
+  @override
+  String get tryOnKeep => 'Keep it';
+
+  @override
+  String get proNudge =>
+      'Enjoying Sticky Wall? Pro adds stickers, paper styles, walls, fonts and more, for one payment.';
+
+  @override
+  String get proNudgeAction => 'See Pro';
+
+  @override
+  String get proPerkPaperStyles =>
+      '5 paper styles: lined, grid, dotted, index card, notebook page';
+
+  @override
+  String get proPerkStickers =>
+      '15 more stickers: rubber stamps, emoji and marker doodles';
+
+  @override
+  String get proPerkMarkers =>
+      '5 more marker colours and a highlighter for the wall';
+
+  @override
+  String get proPerkThreads =>
+      '4 thread styles (twine, ribbon, dashed, beads) and 4 more colours';
+
+  @override
+  String get proTryHint =>
+      'Tap a Pro wall, font or pin in Customize to try it on your own wall first.';
+
+  @override
+  String get paperCustom => 'Your own colour';
+
+  @override
+  String get paperCustomTitle => 'Mix a paper colour';
+
+  @override
+  String get paperCustomHue => 'Colour';
+
+  @override
+  String get paperCustomStrength => 'Strength';
+
+  @override
+  String get paperCustomLightness => 'Lightness';
+
+  @override
+  String get boardMakePrivate => 'Make private';
+
+  @override
+  String get boardMakePublic => 'Make public again';
+
+  @override
+  String get boardPrivateHint =>
+      'Opens with your fingerprint or screen lock; kept off the widget, search and reminder texts';
+
+  @override
+  String get boardPrivate => 'Private board';
+
+  @override
+  String get boardShutHint => 'Its notes stay hidden until you unlock it.';
+
+  @override
+  String get boardUnlockReason => 'Open the private board';
+
+  @override
+  String get reminderPrivate => 'A reminder on a private board';
+
+  @override
+  String get widgetPrivate => 'Private board';
+
+  @override
+  String get packEveryday => 'Everyday';
+
+  @override
+  String get packTet => 'Tết';
+
+  @override
+  String get packChristmas => 'Christmas';
+
+  @override
+  String get packMidAutumn => 'Mid-Autumn';
+
+  @override
+  String get packValentine => 'Valentine\'s';
+
+  @override
+  String get stampNewYear => 'Happy New Year';
+
+  @override
+  String get stampMerry => 'Merry Christmas';
+
+  @override
+  String get stampMidAutumn => 'Mid-Autumn';
+
+  @override
+  String get stampLove => 'Love you';
+
+  @override
+  String get stickerMai => 'Apricot blossom';
+
+  @override
+  String get stickerDao => 'Peach blossom';
+
+  @override
+  String get stickerStarLantern => 'Star lantern';
+
+  @override
+  String get wallTet => 'Tết red';
+
+  @override
+  String get wallXmas => 'Christmas green';
+
+  @override
+  String get wallMoon => 'Mid-Autumn night';
+
+  @override
+  String get wallLove => 'Valentine pink';
+
+  @override
+  String get proPerkSeasons =>
+      'Seasonal packs: Tết, Christmas, Mid-Autumn and Valentine\'s walls and stickers';
+
+  @override
+  String get proPerkPrivate => 'Private boards that open with your fingerprint';
+
+  @override
+  String get proPerkCustomColor => 'Mix any paper colour you like';
 }

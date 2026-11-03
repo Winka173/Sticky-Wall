@@ -11,9 +11,25 @@ import 'draw_stroke.dart';
 /// column or corner of a planning board. No pin, no body: just the name.
 ///
 /// [audio] is a voice note, drawn as a little cassette with a play button;
-/// its recording lives in a file named by [Note.audioPath]. New types go at
-/// the end: the type filter stores an index (see `NoteStorage.typeFilter`).
-enum NoteType { normal, link, checklist, drawing, photo, label, audio }
+/// its recording lives in a file named by [Note.audioPath].
+///
+/// [sticker] is a sticker stuck straight on the wall — an emoji, a rubber
+/// stamp or a doodle named by [Note.sticker]; no paper, no pin. New types go
+/// at the end: the type filter stores an index (see `NoteStorage.typeFilter`).
+enum NoteType { normal, link, checklist, drawing, photo, label, audio, sticker }
+
+/// The ruling printed on a sheet of note paper. Plain is the classic sticky
+/// note; the others are Sticky Wall Pro's.
+enum PaperStyle {
+  plain,
+  lined,
+  grid,
+  dots,
+  indexCard,
+  notebook;
+
+  bool get pro => this != plain;
+}
 
 /// How often a reminder fires again after its first time.
 enum ReminderRepeat { none, daily, weekly, monthly }
@@ -57,6 +73,8 @@ class Note {
     this.imagePath = '',
     this.audioPath = '',
     this.audioMs = 0,
+    this.paper = PaperStyle.plain,
+    this.sticker = '',
     this.x = 0.5,
     this.y = 0.5,
     this.scale = 1.0,
@@ -109,6 +127,14 @@ class Note {
   int audioMs;
 
   bool get hasAudio => audioPath.isNotEmpty;
+
+  /// The ruling on the paper (sheets of paper only: plain, link and
+  /// checklist notes).
+  PaperStyle paper;
+
+  /// Which sticker a [NoteType.sticker] is (see `stickers` in
+  /// widgets/stickers.dart); empty for every other type.
+  String sticker;
 
   DateTime createdAt;
 
@@ -234,6 +260,10 @@ class Note {
       imagePath: _imagePath(json),
       audioPath: json['audioPath'] as String? ?? '',
       audioMs: (json['audioMs'] as num?)?.toInt() ?? 0,
+      paper:
+          PaperStyle.values.where((p) => p.name == json['paper']).firstOrNull ??
+          PaperStyle.plain,
+      sticker: json['sticker'] as String? ?? '',
       createdAt:
           _date(json['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       x: (json['x'] as num?)?.toDouble() ?? 0.5,
@@ -264,6 +294,8 @@ class Note {
     'imagePath': imagePath,
     if (audioPath.isNotEmpty) 'audioPath': audioPath,
     if (audioMs > 0) 'audioMs': audioMs,
+    if (paper != PaperStyle.plain) 'paper': paper.name,
+    if (sticker.isNotEmpty) 'sticker': sticker,
     'createdAt': createdAt.toIso8601String(),
     'x': x,
     'y': y,
@@ -277,6 +309,18 @@ class Note {
   };
 }
 
+/// What a thread is made of. Yarn comes with the app; the others are Sticky
+/// Wall Pro's.
+enum ThreadStyle {
+  yarn,
+  twine,
+  ribbon,
+  dashed,
+  beads;
+
+  bool get pro => this != yarn;
+}
+
 /// A piece of yarn tied between two pins on the wall. Unordered for the
 /// purpose of identity: the same pair is one link whichever end you started
 /// from — but [arrow] points from [a] to [b].
@@ -287,6 +331,7 @@ class NoteLink {
     this.color,
     this.label = '',
     this.arrow = false,
+    this.style = ThreadStyle.yarn,
   });
 
   final String a;
@@ -301,6 +346,8 @@ class NoteLink {
   /// Whether the [b] end carries an arrowhead (a dependency, a flow).
   final bool arrow;
 
+  final ThreadStyle style;
+
   bool connects(String guid) => a == guid || b == guid;
 
   bool same(String x, String y) => (a == x && b == y) || (a == y && b == x);
@@ -310,12 +357,14 @@ class NoteLink {
     bool clearColor = false,
     String? label,
     bool? arrow,
+    ThreadStyle? style,
   }) => NoteLink(
     a,
     b,
     color: clearColor ? null : (color ?? this.color),
     label: label ?? this.label,
     arrow: arrow ?? this.arrow,
+    style: style ?? this.style,
   );
 
   factory NoteLink.fromJson(Map<String, dynamic> json) => NoteLink(
@@ -324,6 +373,9 @@ class NoteLink {
     color: json['color'] as int?,
     label: json['label'] as String? ?? '',
     arrow: json['arrow'] as bool? ?? false,
+    style:
+        ThreadStyle.values.where((s) => s.name == json['style']).firstOrNull ??
+        ThreadStyle.yarn,
   );
 
   Map<String, dynamic> toJson() => {
@@ -332,5 +384,6 @@ class NoteLink {
     if (color != null) 'color': color,
     if (label.isNotEmpty) 'label': label,
     if (arrow) 'arrow': true,
+    if (style != ThreadStyle.yarn) 'style': style.name,
   };
 }

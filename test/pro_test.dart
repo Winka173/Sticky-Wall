@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sticky_wall/l10n/app_localizations.dart';
 import 'package:sticky_wall/main.dart';
+import 'package:sticky_wall/models/board.dart';
 import 'package:sticky_wall/models/note.dart';
 import 'package:sticky_wall/models/view_mode.dart';
 import 'package:sticky_wall/services/app_lock.dart';
@@ -13,8 +14,11 @@ import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
 import 'package:sticky_wall/services/widget_service.dart';
 import 'package:sticky_wall/theme.dart';
+import 'package:sticky_wall/widgets/add_note_button.dart';
 import 'package:sticky_wall/widgets/lock_gate.dart';
 import 'package:sticky_wall/widgets/note_views.dart';
+import 'package:sticky_wall/widgets/stickers.dart';
+import 'package:sticky_wall/widgets/wall_view.dart';
 
 final _epoch = DateTime(2026);
 
@@ -40,11 +44,15 @@ Future<(NotesController, SettingsController, ProController)> _pumpApp(
   WidgetTester tester, {
   bool pro = false,
   List<Note> notes = const [],
+  List<NoteLink> links = const [],
+  List<Board>? boards,
   ViewMode viewMode = ViewMode.grid,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final storage = await NoteStorage.create();
   await storage.saveNotes(notes);
+  await storage.saveLinks(links);
+  if (boards != null) await storage.saveBoards(boards);
   await storage.setViewMode(viewMode);
   final controller = NotesController(storage, ReminderService());
   final settings = SettingsController(storage);
@@ -159,12 +167,15 @@ void main() {
       expect(ProController(storage).unlocked, isTrue);
     });
 
-    testWidgets('a Pro wall without Pro opens the Pro sheet instead', (
+    testWidgets('a Pro wall tapped again without Pro opens the Pro sheet', (
       tester,
     ) async {
       final (notes, _, _) = await _pumpApp(tester);
       await _openCustomize(tester);
       await _scrollToTile(tester, 'Cork board', 'Navy chalkboard');
+      // The first tap tries it on; the second offers Pro.
+      await tester.tap(find.text('Navy chalkboard'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Navy chalkboard'));
       await tester.pumpAndSettle();
 
@@ -310,6 +321,255 @@ void main() {
       expect(settings.widgetLook, WidgetLook.wall);
       expect(settings.widgetTextSize, WidgetTextSize.normal);
       expect(settings.appLock, isFalse);
+    });
+  });
+
+  group('More Pro things', () {
+    test('paper, sticker and thread style survive JSON, and old data '
+        'reads as before', () {
+      final note = _note('a')
+        ..paper = PaperStyle.notebook
+        ..type = NoteType.sticker
+        ..sticker = 'urgent';
+      final back = Note.fromJson(note.toJson());
+      expect(back.paper, PaperStyle.notebook);
+      expect(back.sticker, 'urgent');
+      expect(back.type, NoteType.sticker);
+
+      final old = Note.fromJson(_note('b').toJson()..remove('paper'));
+      expect(old.paper, PaperStyle.plain);
+      expect(old.toJson().containsKey('paper'), isFalse);
+
+      const link = NoteLink('a', 'b', style: ThreadStyle.ribbon);
+      expect(NoteLink.fromJson(link.toJson()).style, ThreadStyle.ribbon);
+      expect(
+        NoteLink.fromJson(const NoteLink('a', 'b').toJson()).style,
+        ThreadStyle.yarn,
+      );
+    });
+
+    test('the highlighter draws broad and see-through', () {
+      const pen = WallMarker(color: 0xFFD32F2F, width: 3);
+      expect(pen.strokeColor, 0xFFD32F2F);
+      expect(pen.strokeWidth, 3);
+      final marker = pen.copyWith(highlighter: true);
+      expect(marker.strokeColor >>> 24, AppColors.highlighterAlpha);
+      expect(marker.strokeColor & 0xFFFFFF, 0xD32F2F);
+      expect(marker.strokeWidth, greaterThan(10));
+    });
+
+    test('Pro is offered once, after a week and twenty notes', () async {
+      SharedPreferences.setMockInitialValues({});
+      final storage = await NoteStorage.create();
+      final settings = SettingsController(storage);
+      final now = DateTime.now();
+      expect(settings.shouldOfferPro(noteCount: 30, now: now), isFalse);
+      final later = now.add(const Duration(days: 8));
+      expect(settings.shouldOfferPro(noteCount: 10, now: later), isFalse);
+      expect(settings.shouldOfferPro(noteCount: 20, now: later), isTrue);
+      settings.markProOffered();
+      await Future<void>.delayed(Duration.zero);
+      expect(settings.shouldOfferPro(noteCount: 20, now: later), isFalse);
+      // The install date is kept, not reset at every start.
+      await storage.setProOffered(false);
+      expect(
+        SettingsController(storage).shouldOfferPro(noteCount: 20, now: now),
+        isFalse,
+      );
+    });
+
+    testWidgets('every sticker and paper style draws, stickers without a '
+        'pin', (tester) async {
+      final notes = [
+        for (final (i, s) in stickers.indexed)
+          _note('s$i', type: NoteType.sticker)
+            ..content = ''
+            ..sticker = s.id,
+        for (final style in PaperStyle.values)
+          _note('p${style.name}')..paper = style,
+      ];
+      await _pumpApp(tester, pro: true, notes: notes);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(StickerArt), findsWidgets);
+      for (final note in notes.where((n) => n.type == NoteType.sticker)) {
+        expect(
+          find.descendant(
+            of: find.byKey(ValueKey(note.guid)),
+            matching: find.byType(NotePin),
+          ),
+          findsNothing,
+        );
+      }
+    });
+
+    for (final style in ThreadStyle.values) {
+      testWidgets('a ${style.name} thread draws on the wall', (tester) async {
+        await _pumpApp(
+          tester,
+          pro: true,
+          viewMode: ViewMode.wall,
+          notes: [
+            _note('a'),
+            _note('b')
+              ..x = 0.7
+              ..y = 0.6,
+          ],
+          links: [NoteLink('a', 'b', style: style, arrow: true)],
+        );
+        expect(tester.takeException(), isNull);
+      });
+    }
+
+    testWidgets('a free sticker is stuck on the wall from the add menu', (
+      tester,
+    ) async {
+      final (notes, _, _) = await _pumpApp(tester, viewMode: ViewMode.wall);
+      await tester.longPress(find.byType(AddNoteButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sticker'));
+      await tester.pumpAndSettle();
+      expect(find.text('Pick a sticker'), findsOneWidget);
+
+      // A Pro stamp offers Pro instead.
+      await tester.tap(find.bySemanticsLabel('Urgent, Pro'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining("Purchases aren't available"), findsOneWidget);
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('⭐'));
+      await tester.pumpAndSettle();
+      final stuck = notes.boardNotes.single;
+      expect(stuck.type, NoteType.sticker);
+      expect(stuck.sticker, 'star');
+    });
+
+    testWidgets('a Pro wall is tried on, then put back', (tester) async {
+      final (notes, settings, _) = await _pumpApp(tester);
+      await _openCustomize(tester);
+      await _scrollToTile(tester, 'Cork board', 'Navy chalkboard');
+      await tester.tap(find.text('Navy chalkboard'));
+      await tester.pumpAndSettle();
+      expect(settings.tryWall, walls.indexWhere((w) => w.id == 'chalk_navy'));
+      expect(notes.currentBoard.wallIndex, 0, reason: 'not saved');
+      expect(find.text('Put back'), findsOneWidget);
+
+      await tester.tap(find.text('Put back'));
+      await tester.pumpAndSettle();
+      expect(settings.tryingOn, isFalse);
+
+      // Tried again and the sheet closed: put back as well.
+      await tester.tap(find.text('Navy chalkboard'));
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+      expect(settings.tryingOn, isFalse);
+      expect(notes.currentBoard.wallIndex, 0);
+    });
+
+    testWidgets('bought while trying on, the wall and font are kept', (
+      tester,
+    ) async {
+      final (notes, settings, pro) = await _pumpApp(tester);
+      await _openCustomize(tester);
+      final font = fontChoices.firstWhere((f) => f.pro);
+      settings
+        ..setTryWall(walls.indexWhere((w) => w.id == 'sage'))
+        ..setTryFont(font.id);
+      await tester.pumpAndSettle();
+      pro.unlockForTesting();
+      await tester.pumpAndSettle();
+      expect(settings.tryingOn, isFalse);
+      expect(walls[notes.currentBoard.wallIndex].id, 'sage');
+      expect(settings.font.id, font.id);
+    });
+  });
+
+  group('Seasons, private boards, own colours', () {
+    test('a mixed paper colour is stored in colorIndex and read back', () {
+      const mint = Color(0xFFCDEFE0);
+      final stored = customPaper(mint);
+      expect(isCustomPaper(stored), isTrue);
+      expect(noteColor(stored, 'x'), mint);
+      // Palette indices and "auto" are untouched.
+      expect(isCustomPaper(3), isFalse);
+      expect(isCustomPaper(null), isFalse);
+      expect(noteColor(3, 'x'), AppColors.notePapers[3]);
+      final note = _note('a')..colorIndex = stored;
+      expect(Note.fromJson(note.toJson()).colorIndex, stored);
+    });
+
+    test('every seasonal sticker has a pack and the packs are Pro', () {
+      for (final pack in StickerPack.values.skip(1)) {
+        final inPack = stickers.where((s) => s.pack == pack);
+        expect(inPack, isNotEmpty, reason: pack.name);
+        expect(inPack.every((s) => s.pro), isTrue);
+      }
+      expect(stickers.map((s) => s.id).toSet().length, stickers.length);
+      for (final id in ['tet', 'xmas', 'moon', 'love']) {
+        expect(walls.where((w) => w.id == id).single.pro, isTrue);
+      }
+    });
+
+    test('a shut private board keeps its notes out of search and the '
+        'trash list', () async {
+      SharedPreferences.setMockInitialValues({});
+      final storage = await NoteStorage.create();
+      await storage.saveBoards([
+        Board(id: 'default', name: ''),
+        Board(id: 'secret', name: 'Diary', isPrivate: true),
+      ]);
+      await storage.saveNotes([
+        _note('open')..content = 'milk',
+        _note('hidden', boardId: 'secret')..content = 'milk diary',
+        _note('binned', boardId: 'secret')
+          ..content = 'milk'
+          ..deletedAt = DateTime.now(),
+      ]);
+      final notes = NotesController(storage, ReminderService());
+      final secret = notes.boards.firstWhere((b) => b.id == 'secret');
+      expect(notes.isOpen(secret), isFalse);
+      notes.search = 'milk';
+      expect(notes.otherBoardMatches, isEmpty);
+      expect(notes.trashed, isEmpty);
+
+      notes.openPrivateBoard('secret');
+      expect(notes.otherBoardMatches.map((n) => n.guid), ['hidden']);
+      expect(notes.trashed.map((n) => n.guid), ['binned']);
+
+      notes.shutPrivateBoards();
+      expect(notes.isOpen(secret), isFalse);
+      expect(Board.fromJson(secret.toJson()).isPrivate, isTrue);
+    });
+
+    testWidgets('a shut private board shows its cover, not its notes', (
+      tester,
+    ) async {
+      final (notes, _, _) = await _pumpApp(
+        tester,
+        pro: true,
+        boards: [Board(id: 'default', name: '', isPrivate: true)],
+        notes: [_note('a')..content = 'my secret'],
+      );
+      expect(find.text('Private board'), findsOneWidget);
+      expect(find.text('my secret'), findsNothing);
+      expect(find.byType(AddNoteButton), findsNothing);
+
+      // No lock plugin in tests: like a phone without a screen lock, it opens.
+      await tester.tap(find.text('Unlock'));
+      // The lock plugin answers on a real platform channel turn.
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('my secret'), findsOneWidget);
+
+      // Going to the background shuts it again.
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(find.text('my secret'), findsNothing);
+      expect(notes.currentBoardShut, isTrue);
     });
   });
 }

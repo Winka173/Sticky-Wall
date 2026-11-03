@@ -13,11 +13,24 @@ import '../util/rich_note.dart';
 import 'audio_note.dart';
 import 'drawing_canvas.dart';
 import 'keyboard_tappable.dart';
+import 'stickers.dart';
 
 /// The spoken name of paper colour [index] (null: the one picked from the
 /// note's id), for the colour swatches.
+/// Localized name of a paper ruling.
+String paperStyleLabel(AppLocalizations l10n, PaperStyle style) =>
+    switch (style) {
+      PaperStyle.plain => l10n.paperPlain,
+      PaperStyle.lined => l10n.paperLined,
+      PaperStyle.grid => l10n.paperGrid,
+      PaperStyle.dots => l10n.paperDots,
+      PaperStyle.indexCard => l10n.paperIndex,
+      PaperStyle.notebook => l10n.paperNotebook,
+    };
+
 String paperName(AppLocalizations l10n, int? index) => switch (index) {
   null => l10n.paperAuto,
+  final i when isCustomPaper(i) => l10n.paperCustom,
   0 => l10n.paperYellow,
   1 => l10n.paperPink,
   2 => l10n.paperMint,
@@ -200,7 +213,7 @@ class NotePhoto extends StatelessWidget {
 }
 
 /// What fills the fixed slot at the start of a list row.
-enum _Lead { photo, sketch, list, link, audio, emoji, none }
+enum _Lead { photo, sketch, list, link, audio, sticker, emoji, none }
 
 /// List-row thumbnail of the note's photo.
 class _Thumbnail extends StatelessWidget {
@@ -826,6 +839,8 @@ class _NoteBody extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: body.copyWith(fontWeight: FontWeight.bold),
         );
+      case NoteType.sticker:
+        return const SizedBox.shrink();
       case NoteType.audio:
         // The cassette writes its title on its own label sticker.
         if (note.content.isEmpty) return const SizedBox.shrink();
@@ -952,6 +967,7 @@ class StickyNoteCard extends StatelessWidget {
       NoteType.drawing => _sketch(context),
       NoteType.label => _tape(context),
       NoteType.audio => _cassette(context),
+      NoteType.sticker => _stickerArt(),
       _ => _sheet(context, done),
     };
     if (done) paper = Opacity(opacity: 0.72, child: paper);
@@ -972,9 +988,9 @@ class StickyNoteCard extends StatelessWidget {
             padding: const EdgeInsets.only(top: _pinInset),
             child: paper,
           ),
-          // Tape is stuck down flat: no pin (so no thread can start from a
-          // label either; one can still end on it).
-          if (note.type != NoteType.label)
+          // Tape and stickers are stuck down flat: no pin (so no thread can
+          // start from them either; one can still end on them).
+          if (note.type != NoteType.label && note.type != NoteType.sticker)
             Positioned(
               top: 0,
               child: _PinTarget(pinned: note.pinned, cb: cb, seed: note.guid),
@@ -1093,8 +1109,38 @@ class StickyNoteCard extends StatelessWidget {
     );
   }
 
+  /// A sticker stuck straight on the wall, centred in the card's width:
+  /// emoji and doodles at about two thirds of it, stamps nearly all of it.
+  Widget _stickerArt() {
+    final sticker = stickerById(note.sticker);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final room = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : 160.0;
+        final width = room * (sticker.kind == StickerKind.stamp ? 0.95 : 0.62);
+        return Container(
+          width: double.infinity,
+          alignment: Alignment.center,
+          decoration: selected
+              ? BoxDecoration(
+                  border: Border.all(color: AppColors.ink, width: 2.5),
+                  borderRadius: BorderRadius.circular(AppRadii.control),
+                )
+              : null,
+          child: Semantics(
+            label: stickerLabel(AppLocalizations.of(context)!, sticker),
+            child: StickerArt(sticker: sticker, width: width),
+          ),
+        );
+      },
+    );
+  }
+
   /// A sheet of sticky paper: adhesive strip, curled corner, the body.
   Widget _sheet(BuildContext context, bool done) {
+    final line = noteBodyStyle(context).fontSize! * 1.4;
+    final notebook = note.paper == PaperStyle.notebook;
     return Container(
       // Fill whatever width the wall/grid grants — the paper is a fixed-size
       // sheet, not something that shrinks to a short line of text.
@@ -1122,6 +1168,13 @@ class StickyNoteCard extends StatelessWidget {
               ),
             ),
           ),
+          // Lines, squares or dots printed on the paper, under the writing.
+          if (note.paper != PaperStyle.plain)
+            Positioned.fill(
+              child: CustomPaint(
+                painter: PaperPatternPainter(note.paper, line: line),
+              ),
+            ),
           // Slightly curled corner.
           Positioned(
             right: 0,
@@ -1132,7 +1185,8 @@ class StickyNoteCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 18, 10, 10),
+            // A notebook page writes right of its red margin.
+            padding: EdgeInsets.fromLTRB(notebook ? 30 : 12, 18, 10, 10),
             child: _NoteBody(
               note: note,
               cb: cb,
@@ -1595,6 +1649,8 @@ class NoteListTile extends StatelessWidget {
       ? _Lead.link
       : note.type == NoteType.audio
       ? _Lead.audio
+      : note.type == NoteType.sticker
+      ? _Lead.sticker
       : note.emoji.isNotEmpty
       ? _Lead.emoji
       : _Lead.none;
@@ -1611,6 +1667,10 @@ class NoteListTile extends StatelessWidget {
         Icons.voicemail,
         size: 22,
         color: AppColors.ink,
+      ),
+      _Lead.sticker => StickerArt(
+        sticker: stickerById(note.sticker),
+        width: _slot,
       ),
       _Lead.emoji => Text(note.emoji, style: const TextStyle(fontSize: 20)),
       _Lead.none => null,
@@ -1644,6 +1704,8 @@ class NoteListTile extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 13),
             child: Icon(Icons.label, size: 18, color: AppColors.inkSoft),
           )
+        else if (note.type == NoteType.sticker)
+          const SizedBox(width: 44)
         else
           _PinTarget(pinned: note.pinned, cb: cb, seed: note.guid),
         _leading(),
@@ -1707,6 +1769,17 @@ class NoteListTile extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: body.copyWith(fontWeight: FontWeight.bold),
+        );
+      case NoteType.sticker:
+        final l10n = AppLocalizations.of(context)!;
+        final sticker = stickerById(note.sticker);
+        return Text(
+          sticker.kind == StickerKind.emoji
+              ? l10n.typeSticker
+              : stickerLabel(l10n, sticker),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: body.copyWith(color: AppColors.inkSoft),
         );
       case NoteType.audio:
         // The title (or the type name, in soft ink) and the running time.
@@ -1827,4 +1900,105 @@ class _NoteAppearState extends State<NoteAppear>
       },
     );
   }
+}
+
+/// The ruling printed on a sheet of note paper ([PaperStyle]): lines one
+/// [line] apart under each line of writing, a grid or dots at half that, an
+/// index card's red heading rule, or a notebook page's red margin and holes.
+class PaperPatternPainter extends CustomPainter {
+  const PaperPatternPainter(this.style, {required this.line, this.top = 18});
+
+  final PaperStyle style;
+
+  /// Height of one line of note text.
+  final double line;
+
+  /// Where the writing starts.
+  final double top;
+
+  static const _blue = Color(0x4D1E63C6);
+  static const _red = Color(0x80D32F2F);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (line <= 0) return;
+    final ink = Paint()
+      ..color = AppColors.ink.withValues(alpha: 0.14)
+      ..strokeWidth = 1;
+    // Just under the first line's letters, and every line after.
+    final first = top + line * 0.88;
+    void rules(Paint paint, {double from = 0}) {
+      for (var y = first; y < size.height - 6; y += line) {
+        canvas.drawLine(Offset(from, y), Offset(size.width, y), paint);
+      }
+    }
+
+    switch (style) {
+      case PaperStyle.plain:
+        break;
+      case PaperStyle.lined:
+        rules(ink);
+      case PaperStyle.grid:
+        final step = line / 2;
+        final grid = Paint()
+          ..color = AppColors.ink.withValues(alpha: 0.10)
+          ..strokeWidth = 1;
+        for (var y = step; y < size.height; y += step) {
+          canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
+        }
+        for (var x = step; x < size.width; x += step) {
+          canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
+        }
+      case PaperStyle.dots:
+        final step = line / 2;
+        final dot = Paint()..color = AppColors.ink.withValues(alpha: 0.24);
+        for (var y = step; y < size.height; y += step) {
+          for (var x = step; x < size.width; x += step) {
+            canvas.drawCircle(Offset(x, y), 1.1, dot);
+          }
+        }
+      case PaperStyle.indexCard:
+        // The heading line in red, the rest in faint blue.
+        canvas.drawLine(
+          Offset(0, first),
+          Offset(size.width, first),
+          Paint()
+            ..color = _red
+            ..strokeWidth = 1.4,
+        );
+        for (var y = first + line; y < size.height - 6; y += line) {
+          canvas.drawLine(
+            Offset(0, y),
+            Offset(size.width, y),
+            Paint()
+              ..color = _blue
+              ..strokeWidth = 1,
+          );
+        }
+      case PaperStyle.notebook:
+        rules(
+          Paint()
+            ..color = _blue
+            ..strokeWidth = 1,
+        );
+        canvas.drawLine(
+          const Offset(24, 0),
+          Offset(24, size.height),
+          Paint()
+            ..color = _red
+            ..strokeWidth = 1.2,
+        );
+        // Punched holes down the edge.
+        final hole = Paint()..color = Colors.black.withValues(alpha: 0.16);
+        for (var y = line * 0.9; y < size.height - 8; y += line * 2) {
+          canvas.drawCircle(Offset(10, y), 3.2, hole);
+        }
+    }
+  }
+
+  @override
+  bool shouldRepaint(PaperPatternPainter oldDelegate) =>
+      oldDelegate.style != style ||
+      oldDelegate.line != line ||
+      oldDelegate.top != top;
 }

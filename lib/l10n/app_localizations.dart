@@ -2249,7 +2249,7 @@ abstract class AppLocalizations {
   /// No description provided for @proSettingsHint.
   ///
   /// In en, this message translates to:
-  /// **'More papers, walls, fonts and pins'**
+  /// **'Stickers, paper styles, walls, fonts, pins and more'**
   String get proSettingsHint;
 
   /// No description provided for @proSettingsThanks.
@@ -2521,6 +2521,432 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'To add it: touch and hold your home screen, then Widgets → Sticky Wall.'**
   String get widgetAddHint;
+
+  /// No description provided for @swatchPink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get swatchPink;
+
+  /// No description provided for @swatchTeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get swatchTeal;
+
+  /// No description provided for @swatchBrown.
+  ///
+  /// In en, this message translates to:
+  /// **'Brown'**
+  String get swatchBrown;
+
+  /// No description provided for @swatchWhite.
+  ///
+  /// In en, this message translates to:
+  /// **'White'**
+  String get swatchWhite;
+
+  /// No description provided for @swatchYellow.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow'**
+  String get swatchYellow;
+
+  /// No description provided for @paperPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain'**
+  String get paperPlain;
+
+  /// No description provided for @paperLined.
+  ///
+  /// In en, this message translates to:
+  /// **'Lined'**
+  String get paperLined;
+
+  /// No description provided for @paperGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid'**
+  String get paperGrid;
+
+  /// No description provided for @paperDots.
+  ///
+  /// In en, this message translates to:
+  /// **'Dotted'**
+  String get paperDots;
+
+  /// No description provided for @paperIndex.
+  ///
+  /// In en, this message translates to:
+  /// **'Index card'**
+  String get paperIndex;
+
+  /// No description provided for @paperNotebook.
+  ///
+  /// In en, this message translates to:
+  /// **'Notebook page'**
+  String get paperNotebook;
+
+  /// No description provided for @typeSticker.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticker'**
+  String get typeSticker;
+
+  /// No description provided for @stickerHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticker here'**
+  String get stickerHere;
+
+  /// No description provided for @stickerPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a sticker'**
+  String get stickerPick;
+
+  /// No description provided for @stampUrgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent'**
+  String get stampUrgent;
+
+  /// No description provided for @stampDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get stampDone;
+
+  /// No description provided for @stampImportant.
+  ///
+  /// In en, this message translates to:
+  /// **'Important'**
+  String get stampImportant;
+
+  /// No description provided for @stampLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get stampLater;
+
+  /// No description provided for @stickerArrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrow'**
+  String get stickerArrow;
+
+  /// No description provided for @stickerCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'Circled'**
+  String get stickerCircle;
+
+  /// No description provided for @stickerUnderline.
+  ///
+  /// In en, this message translates to:
+  /// **'Underline'**
+  String get stickerUnderline;
+
+  /// No description provided for @stickerRing.
+  ///
+  /// In en, this message translates to:
+  /// **'Coffee ring'**
+  String get stickerRing;
+
+  /// No description provided for @highlighter.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlighter'**
+  String get highlighter;
+
+  /// No description provided for @threadStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Made of'**
+  String get threadStyle;
+
+  /// No description provided for @threadYarn.
+  ///
+  /// In en, this message translates to:
+  /// **'Yarn'**
+  String get threadYarn;
+
+  /// No description provided for @threadTwine.
+  ///
+  /// In en, this message translates to:
+  /// **'Twine'**
+  String get threadTwine;
+
+  /// No description provided for @threadRibbon.
+  ///
+  /// In en, this message translates to:
+  /// **'Ribbon'**
+  String get threadRibbon;
+
+  /// No description provided for @threadDashed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashed'**
+  String get threadDashed;
+
+  /// No description provided for @threadBeads.
+  ///
+  /// In en, this message translates to:
+  /// **'Beads'**
+  String get threadBeads;
+
+  /// No description provided for @tryingOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Trying it on: this is how it looks. Unlock Pro to keep it.'**
+  String get tryingOn;
+
+  /// No description provided for @tryOnStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Put back'**
+  String get tryOnStop;
+
+  /// No description provided for @tryOnKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it'**
+  String get tryOnKeep;
+
+  /// No description provided for @proNudge.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoying Sticky Wall? Pro adds stickers, paper styles, walls, fonts and more, for one payment.'**
+  String get proNudge;
+
+  /// No description provided for @proNudgeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'See Pro'**
+  String get proNudgeAction;
+
+  /// No description provided for @proPerkPaperStyles.
+  ///
+  /// In en, this message translates to:
+  /// **'5 paper styles: lined, grid, dotted, index card, notebook page'**
+  String get proPerkPaperStyles;
+
+  /// No description provided for @proPerkStickers.
+  ///
+  /// In en, this message translates to:
+  /// **'15 more stickers: rubber stamps, emoji and marker doodles'**
+  String get proPerkStickers;
+
+  /// No description provided for @proPerkMarkers.
+  ///
+  /// In en, this message translates to:
+  /// **'5 more marker colours and a highlighter for the wall'**
+  String get proPerkMarkers;
+
+  /// No description provided for @proPerkThreads.
+  ///
+  /// In en, this message translates to:
+  /// **'4 thread styles (twine, ribbon, dashed, beads) and 4 more colours'**
+  String get proPerkThreads;
+
+  /// No description provided for @proTryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a Pro wall, font or pin in Customize to try it on your own wall first.'**
+  String get proTryHint;
+
+  /// No description provided for @paperCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own colour'**
+  String get paperCustom;
+
+  /// No description provided for @paperCustomTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mix a paper colour'**
+  String get paperCustomTitle;
+
+  /// No description provided for @paperCustomHue.
+  ///
+  /// In en, this message translates to:
+  /// **'Colour'**
+  String get paperCustomHue;
+
+  /// No description provided for @paperCustomStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength'**
+  String get paperCustomStrength;
+
+  /// No description provided for @paperCustomLightness.
+  ///
+  /// In en, this message translates to:
+  /// **'Lightness'**
+  String get paperCustomLightness;
+
+  /// No description provided for @boardMakePrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Make private'**
+  String get boardMakePrivate;
+
+  /// No description provided for @boardMakePublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Make public again'**
+  String get boardMakePublic;
+
+  /// No description provided for @boardPrivateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens with your fingerprint or screen lock; kept off the widget, search and reminder texts'**
+  String get boardPrivateHint;
+
+  /// No description provided for @boardPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private board'**
+  String get boardPrivate;
+
+  /// No description provided for @boardShutHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Its notes stay hidden until you unlock it.'**
+  String get boardShutHint;
+
+  /// No description provided for @boardUnlockReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the private board'**
+  String get boardUnlockReason;
+
+  /// No description provided for @reminderPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'A reminder on a private board'**
+  String get reminderPrivate;
+
+  /// No description provided for @widgetPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private board'**
+  String get widgetPrivate;
+
+  /// No description provided for @packEveryday.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyday'**
+  String get packEveryday;
+
+  /// No description provided for @packTet.
+  ///
+  /// In en, this message translates to:
+  /// **'Tết'**
+  String get packTet;
+
+  /// No description provided for @packChristmas.
+  ///
+  /// In en, this message translates to:
+  /// **'Christmas'**
+  String get packChristmas;
+
+  /// No description provided for @packMidAutumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Mid-Autumn'**
+  String get packMidAutumn;
+
+  /// No description provided for @packValentine.
+  ///
+  /// In en, this message translates to:
+  /// **'Valentine\'s'**
+  String get packValentine;
+
+  /// No description provided for @stampNewYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy New Year'**
+  String get stampNewYear;
+
+  /// No description provided for @stampMerry.
+  ///
+  /// In en, this message translates to:
+  /// **'Merry Christmas'**
+  String get stampMerry;
+
+  /// No description provided for @stampMidAutumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Mid-Autumn'**
+  String get stampMidAutumn;
+
+  /// No description provided for @stampLove.
+  ///
+  /// In en, this message translates to:
+  /// **'Love you'**
+  String get stampLove;
+
+  /// No description provided for @stickerMai.
+  ///
+  /// In en, this message translates to:
+  /// **'Apricot blossom'**
+  String get stickerMai;
+
+  /// No description provided for @stickerDao.
+  ///
+  /// In en, this message translates to:
+  /// **'Peach blossom'**
+  String get stickerDao;
+
+  /// No description provided for @stickerStarLantern.
+  ///
+  /// In en, this message translates to:
+  /// **'Star lantern'**
+  String get stickerStarLantern;
+
+  /// No description provided for @wallTet.
+  ///
+  /// In en, this message translates to:
+  /// **'Tết red'**
+  String get wallTet;
+
+  /// No description provided for @wallXmas.
+  ///
+  /// In en, this message translates to:
+  /// **'Christmas green'**
+  String get wallXmas;
+
+  /// No description provided for @wallMoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Mid-Autumn night'**
+  String get wallMoon;
+
+  /// No description provided for @wallLove.
+  ///
+  /// In en, this message translates to:
+  /// **'Valentine pink'**
+  String get wallLove;
+
+  /// No description provided for @proPerkSeasons.
+  ///
+  /// In en, this message translates to:
+  /// **'Seasonal packs: Tết, Christmas, Mid-Autumn and Valentine\'s walls and stickers'**
+  String get proPerkSeasons;
+
+  /// No description provided for @proPerkPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private boards that open with your fingerprint'**
+  String get proPerkPrivate;
+
+  /// No description provided for @proPerkCustomColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Mix any paper colour you like'**
+  String get proPerkCustomColor;
 }
 
 class _AppLocalizationsDelegate

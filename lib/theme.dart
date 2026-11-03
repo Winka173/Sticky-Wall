@@ -43,7 +43,7 @@ abstract class AppColors {
   static const nightShade = Color(0x4D7A6A4A);
 
   /// Yarn a thread can be tied with, classic red first (ARGB ints, since
-  /// they are stored on the link).
+  /// they are stored on the link). The first [freeYarns] come with the app.
   static const yarns = [
     0xFFC62828, // red
     0xFFEF6C00, // orange
@@ -52,17 +52,37 @@ abstract class AppColors {
     0xFF1565C0, // blue
     0xFF6A1B9A, // purple
     0xFF3B372F, // ink
+    // Pro.
+    0xFFD81B60, // pink
+    0xFF00897B, // teal
+    0xFF8D6E63, // brown
+    0xFFF5F2EA, // white
   ];
 
-  /// Marker colours for drawing straight on the wall: ink first, chalk last
-  /// (for dark walls).
+  static const freeYarns = 7;
+
+  /// Marker colours for drawing straight on the wall: ink first, then
+  /// chalk for dark walls ([markerChalk]); strokes keep their ARGB, so Pro
+  /// colours are appended after the first [freeMarkers].
   static const markers = [
     0xFF3B372F, // ink
     0xFFD32F2F, // red
     0xFF1E63C6, // blue
     0xFF2E7D32, // green
-    0xFFFDFBF3, // chalk
+    markerChalk,
+    // Pro.
+    0xFFEF6C00, // orange
+    0xFF8E24AA, // purple
+    0xFFD81B60, // pink
+    0xFF00897B, // teal
+    0xFFFBC02D, // yellow
   ];
+
+  static const markerChalk = 0xFFFDFBF3;
+  static const freeMarkers = 5;
+
+  /// Highlighter strokes are the marker colour at this opacity (0..255).
+  static const highlighterAlpha = 0x66;
 
   /// Pastel sticky-note paper colors. The first [freePapers] come with the
   /// app; the rest are Sticky Wall Pro's. Notes store the index, so new
@@ -94,10 +114,25 @@ abstract class AppRadii {
   static const sheet = 20.0;
 }
 
-/// A note's paper color: the explicit [colorIndex] if set, else one derived
+/// A paper colour mixed by the user (Sticky Wall Pro) is stored in the same
+/// `colorIndex` field as the palette's indices, as its ARGB value: anything
+/// from here up is a colour, not an index. An older version reading one just
+/// wraps it onto the palette.
+const customPaperBase = 0x01000000;
+
+/// [color] as a note stores it in `colorIndex` (always opaque).
+int customPaper(Color color) => color.toARGB32() | 0xFF000000;
+
+/// Whether [colorIndex] is a mixed colour rather than a palette index.
+bool isCustomPaper(int? colorIndex) =>
+    colorIndex != null && colorIndex >= customPaperBase;
+
+/// A note's paper color: the explicit [colorIndex] if set (a palette index
+/// or a mixed colour, see [customPaperBase]), else one derived
 /// deterministically from the [guid] so it stays stable across runs — always
 /// one of the free papers, so adding papers never recolours old notes.
 Color noteColor(int? colorIndex, String guid) {
+  if (isCustomPaper(colorIndex)) return Color(colorIndex!);
   final i = colorIndex ?? (stableHash(guid) % AppColors.freePapers);
   return AppColors.notePapers[i % AppColors.notePapers.length];
 }
@@ -366,6 +401,36 @@ const walls = [
     id: 'sky',
     asset: 'assets/images/wall_cotton.jpg',
     overlay: Color(0x4D8DB8E0),
+    dark: false,
+    pro: true,
+  ),
+  // Pro seasonal packs: painted with an image model (via Codex), made
+  // seamless and kept low in contrast.
+  WallStyle(
+    id: 'tet',
+    asset: 'assets/images/wall_tet.jpg',
+    overlay: Color(0x1A000000),
+    dark: true,
+    pro: true,
+  ),
+  WallStyle(
+    id: 'xmas',
+    asset: 'assets/images/wall_xmas.jpg',
+    overlay: Color(0x14000000),
+    dark: true,
+    pro: true,
+  ),
+  WallStyle(
+    id: 'moon',
+    asset: 'assets/images/wall_moon.jpg',
+    overlay: Color(0x14000000),
+    dark: true,
+    pro: true,
+  ),
+  WallStyle(
+    id: 'love',
+    asset: 'assets/images/wall_love.jpg',
+    overlay: Color(0x0FFFFFFF),
     dark: false,
     pro: true,
   ),
