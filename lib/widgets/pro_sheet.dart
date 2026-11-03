@@ -82,8 +82,30 @@ class _ProBodyState extends State<_ProBody> {
             ProStatus.idle || ProStatus.loading => null,
           };
 
+    // What Pro adds scrolls; the price and Unlock stay in view at the foot,
+    // so the way to buy is never below the fold.
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.88,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Flexible(child: _perks(l10n, unlocked)),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+            child: _actions(l10n, pro, unlocked, status, price, note),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _perks(AppLocalizations l10n, bool unlocked) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -137,75 +159,90 @@ class _ProBodyState extends State<_ProBody> {
             unlocked ? l10n.proKeepsLook : l10n.proTryHint,
             style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
           ),
-          const SizedBox(height: 20),
-          if (unlocked)
-            Semantics(
-              liveRegion: true,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.check_circle, color: AppColors.ink),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      l10n.proUnlocked,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: AppColors.ink,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else ...[
-            FilledButton(
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                textStyle: const TextStyle(fontSize: 18),
-              ),
-              onPressed: pro != null && pro.canBuy ? pro.buy : null,
-              child: status == ProStatus.loading
-                  ? const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.chalk,
-                      ),
-                    )
-                  : Text(
-                      price == null ? l10n.proBuyNoPrice : l10n.proBuy(price),
-                    ),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
-              onPressed: pro == null || _restoring
-                  ? null
-                  : () => _restore(l10n),
-              child: _restoring
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(l10n.proRestore),
-            ),
-          ],
-          for (final line in [?note, ?_restoreNote])
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Semantics(
-                liveRegion: true,
-                child: Text(
-                  line,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 14, color: AppColors.ink),
-                ),
-              ),
-            ),
         ],
       ),
+    );
+  }
+
+  Widget _actions(
+    AppLocalizations l10n,
+    ProController? pro,
+    bool unlocked,
+    ProStatus status,
+    String? price,
+    String? note,
+  ) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (unlocked)
+          Semantics(
+            liveRegion: true,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.check_circle, color: AppColors.ink),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    l10n.proUnlocked,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else ...[
+          FilledButton(
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+              // The theme's label style, larger: a bare TextStyle here would
+              // drop the app's font for the system one.
+              textStyle: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(fontSize: 18),
+            ),
+            onPressed: pro != null && pro.canBuy ? pro.buy : null,
+            child: status == ProStatus.loading
+                ? const SizedBox.square(
+                    dimension: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.chalk,
+                    ),
+                  )
+                : Text(price == null ? l10n.proBuyNoPrice : l10n.proBuy(price)),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
+            onPressed: pro == null || _restoring ? null : () => _restore(l10n),
+            child: _restoring
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(l10n.proRestore),
+          ),
+        ],
+        for (final line in [?note, ?_restoreNote])
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Semantics(
+              liveRegion: true,
+              child: Text(
+                line,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, color: AppColors.ink),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

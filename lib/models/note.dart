@@ -29,6 +29,17 @@ enum PaperStyle {
   notebook;
 
   bool get pro => this != plain;
+
+  /// Ruled across, line by line: these only suit a note of running text,
+  /// whose lines they can follow; lists and links take squares or dots.
+  bool get ruled => this == lined || this == indexCard || this == notebook;
+
+  /// Whether a note of [type] can use this paper.
+  bool suits(NoteType type) => switch (type) {
+    NoteType.normal => true,
+    NoteType.link || NoteType.checklist => !ruled,
+    _ => this == plain,
+  };
 }
 
 /// How often a reminder fires again after its first time.

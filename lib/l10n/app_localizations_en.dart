@@ -681,7 +681,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipPinBody =>
-      'Tap the pin to keep a note on top. Drag from a pin onto another note to tie a thread; tap a thread to colour it, write on it, add an arrowhead or cut it.';
+      'Tap the pin to keep a note on top. Drag from a pin onto another note to tie a thread; tap a thread to color it, write on it, add an arrowhead or cut it.';
 
   @override
   String get tipWallTitle => 'The wall';
@@ -945,7 +945,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveAnyway => 'Save anyway';
 
   @override
-  String get paperAuto => 'Automatic colour';
+  String get paperAuto => 'Automatic color';
 
   @override
   String get paperYellow => 'Yellow';
@@ -1192,8 +1192,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get proRestored => 'Pro restored. Welcome back!';
 
   @override
-  String get proRestoreNone =>
-      'No earlier purchase found for this Google account.';
+  String get proRestoreNone => 'No earlier purchase found for this account.';
 
   @override
   String get proUnlocked => 'Pro is unlocked. Thank you!';
@@ -1474,24 +1473,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get proPerkMarkers =>
-      '5 more marker colours and a highlighter for the wall';
+      '5 more marker colors and a highlighter for the wall';
 
   @override
   String get proPerkThreads =>
-      '4 thread styles (twine, ribbon, dashed, beads) and 4 more colours';
+      '4 thread styles (twine, ribbon, dashed, beads) and 4 more colors';
 
   @override
   String get proTryHint =>
       'Tap a Pro wall, font or pin in Customize to try it on your own wall first.';
 
   @override
-  String get paperCustom => 'Your own colour';
+  String get paperCustom => 'Your own color';
 
   @override
-  String get paperCustomTitle => 'Mix a paper colour';
+  String get paperCustomTitle => 'Mix a paper color';
 
   @override
-  String get paperCustomHue => 'Colour';
+  String get paperCustomHue => 'Color';
 
   @override
   String get paperCustomStrength => 'Strength';
@@ -1583,7 +1582,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get proPerkPrivate => 'Private boards that open with your fingerprint';
 
   @override
-  String get proPerkCustomColor => 'Mix any paper colour you like';
+  String get proPerkCustomColor => 'Mix any paper color you like';
 
   @override
   String seasonUntil(String date) {
@@ -1594,4 +1593,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String seasonBack(String from, String to) {
     return 'back $from – $to';
   }
+
+  @override
+  String get confirmItsYou => 'Confirm it\'s you';
 }

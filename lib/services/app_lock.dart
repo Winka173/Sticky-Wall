@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show MissingPluginException;
 import 'package:local_auth/local_auth.dart';
 
 /// How asking for the phone's lock went.
@@ -36,16 +37,18 @@ class AppLock {
       return ok ? UnlockResult.unlocked : UnlockResult.failed;
     } on LocalAuthException catch (e) {
       debugPrint('App lock: ${e.code.name} ${e.description ?? ''}');
-      return switch (e.code) {
-        LocalAuthExceptionCode.noCredentialsSet ||
-        LocalAuthExceptionCode.noBiometricHardware ||
-        LocalAuthExceptionCode.noBiometricsEnrolled => UnlockResult.noLock,
-        _ => UnlockResult.failed,
-      };
-    } catch (e) {
+      // Only a phone with no screen lock at all has nothing to ask for; any
+      // other trouble keeps things shut (Unlock can be tried again).
+      return e.code == LocalAuthExceptionCode.noCredentialsSet
+          ? UnlockResult.noLock
+          : UnlockResult.failed;
+    } on MissingPluginException catch (e) {
       // No plugin (tests, desktop) behaves like a phone without a lock.
       debugPrint('App lock unavailable: $e');
       return UnlockResult.noLock;
+    } catch (e) {
+      debugPrint('App lock failed: $e');
+      return UnlockResult.failed;
     }
   }
 }

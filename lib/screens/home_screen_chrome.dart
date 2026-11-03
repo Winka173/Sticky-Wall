@@ -72,9 +72,20 @@ extension _Chrome on _HomeScreenState {
     final l10n = _l10n;
     final pro = ProScope.unlockedOf(context);
     final text = wall.wallText;
+    // The pen button steps thin → medium → thick, then (with Pro) to the
+    // highlighter, then back to thin.
     const widths = [3.0, 6.0, 11.0];
-    final nextWidth =
-        widths[(widths.indexOf(_marker.width) + 1) % widths.length];
+    WallMarker nextPen() {
+      if (_marker.highlighter) {
+        return _marker.copyWith(highlighter: false, width: widths.first);
+      }
+      final i = widths.indexOf(_marker.width);
+      if (i == widths.length - 1 && pro) {
+        return _marker.copyWith(highlighter: true, eraser: false);
+      }
+      return _marker.copyWith(width: widths[(i + 1) % widths.length]);
+    }
+
     Widget tool({
       required String tooltip,
       required Widget icon,
@@ -126,30 +137,13 @@ extension _Chrome on _HomeScreenState {
                 ),
               ),
               tool(
-                tooltip: pro
-                    ? l10n.highlighter
-                    : l10n.proLocked(l10n.highlighter),
-                icon: Icon(
-                  _marker.highlighter
-                      ? Icons.border_color
-                      : Icons.border_color_outlined,
-                ),
-                color: _marker.highlighter ? AppColors.accent : text,
-                onTap: !pro
-                    ? () => showProSheet(context)
-                    : () => _update(
-                        () => _marker = _marker.copyWith(
-                          highlighter: !_marker.highlighter,
-                          eraser: false,
-                        ),
-                      ),
-              ),
-              tool(
-                tooltip: l10n.penSize,
+                tooltip: _marker.highlighter ? l10n.highlighter : l10n.penSize,
                 // The icon's weight hints at the current width.
-                icon: Icon(Icons.line_weight, size: 14 + _marker.width),
-                onTap: () =>
-                    _update(() => _marker = _marker.copyWith(width: nextWidth)),
+                icon: _marker.highlighter
+                    ? const Icon(Icons.border_color)
+                    : Icon(Icons.line_weight, size: 14 + _marker.width),
+                color: _marker.highlighter ? AppColors.accent : text,
+                onTap: () => _update(() => _marker = nextPen()),
               ),
               tool(
                 tooltip: l10n.eraser,

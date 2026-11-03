@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/board.dart';
+import '../models/note.dart';
 import '../screens/trash_screen.dart';
 import '../services/app_lock.dart';
 import '../services/auto_backup.dart';
@@ -127,6 +128,8 @@ Future<void> showSettingsSheet(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    // Light, so the wall above shows what is being tried on.
+    barrierColor: Colors.black.withValues(alpha: 0.18),
     builder: (context) => ListenableBuilder(
       listenable: Listenable.merge([settings, notes]),
       builder: (context, _) => _SettingsSheet(settings: settings, notes: notes),
@@ -590,7 +593,7 @@ class _SettingsSheet extends StatelessWidget {
       settings.setAppLock(false);
       return;
     }
-    final result = await const AppLock().authenticate(l10n.appLockReason);
+    final result = await const AppLock().authenticate(l10n.confirmItsYou);
     if (!context.mounted) return;
     switch (result) {
       case UnlockResult.unlocked:

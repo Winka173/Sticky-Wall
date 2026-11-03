@@ -210,7 +210,7 @@ class _BoardBarState extends State<BoardBar> {
     AppLocalizations l10n,
     Board board,
   ) async {
-    final result = await const AppLock().authenticate(l10n.appLockReason);
+    final result = await const AppLock().authenticate(l10n.confirmItsYou);
     if (!context.mounted) return;
     switch (result) {
       case UnlockResult.unlocked:

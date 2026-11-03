@@ -147,6 +147,15 @@ class SettingsController extends ChangeNotifier {
   /// A board picture has been sent to the widget and can be shown again.
   bool get widgetPicture => _widgetPicture;
 
+  /// The board that picture shows.
+  String get widgetPictureBoard => _storage.widgetPictureBoard;
+
+  /// A picture of board [boardId] was just sent to the widget: show it.
+  void showWidgetPicture(String boardId) {
+    unawaited(_storage.setWidgetPictureBoard(boardId));
+    setWidgetContent(WidgetContent.picture);
+  }
+
   String get languageCode => _languageCode;
 
   /// null → follow the system locale.

@@ -388,9 +388,12 @@ class NotesController extends ChangeNotifier {
 
   /// Live (not trashed) notes on the current board, unsorted — the free wall
   /// view draws them in this order, so later means on top.
-  List<Note> get boardNotes => _notes
-      .where((n) => n.boardId == _currentBoardId && !n.isTrashed)
-      .toList();
+  /// The open board's notes — none while it is a shut private board.
+  List<Note> get boardNotes => currentBoardShut
+      ? const []
+      : _notes
+            .where((n) => n.boardId == _currentBoardId && !n.isTrashed)
+            .toList();
 
   /// True when a search or type filter is narrowing the notes shown.
   bool get isFiltering => _search.trim().isNotEmpty || _typeFilter != -1;
@@ -729,6 +732,7 @@ class NotesController extends ChangeNotifier {
         ..boardId = boardId
         ..x = 0.25 + rng.nextDouble() * 0.3
         ..y = 0.2 + rng.nextDouble() * 0.3;
+      _syncReminder(note);
     }
     _persistNotes();
     notifyListeners();
@@ -967,7 +971,10 @@ class NotesController extends ChangeNotifier {
     if (_wallUndo.isEmpty) return null;
     final edit = _wallUndo.removeLast();
     for (final placement in edit.before) {
-      if (_notes.contains(placement.note)) placement.restore(_boards);
+      if (!_notes.contains(placement.note)) continue;
+      final from = placement.note.boardId;
+      placement.restore(_boards);
+      if (placement.note.boardId != from) _syncReminder(placement.note);
     }
     _persistNotes();
     notifyListeners();

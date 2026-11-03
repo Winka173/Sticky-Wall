@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart'
+    show PurchaseStateWrapper;
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 
 import 'note_storage.dart';
 
@@ -150,7 +153,8 @@ class ProController extends ChangeNotifier {
   Future<void> _onPurchases(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
       if (purchase.productID != productId) continue;
-      switch (purchase.status) {
+      final status = _settled(purchase);
+      switch (status) {
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
           _unlock();
@@ -163,8 +167,10 @@ class ProController extends ChangeNotifier {
           _setStatus(ProStatus.idle);
       }
       // Google Play refunds a purchase that is not acknowledged within three
-      // days; completing it is that acknowledgement.
-      if (purchase.pendingCompletePurchase) {
+      // days; completing it is that acknowledgement. One still waiting for
+      // its payment cannot be acknowledged yet.
+      if (purchase.pendingCompletePurchase &&
+          status != PurchaseStatus.pending) {
         try {
           await _store?.completePurchase(purchase);
         } catch (e) {
@@ -177,6 +183,21 @@ class ProController extends ChangeNotifier {
       _restoring = null;
       restoring.complete(_unlocked);
     }
+  }
+
+  /// The status to act on. Google Play reports every purchase it holds as
+  /// "restored", including one still waiting for a cash or bank payment:
+  /// that one is pending, not bought.
+  static PurchaseStatus _settled(PurchaseDetails purchase) {
+    final status = purchase.status;
+    if (purchase is GooglePlayPurchaseDetails &&
+        (status == PurchaseStatus.purchased ||
+            status == PurchaseStatus.restored) &&
+        purchase.billingClientPurchase.purchaseState !=
+            PurchaseStateWrapper.purchased) {
+      return PurchaseStatus.pending;
+    }
+    return status;
   }
 
   void _unlock() {

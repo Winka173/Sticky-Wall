@@ -21,6 +21,11 @@ const appFontFiles = {
   'AmaticSC': 'assets/fonts/AmaticSC-Regular.ttf',
   'Charm': 'assets/fonts/Charm-Regular.ttf',
   'IBMPlexMono': 'assets/fonts/IBMPlexMono-Regular.ttf',
+  'ShantellSans': 'assets/fonts/ShantellSans-Regular.ttf',
+  'Coiny': 'assets/fonts/Coiny-Regular.ttf',
+  'Lobster': 'assets/fonts/Lobster-Regular.ttf',
+  'SedgwickAve': 'assets/fonts/SedgwickAve-Regular.ttf',
+  'Lora': 'assets/fonts/Lora-Regular.ttf',
 };
 
 /// Loads the app fonts plus Material icons, so screenshots show real glyphs.

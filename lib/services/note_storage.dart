@@ -53,6 +53,7 @@ class NoteStorage {
   static const _widgetTextSizeKey = 'widgetTextSize';
   static const _widgetPictureKey = 'widgetPicture';
   static const _installedAtKey = 'installedAt';
+  static const _widgetPictureBoardKey = 'widgetPictureBoard';
   static const _proOfferedKey = 'proOffered';
 
   final SharedPreferences _prefs;
@@ -259,6 +260,12 @@ class NoteStorage {
   bool get widgetPicture => _prefs.getBool(_widgetPictureKey) ?? false;
   Future<void> setWidgetPicture(bool value) =>
       _prefs.setBool(_widgetPictureKey, value);
+
+  /// The board the widget's picture was taken of.
+  String get widgetPictureBoard =>
+      _prefs.getString(_widgetPictureBoardKey) ?? '';
+  Future<void> setWidgetPictureBoard(String id) =>
+      _prefs.setString(_widgetPictureBoardKey, id);
 
   // --- Pro offer ------------------------------------------------------------
 

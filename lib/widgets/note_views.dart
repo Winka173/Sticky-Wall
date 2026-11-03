@@ -1109,6 +1109,26 @@ class StickyNoteCard extends StatelessWidget {
     );
   }
 
+  /// Where the writing on a sheet starts.
+  static const _bodyTop = 18.0;
+
+  /// The note text's real line height and where its first line's rule goes
+  /// (just under the baseline), measured in the chosen font at the reader's
+  /// text size, so ruled paper follows the writing whatever the font.
+  ({double line, double firstRule}) _rulesFor(BuildContext context) {
+    final style = DefaultTextStyle.of(
+      context,
+    ).style.merge(noteBodyStyle(context));
+    final probe = TextPainter(
+      text: TextSpan(text: 'Ag', style: style),
+      textDirection: TextDirection.ltr,
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+    final metrics = probe.computeLineMetrics().first;
+    probe.dispose();
+    return (line: metrics.height, firstRule: metrics.baseline + 3);
+  }
+
   /// A sticker stuck straight on the wall, centred in the card's width:
   /// emoji and doodles at about two thirds of it, stamps nearly all of it.
   Widget _stickerArt() {
@@ -1139,8 +1159,11 @@ class StickyNoteCard extends StatelessWidget {
 
   /// A sheet of sticky paper: adhesive strip, curled corner, the body.
   Widget _sheet(BuildContext context, bool done) {
-    final line = noteBodyStyle(context).fontSize! * 1.4;
-    final notebook = note.paper == PaperStyle.notebook;
+    // A paper that does not suit the note (lines on a list, after its type
+    // changed) is shown plain rather than ruled across its rows.
+    final paper = note.paper.suits(note.type) ? note.paper : PaperStyle.plain;
+    final notebook = paper == PaperStyle.notebook;
+    final rules = paper == PaperStyle.plain ? null : _rulesFor(context);
     return Container(
       // Fill whatever width the wall/grid grants — the paper is a fixed-size
       // sheet, not something that shrinks to a short line of text.
@@ -1169,10 +1192,14 @@ class StickyNoteCard extends StatelessWidget {
             ),
           ),
           // Lines, squares or dots printed on the paper, under the writing.
-          if (note.paper != PaperStyle.plain)
+          if (rules != null)
             Positioned.fill(
               child: CustomPaint(
-                painter: PaperPatternPainter(note.paper, line: line),
+                painter: PaperPatternPainter(
+                  paper,
+                  line: rules.line,
+                  first: _bodyTop + rules.firstRule,
+                ),
               ),
             ),
           // Slightly curled corner.
@@ -1186,7 +1213,7 @@ class StickyNoteCard extends StatelessWidget {
           ),
           Padding(
             // A notebook page writes right of its red margin.
-            padding: EdgeInsets.fromLTRB(notebook ? 30 : 12, 18, 10, 10),
+            padding: EdgeInsets.fromLTRB(notebook ? 30 : 12, _bodyTop, 10, 10),
             child: _NoteBody(
               note: note,
               cb: cb,
@@ -1906,7 +1933,13 @@ class _NoteAppearState extends State<NoteAppear>
 /// [line] apart under each line of writing, a grid or dots at half that, an
 /// index card's red heading rule, or a notebook page's red margin and holes.
 class PaperPatternPainter extends CustomPainter {
-  const PaperPatternPainter(this.style, {required this.line, this.top = 18});
+  const PaperPatternPainter(
+    this.style, {
+    required this.line,
+    this.top = 18,
+    this.first,
+    this.margin = true,
+  });
 
   final PaperStyle style;
 
@@ -1915,6 +1948,14 @@ class PaperPatternPainter extends CustomPainter {
 
   /// Where the writing starts.
   final double top;
+
+  /// Where the first rule goes, when the caller has measured it; otherwise
+  /// just under a typical first line below [top].
+  final double? first;
+
+  /// Whether a notebook page draws its red margin and punched holes (the
+  /// editor, whose text runs from the left edge, leaves them out).
+  final bool margin;
 
   static const _blue = Color(0x4D1E63C6);
   static const _red = Color(0x80D32F2F);
@@ -1926,7 +1967,7 @@ class PaperPatternPainter extends CustomPainter {
       ..color = AppColors.ink.withValues(alpha: 0.14)
       ..strokeWidth = 1;
     // Just under the first line's letters, and every line after.
-    final first = top + line * 0.88;
+    final first = this.first ?? top + line * 0.88;
     void rules(Paint paint, {double from = 0}) {
       for (var y = first; y < size.height - 6; y += line) {
         canvas.drawLine(Offset(from, y), Offset(size.width, y), paint);
@@ -1981,6 +2022,7 @@ class PaperPatternPainter extends CustomPainter {
             ..color = _blue
             ..strokeWidth = 1,
         );
+        if (!margin) break;
         canvas.drawLine(
           const Offset(24, 0),
           Offset(24, size.height),
@@ -2000,5 +2042,7 @@ class PaperPatternPainter extends CustomPainter {
   bool shouldRepaint(PaperPatternPainter oldDelegate) =>
       oldDelegate.style != style ||
       oldDelegate.line != line ||
-      oldDelegate.top != top;
+      oldDelegate.top != top ||
+      oldDelegate.first != first ||
+      oldDelegate.margin != margin;
 }

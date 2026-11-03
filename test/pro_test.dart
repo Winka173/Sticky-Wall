@@ -7,6 +7,7 @@ import 'package:sticky_wall/models/board.dart';
 import 'package:sticky_wall/models/note.dart';
 import 'package:sticky_wall/models/view_mode.dart';
 import 'package:sticky_wall/services/app_lock.dart';
+import 'package:sticky_wall/services/backup_service.dart';
 import 'package:sticky_wall/services/note_storage.dart';
 import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/pro_controller.dart';
@@ -564,12 +565,19 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('my secret'), findsOneWidget);
 
-      // Going to the background shuts it again.
+      // A quick trip out (a photo picker, a share sheet) keeps it open.
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await tester.pumpAndSettle();
+      expect(find.text('my secret'), findsOneWidget);
+
+      // Shut again (after a minute away), nothing of it is listed.
+      notes.shutPrivateBoards();
+      await tester.pumpAndSettle();
       expect(find.text('my secret'), findsNothing);
       expect(notes.currentBoardShut, isTrue);
+      expect(notes.boardNotes, isEmpty);
+      expect(notes.visibleNotes, isEmpty);
     });
   });
 
@@ -644,5 +652,26 @@ void main() {
       expect(tet.inSeason, isTrue);
       expect(walls.firstWhere((w) => w.id == 'cork').inSeason, isTrue);
     });
+  });
+
+  test('a backup keeps paper styles, stickers, own colours, private boards '
+      'and thread styles', () {
+    final notes = [
+      _note('a')
+        ..paper = PaperStyle.notebook
+        ..colorIndex = customPaper(const Color(0xFFDDEEFF)),
+      _note('s', type: NoteType.sticker)..sticker = 'mai',
+    ];
+    final boards = [Board(id: 'default', name: 'Diary', isPrivate: true)];
+    const links = [NoteLink('a', 's', style: ThreadStyle.beads)];
+    final back = BackupService().decode(
+      BackupService().encode(boards, notes, links),
+    );
+    expect(back.boards.single.isPrivate, isTrue);
+    final a = back.notes.firstWhere((n) => n.guid == 'a');
+    expect(a.paper, PaperStyle.notebook);
+    expect(noteColor(a.colorIndex, 'a'), const Color(0xFFDDEEFF));
+    expect(back.notes.firstWhere((n) => n.guid == 's').sticker, 'mai');
+    expect(back.links!.single.style, ThreadStyle.beads);
   });
 }

@@ -957,8 +957,15 @@ class _WallViewState extends State<WallView>
       return a.x.compareTo(b.x);
     });
     if (_probeByColor) {
-      int shade(Note n) =>
-          AppColors.notePapers.indexOf(noteColor(n.colorIndex, n.guid));
+      // Palette papers in palette order, then mixed colours by hue.
+      double shade(Note n) {
+        final color = noteColor(n.colorIndex, n.guid);
+        final i = AppColors.notePapers.indexOf(color);
+        return i >= 0
+            ? i.toDouble()
+            : AppColors.notePapers.length + HSLColor.fromColor(color).hue / 360;
+      }
+
       notes.sort((a, b) => shade(a).compareTo(shade(b)));
     }
 

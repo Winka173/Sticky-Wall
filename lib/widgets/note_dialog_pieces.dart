@@ -200,12 +200,22 @@ extension _EditorPieces on _NoteDialogState {
         Stack(
           children: [
             Positioned.fill(
+              // Plain and lined paper write on faint rules; the other papers
+              // show their own squares, dots or card lines while writing.
               child: CustomPaint(
-                painter: _RulesPainter(
-                  firstLine: baseline + 2,
-                  lineHeight: lineHeight,
-                  color: _NoteDialogState._ink.withValues(alpha: 0.12),
-                ),
+                painter:
+                    _n.paper == PaperStyle.plain || _n.paper == PaperStyle.lined
+                    ? _RulesPainter(
+                        firstLine: baseline + 2,
+                        lineHeight: lineHeight,
+                        color: _NoteDialogState._ink.withValues(alpha: 0.12),
+                      )
+                    : PaperPatternPainter(
+                        _n.paper,
+                        line: lineHeight,
+                        first: baseline + 2,
+                        margin: false,
+                      ),
               ),
             ),
             field,
@@ -799,7 +809,9 @@ extension _EditorPieces on _NoteDialogState {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            for (final style in PaperStyle.values)
+            for (final style in PaperStyle.values.where(
+              (s) => s.suits(_n.type),
+            ))
               _paperStyleTile(
                 l10n,
                 style: style,

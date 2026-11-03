@@ -1164,7 +1164,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get proPerkPins =>
-      'Thêm 5 kiểu ghim note: ghim nhiều màu, đinh bấm, băng dính washi, kẹp giấy và nam châm';
+      'Thêm 5 kiểu ghim ghi chú: ghim nhiều màu, đinh bấm, băng dính washi, kẹp giấy và nam châm';
 
   @override
   String proBuy(String price) {
@@ -1182,7 +1182,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get proRestoreNone =>
-      'Không tìm thấy giao dịch nào với tài khoản Google này.';
+      'Không tìm thấy giao dịch nào trước đây với tài khoản này.';
 
   @override
   String get proUnlocked => 'Đã mở khóa Pro. Cảm ơn bạn!';
@@ -1200,7 +1200,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get proKeepsLook =>
-      'Note vẫn giữ màu giấy và tường Pro dù được chuyển đi đâu.';
+      'Ghi chú vẫn giữ màu giấy và tường Pro dù được chuyển đi đâu.';
 
   @override
   String proLocked(String name) {
@@ -1306,10 +1306,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get widgetContentLabel => 'Hiển thị';
 
   @override
-  String get widgetContentPinned => 'Note đã ghim';
+  String get widgetContentPinned => 'Ghi chú đã ghim';
 
   @override
-  String get widgetContentNewest => 'Note mới nhất';
+  String get widgetContentNewest => 'Ghi chú mới nhất';
 
   @override
   String get widgetContentPicture => 'Ảnh của bảng';
@@ -1339,10 +1339,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get widgetTextLarge => 'Lớn';
 
   @override
-  String get widgetEmptyPinned => 'Chưa ghim note nào';
+  String get widgetEmptyPinned => 'Chưa ghim ghi chú nào';
 
   @override
-  String get widgetEmptyNewest => 'Chưa có note nào';
+  String get widgetEmptyNewest => 'Chưa có ghi chú nào';
 
   @override
   String get widgetAddHint =>
@@ -1582,4 +1582,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String seasonBack(String from, String to) {
     return 'mở lại $from – $to';
   }
+
+  @override
+  String get confirmItsYou => 'Xác nhận là bạn';
 }

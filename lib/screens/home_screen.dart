@@ -158,12 +158,38 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   GlobalKey _keyFor(Note note, [ViewMode? mode]) =>
       _captureKeys.putIfAbsent(_captureId(note, mode), GlobalKey.new);
 
-  /// Private boards shut again whenever the app leaves the screen.
+  /// When the app last left the screen; null while it is in front.
+  DateTime? _awayAt;
+
+  /// Private boards shut again once the app has been away a minute, as the
+  /// app lock does: a photo picker or share sheet is not a trip away. Coming
+  /// back to a shut board closes whatever of it was still open.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.hidden ||
-        state == AppLifecycleState.paused) {
-      _notes.shutPrivateBoards();
+    switch (state) {
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        _awayAt ??= DateTime.now();
+      case AppLifecycleState.resumed:
+        final away = _awayAt;
+        _awayAt = null;
+        if (away == null ||
+            DateTime.now().difference(away) < const Duration(minutes: 1)) {
+          return;
+        }
+        final wasOpen = _notes.currentBoard.isPrivate;
+        _notes.shutPrivateBoards();
+        if (wasOpen && _notes.currentBoardShut) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          setState(() {
+            _selecting = false;
+            _selected.clear();
+            _marking = false;
+          });
+        }
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.detached:
+        break;
     }
   }
 
@@ -190,8 +216,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         .where((n) => n.guid == guid && !n.isTrashed)
         .firstOrNull;
     if (note == null || !mounted) return;
-    if (!await _makeWayForIncoming()) return;
+    if (!await _makeWayForIncoming() || !mounted) return;
     if (note.boardId != _notes.currentBoardId) _notes.selectBoard(note.boardId);
+    // A note on a shut private board opens only after the phone's lock.
+    if (_notes.currentBoardShut) {
+      final open = await unlockPrivateBoard(
+        context,
+        _notes,
+        _notes.currentBoard,
+      );
+      if (!open || !mounted) return;
+    }
     await _openEditor(note, isNew: false);
   }
 
@@ -475,6 +510,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Something arrived through the system share sheet: open the editor with
   /// it filled in, so the user can still pick a board, color or emote.
   Future<void> _onShared(SharedContent content) async {
+    // Shared into a shut private board: open it, or use an open board, so
+    // the new note never lands where it cannot be seen.
+    if (_notes.currentBoardShut) {
+      final open = await unlockPrivateBoard(
+        context,
+        _notes,
+        _notes.currentBoard,
+      );
+      if (!mounted) return;
+      if (!open) {
+        final other = _notes.boards.where(_notes.isOpen).firstOrNull;
+        if (other == null) return;
+        _notes.selectBoard(other.id);
+      }
+    }
     final draft = _notes.draft();
     if (content.imagePath.isNotEmpty) {
       final stored = await _imageService.importSharedImage(content.imagePath);

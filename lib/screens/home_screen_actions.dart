@@ -482,7 +482,10 @@ extension _NoteActions on _HomeScreenState {
           imageService: _imageService,
           viewport: _notes.viewMode == ViewMode.wall ? _visibleWallRect : null,
           selected: _selecting ? Set.of(_selected) : const {},
-          onShowOnWidget: hasWidget ? _showOnWidget : null,
+          // A private board's notes never go on the home screen.
+          onShowOnWidget: hasWidget && !_notes.currentBoard.isPrivate
+              ? _showOnWidget
+              : null,
         ),
       ),
     );
@@ -492,7 +495,7 @@ extension _NoteActions on _HomeScreenState {
   /// widget to showing it.
   Future<bool> _showOnWidget(Uint8List png) async {
     final ok = await WidgetService.showWallImage(png);
-    if (ok) widget.settings.setWidgetContent(WidgetContent.picture);
+    if (ok) widget.settings.showWidgetPicture(_notes.currentBoardId);
     return ok;
   }
 

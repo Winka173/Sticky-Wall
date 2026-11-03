@@ -218,7 +218,9 @@ class _WidgetPreview extends StatelessWidget {
         notes.boards.where((b) => b.id == settings.widgetBoard).firstOrNull ??
         notes.currentBoard;
     final content = settings.widgetContent;
-    final shown = WidgetService.notesFor(notes.allNotes, board.id, content);
+    final shown = board.isPrivate
+        ? const <Note>[]
+        : WidgetService.notesFor(notes.allNotes, board.id, content);
     // The widget draws in the system font; so does the preview.
     const system = 'Roboto';
     final lines = [
@@ -250,7 +252,7 @@ class _WidgetPreview extends StatelessWidget {
             ),
           ],
         ),
-        child: content == WidgetContent.picture
+        child: content == WidgetContent.picture && !board.isPrivate
             ? Center(
                 child: Icon(
                   Icons.image_outlined,
@@ -275,7 +277,9 @@ class _WidgetPreview extends StatelessWidget {
                   const SizedBox(height: 6),
                   if (lines.isEmpty)
                     Text(
-                      content == WidgetContent.newest
+                      board.isPrivate
+                          ? l10n.widgetPrivate
+                          : content == WidgetContent.newest
                           ? l10n.widgetEmptyNewest
                           : l10n.widgetEmptyPinned,
                       style: TextStyle(

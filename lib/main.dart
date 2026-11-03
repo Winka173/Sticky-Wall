@@ -82,7 +82,15 @@ Future<void> main() async {
     final board =
         notes.boards.where((b) => b.id == settings.widgetBoard).firstOrNull ??
         notes.currentBoard;
-    final content = settings.widgetContent;
+    var content = settings.widgetContent;
+    // A picture of a board that has since been made private is not shown.
+    final pictured = notes.boards
+        .where((b) => b.id == settings.widgetPictureBoard)
+        .firstOrNull;
+    if (content == WidgetContent.picture &&
+        (board.isPrivate || (pictured?.isPrivate ?? false))) {
+      content = WidgetContent.pinned;
+    }
     // The home screen is in plain view: a private board never lists its
     // notes there, open or not.
     widgetService.update(

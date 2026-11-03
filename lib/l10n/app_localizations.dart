@@ -1289,7 +1289,7 @@ abstract class AppLocalizations {
   /// No description provided for @tipPinBody.
   ///
   /// In en, this message translates to:
-  /// **'Tap the pin to keep a note on top. Drag from a pin onto another note to tie a thread; tap a thread to colour it, write on it, add an arrowhead or cut it.'**
+  /// **'Tap the pin to keep a note on top. Drag from a pin onto another note to tie a thread; tap a thread to color it, write on it, add an arrowhead or cut it.'**
   String get tipPinBody;
 
   /// No description provided for @tipWallTitle.
@@ -1757,7 +1757,7 @@ abstract class AppLocalizations {
   /// No description provided for @paperAuto.
   ///
   /// In en, this message translates to:
-  /// **'Automatic colour'**
+  /// **'Automatic color'**
   String get paperAuto;
 
   /// No description provided for @paperYellow.
@@ -2207,7 +2207,7 @@ abstract class AppLocalizations {
   /// No description provided for @proRestoreNone.
   ///
   /// In en, this message translates to:
-  /// **'No earlier purchase found for this Google account.'**
+  /// **'No earlier purchase found for this account.'**
   String get proRestoreNone;
 
   /// No description provided for @proUnlocked.
@@ -2741,13 +2741,13 @@ abstract class AppLocalizations {
   /// No description provided for @proPerkMarkers.
   ///
   /// In en, this message translates to:
-  /// **'5 more marker colours and a highlighter for the wall'**
+  /// **'5 more marker colors and a highlighter for the wall'**
   String get proPerkMarkers;
 
   /// No description provided for @proPerkThreads.
   ///
   /// In en, this message translates to:
-  /// **'4 thread styles (twine, ribbon, dashed, beads) and 4 more colours'**
+  /// **'4 thread styles (twine, ribbon, dashed, beads) and 4 more colors'**
   String get proPerkThreads;
 
   /// No description provided for @proTryHint.
@@ -2759,19 +2759,19 @@ abstract class AppLocalizations {
   /// No description provided for @paperCustom.
   ///
   /// In en, this message translates to:
-  /// **'Your own colour'**
+  /// **'Your own color'**
   String get paperCustom;
 
   /// No description provided for @paperCustomTitle.
   ///
   /// In en, this message translates to:
-  /// **'Mix a paper colour'**
+  /// **'Mix a paper color'**
   String get paperCustomTitle;
 
   /// No description provided for @paperCustomHue.
   ///
   /// In en, this message translates to:
-  /// **'Colour'**
+  /// **'Color'**
   String get paperCustomHue;
 
   /// No description provided for @paperCustomStrength.
@@ -2951,7 +2951,7 @@ abstract class AppLocalizations {
   /// No description provided for @proPerkCustomColor.
   ///
   /// In en, this message translates to:
-  /// **'Mix any paper colour you like'**
+  /// **'Mix any paper color you like'**
   String get proPerkCustomColor;
 
   /// No description provided for @seasonUntil.
@@ -2965,6 +2965,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'back {from} – {to}'**
   String seasonBack(String from, String to);
+
+  /// No description provided for @confirmItsYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you'**
+  String get confirmItsYou;
 }
 
 class _AppLocalizationsDelegate
