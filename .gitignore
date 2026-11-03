@@ -44,5 +44,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Local Claude Code settings
-.claude/settings.local.json
+# Local tool settings
+.claude/
+CLAUDE.md

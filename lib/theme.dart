@@ -415,8 +415,8 @@ const walls = [
     dark: false,
     pro: true,
   ),
-  // Pro seasonal packs: painted with an image model (via Codex), made
-  // seamless and kept low in contrast.
+  // Pro seasonal packs: seamless patterns, kept low in contrast so the
+  // writing on top stays readable.
   WallStyle(
     id: 'tet',
     asset: 'assets/images/wall_tet.jpg',

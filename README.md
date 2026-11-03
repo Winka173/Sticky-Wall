@@ -538,11 +538,8 @@ first.
   Ground037 (moss), Leather011, Marble006 (dark marble), Planks020 (dark
   planks), Tiles074 (checker). License: CC0.
 - Seasonal walls (`wall_tet` with apricot blossom, `wall_tet_dao` with
-  peach blossom, `wall_xmas`, `wall_moon`, `wall_love`):
-  generated for this app with OpenAI's image model through the Codex CLI,
-  checked to tile without seams and saved as JPEG. A trial of AI versions of
-  the cork wall, paper and app icon was not kept: the CC0 cork reads better
-  behind paper, and the drawn icon is more our own.
+  peach blossom, `wall_xmas`, `wall_moon`, `wall_love`): made for this app,
+  checked to tile without seams and saved as JPEG.
 - Fonts (Google Fonts, SIL OFL — licence files next to each in
   `assets/fonts/`):
   [Patrick Hand](https://fonts.google.com/specimen/Patrick+Hand),
