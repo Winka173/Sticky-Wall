@@ -572,4 +572,77 @@ void main() {
       expect(notes.currentBoardShut, isTrue);
     });
   });
+
+  group('Seasons', () {
+    tearDown(() => seasonClock = DateTime.now);
+
+    test('each pack opens only around its occasion', () {
+      bool open(Season s, int y, int m, int d) =>
+          seasonOpen(s, now: DateTime(y, m, d));
+      // Tết 2027 is on 6 February.
+      expect(open(Season.tet, 2027, 1, 11), isFalse);
+      expect(open(Season.tet, 2027, 1, 12), isTrue);
+      expect(open(Season.tet, 2027, 2, 21), isTrue);
+      expect(open(Season.tet, 2027, 2, 22), isFalse);
+      // Christmas runs over New Year.
+      expect(open(Season.christmas, 2026, 11, 30), isFalse);
+      expect(open(Season.christmas, 2026, 12, 24), isTrue);
+      expect(open(Season.christmas, 2027, 1, 6), isTrue);
+      expect(open(Season.christmas, 2027, 1, 7), isFalse);
+      // Mid-Autumn 2027 is on 15 September.
+      expect(open(Season.midAutumn, 2027, 8, 24), isFalse);
+      expect(open(Season.midAutumn, 2027, 9, 1), isTrue);
+      expect(open(Season.midAutumn, 2027, 9, 19), isFalse);
+      expect(open(Season.valentine, 2027, 2, 14), isTrue);
+      expect(open(Season.valentine, 2027, 3, 1), isFalse);
+      // Past the known calendar a pack stays open rather than locked away.
+      expect(open(Season.tet, 2040, 7, 1), isTrue);
+    });
+
+    test('the next window is the coming one', () {
+      final next = currentOrNextSeason(Season.tet, now: DateTime(2026, 11, 3))!;
+      expect(next.start, DateTime(2027, 1, 12));
+      expect(next.end, DateTime(2027, 2, 21));
+    });
+
+    testWidgets('out of season a pack waits in the picker, with its dates', (
+      tester,
+    ) async {
+      seasonClock = () => DateTime(2026, 11, 3);
+      await _pumpApp(tester, pro: true, viewMode: ViewMode.wall);
+      await tester.longPress(find.byType(AddNoteButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sticker'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('back Jan 12'), findsOneWidget);
+      expect(find.bySemanticsLabel('Apricot blossom'), findsNothing);
+      expect(find.bySemanticsLabel('🔥'), findsOneWidget);
+    });
+
+    testWidgets('in season its stickers can be picked', (tester) async {
+      seasonClock = () => DateTime(2027, 2, 1);
+      await _pumpApp(tester, pro: true, viewMode: ViewMode.wall);
+      await tester.longPress(find.byType(AddNoteButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sticker'));
+      await tester.pumpAndSettle();
+      final mai = find.bySemanticsLabel('Apricot blossom');
+      await tester.scrollUntilVisible(
+        mai,
+        150,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(mai, findsOneWidget);
+      expect(find.textContaining('until Feb 21'), findsOneWidget);
+    });
+
+    test('a seasonal wall is offered only in its season', () {
+      final tet = walls.firstWhere((w) => w.id == 'tet');
+      seasonClock = () => DateTime(2026, 11, 3);
+      expect(tet.inSeason, isFalse);
+      seasonClock = () => DateTime(2027, 1, 20);
+      expect(tet.inSeason, isTrue);
+      expect(walls.firstWhere((w) => w.id == 'cork').inSeason, isTrue);
+    });
+  });
 }

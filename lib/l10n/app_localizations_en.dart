@@ -1581,4 +1581,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get proPerkCustomColor => 'Mix any paper colour you like';
+
+  @override
+  String seasonUntil(String date) {
+    return 'until $date';
+  }
+
+  @override
+  String seasonBack(String from, String to) {
+    return 'back $from – $to';
+  }
 }

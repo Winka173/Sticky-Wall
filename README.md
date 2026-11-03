@@ -287,7 +287,12 @@ then taken well beyond it.
 - **Seasonal packs** (Pro): a wall and a shelf of stickers each for Tết
   (red envelope, lantern, firecracker, apricot and peach blossom, a "Happy
   New Year" stamp), Christmas, Mid-Autumn (with a star lantern) and
-  Valentine's. The sticker picker groups stickers by pack
+  Valentine's. The sticker picker groups stickers by pack. A pack can be
+  picked only around its occasion (`lib/util/seasons.dart`: Tết from 25
+  days before to 15 after, using the lunar dates for 2026–2036; Christmas
+  1 Dec – 6 Jan; Mid-Autumn 21 days before to 3 after; Valentine's 1–15
+  Feb); out of season its shelf says when it is back, its wall is not
+  offered, and whatever is already on a wall stays
 - **Private boards** (Pro; making one public again is always free): a board
   opens only after the phone's fingerprint, face or screen lock and shuts
   again whenever the app goes to the background. While shut its notes are

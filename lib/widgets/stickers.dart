@@ -13,8 +13,20 @@ import 'pro_sheet.dart';
 enum StickerKind { emoji, stamp, doodle }
 
 /// Which shelf of the picker a sticker sits on: everyday ones, or a
-/// season's pack (Sticky Wall Pro).
-enum StickerPack { everyday, tet, christmas, midAutumn, valentine }
+/// season's pack (Sticky Wall Pro), offered only around its occasion.
+enum StickerPack {
+  everyday(null),
+  tet(Season.tet),
+  christmas(Season.christmas),
+  midAutumn(Season.midAutumn),
+  valentine(Season.valentine);
+
+  const StickerPack(this.season);
+
+  final Season? season;
+
+  bool get inSeason => season == null || seasonOpen(season!);
+}
 
 /// One sticker in the set. [id] is what a sticker note stores, so ids are
 /// never renamed or reused.
@@ -404,6 +416,23 @@ class _StickerPicker extends StatelessWidget {
 
   final String? current;
 
+  /// "Until 21 Feb" while a pack is open, "Back 12 Jan – 21 Feb" while it
+  /// waits; nothing for everyday stickers.
+  String? _seasonNote(BuildContext context, StickerPack pack) {
+    final season = pack.season;
+    if (season == null) return null;
+    final window = currentOrNextSeason(season);
+    if (window == null) return null;
+    final l10n = AppLocalizations.of(context)!;
+    final dates = MaterialLocalizations.of(context);
+    return pack.inSeason
+        ? l10n.seasonUntil(dates.formatShortMonthDay(window.end))
+        : l10n.seasonBack(
+            dates.formatShortMonthDay(window.start),
+            dates.formatShortMonthDay(window.end),
+          );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -427,30 +456,47 @@ class _StickerPicker extends StatelessWidget {
               for (final pack in StickerPack.values) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(4, 14, 4, 8),
-                  child: Text(
-                    stickerPackLabel(l10n, pack),
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.ink,
+                  child: Text.rich(
+                    TextSpan(
+                      text: stickerPackLabel(l10n, pack),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.ink,
+                      ),
+                      children: [
+                        if (_seasonNote(context, pack) case final note?)
+                          TextSpan(
+                            text: '  ·  $note',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.normal,
+                              color: AppColors.inkSoft,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final sticker in stickers.where((s) => s.pack == pack))
-                      _StickerTile(
-                        sticker: sticker,
-                        selected: sticker.id == current,
-                        locked: sticker.pro && !pro,
-                        onTap: sticker.pro && !pro
-                            ? () => showProSheet(context)
-                            : () => Navigator.pop(context, sticker.id),
-                      ),
-                  ],
-                ),
+                // Out of season a pack waits, named, with its dates.
+                if (pack.inSeason)
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final sticker in stickers.where(
+                        (s) => s.pack == pack,
+                      ))
+                        _StickerTile(
+                          sticker: sticker,
+                          selected: sticker.id == current,
+                          locked: sticker.pro && !pro,
+                          onTap: sticker.pro && !pro
+                              ? () => showProSheet(context)
+                              : () => Navigator.pop(context, sticker.id),
+                        ),
+                    ],
+                  ),
               ],
             ],
           ),

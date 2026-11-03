@@ -201,6 +201,12 @@ class _SettingsSheet extends StatelessWidget {
     bool pro,
   ) {
     final board = notes.currentBoard;
+    // A seasonal wall is offered around its occasion, and whenever it is
+    // the board's own.
+    final offered = [
+      for (final (i, w) in walls.indexed)
+        if (w.inSeason || (!board.hasWallImage && board.wallIndex == i)) w,
+    ];
     return ListView(
       controller: scrollController,
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
@@ -236,10 +242,10 @@ class _SettingsSheet extends StatelessWidget {
             // Tiles run on past the sheet's margin to its edge: a tile
             // cut there reads as "more this way", not as clipped.
             clipBehavior: Clip.none,
-            itemCount: walls.length + 1,
+            itemCount: offered.length + 1,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              if (index == walls.length) {
+            itemBuilder: (context, at) {
+              if (at == offered.length) {
                 return _PhotoWallTile(
                   board: board,
                   l10n: l10n,
@@ -253,7 +259,8 @@ class _SettingsSheet extends StatelessWidget {
                       : () => _photoWallFlow(context, l10n),
                 );
               }
-              final wall = walls[index];
+              final wall = offered[at];
+              final index = walls.indexOf(wall);
               final tried = settings.tryWall;
               final selected = tried != null
                   ? index == tried

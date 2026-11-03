@@ -2947,6 +2947,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mix any paper colour you like'**
   String get proPerkCustomColor;
+
+  /// No description provided for @seasonUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'until {date}'**
+  String seasonUntil(String date);
+
+  /// No description provided for @seasonBack.
+  ///
+  /// In en, this message translates to:
+  /// **'back {from} – {to}'**
+  String seasonBack(String from, String to);
 }
 
 class _AppLocalizationsDelegate

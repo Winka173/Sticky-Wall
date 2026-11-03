@@ -539,5 +539,9 @@
   "wallLove": "Valentine pink",
   "proPerkSeasons": "Seasonal packs: Tết, Christmas, Mid-Autumn and Valentine's walls and stickers",
   "proPerkPrivate": "Private boards that open with your fingerprint",
-  "proPerkCustomColor": "Mix any paper colour you like"
+  "proPerkCustomColor": "Mix any paper colour you like",
+  "seasonUntil": "until {date}",
+  "@seasonUntil": {"placeholders": {"date": {"type": "String"}}},
+  "seasonBack": "back {from} – {to}",
+  "@seasonBack": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}}
 }

@@ -474,5 +474,7 @@
   "wallLove": "Hồng Valentine",
   "proPerkSeasons": "Gói theo mùa: tường và sticker Tết, Giáng Sinh, Trung Thu, Valentine",
   "proPerkPrivate": "Bảng riêng tư, mở bằng vân tay",
-  "proPerkCustomColor": "Tự pha màu giấy theo ý thích"
+  "proPerkCustomColor": "Tự pha màu giấy theo ý thích",
+  "seasonUntil": "đến {date}",
+  "seasonBack": "mở lại {from} – {to}"
 }

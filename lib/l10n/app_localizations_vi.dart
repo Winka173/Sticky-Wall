@@ -1569,4 +1569,14 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get proPerkCustomColor => 'Tự pha màu giấy theo ý thích';
+
+  @override
+  String seasonUntil(String date) {
+    return 'đến $date';
+  }
+
+  @override
+  String seasonBack(String from, String to) {
+    return 'mở lại $from – $to';
+  }
 }

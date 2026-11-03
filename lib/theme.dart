@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'util/seasons.dart';
 import 'util/stable_hash.dart';
 
+export 'util/seasons.dart';
 export 'util/stable_hash.dart';
 
 /// The palette: warm ink on paper, one sunny accent, a red pin.
@@ -181,6 +183,7 @@ class WallStyle {
     required this.dark,
     this.imageFile,
     this.pro = false,
+    this.season,
   });
 
   /// A wall made of the user's own photo (an absolute file path). A dark
@@ -212,6 +215,13 @@ class WallStyle {
   /// Part of Sticky Wall Pro: shown to everyone, chosen only once bought.
   final bool pro;
 
+  /// A seasonal pack's wall: offered only around its occasion (a board
+  /// that has it keeps it all year).
+  final Season? season;
+
+  /// Whether it can be picked today.
+  bool get inSeason => season == null || seasonOpen(season!);
+
   /// The same wall with the lights off: whatever the texture, text turns to
   /// chalk because the room is dark.
   WallStyle get atNight => WallStyle(
@@ -221,6 +231,7 @@ class WallStyle {
     dark: true,
     imageFile: imageFile,
     pro: pro,
+    season: season,
   );
 
   Color get wallText => dark ? AppColors.chalk : AppColors.ink;
@@ -412,6 +423,7 @@ const walls = [
     overlay: Color(0x1A000000),
     dark: true,
     pro: true,
+    season: Season.tet,
   ),
   WallStyle(
     id: 'xmas',
@@ -419,6 +431,7 @@ const walls = [
     overlay: Color(0x14000000),
     dark: true,
     pro: true,
+    season: Season.christmas,
   ),
   WallStyle(
     id: 'moon',
@@ -426,6 +439,7 @@ const walls = [
     overlay: Color(0x14000000),
     dark: true,
     pro: true,
+    season: Season.midAutumn,
   ),
   WallStyle(
     id: 'love',
@@ -433,6 +447,7 @@ const walls = [
     overlay: Color(0x0FFFFFFF),
     dark: false,
     pro: true,
+    season: Season.valentine,
   ),
 ];
 
