@@ -182,7 +182,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get tidyByColor => 'Xếp theo màu';
 
   @override
-  String get moreActions => 'Thêm';
+  String get moreActions => 'Khác';
 
   @override
   String get threadCut => 'Đã cắt dây';
@@ -926,6 +926,24 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get removeReminder => 'Bỏ lời nhắc';
+
+  @override
+  String get remindInHour => 'Một tiếng nữa';
+
+  @override
+  String get remindTonight => 'Tối nay';
+
+  @override
+  String get remindTomorrow => 'Sáng mai';
+
+  @override
+  String get remindPick => 'Chọn ngày và giờ';
+
+  @override
+  String get pinShort => 'Ghim';
+
+  @override
+  String get colorShort => 'Màu';
 
   @override
   String typeChangeDrops(String type) {

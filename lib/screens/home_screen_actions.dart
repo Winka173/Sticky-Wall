@@ -110,9 +110,86 @@ extension _NoteActions on _HomeScreenState {
       for (final l in _notes.linksOn(_notes.currentBoardId))
         if (l.connects(note.guid)) l,
     ];
+    final pro = ProScope.unlockedOf(context);
+    // Prints and stickers have no paper to colour.
+    final colorable =
+        note.type != NoteType.photo && note.type != NoteType.sticker;
+    // The everyday actions sit on top, one tap away; the rest are listed
+    // under them.
     final action = await showActionSheet<String>(
       context,
       children: [
+        if (colorable)
+          SizedBox(
+            height: 64,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              children: [
+                _Swatch(
+                  name: paperName(l10n, null),
+                  color: AppColors.paper,
+                  auto: true,
+                  selected: note.colorIndex == null,
+                  onTap: () => Navigator.pop(context, 'color:-1'),
+                ),
+                for (final (i, c) in AppColors.notePapers.indexed)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: _Swatch(
+                      name: paperName(l10n, i),
+                      color: c,
+                      selected: note.colorIndex == i,
+                      locked: !pro && i >= AppColors.freePapers,
+                      onTap: () => Navigator.pop(
+                        context,
+                        !pro && i >= AppColors.freePapers ? 'pro' : 'color:$i',
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            children: [
+              _BarAction(
+                icon: note.pinned ? Icons.push_pin : Icons.push_pin_outlined,
+                label: note.pinned ? l10n.unpin : l10n.pinShort,
+                color: AppColors.ink,
+                onTap: () => Navigator.pop(context, 'pin'),
+              ),
+              if (canMove)
+                _BarAction(
+                  icon: Icons.drive_file_move_outlined,
+                  label: l10n.move,
+                  color: AppColors.ink,
+                  onTap: () => Navigator.pop(context, 'move'),
+                )
+              else
+                _BarAction(
+                  icon: Icons.content_copy_outlined,
+                  label: l10n.duplicate,
+                  color: AppColors.ink,
+                  onTap: () => Navigator.pop(context, 'duplicate'),
+                ),
+              _BarAction(
+                icon: Icons.ios_share,
+                label: l10n.share,
+                color: AppColors.ink,
+                onTap: () => Navigator.pop(context, 'share'),
+              ),
+              _BarAction(
+                icon: Icons.delete_outline,
+                label: l10n.delete,
+                color: AppColors.deleteIcon,
+                onTap: () => Navigator.pop(context, 'delete'),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
         ListTile(
           leading: const Icon(Icons.edit_outlined),
           title: Text(l10n.edit),
@@ -124,11 +201,6 @@ extension _NoteActions on _HomeScreenState {
             title: Text(l10n.viewPhoto),
             onTap: () => Navigator.pop(context, 'photo'),
           ),
-        ListTile(
-          leading: Icon(note.pinned ? Icons.push_pin : Icons.push_pin_outlined),
-          title: Text(note.pinned ? l10n.unpin : l10n.pin),
-          onTap: () => Navigator.pop(context, 'pin'),
-        ),
         ListTile(
           leading: Icon(note.locked ? Icons.lock_open : Icons.lock_outline),
           title: Text(note.locked ? l10n.unlock : l10n.lockInPlace),
@@ -170,16 +242,11 @@ extension _NoteActions on _HomeScreenState {
           title: Text(l10n.select),
           onTap: () => Navigator.pop(context, 'select'),
         ),
-        ListTile(
-          leading: const Icon(Icons.content_copy_outlined),
-          title: Text(l10n.duplicate),
-          onTap: () => Navigator.pop(context, 'duplicate'),
-        ),
         if (canMove)
           ListTile(
-            leading: const Icon(Icons.drive_file_move_outlined),
-            title: Text(l10n.moveToBoard),
-            onTap: () => Navigator.pop(context, 'move'),
+            leading: const Icon(Icons.content_copy_outlined),
+            title: Text(l10n.duplicate),
+            onTap: () => Navigator.pop(context, 'duplicate'),
           ),
         if (canMove)
           ListTile(
@@ -188,31 +255,22 @@ extension _NoteActions on _HomeScreenState {
             onTap: () => Navigator.pop(context, 'copy'),
           ),
         ListTile(
-          leading: const Icon(Icons.ios_share),
-          title: Text(l10n.shareAsImage),
-          onTap: () => Navigator.pop(context, 'share'),
-        ),
-        ListTile(
           leading: const Icon(Icons.download_outlined),
           title: Text(l10n.saveImage),
           onTap: () => Navigator.pop(context, 'save'),
         ),
-        const Divider(height: 1),
-        ListTile(
-          leading: const Icon(
-            Icons.delete_outline,
-            color: AppColors.deleteIcon,
-          ),
-          title: Text(
-            l10n.delete,
-            style: const TextStyle(color: AppColors.deleteIcon),
-          ),
-          onTap: () => Navigator.pop(context, 'delete'),
-        ),
       ],
     );
-    if (!mounted) return;
+    if (!mounted || action == null) return;
+    if (action.startsWith('color:')) {
+      unawaited(HapticFeedback.selectionClick());
+      final i = int.parse(action.substring(6));
+      _notes.recolor([note], i < 0 ? null : i);
+      return;
+    }
     switch (action) {
+      case 'pro':
+        await showProSheet(context);
       case 'edit':
         await _openEditor(note, isNew: false);
       case 'photo':

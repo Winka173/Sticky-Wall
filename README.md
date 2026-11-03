@@ -64,7 +64,8 @@ then taken well beyond it.
   removes it and the camera button swaps it for another; tap it to open the
   **viewer** (pinch or double-tap to zoom). Add an **emote** sticker, pick a
   **paper color** (or auto-from-id), **pin to top**, and set a **reminder**
-  (date + time, optionally **repeating daily / weekly / monthly**) that fires
+  (one tap for *in an hour*, *this evening* or *tomorrow morning*, or any
+  date + time, optionally **repeating daily / weekly / monthly**) that fires
   a local notification
 - **Photo prints** — a photo pinned straight on the wall: a white border,
   the picture at its real aspect ratio, an optional caption written on the
@@ -74,8 +75,9 @@ then taken well beyond it.
 - The editor *is* the note: same handwriting, same paper color, faint ruled
   lines under each baseline, Save/Cancel on the adhesive strip so they are
   never hidden by the keyboard; validation is inline (the paper shakes).
-  Closing an edited note — Cancel, Back or a tap beside the paper — asks
-  before anything is thrown away; a reminder set in the past, or one that
+  Back or a tap beside the paper keeps the note, like the tick; only the ✕
+  throws an edit away, and asks first (so does Back when what is on the
+  paper cannot be saved). An open note has a bin beside the ✕; a reminder set in the past, or one that
   cannot ring because notifications are off, is said so on the paper
   Under a text note's field, **bold / italic / bullet** buttons put light
   markup into the text (`**bold**`, `*italic*`, `- item`) and the card
@@ -85,10 +87,11 @@ then taken well beyond it.
   board tabs, full width; the tools — type filter, pen (wall) or sort
   (grid/list), layout switcher and the ⋮ menu — sit in a pill at the bottom
   left, thumb-side, opposite the add button
-- **Long-press** a note for Edit / Pin / Lock / **View photo** /
-  **Duplicate** / **Move** or **Copy to another board** / Share / Save /
-  Select / Delete. **Share** renders the note as an
-  image; **Save** puts it in the photo gallery
+- **Long-press** a note for its sheet: the paper colours and Pin / Move /
+  Share / Delete on top, one tap each; then Edit / Lock / **View photo** /
+  **Duplicate** / **Copy to another board** / Save / Select and the wall's
+  own actions. **Share** renders the note as an image; **Save** puts it in
+  the photo gallery
 - Delete **peels the note off the wall** and drops it in the **Trash**, with
   an Undo snackbar; in list mode, swipe a row to delete. A link already on
   the wall (ignoring `https://`, `www.` and a trailing slash) is rejected

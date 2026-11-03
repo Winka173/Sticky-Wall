@@ -53,17 +53,23 @@ const _emojiChoices = [
 /// Opens the note editor — styled as the sticky note itself, so writing feels
 /// like writing on the paper. Returns the edited note (a working copy) on
 /// save, or null when cancelled. A link already pinned on the wall (in
-/// [existing], excluding the note being edited) is rejected.
+/// [existing], excluding the note being edited) is rejected. With
+/// [onDelete] the paper has a bin: the editor closes and calls it.
 Future<Note?> showNoteDialog(
   BuildContext context, {
   required Note note,
   required bool isNew,
   required List<Note> existing,
+  VoidCallback? onDelete,
 }) {
   return showDialog<Note>(
     context: context,
-    builder: (context) =>
-        _NoteDialog(note: note.clone(), isNew: isNew, existing: existing),
+    builder: (context) => _NoteDialog(
+      note: note.clone(),
+      isNew: isNew,
+      existing: existing,
+      onDelete: onDelete,
+    ),
   );
 }
 
@@ -75,11 +81,13 @@ class _NoteDialog extends StatefulWidget {
     required this.note,
     required this.isNew,
     required this.existing,
+    this.onDelete,
   });
 
   final Note note;
   final bool isNew;
   final List<Note> existing;
+  final VoidCallback? onDelete;
 
   @override
   State<_NoteDialog> createState() => _NoteDialogState();
@@ -217,7 +225,17 @@ class _NoteDialogState extends State<_NoteDialog>
     return jsonEncode(now) != _initial;
   }
 
-  /// Cancel, back and a tap beside the paper all come here: an untouched
+  /// Back and a tap beside the paper keep what was written, as putting a
+  /// note down would; only the ✕ throws an edit away.
+  Future<void> _leave() async {
+    if (!_dirty) {
+      Navigator.of(context).pop();
+      return;
+    }
+    await _save(leaving: true);
+  }
+
+  /// The ✕, and leaving a note that cannot be saved as it is: an untouched
   /// note just closes, an edited one asks first.
   Future<void> _close() async {
     if (!_dirty) {
@@ -254,7 +272,7 @@ class _NoteDialogState extends State<_NoteDialog>
       .replaceFirst(RegExp(r'^www\.'), '')
       .replaceFirst(RegExp(r'/+$'), '');
 
-  Future<void> _save() async {
+  Future<void> _save({bool leaving = false}) async {
     final l10n = AppLocalizations.of(context)!;
     // A take still running is what the user meant to keep: end it first.
     final voice = _voice.currentState;
@@ -304,7 +322,13 @@ class _NoteDialogState extends State<_NoteDialog>
         break;
     }
     if (error != null) {
-      _fail(error);
+      // Leaving with nothing that can be kept: ask, rather than shake a note
+      // the user is putting down.
+      if (leaving) {
+        await _close();
+      } else {
+        _fail(error);
+      }
       return;
     }
 
@@ -374,7 +398,53 @@ class _NoteDialogState extends State<_NoteDialog>
 
   // --- reminder / photo / checklist ---------------------------------------------
 
+  /// The usual times are one tap; any other is a date and a time away.
   Future<void> _pickReminder() async {
+    final l10n = AppLocalizations.of(context)!;
+    final ml = MaterialLocalizations.of(context);
+    final now = DateTime.now();
+    final inHour = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute,
+    ).add(const Duration(hours: 1));
+    final tonight = DateTime(now.year, now.month, now.day, 18);
+    final tomorrow = DateTime(now.year, now.month, now.day + 1, 8);
+    String time(DateTime at) => ml.formatTimeOfDay(TimeOfDay.fromDateTime(at));
+    Widget preset(IconData icon, String label, DateTime at) => ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      trailing: Text(time(at)),
+      onTap: () => Navigator.pop(context, at),
+    );
+
+    final picked = await showActionSheet<DateTime>(
+      context,
+      title: l10n.reminder,
+      children: [
+        preset(Icons.schedule, l10n.remindInHour, inHour),
+        // Offered while there is still an hour to go before it.
+        if (now.hour < 17)
+          preset(Icons.wb_twilight, l10n.remindTonight, tonight),
+        preset(Icons.wb_sunny_outlined, l10n.remindTomorrow, tomorrow),
+        ListTile(
+          leading: const Icon(Icons.edit_calendar_outlined),
+          title: Text(l10n.remindPick),
+          onTap: () => Navigator.pop(context, DateTime(0)),
+        ),
+      ],
+    );
+    if (picked == null || !mounted) return;
+    if (picked.year == 0) {
+      await _pickReminderDateTime();
+    } else {
+      await _setReminder(picked);
+    }
+  }
+
+  Future<void> _pickReminderDateTime() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     // An overdue reminder would put initialDate before firstDate, which the
@@ -394,13 +464,12 @@ class _NoteDialogState extends State<_NoteDialog>
       initialTime: TimeOfDay.fromDateTime(initial),
     );
     if (time == null || !mounted) return;
-    final at = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      time.hour,
-      time.minute,
+    await _setReminder(
+      DateTime(date.year, date.month, date.day, time.hour, time.minute),
     );
+  }
+
+  Future<void> _setReminder(DateTime at) async {
     // A one-off reminder in the past would be saved and never ring.
     if (_n.repeat == ReminderRepeat.none && at.isBefore(DateTime.now())) {
       _fail(AppLocalizations.of(context)!.reminderInPast);
@@ -513,7 +582,7 @@ class _NoteDialogState extends State<_NoteDialog>
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _close();
+        if (!didPop) _leave();
       },
       // Opening the editor announces what it is for.
       child: Semantics(

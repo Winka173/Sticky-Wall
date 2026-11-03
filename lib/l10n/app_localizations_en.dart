@@ -937,6 +937,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removeReminder => 'Remove reminder';
 
   @override
+  String get remindInHour => 'In an hour';
+
+  @override
+  String get remindTonight => 'This evening';
+
+  @override
+  String get remindTomorrow => 'Tomorrow morning';
+
+  @override
+  String get remindPick => 'Pick a date & time';
+
+  @override
+  String get pinShort => 'Pin';
+
+  @override
+  String get colorShort => 'Color';
+
+  @override
   String typeChangeDrops(String type) {
     return 'Save as “$type”? Its drawing or link address won\'t be kept.';
   }

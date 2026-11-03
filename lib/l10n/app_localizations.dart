@@ -1742,6 +1742,42 @@ abstract class AppLocalizations {
   /// **'Remove reminder'**
   String get removeReminder;
 
+  /// No description provided for @remindInHour.
+  ///
+  /// In en, this message translates to:
+  /// **'In an hour'**
+  String get remindInHour;
+
+  /// No description provided for @remindTonight.
+  ///
+  /// In en, this message translates to:
+  /// **'This evening'**
+  String get remindTonight;
+
+  /// No description provided for @remindTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow morning'**
+  String get remindTomorrow;
+
+  /// No description provided for @remindPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date & time'**
+  String get remindPick;
+
+  /// No description provided for @pinShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin'**
+  String get pinShort;
+
+  /// No description provided for @colorShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get colorShort;
+
   /// No description provided for @typeChangeDrops.
   ///
   /// In en, this message translates to:

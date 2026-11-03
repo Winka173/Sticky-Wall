@@ -318,13 +318,13 @@ extension _Chrome on _HomeScreenState {
             children: [
               _BarAction(
                 icon: allPinned ? Icons.push_pin : Icons.push_pin_outlined,
-                label: allPinned ? l10n.unpin : l10n.pin,
+                label: allPinned ? l10n.unpin : l10n.pinShort,
                 color: wall.wallText,
                 onTap: any ? _pinSelected : null,
               ),
               _BarAction(
                 icon: Icons.palette_outlined,
-                label: l10n.color,
+                label: l10n.colorShort,
                 color: wall.wallText,
                 onTap: any ? _recolorSelected : null,
               ),
@@ -677,7 +677,8 @@ extension _Chrome on _HomeScreenState {
           l10n.pinPhotos,
           icon: Icons.add_photo_alternate_outlined,
         ),
-        _menuItem('draw', l10n.drawOnWall, icon: Icons.gesture),
+        // On the wall the pen has its own button in the pill.
+        if (!onWall) _menuItem('draw', l10n.drawOnWall, icon: Icons.gesture),
         if (_notes.boardNotes.isNotEmpty) ...[
           const PopupMenuDivider(),
           _menuItem('select', l10n.select, icon: Icons.checklist_rtl),

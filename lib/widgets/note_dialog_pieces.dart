@@ -26,6 +26,17 @@ extension _EditorPieces on _NoteDialogState {
             icon: const Icon(Icons.close),
             onPressed: _close,
           ),
+          // Kept by the ✕, away from the tick; the wall offers Undo.
+          if (widget.onDelete case final onDelete?)
+            IconButton(
+              tooltip: l10n.delete,
+              color: _NoteDialogState._ink,
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () {
+                Navigator.of(context).pop();
+                onDelete();
+              },
+            ),
           const Spacer(),
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -708,18 +719,10 @@ extension _EditorPieces on _NoteDialogState {
                     _showColors = !_showColors;
                     _showEmoji = false;
                   }),
-                  icon: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: paperColorOf(context, _n.colorIndex, _n.guid),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: _NoteDialogState._ink,
-                        width: _showColors ? 2.2 : 1.2,
-                      ),
-                    ),
-                  ),
+                  // A swatch of the paper itself read as an empty ring.
+                  color: _NoteDialogState._ink,
+                  icon: const Icon(Icons.palette_outlined, size: 22),
+                  selectedIcon: const Icon(Icons.palette, size: 22),
                 ),
             ],
           ),
@@ -871,8 +874,27 @@ extension _EditorPieces on _NoteDialogState {
                     painter: PaperPatternPainter(style, line: 14, top: 2),
                   ),
                 ),
+                // The same quiet lock as the paper colours: five yellow
+                // badges in a row shouted over the note being written.
                 if (locked)
-                  const Positioned(right: -6, bottom: -4, child: ProMark()),
+                  Positioned(
+                    right: -4,
+                    bottom: -4,
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: AppColors.chalk,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.black26),
+                      ),
+                      child: const Icon(
+                        Icons.lock_outline,
+                        size: 11,
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -918,6 +940,7 @@ extension _EditorPieces on _NoteDialogState {
                 : AppColors.paper,
             selected: isCustomPaper(_n.colorIndex),
             rainbow: !isCustomPaper(_n.colorIndex),
+            mixed: isCustomPaper(_n.colorIndex),
             locked: !pro,
             onTap: pro ? _mixColor : () => showProSheet(context),
           ),
@@ -952,6 +975,7 @@ extension _EditorPieces on _NoteDialogState {
     bool auto = false,
     bool locked = false,
     bool rainbow = false,
+    bool mixed = false,
   }) {
     return Semantics(
       button: true,
@@ -999,6 +1023,14 @@ extension _EditorPieces on _NoteDialogState {
                       Icons.lock_outline,
                       size: 12,
                       color: _NoteDialogState._ink.withValues(alpha: 0.6),
+                    )
+                  // A mixed colour is the paper's own, so the swatch alone
+                  // read as an empty ring: the mixer's mark says what it is.
+                  : mixed
+                  ? Icon(
+                      Icons.tune,
+                      size: 15,
+                      color: _NoteDialogState._ink.withValues(alpha: 0.7),
                     )
                   : null,
             ),

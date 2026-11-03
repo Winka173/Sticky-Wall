@@ -247,7 +247,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _update(VoidCallback change) => setState(change);
 
   static IconData _layoutIcon(ViewMode mode) => switch (mode) {
-    ViewMode.wall => Icons.dashboard_customize_outlined,
+    // No "+" in it: on the toolbar that read as "add".
+    ViewMode.wall => Icons.dashboard_outlined,
     ViewMode.grid => Icons.grid_view_rounded,
     ViewMode.list => Icons.view_agenda_outlined,
   };
@@ -584,6 +585,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         note: note,
         isNew: isNew,
         existing: _notes.boardNotes,
+        onDelete: isNew ? null : () => _delete(note),
       );
     } finally {
       _editorClosed = null;

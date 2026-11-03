@@ -57,6 +57,8 @@ Future<void> _dragNote(WidgetTester tester, Finder note, Offset by) async {
 }
 
 void main() {
+  _quickFlows();
+
   testWidgets('saving an empty note shows an inline error and stays open', (
     tester,
   ) async {
@@ -76,7 +78,7 @@ void main() {
     expect(find.text('Write something first'), findsNothing);
   });
 
-  testWidgets('closing an edited note asks before dropping the text', (
+  testWidgets('the cross asks before dropping the text; back keeps it', (
     tester,
   ) async {
     final notes = await _pumpApp(tester);
@@ -96,13 +98,31 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Buy bread'), findsOneWidget);
 
-    // The system back button asks too.
-    await tester.binding.handlePopRoute();
+    await tester.tap(find.byTooltip('Cancel'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Discard'));
     await tester.pumpAndSettle();
     expect(_saveButton, findsNothing);
     expect(notes.boardNotes, isEmpty);
+
+    // The system back button puts the note on the wall, like the tick.
+    await _openEditor(tester);
+    await tester.enterText(find.byType(TextField).first, 'Buy milk');
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(_saveButton, findsNothing);
+    expect(notes.boardNotes.single.content, 'Buy milk');
+
+    // With nothing that could be kept, back asks instead of saving.
+    await _openEditor(tester);
+    await tester.tap(find.byTooltip('To-do list'));
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Discard your changes?'), findsOneWidget);
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+    expect(notes.boardNotes, hasLength(1));
   });
 
   testWidgets('a note opens, and shows its menu, from a keyboard', (
@@ -1145,9 +1165,7 @@ void main() {
       ],
     );
     final note = notes.boardNotes.single;
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Draw on the wall'));
+    await tester.tap(find.byTooltip('Draw on the wall'));
     await tester.pumpAndSettle();
     expect(find.byTooltip('Done'), findsOneWidget);
     expect(find.byType(AddNoteButton), findsNothing);
@@ -1200,9 +1218,7 @@ void main() {
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     await _pumpApp(tester, viewMode: ViewMode.wall);
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Draw on the wall'));
+    await tester.tap(find.byTooltip('Draw on the wall'));
     await tester.pumpAndSettle();
     expect(find.byTooltip('Done'), findsOneWidget);
     expect(tester.takeException(), isNull, reason: 'no overflow');
@@ -1674,5 +1690,83 @@ void main() {
     await tester.tap(_saveButton);
     await tester.pumpAndSettle();
     expect(notes.boardNotes.single.content, 'Right here');
+  });
+}
+
+void _quickFlows() {
+  testWidgets('a reminder for tomorrow morning is two taps', (tester) async {
+    await _pumpApp(
+      tester,
+      notes: [
+        Note(
+          guid: 'r',
+          content: 'Call mum',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+        ),
+      ],
+    );
+    await tester.tap(find.text('Call mum'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Reminder'));
+    await tester.pumpAndSettle();
+    expect(find.text('In an hour'), findsOneWidget);
+    expect(find.text('Pick a date & time'), findsOneWidget);
+    await tester.tap(find.text('Tomorrow morning'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Remove reminder'), findsOneWidget);
+  });
+
+  testWidgets('an open note can be thrown away from the editor', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      notes: [
+        Note(
+          guid: 'd',
+          content: 'Old idea',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+        ),
+      ],
+    );
+    await tester.tap(find.text('Old idea'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Delete'));
+    await tester.pumpAndSettle();
+    expect(notes.boardNotes, isEmpty);
+    expect(find.text('Undo'), findsWidgets);
+    // A new note has nothing to delete.
+    await _openEditor(tester);
+    expect(find.byTooltip('Delete'), findsNothing);
+  });
+
+  testWidgets('a note is recoloured and deleted straight from its menu', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.grid,
+      notes: [
+        Note(
+          guid: 'c',
+          content: 'Paint me',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+        ),
+      ],
+    );
+    await tester.longPress(find.text('Paint me'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Pink'));
+    await tester.pumpAndSettle();
+    expect(notes.boardNotes.single.colorIndex, 1);
+
+    await tester.longPress(find.text('Paint me'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    expect(notes.boardNotes, isEmpty);
   });
 }

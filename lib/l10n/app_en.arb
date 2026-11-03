@@ -325,6 +325,12 @@
   "reminderInPast": "That time has passed — pick a later one.",
   "notificationsOff": "Notifications are off for Sticky Wall, so this reminder won't ring. Turn them on in the phone's settings.",
   "removeReminder": "Remove reminder",
+  "remindInHour": "In an hour",
+  "remindTonight": "This evening",
+  "remindTomorrow": "Tomorrow morning",
+  "remindPick": "Pick a date & time",
+  "pinShort": "Pin",
+  "colorShort": "Color",
   "typeChangeDrops": "Save as “{type}”? Its drawing or link address won't be kept.",
   "@typeChangeDrops": {
     "placeholders": { "type": { "type": "String" } }
