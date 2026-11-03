@@ -506,7 +506,7 @@ void main() {
         expect(inPack.every((s) => s.pro), isTrue);
       }
       expect(stickers.map((s) => s.id).toSet().length, stickers.length);
-      for (final id in ['tet', 'xmas', 'moon', 'love']) {
+      for (final id in ['tet', 'tet_dao', 'xmas', 'moon', 'love']) {
         expect(walls.where((w) => w.id == id).single.pro, isTrue);
       }
     });

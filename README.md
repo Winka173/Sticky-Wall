@@ -537,7 +537,8 @@ first.
   (linen), Cardboard004, Concrete034 (cement), Fabric019 (cotton), Paper001,
   Ground037 (moss), Leather011, Marble006 (dark marble), Planks020 (dark
   planks), Tiles074 (checker). License: CC0.
-- Seasonal walls (`wall_tet`, `wall_xmas`, `wall_moon`, `wall_love`):
+- Seasonal walls (`wall_tet` with apricot blossom, `wall_tet_dao` with
+  peach blossom, `wall_xmas`, `wall_moon`, `wall_love`):
   generated for this app with OpenAI's image model through the Codex CLI,
   checked to tile without seams and saved as JPEG. A trial of AI versions of
   the cork wall, paper and app icon was not kept: the CC0 cork reads better

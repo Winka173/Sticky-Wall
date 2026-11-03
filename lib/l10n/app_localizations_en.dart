@@ -1561,7 +1561,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stickerStarLantern => 'Star lantern';
 
   @override
-  String get wallTet => 'Tết red';
+  String get wallTet => 'Tết · apricot';
+
+  @override
+  String get wallTetDao => 'Tết · peach';
 
   @override
   String get wallXmas => 'Christmas green';

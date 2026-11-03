@@ -426,6 +426,14 @@ const walls = [
     season: Season.tet,
   ),
   WallStyle(
+    id: 'tet_dao',
+    asset: 'assets/images/wall_tet_dao.jpg',
+    overlay: Color(0x1A000000),
+    dark: true,
+    pro: true,
+    season: Season.tet,
+  ),
+  WallStyle(
     id: 'xmas',
     asset: 'assets/images/wall_xmas.jpg',
     overlay: Color(0x14000000),

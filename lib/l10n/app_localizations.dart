@@ -2909,8 +2909,14 @@ abstract class AppLocalizations {
   /// No description provided for @wallTet.
   ///
   /// In en, this message translates to:
-  /// **'Tết red'**
+  /// **'Tết · apricot'**
   String get wallTet;
+
+  /// No description provided for @wallTetDao.
+  ///
+  /// In en, this message translates to:
+  /// **'Tết · peach'**
+  String get wallTetDao;
 
   /// No description provided for @wallXmas.
   ///

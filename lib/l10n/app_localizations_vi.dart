@@ -1549,7 +1549,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get stickerStarLantern => 'Đèn ông sao';
 
   @override
-  String get wallTet => 'Đỏ Tết';
+  String get wallTet => 'Tết · hoa mai';
+
+  @override
+  String get wallTetDao => 'Tết · hoa đào';
 
   @override
   String get wallXmas => 'Xanh Giáng Sinh';

@@ -54,6 +54,7 @@ String wallLabel(AppLocalizations l10n, String id) => switch (id) {
   'sage' => l10n.wallSage,
   'sky' => l10n.wallSky,
   'tet' => l10n.wallTet,
+  'tet_dao' => l10n.wallTetDao,
   'xmas' => l10n.wallXmas,
   'moon' => l10n.wallMoon,
   'love' => l10n.wallLove,
