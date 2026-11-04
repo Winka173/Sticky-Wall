@@ -36,6 +36,26 @@ then taken well beyond it.
 
 ## Features
 
+**New in 1.4.1**
+- **Illustrated stickers and washi tapes**, drawn for the app with Codex
+  image generation and bundled offline (`assets/stickers/`, about 10 KB
+  each); shelves by subject in the sticker picker, a good part free. The
+  importer, manifest (sizes, SHA-256, provenance) and contact sheets:
+  `tool/import_art.py`, `docs/design/`
+- **Photo frames**: plain, Polaroid, rounded (free); film strip, vintage,
+  torn paper, scrapbook (Pro), drawn in code, per print
+- **Memory walls**: captions (numbers, today's date), a hero-photo layout,
+  *Shuffle the photos* (seeded), *One frame for every photo*, *Make it the
+  hero*, all with Undo
+- **Restore preview**: what a backup holds and how much is already here,
+  then *Add to what is here* or *Replace everything*, with Undo
+- **Locked boards** (renamed from private boards): a lock in the app, not
+  encryption, and the privacy policy says Android / iCloud backup may copy
+  app data
+- **Archive** board for notes put away; a readable face in the editor;
+  *Calm the wall* slider; *All boards* sorted pinned-first then by last
+  edit; templates with a Pro look show their free twin before *Use*
+
 **New in 1.4**
 - **Templates & themes** (⋮ → *Templates & themes*, the "+" board tab, or
   a board's sheet): 45 editable board templates in six shelves (plans &

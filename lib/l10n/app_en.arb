@@ -678,5 +678,15 @@
   "archived": "Moved to the Archive board",
   "editorReadable": "Readable text",
   "editorHandwriting": "Handwriting",
-  "wallSoften": "Calm the wall behind the notes"
+  "wallSoften": "Calm the wall behind the notes",
+  "packMarks": "Note marks",
+  "packAnimals": "Animals",
+  "packGarden": "Garden",
+  "packOcean": "Sea & beach",
+  "packCozy": "Cozy home",
+  "packHobbies": "Hobbies",
+  "packOffice": "Desk & office",
+  "packLove": "Love & celebration",
+  "packFestiveVn": "Tết & Mid-Autumn",
+  "packHolidays": "Christmas & Halloween"
 }

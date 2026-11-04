@@ -596,5 +596,15 @@
   "archived": "Đã chuyển vào bảng Lưu trữ",
   "editorReadable": "Chữ dễ đọc",
   "editorHandwriting": "Chữ viết tay",
-  "wallSoften": "Làm dịu tường phía sau ghi chú"
+  "wallSoften": "Làm dịu tường phía sau ghi chú",
+  "packMarks": "Ký hiệu ghi chú",
+  "packAnimals": "Thú cưng",
+  "packGarden": "Vườn",
+  "packOcean": "Biển",
+  "packCozy": "Góc ấm cúng",
+  "packHobbies": "Sở thích",
+  "packOffice": "Văn phòng",
+  "packLove": "Tình yêu & tiệc",
+  "packFestiveVn": "Tết & Trung thu",
+  "packHolidays": "Giáng sinh & Halloween"
 }

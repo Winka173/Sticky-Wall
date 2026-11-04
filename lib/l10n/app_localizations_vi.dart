@@ -1984,4 +1984,34 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get wallSoften => 'Làm dịu tường phía sau ghi chú';
+
+  @override
+  String get packMarks => 'Ký hiệu ghi chú';
+
+  @override
+  String get packAnimals => 'Thú cưng';
+
+  @override
+  String get packGarden => 'Vườn';
+
+  @override
+  String get packOcean => 'Biển';
+
+  @override
+  String get packCozy => 'Góc ấm cúng';
+
+  @override
+  String get packHobbies => 'Sở thích';
+
+  @override
+  String get packOffice => 'Văn phòng';
+
+  @override
+  String get packLove => 'Tình yêu & tiệc';
+
+  @override
+  String get packFestiveVn => 'Tết & Trung thu';
+
+  @override
+  String get packHolidays => 'Giáng sinh & Halloween';
 }

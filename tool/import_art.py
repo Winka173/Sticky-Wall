@@ -44,6 +44,16 @@ SHELVES = {
     'food': ('food', False),
     'travel': ('travel', False),
     'planner': ('planner', True),
+    'marks': ('marks', True),
+    'animals': ('animals', False),
+    'garden': ('garden', False),
+    'ocean': ('ocean', False),
+    'cozy': ('cozy', False),
+    'hobbies': ('hobbies', False),
+    'office': ('office', False),
+    'love': ('love', False),
+    'festive_vn': ('festiveVn', False),
+    'holidays': ('holidays', False),
     'tape': ('tapes', False),
 }
 

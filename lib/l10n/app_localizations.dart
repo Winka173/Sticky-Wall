@@ -3679,6 +3679,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Calm the wall behind the notes'**
   String get wallSoften;
+
+  /// No description provided for @packMarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Note marks'**
+  String get packMarks;
+
+  /// No description provided for @packAnimals.
+  ///
+  /// In en, this message translates to:
+  /// **'Animals'**
+  String get packAnimals;
+
+  /// No description provided for @packGarden.
+  ///
+  /// In en, this message translates to:
+  /// **'Garden'**
+  String get packGarden;
+
+  /// No description provided for @packOcean.
+  ///
+  /// In en, this message translates to:
+  /// **'Sea & beach'**
+  String get packOcean;
+
+  /// No description provided for @packCozy.
+  ///
+  /// In en, this message translates to:
+  /// **'Cozy home'**
+  String get packCozy;
+
+  /// No description provided for @packHobbies.
+  ///
+  /// In en, this message translates to:
+  /// **'Hobbies'**
+  String get packHobbies;
+
+  /// No description provided for @packOffice.
+  ///
+  /// In en, this message translates to:
+  /// **'Desk & office'**
+  String get packOffice;
+
+  /// No description provided for @packLove.
+  ///
+  /// In en, this message translates to:
+  /// **'Love & celebration'**
+  String get packLove;
+
+  /// No description provided for @packFestiveVn.
+  ///
+  /// In en, this message translates to:
+  /// **'Tết & Mid-Autumn'**
+  String get packFestiveVn;
+
+  /// No description provided for @packHolidays.
+  ///
+  /// In en, this message translates to:
+  /// **'Christmas & Halloween'**
+  String get packHolidays;
 }
 
 class _AppLocalizationsDelegate

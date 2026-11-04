@@ -2007,4 +2007,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wallSoften => 'Calm the wall behind the notes';
+
+  @override
+  String get packMarks => 'Note marks';
+
+  @override
+  String get packAnimals => 'Animals';
+
+  @override
+  String get packGarden => 'Garden';
+
+  @override
+  String get packOcean => 'Sea & beach';
+
+  @override
+  String get packCozy => 'Cozy home';
+
+  @override
+  String get packHobbies => 'Hobbies';
+
+  @override
+  String get packOffice => 'Desk & office';
+
+  @override
+  String get packLove => 'Love & celebration';
+
+  @override
+  String get packFestiveVn => 'Tết & Mid-Autumn';
+
+  @override
+  String get packHolidays => 'Christmas & Halloween';
 }
