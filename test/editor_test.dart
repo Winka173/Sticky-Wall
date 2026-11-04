@@ -1724,6 +1724,25 @@ void _quickFlows() {
     expect(find.byTooltip('Remove reminder'), findsOneWidget);
   });
 
+  testWidgets('the editor switches to a readable face and remembers it', (
+    tester,
+  ) async {
+    await _pumpApp(tester);
+    await _openEditor(tester);
+    TextStyle field() =>
+        tester.widget<EditableText>(find.byType(EditableText).first).style;
+    expect(field().fontFamily, isNot('BeVietnamPro'));
+    await tester.tap(find.byTooltip('Readable text'));
+    await tester.pumpAndSettle();
+    expect(field().fontFamily, 'BeVietnamPro');
+    await tester.tap(find.byTooltip('Cancel'));
+    await tester.pumpAndSettle();
+    // Opened again, it is still readable.
+    await _openEditor(tester);
+    expect(field().fontFamily, 'BeVietnamPro');
+    expect(find.byTooltip('Handwriting'), findsOneWidget);
+  });
+
   testWidgets('an open note can be thrown away from the editor', (
     tester,
   ) async {

@@ -675,5 +675,8 @@
   "archiveNote": "Archive",
   "archiveDoneHint": "Every item is done: keep it out of the way",
   "archiveBoard": "Archive",
-  "archived": "Moved to the Archive board"
+  "archived": "Moved to the Archive board",
+  "editorReadable": "Readable text",
+  "editorHandwriting": "Handwriting",
+  "wallSoften": "Calm the wall behind the notes"
 }

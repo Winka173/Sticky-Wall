@@ -1998,4 +1998,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get archived => 'Moved to the Archive board';
+
+  @override
+  String get editorReadable => 'Readable text';
+
+  @override
+  String get editorHandwriting => 'Handwriting';
+
+  @override
+  String get wallSoften => 'Calm the wall behind the notes';
 }

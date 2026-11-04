@@ -40,11 +40,16 @@ class WallBackground extends StatelessWidget {
     required this.wall,
     required this.decor,
     this.camera,
+    this.soften = 0,
   });
 
   final WallStyle wall;
   final bool decor;
   final WallCamera? camera;
+
+  /// Calms a busy wall so the notes lead (0..1): a light wall is washed
+  /// toward paper, a dark one deepened. The lamp-lit night stays on top.
+  final double soften;
 
   /// How far the movable layer extends past every screen edge: the wall's
   /// pan boundary (320) at its smallest zoom (0.6), plus the header above the
@@ -88,6 +93,12 @@ class WallBackground extends StatelessWidget {
             children: [
               IgnorePointer(child: surface),
               ColoredBox(color: wall.overlay),
+              if (soften > 0)
+                ColoredBox(
+                  color: wall.dark
+                      ? Colors.black.withValues(alpha: 0.55 * soften)
+                      : AppColors.paper.withValues(alpha: 0.6 * soften),
+                ),
               // Soft vignette adds depth so the wall recedes at the edges.
               const IgnorePointer(
                 child: DecoratedBox(

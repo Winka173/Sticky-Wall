@@ -1975,4 +1975,13 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get archived => 'Đã chuyển vào bảng Lưu trữ';
+
+  @override
+  String get editorReadable => 'Chữ dễ đọc';
+
+  @override
+  String get editorHandwriting => 'Chữ viết tay';
+
+  @override
+  String get wallSoften => 'Làm dịu tường phía sau ghi chú';
 }

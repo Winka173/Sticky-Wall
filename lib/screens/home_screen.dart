@@ -776,6 +776,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         isNew: isNew,
         existing: _notes.boardNotes,
         onDelete: isNew ? null : () => _delete(note),
+        readable: widget.settings.readableEditor,
+        onReadable: widget.settings.setReadableEditor,
       );
     } finally {
       _editorClosed = null;
@@ -1084,6 +1086,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                     wall: wall,
                     decor: widget.settings.wallDecor,
+                    soften: widget.settings.wallSoften,
                     // Only the wall pans; grid and list scroll over a still
                     // background.
                     camera: _notes.viewMode == ViewMode.wall ? _camera : null,

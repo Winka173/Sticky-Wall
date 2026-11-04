@@ -3661,6 +3661,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Moved to the Archive board'**
   String get archived;
+
+  /// No description provided for @editorReadable.
+  ///
+  /// In en, this message translates to:
+  /// **'Readable text'**
+  String get editorReadable;
+
+  /// No description provided for @editorHandwriting.
+  ///
+  /// In en, this message translates to:
+  /// **'Handwriting'**
+  String get editorHandwriting;
+
+  /// No description provided for @wallSoften.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm the wall behind the notes'**
+  String get wallSoften;
 }
 
 class _AppLocalizationsDelegate

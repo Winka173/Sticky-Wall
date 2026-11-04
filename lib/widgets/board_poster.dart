@@ -22,6 +22,7 @@ class BoardPosterPage extends StatefulWidget {
     super.key,
     required this.wall,
     required this.decor,
+    this.soften = 0,
     required this.notes,
     required this.links,
     this.strokes = const [],
@@ -36,6 +37,9 @@ class BoardPosterPage extends StatefulWidget {
 
   /// Whether the wall's stains and marks are drawn (the user's setting).
   final bool decor;
+
+  /// How much the wall is calmed, as on screen.
+  final double soften;
   final List<Note> notes;
   final List<NoteLink> links;
 
@@ -269,6 +273,7 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
                                     child: WallBackground(
                                       wall: widget.wall,
                                       decor: widget.decor,
+                                      soften: widget.soften,
                                     ),
                                   ),
                                   // The whole wall, laid out at its live size

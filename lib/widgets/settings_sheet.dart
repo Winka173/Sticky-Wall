@@ -308,6 +308,26 @@ class _SettingsSheet extends StatelessWidget {
           value: settings.wallDecor,
           onChanged: settings.setWallDecor,
         ),
+        // A busy wall can take the eye from the notes: calm it down.
+        Row(
+          children: [
+            const Icon(Icons.blur_on, color: AppColors.ink),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l10n.wallSoften,
+                style: const TextStyle(fontSize: 16, color: AppColors.ink),
+              ),
+            ),
+          ],
+        ),
+        Slider(
+          value: settings.wallSoften,
+          divisions: 5,
+          label: '${(settings.wallSoften * 100).round()}%',
+          semanticFormatterCallback: (v) => '${(v * 100).round()}%',
+          onChanged: settings.setWallSoften,
+        ),
         const SizedBox(height: 8),
         _SectionTitle(l10n.nightSection),
         Wrap(

@@ -42,6 +42,8 @@ class NoteStorage {
   static const _nightEndKey = 'nightEnd';
   static const _autoTrashDoneKey = 'autoTrashDone';
   static const _dragToDeleteKey = 'dragToDelete';
+  static const _readableEditorKey = 'readableEditor';
+  static const _wallSoftenKey = 'wallSoften';
   static const _tipsPendingKey = 'tipsPending';
   static const _welcomePendingKey = 'welcomePending';
   static const _autoBackupKey = 'autoBackup';
@@ -200,6 +202,17 @@ class NoteStorage {
   /// Whether dragging a note to the foot of the wall offers a delete tray.
   /// Off unless switched on: a slip of the finger should never bin a note.
   bool get dragToDelete => _prefs.getBool(_dragToDeleteKey) ?? false;
+
+  /// Whether the editor writes in a plain readable face rather than the
+  /// handwriting (the cards keep the handwriting either way).
+  bool get readableEditor => _prefs.getBool(_readableEditorKey) ?? false;
+
+  /// How much a busy wall is calmed (0 = as it is, 1 = most).
+  double get wallSoften => _prefs.getDouble(_wallSoftenKey) ?? 0;
+  Future<void> setWallSoften(double value) =>
+      _prefs.setDouble(_wallSoftenKey, value);
+  Future<void> setReadableEditor(bool value) =>
+      _prefs.setBool(_readableEditorKey, value);
   Future<void> setDragToDelete(bool value) =>
       _prefs.setBool(_dragToDeleteKey, value);
 

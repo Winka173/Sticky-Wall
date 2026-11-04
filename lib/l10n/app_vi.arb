@@ -593,5 +593,8 @@
   "archiveNote": "Lưu trữ",
   "archiveDoneHint": "Đã xong hết: cất đi cho gọn",
   "archiveBoard": "Lưu trữ",
-  "archived": "Đã chuyển vào bảng Lưu trữ"
+  "archived": "Đã chuyển vào bảng Lưu trữ",
+  "editorReadable": "Chữ dễ đọc",
+  "editorHandwriting": "Chữ viết tay",
+  "wallSoften": "Làm dịu tường phía sau ghi chú"
 }

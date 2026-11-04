@@ -187,6 +187,17 @@ class SettingsController extends ChangeNotifier {
   void markTipsSeen() => _storage.setTipsPending(false);
 
   bool get welcomePending => _storage.welcomePending;
+
+  bool get readableEditor => _storage.readableEditor;
+
+  /// How much the wall is calmed behind the notes (0..1).
+  double get wallSoften => _storage.wallSoften;
+  void setWallSoften(double value) {
+    _storage.setWallSoften(value.clamp(0.0, 1.0));
+    notifyListeners();
+  }
+
+  void setReadableEditor(bool value) => _storage.setReadableEditor(value);
   void markWelcomeSeen() => _storage.setWelcomePending(false);
 
   /// Whether the scheduled window covers [now]; the window may wrap past

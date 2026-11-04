@@ -61,6 +61,8 @@ Future<Note?> showNoteDialog(
   required bool isNew,
   required List<Note> existing,
   VoidCallback? onDelete,
+  bool readable = false,
+  ValueChanged<bool>? onReadable,
 }) {
   return showDialog<Note>(
     context: context,
@@ -69,6 +71,8 @@ Future<Note?> showNoteDialog(
       isNew: isNew,
       existing: existing,
       onDelete: onDelete,
+      readable: readable,
+      onReadable: onReadable,
     ),
   );
 }
@@ -82,12 +86,19 @@ class _NoteDialog extends StatefulWidget {
     required this.isNew,
     required this.existing,
     this.onDelete,
+    this.readable = false,
+    this.onReadable,
   });
 
   final Note note;
   final bool isNew;
   final List<Note> existing;
   final VoidCallback? onDelete;
+
+  /// Write in a plain readable face instead of the handwriting; the switch
+  /// on the paper flips it and [onReadable] remembers the choice.
+  final bool readable;
+  final ValueChanged<bool>? onReadable;
 
   @override
   State<_NoteDialog> createState() => _NoteDialogState();
@@ -137,6 +148,7 @@ class _NoteDialogState extends State<_NoteDialog>
   bool _notificationsOff = false;
   bool _showEmoji = false;
   bool _showColors = false;
+  late bool _readable = widget.readable;
 
   late final _shake = AnimationController(
     vsync: this,
@@ -579,7 +591,7 @@ class _NoteDialogState extends State<_NoteDialog>
         ? printColorOf(context)
         : paperColorOf(context, _n.colorIndex, _n.guid);
 
-    return PopScope(
+    final page = PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _leave();
@@ -725,6 +737,17 @@ class _NoteDialogState extends State<_NoteDialog>
           ),
         ),
       ),
+    );
+    if (!_readable) return page;
+    // Readable: the app's theme in Be Vietnam Pro, so every field on the
+    // paper (and its size balancing) follows.
+    return Theme(
+      data: buildAppTheme(
+        fontChoiceById('bevietnam'),
+        night: isNight(context),
+        pin: pinStyleOf(context),
+      ),
+      child: page,
     );
   }
 }

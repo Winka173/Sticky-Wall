@@ -37,6 +37,18 @@ extension _EditorPieces on _NoteDialogState {
                 onDelete();
               },
             ),
+          // Handwriting or a plain face for writing a long note.
+          IconButton(
+            tooltip: _readable ? l10n.editorHandwriting : l10n.editorReadable,
+            color: _NoteDialogState._ink,
+            isSelected: _readable,
+            icon: const Icon(Icons.text_fields),
+            selectedIcon: const Icon(Icons.draw_outlined),
+            onPressed: () {
+              _update(() => _readable = !_readable);
+              widget.onReadable?.call(_readable);
+            },
+          ),
           const Spacer(),
           Padding(
             padding: const EdgeInsets.only(right: 8),

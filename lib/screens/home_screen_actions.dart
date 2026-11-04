@@ -572,6 +572,7 @@ extension _NoteActions on _HomeScreenState {
         builder: (_) => BoardPosterPage(
           wall: wall,
           decor: widget.settings.wallDecor,
+          soften: widget.settings.wallSoften,
           notes: _notes.boardNotes,
           links: _notes.linksOn(_notes.currentBoardId),
           strokes: _notes.currentBoard.strokes,
