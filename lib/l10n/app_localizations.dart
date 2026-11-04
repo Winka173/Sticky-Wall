@@ -3199,6 +3199,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A few notes that show what you can do; delete them any time'**
   String get welcomeExploreHint;
+
+  /// No description provided for @memoryWall.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory wall'**
+  String get memoryWall;
+
+  /// No description provided for @memoryWallHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Many photos at once, laid out for you to edit'**
+  String get memoryWallHint;
+
+  /// No description provided for @memoryPhotoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String memoryPhotoCount(int count);
+
+  /// No description provided for @memoryTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'A wall holds up to {max}; the first {max} are used.'**
+  String memoryTooMany(int max);
+
+  /// No description provided for @memoryLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Layout'**
+  String get memoryLayout;
+
+  /// No description provided for @layoutCollage.
+  ///
+  /// In en, this message translates to:
+  /// **'Collage'**
+  String get layoutCollage;
+
+  /// No description provided for @layoutPrints.
+  ///
+  /// In en, this message translates to:
+  /// **'Prints in rows'**
+  String get layoutPrints;
+
+  /// No description provided for @layoutFilm.
+  ///
+  /// In en, this message translates to:
+  /// **'Film strip'**
+  String get layoutFilm;
+
+  /// No description provided for @layoutTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get layoutTimeline;
+
+  /// No description provided for @memoryLook.
+  ///
+  /// In en, this message translates to:
+  /// **'Look'**
+  String get memoryLook;
+
+  /// No description provided for @memoryCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Make the wall'**
+  String get memoryCreate;
+
+  /// No description provided for @memoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Memories'**
+  String get memoryTitle;
+
+  /// No description provided for @memoryMade.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo is on your memory wall} other{{count} photos are on your memory wall}}. Tap one to add a caption.'**
+  String memoryMade(int count);
 }
 
 class _AppLocalizationsDelegate

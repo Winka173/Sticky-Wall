@@ -516,5 +516,18 @@
   "welcomeBlank": "Bắt đầu với tường trống",
   "welcomeBlankHint": "Các ghi chú mẫu sẽ được xóa",
   "welcomeExplore": "Khám phá tường mẫu",
-  "welcomeExploreHint": "Vài ghi chú chỉ cách dùng; xóa lúc nào cũng được"
+  "welcomeExploreHint": "Vài ghi chú chỉ cách dùng; xóa lúc nào cũng được",
+  "memoryWall": "Tường kỷ niệm",
+  "memoryWallHint": "Nhiều ảnh một lúc, tự xếp sẵn, sửa được từng tấm",
+  "memoryPhotoCount": "{count} ảnh",
+  "memoryTooMany": "Mỗi tường giữ tối đa {max} ảnh; dùng {max} ảnh đầu.",
+  "memoryLayout": "Bố cục",
+  "layoutCollage": "Cắt dán",
+  "layoutPrints": "Xếp hàng",
+  "layoutFilm": "Dải phim",
+  "layoutTimeline": "Dòng thời gian",
+  "memoryLook": "Giao diện",
+  "memoryCreate": "Tạo tường",
+  "memoryTitle": "Kỷ niệm",
+  "memoryMade": "Đã dán {count} ảnh lên tường kỷ niệm. Chạm vào ảnh để thêm chú thích."
 }

@@ -1712,4 +1712,50 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get welcomeExploreHint =>
       'Vài ghi chú chỉ cách dùng; xóa lúc nào cũng được';
+
+  @override
+  String get memoryWall => 'Tường kỷ niệm';
+
+  @override
+  String get memoryWallHint =>
+      'Nhiều ảnh một lúc, tự xếp sẵn, sửa được từng tấm';
+
+  @override
+  String memoryPhotoCount(int count) {
+    return '$count ảnh';
+  }
+
+  @override
+  String memoryTooMany(int max) {
+    return 'Mỗi tường giữ tối đa $max ảnh; dùng $max ảnh đầu.';
+  }
+
+  @override
+  String get memoryLayout => 'Bố cục';
+
+  @override
+  String get layoutCollage => 'Cắt dán';
+
+  @override
+  String get layoutPrints => 'Xếp hàng';
+
+  @override
+  String get layoutFilm => 'Dải phim';
+
+  @override
+  String get layoutTimeline => 'Dòng thời gian';
+
+  @override
+  String get memoryLook => 'Giao diện';
+
+  @override
+  String get memoryCreate => 'Tạo tường';
+
+  @override
+  String get memoryTitle => 'Kỷ niệm';
+
+  @override
+  String memoryMade(int count) {
+    return 'Đã dán $count ảnh lên tường kỷ niệm. Chạm vào ảnh để thêm chú thích.';
+  }
 }

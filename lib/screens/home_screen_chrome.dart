@@ -470,6 +470,7 @@ extension _Chrome on _HomeScreenState {
               b.id: _chipKeys.putIfAbsent(b.id, GlobalKey.new),
           },
           dropTarget: _dropTarget,
+          onMemoryWall: _newMemoryWall,
         ),
       ),
     );

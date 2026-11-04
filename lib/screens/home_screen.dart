@@ -17,6 +17,7 @@ import '../models/note.dart';
 import '../models/view_mode.dart';
 import '../services/audio_service.dart';
 import '../services/image_service.dart';
+import '../services/memory_wall.dart';
 import '../services/notes_controller.dart';
 import '../services/pro_controller.dart';
 import '../services/reminder_service.dart';
@@ -42,6 +43,7 @@ import '../widgets/thread_style.dart';
 import '../widgets/wall_background.dart';
 import '../widgets/wall_view.dart';
 import 'gallery_screen.dart';
+import 'memory_wall_sheet.dart';
 import 'trash_screen.dart';
 
 part 'home_screen_actions.dart';
@@ -477,6 +479,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       title: Text(label),
       onTap: () => Navigator.pop(context, t),
     );
+    var memory = false;
     final type = await showActionSheet<NoteType>(
       context,
       title: l10n.addNote,
@@ -488,16 +491,59 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         tile(NoteType.drawing, Icons.brush_outlined, l10n.typeDrawing),
         tile(NoteType.label, Icons.label_outline, l10n.typeLabel),
         tile(NoteType.sticker, Icons.emoji_emotions_outlined, l10n.typeSticker),
+        ListTile(
+          leading: const Icon(Icons.photo_album_outlined),
+          title: Text(l10n.memoryWall),
+          subtitle: Text(l10n.memoryWallHint),
+          onTap: () {
+            memory = true;
+            Navigator.pop(context);
+          },
+        ),
         const Divider(height: 1),
         tile(NoteType.audio, Icons.voicemail, l10n.typeAudio),
       ],
     );
+    if (memory && mounted) {
+      await _newMemoryWall();
+      return;
+    }
     if (type == null || !mounted) return;
     if (type == NoteType.sticker) {
       await _addSticker();
       return;
     }
     await _openEditor(_notes.draft()..type = type, isNew: true);
+  }
+
+  /// A memory wall: several photos from the gallery, then a layout and a
+  /// look, and a new board of editable prints.
+  Future<void> _newMemoryWall() async {
+    final l10n = _l10n;
+    List<String> stored;
+    try {
+      stored = await _imageService.pickImages();
+    } catch (_) {
+      if (mounted) _toast(l10n.photoPickFailed);
+      return;
+    }
+    if (stored.isEmpty || !mounted) return;
+    final choice = await showMemoryWallSheet(context, count: stored.length);
+    if (!mounted) return;
+    if (choice == null) {
+      // Copied in for nothing: nothing refers to them.
+      for (final f in stored) {
+        unawaited(ImageService.deleteFile(f));
+      }
+      return;
+    }
+    final used = stored.take(memoryWallMax).toList();
+    for (final f in stored.skip(memoryWallMax)) {
+      unawaited(ImageService.deleteFile(f));
+    }
+    final (layout, pack) = choice;
+    _notes.addMemoryWall(l10n.memoryTitle, used, layout, pack: pack);
+    _toast(l10n.memoryMade(used.length));
   }
 
   /// Picks a sticker and sticks it on the wall, at [x],[y] when the user

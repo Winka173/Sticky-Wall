@@ -1723,4 +1723,61 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get welcomeExploreHint =>
       'A few notes that show what you can do; delete them any time';
+
+  @override
+  String get memoryWall => 'Memory wall';
+
+  @override
+  String get memoryWallHint => 'Many photos at once, laid out for you to edit';
+
+  @override
+  String memoryPhotoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String memoryTooMany(int max) {
+    return 'A wall holds up to $max; the first $max are used.';
+  }
+
+  @override
+  String get memoryLayout => 'Layout';
+
+  @override
+  String get layoutCollage => 'Collage';
+
+  @override
+  String get layoutPrints => 'Prints in rows';
+
+  @override
+  String get layoutFilm => 'Film strip';
+
+  @override
+  String get layoutTimeline => 'Timeline';
+
+  @override
+  String get memoryLook => 'Look';
+
+  @override
+  String get memoryCreate => 'Make the wall';
+
+  @override
+  String get memoryTitle => 'Memories';
+
+  @override
+  String memoryMade(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos are on your memory wall',
+      one: '1 photo is on your memory wall',
+    );
+    return '$_temp0. Tap one to add a caption.';
+  }
 }

@@ -29,6 +29,7 @@ class BoardBar extends StatefulWidget {
     required this.textColor,
     this.chipKeys,
     this.dropTarget,
+    this.onMemoryWall,
   });
 
   final NotesController notes;
@@ -39,6 +40,9 @@ class BoardBar extends StatefulWidget {
 
   /// The board id a dragged note is hovering over, if any.
   final ValueListenable<String?>? dropTarget;
+
+  /// Offered on the "+" tab: a new board of photos.
+  final VoidCallback? onMemoryWall;
 
   static final _noTarget = ValueNotifier<String?>(null);
 
@@ -262,11 +266,20 @@ class _BoardBarState extends State<BoardBar> {
           subtitle: Text(l10n.newBoardFromTemplateHint),
           onTap: () => Navigator.pop(context, 'template'),
         ),
+        if (widget.onMemoryWall != null)
+          ListTile(
+            leading: const Icon(Icons.photo_album_outlined),
+            title: Text(l10n.memoryWall),
+            subtitle: Text(l10n.memoryWallHint),
+            onTap: () => Navigator.pop(context, 'memory'),
+          ),
       ],
     );
     if (!context.mounted) return;
     if (choice == 'blank') {
       await _create(context);
+    } else if (choice == 'memory') {
+      widget.onMemoryWall?.call();
     } else if (choice == 'template') {
       final result = await GalleryScreen.open(context, notes: widget.notes);
       if (context.mounted) showGalleryResult(context, result);

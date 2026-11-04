@@ -586,5 +586,21 @@
   "welcomeBlank": "Start with a blank wall",
   "welcomeBlankHint": "The sample notes are cleared",
   "welcomeExplore": "Explore the sample wall",
-  "welcomeExploreHint": "A few notes that show what you can do; delete them any time"
+  "welcomeExploreHint": "A few notes that show what you can do; delete them any time",
+  "memoryWall": "Memory wall",
+  "memoryWallHint": "Many photos at once, laid out for you to edit",
+  "memoryPhotoCount": "{count, plural, =1{1 photo} other{{count} photos}}",
+  "@memoryPhotoCount": {"placeholders": {"count": {"type": "int"}}},
+  "memoryTooMany": "A wall holds up to {max}; the first {max} are used.",
+  "@memoryTooMany": {"placeholders": {"max": {"type": "int"}}},
+  "memoryLayout": "Layout",
+  "layoutCollage": "Collage",
+  "layoutPrints": "Prints in rows",
+  "layoutFilm": "Film strip",
+  "layoutTimeline": "Timeline",
+  "memoryLook": "Look",
+  "memoryCreate": "Make the wall",
+  "memoryTitle": "Memories",
+  "memoryMade": "{count, plural, =1{1 photo is on your memory wall} other{{count} photos are on your memory wall}}. Tap one to add a caption.",
+  "@memoryMade": {"placeholders": {"count": {"type": "int"}}}
 }

@@ -10,6 +10,7 @@ import '../theme.dart';
 import '../util/angles.dart';
 import '../util/rich_note.dart';
 import '../util/text_fold.dart';
+import 'memory_wall.dart';
 import 'note_storage.dart';
 import 'reminder_service.dart';
 import 'template_library.dart';
@@ -563,6 +564,35 @@ class NotesController extends ChangeNotifier {
       _storage.saveBoards(_boards);
     }
     final made = template.build(board.id, languageCode, pack: pack);
+    seed(made.notes, links: made.links);
+    return board;
+  }
+
+  /// A new board of [photos] (stored file names, as picked) laid out by
+  /// [layout] in [pack]'s look, under a [title] strip. Switches to it.
+  Board addMemoryWall(
+    String title,
+    List<String> photos,
+    MemoryLayout layout, {
+    ThemePack? pack,
+  }) {
+    final board = addBoard(title);
+    if (pack != null) {
+      board
+        ..wallIndex = pack.wallIndex
+        ..themeId = pack.id
+        ..fontId = pack.font
+        ..pinStyle = pack.pin == PinStyle.classic ? '' : pack.pin.name;
+      _storage.saveBoards(_boards);
+    }
+    final made = memoryWallNotes(
+      photos,
+      board.id,
+      layout,
+      pack: pack,
+      title: title,
+    );
+    viewMode = ViewMode.wall;
     seed(made.notes, links: made.links);
     return board;
   }
