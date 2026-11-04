@@ -202,6 +202,15 @@ void main() {
       }
     });
 
+    test('every Pro pack has a free twin, shown and used without Pro', () {
+      for (final t in themePacks) {
+        final free = lookFor(t, pro: false);
+        expect(free.pro, isFalse, reason: t.id);
+        expect(lookFor(t, pro: true), same(t));
+        if (!t.pro) expect(free, same(t));
+      }
+    });
+
     test('no pack uses a face too narrow for the app around it', () {
       for (final t in themePacks) {
         expect(t.font, isNot('amatic'), reason: t.id);

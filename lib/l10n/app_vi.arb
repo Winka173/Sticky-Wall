@@ -493,7 +493,7 @@
   "catClassic": "Cổ điển",
   "useTemplate": "Dùng mẫu này",
   "templateLook": "Giao diện: {name}",
-  "templateFreeLook": "Giao diện này thuộc Pro nên bảng sẽ dùng nền gỗ bần; đổi lúc nào cũng được.",
+  "templateFreeLook": "Không có Pro, bảng này dùng giao diện “{name}” như ảnh trên. Pro mở giao diện gốc của mẫu.",
   "templateUsed": "“{name}” đã sẵn sàng. Sửa ghi chú nào cũng được, hoặc xóa nội dung mẫu trong menu của bảng.",
   "applyTheme": "Áp dụng cho “{board}”",
   "themeApplied": "Đã áp dụng “{name}”",

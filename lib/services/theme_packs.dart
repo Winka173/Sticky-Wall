@@ -520,3 +520,33 @@ final themePacks = <ThemePack>[
 
 ThemePack? themePackById(String id) =>
     themePacks.where((t) => t.id == id).firstOrNull;
+
+/// The free pack closest to each Pro one: what a template that suggests a
+/// Pro look is made in without Pro, shown before it is used.
+const _freeTwins = {
+  'pastel_kawaii': 'marble_desk',
+  'vintage_paper': 'kraft_workshop',
+  'cozy_study': 'dark_academia',
+  'polaroid_studio': 'minimal_cream',
+  'ocean_blue': 'clean_office',
+  'soft_lavender': 'linen_lilac',
+  'botanical_green': 'moss_garden',
+  'warm_autumn': 'warm_wood',
+  'moonlight': 'dark_chalk',
+  'y2k_pop': 'terrazzo_pop',
+  'pixel_retro': 'clean_office',
+  'travel_journal': 'kraft_workshop',
+  'scrapbook_craft': 'cardboard_box',
+  'kids_colorful': 'rainbow_school',
+  'coffee_notes': 'dark_academia',
+  'lunar_new_year': 'brick_loft',
+  'peach_blossom': 'marble_desk',
+  'christmas': 'green_classroom',
+  'mid_autumn': 'dark_academia',
+  'valentine': 'marble_desk',
+};
+
+/// [pack] itself when it is free (or Pro is unlocked), else its free twin.
+ThemePack lookFor(ThemePack pack, {required bool pro}) => pack.pro && !pro
+    ? themePackById(_freeTwins[pack.id] ?? 'cork_classic')!
+    : pack;

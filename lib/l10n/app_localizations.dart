@@ -3059,8 +3059,8 @@ abstract class AppLocalizations {
   /// No description provided for @templateFreeLook.
   ///
   /// In en, this message translates to:
-  /// **'That look is part of Pro, so the board starts on cork; you can change it any time.'**
-  String get templateFreeLook;
+  /// **'Without Pro this board is made in “{name}”, shown above. Pro brings the look it was designed for.'**
+  String templateFreeLook(String name);
 
   /// No description provided for @templateUsed.
   ///

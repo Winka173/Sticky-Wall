@@ -1641,8 +1641,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get templateFreeLook =>
-      'That look is part of Pro, so the board starts on cork; you can change it any time.';
+  String templateFreeLook(String name) {
+    return 'Without Pro this board is made in “$name”, shown above. Pro brings the look it was designed for.';
+  }
 
   @override
   String templateUsed(String name) {

@@ -254,7 +254,15 @@ class _TemplatesTabState extends State<_TemplatesTab>
                       itemBuilder: (context, i) {
                         final t = shown[i];
                         return _Card(
-                          preview: TemplatePreview(template: t),
+                          preview: TemplatePreview(
+                            template: t,
+                            look: t.themePack == null
+                                ? null
+                                : lookFor(
+                                    t.themePack!,
+                                    pro: ProScope.unlockedOf(context),
+                                  ),
+                          ),
                           title: t.name.of(lang),
                           subtitle: t.description.of(lang),
                           onTap: () => _open(context, t),
@@ -274,11 +282,14 @@ class _TemplatesTabState extends State<_TemplatesTab>
     final pro = ProScope.unlockedOf(context);
     final pack = t.themePack;
     final lockedLook = pack != null && pack.pro && !pro;
+    // Without Pro the free twin is what the board will be made in, so that
+    // is what the preview shows.
+    final made = pack == null ? null : lookFor(pack, pro: pro);
     final use = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       builder: (context) => _DetailSheet(
-        preview: TemplatePreview(template: t),
+        preview: TemplatePreview(template: t, look: made),
         title: t.name.of(lang),
         body: [
           Text(t.description.of(lang), style: const TextStyle(fontSize: 15)),
@@ -306,7 +317,7 @@ class _TemplatesTabState extends State<_TemplatesTab>
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
-                  l10n.templateFreeLook,
+                  l10n.templateFreeLook(made!.name(lang)),
                   style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.inkSoft,
@@ -322,8 +333,8 @@ class _TemplatesTabState extends State<_TemplatesTab>
     widget.notes.addBoardFromTemplate(
       t,
       lang,
-      // Without Pro a Pro look is left out: the board keeps the free one.
-      pack: lockedLook ? themePackById('cork_classic') : pack,
+      // Exactly what the preview showed.
+      pack: made,
       into: widget.into,
     );
     Navigator.of(context).pop(TemplateUsed(t.name.of(lang)));
@@ -685,14 +696,17 @@ class BoardPreview extends StatelessWidget {
 
 /// A template as it will land: its own notes, threads and theme pack.
 class TemplatePreview extends StatelessWidget {
-  const TemplatePreview({super.key, required this.template});
+  const TemplatePreview({super.key, required this.template, this.look});
 
   final BoardTemplateDef template;
+
+  /// The pack to show it in instead of its own (a free twin without Pro).
+  final ThemePack? look;
 
   @override
   Widget build(BuildContext context) {
     final lang = Localizations.localeOf(context).languageCode;
-    final pack = template.themePack;
+    final pack = look ?? template.themePack;
     final made = template.build(
       'preview',
       lang,

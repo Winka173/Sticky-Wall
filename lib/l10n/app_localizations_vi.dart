@@ -1630,8 +1630,9 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get templateFreeLook =>
-      'Giao diện này thuộc Pro nên bảng sẽ dùng nền gỗ bần; đổi lúc nào cũng được.';
+  String templateFreeLook(String name) {
+    return 'Không có Pro, bảng này dùng giao diện “$name” như ảnh trên. Pro mở giao diện gốc của mẫu.';
+  }
 
   @override
   String templateUsed(String name) {
