@@ -13,19 +13,23 @@ personal data.
 ### What the app stores, and where
 
 Everything you create — notes, checklists, drawings, boards, wall settings,
-reminders, the photos you pin and the voice notes you record — is saved only
-in the app's private storage on your device. It never leaves the device
-unless you choose to share it.
+reminders, the photos you pin and the voice notes you record — is saved in
+the app's private storage on your device. Sticky Wall itself never sends it
+anywhere: it leaves the device only when you share it, or when the phone's
+own backup copies it (see below).
 
 Once a week the app also writes a backup file of all of this into the same
 private storage (the newest four are kept), so you can roll back if
 something goes wrong. You can turn this off under *Customize → Backup*. These
 files stay on the device too, unless you share one.
 
-Uninstalling the app deletes all of it. The app does not keep copies anywhere
-else. (Android may include the notes, photos and recordings in your device
-backup, or carry them to a new phone, if you have backups turned on; that is
-handled by Android under your Google account settings, not by us.)
+Uninstalling the app deletes all of it from the phone. The app keeps no
+copies anywhere else. The phone's own backup is a different matter: if
+Android backup is on, Android copies the notes, photos and recordings into
+your Google account backup and carries them to a new phone; on an iPhone,
+iCloud Backup does the same for app data. That is done by the phone's
+system under your account settings, not by us, and we cannot see it.
+Locked boards are included like any other board.
 
 ### Permissions and features
 
@@ -101,19 +105,23 @@ thập, lưu trữ hay chia sẻ bất kỳ dữ liệu cá nhân nào.
 ### Ứng dụng lưu gì, ở đâu
 
 Mọi thứ bạn tạo — ghi chú, checklist, hình vẽ, tường, thiết lập tường, lời
-nhắc, ảnh bạn ghim và các bản ghi âm — chỉ được lưu trong bộ nhớ riêng của
-ứng dụng trên thiết bị. Dữ liệu không rời khỏi máy trừ khi bạn chủ động chia
-sẻ.
+nhắc, ảnh bạn ghim và các bản ghi âm — được lưu trong bộ nhớ riêng của ứng
+dụng trên thiết bị. Bản thân Sticky Wall không gửi dữ liệu đi đâu cả: dữ liệu
+chỉ rời máy khi bạn chủ động chia sẻ, hoặc khi chức năng sao lưu của chính
+điện thoại sao chép nó (xem bên dưới).
 
 Mỗi tuần ứng dụng còn tự ghi một tệp sao lưu toàn bộ dữ liệu trên vào chính
 bộ nhớ riêng đó (giữ 4 bản mới nhất), để bạn có thể quay lại khi có sự cố.
 Bạn có thể tắt việc này trong *Tùy chỉnh → Sao lưu*. Các tệp này cũng chỉ
 nằm trên máy, trừ khi bạn chia sẻ.
 
-Gỡ ứng dụng sẽ xóa toàn bộ dữ liệu này. Ứng dụng không giữ bản sao ở nơi
-khác. (Android có thể đưa ghi chú, ảnh và bản ghi âm vào bản sao lưu thiết
-bị, hoặc chuyển sang điện thoại mới, nếu bạn bật sao lưu; việc đó do Android
-và tài khoản Google của bạn quản lý, không phải chúng tôi.)
+Gỡ ứng dụng sẽ xóa toàn bộ dữ liệu này khỏi máy. Ứng dụng không giữ bản sao
+ở nơi khác. Sao lưu của chính điện thoại thì khác: nếu bật sao lưu Android,
+Android sẽ chép ghi chú, ảnh và bản ghi âm vào bản sao lưu trong tài khoản
+Google của bạn và chuyển sang máy mới; trên iPhone, Sao lưu iCloud cũng làm
+vậy với dữ liệu ứng dụng. Việc đó do hệ thống điện thoại thực hiện theo
+thiết lập tài khoản của bạn, không phải chúng tôi, và chúng tôi không xem
+được. Bảng có khóa cũng được sao lưu như mọi bảng khác.
 
 ### Quyền và tính năng
 

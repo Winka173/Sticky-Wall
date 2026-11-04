@@ -1352,6 +1352,54 @@ class NotesController extends ChangeNotifier {
   /// Every note, trashed ones included, so a backup round-trips the trash.
   List<Note> get allNotes => List.unmodifiable(_notes);
 
+  /// How many of [boards] and [notes] (from a backup) are already here, by
+  /// id: what a merge will not copy twice.
+  ({int boards, int notes}) backupOverlap(
+    List<Board> boards,
+    List<Note> notes,
+  ) {
+    final boardIds = {for (final b in _boards) b.id};
+    final guids = {for (final n in _notes) n.guid};
+    return (
+      boards: boards.where((b) => boardIds.contains(b.id)).length,
+      notes: notes.where((n) => guids.contains(n.guid)).length,
+    );
+  }
+
+  /// Adds a backup to what is here instead of replacing it. Everything here
+  /// stays. A board already here (same id) takes the backup's notes for it;
+  /// a note already here (same id) is left as it is here, so loading the
+  /// same backup twice adds nothing the second time. Threads come along
+  /// where both their ends exist. Nothing is renamed or recoloured.
+  void mergeAll(List<Board> boards, List<Note> notes, {List<NoteLink>? links}) {
+    final boardIds = {for (final b in _boards) b.id};
+    for (final b in boards) {
+      if (boardIds.add(b.id)) _boards.add(b);
+    }
+    final guids = {for (final n in _notes) n.guid};
+    final added = <Note>[];
+    for (final n in notes) {
+      if (!guids.add(n.guid)) continue;
+      // A note of a board that the backup lacks lands on the open one.
+      if (!boardIds.contains(n.boardId)) n.boardId = _currentBoardId;
+      _notes.add(n);
+      added.add(n);
+    }
+    for (final l in links ?? const <NoteLink>[]) {
+      if (!guids.contains(l.a) || !guids.contains(l.b)) continue;
+      if (_links.any((x) => x.same(l.a, l.b))) continue;
+      _links.add(l);
+    }
+    _storage
+      ..saveBoards(_boards)
+      ..saveNotes(_notes)
+      ..saveLinks(_links);
+    for (final note in added) {
+      if (!note.isTrashed) _syncReminder(note);
+    }
+    notifyListeners();
+  }
+
   /// Replaces all boards and notes with imported data, and the threads with
   /// [links] when the backup carried any.
   void replaceAll(

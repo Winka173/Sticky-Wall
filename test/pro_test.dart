@@ -574,7 +574,7 @@ void main() {
         boards: [Board(id: 'default', name: '', isPrivate: true)],
         notes: [_note('a')..content = 'my secret'],
       );
-      expect(find.text('Private board'), findsOneWidget);
+      expect(find.text('Locked board'), findsOneWidget);
       expect(find.text('my secret'), findsNothing);
       expect(find.byType(AddNoteButton), findsNothing);
 

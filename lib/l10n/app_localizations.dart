@@ -2783,25 +2783,25 @@ abstract class AppLocalizations {
   /// No description provided for @boardMakePrivate.
   ///
   /// In en, this message translates to:
-  /// **'Make private'**
+  /// **'Lock this board'**
   String get boardMakePrivate;
 
   /// No description provided for @boardMakePublic.
   ///
   /// In en, this message translates to:
-  /// **'Make public again'**
+  /// **'Remove the lock'**
   String get boardMakePublic;
 
   /// No description provided for @boardPrivateHint.
   ///
   /// In en, this message translates to:
-  /// **'Opens with your fingerprint or screen lock; kept off the widget, search and reminder texts'**
+  /// **'Opens with your fingerprint or screen lock; kept off the widget, search and reminder texts. A lock in the app, not encryption.'**
   String get boardPrivateHint;
 
   /// No description provided for @boardPrivate.
   ///
   /// In en, this message translates to:
-  /// **'Private board'**
+  /// **'Locked board'**
   String get boardPrivate;
 
   /// No description provided for @boardShutHint.
@@ -2813,19 +2813,19 @@ abstract class AppLocalizations {
   /// No description provided for @boardUnlockReason.
   ///
   /// In en, this message translates to:
-  /// **'Open the private board'**
+  /// **'Open the locked board'**
   String get boardUnlockReason;
 
   /// No description provided for @reminderPrivate.
   ///
   /// In en, this message translates to:
-  /// **'A reminder on a private board'**
+  /// **'A reminder on a locked board'**
   String get reminderPrivate;
 
   /// No description provided for @widgetPrivate.
   ///
   /// In en, this message translates to:
-  /// **'Private board'**
+  /// **'Locked board'**
   String get widgetPrivate;
 
   /// No description provided for @packEveryday.
@@ -2939,7 +2939,7 @@ abstract class AppLocalizations {
   /// No description provided for @proPerkPrivate.
   ///
   /// In en, this message translates to:
-  /// **'Private boards that open with your fingerprint'**
+  /// **'Board locks that open with your fingerprint'**
   String get proPerkPrivate;
 
   /// No description provided for @proPerkCustomColor.
@@ -3331,6 +3331,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open'**
   String get openNote;
+
+  /// No description provided for @restoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore a backup'**
+  String get restoreTitle;
+
+  /// No description provided for @restoreMade.
+  ///
+  /// In en, this message translates to:
+  /// **'Made {date}'**
+  String restoreMade(String date);
+
+  /// No description provided for @restoreUnknownDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date unknown'**
+  String get restoreUnknownDate;
+
+  /// No description provided for @restoreSize.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} MB'**
+  String restoreSize(String size);
+
+  /// No description provided for @restoreBoards.
+  ///
+  /// In en, this message translates to:
+  /// **'Boards'**
+  String get restoreBoards;
+
+  /// No description provided for @restoreNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get restoreNotes;
+
+  /// No description provided for @restoreInTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} in the trash'**
+  String restoreInTrash(int count);
+
+  /// No description provided for @restorePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get restorePhotos;
+
+  /// No description provided for @restoreRecordings.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice notes'**
+  String get restoreRecordings;
+
+  /// No description provided for @restoreThreads.
+  ///
+  /// In en, this message translates to:
+  /// **'Threads'**
+  String get restoreThreads;
+
+  /// No description provided for @restoreStickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Stickers'**
+  String get restoreStickers;
+
+  /// No description provided for @restoreLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked boards'**
+  String get restoreLocked;
+
+  /// No description provided for @restoreConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'{boards} boards and {notes} notes in it are already on this phone.'**
+  String restoreConflicts(int boards, int notes);
+
+  /// No description provided for @restoreMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to what is here'**
+  String get restoreMerge;
+
+  /// No description provided for @restoreMergeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything here stays. Boards and notes from the backup are added; anything already here is not copied twice.'**
+  String get restoreMergeHint;
+
+  /// No description provided for @restoreReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace everything'**
+  String get restoreReplace;
+
+  /// No description provided for @restoreReplaceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What is here now is replaced by the backup. Undo is offered right after.'**
+  String get restoreReplaceHint;
+
+  /// No description provided for @restoreMerged.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup added'**
+  String get restoreMerged;
 }
 
 class _AppLocalizationsDelegate

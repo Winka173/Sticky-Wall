@@ -23,6 +23,7 @@ import 'action_sheet.dart';
 import 'keyboard_tappable.dart';
 import 'note_views.dart';
 import 'pro_sheet.dart';
+import 'restore_preview.dart';
 
 part 'widget_settings_sheet.dart';
 
@@ -717,8 +718,8 @@ class _SettingsSheet extends StatelessWidget {
     );
   }
 
-  /// Loads the newest automatic backup, after saying from when it is and
-  /// that it replaces the wall; Undo is offered as for any loaded backup.
+  /// Loads the newest automatic backup through the restore preview, with
+  /// Undo as for any loaded backup.
   Future<void> _restoreAutoBackup(
     BuildContext context,
     AppLocalizations l10n,
@@ -732,28 +733,6 @@ class _SettingsSheet extends StatelessWidget {
         ..showSnackBar(SnackBar(content: Text(l10n.autoBackupMissing)));
       return;
     }
-    final day = AutoBackup.dateOf(file) ?? settings.lastAutoBackup;
-    final date = day == null
-        ? ''
-        : MaterialLocalizations.of(context).formatMediumDate(day);
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.autoBackupRestoreTitle(date)),
-        content: Text(l10n.importReplaceWarning),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.restore),
-          ),
-        ],
-      ),
-    );
-    if (ok != true || !context.mounted) return;
     final Backup backup;
     try {
       backup = BackupService().decode(await file.readAsString());
@@ -798,13 +777,22 @@ class _SettingsSheet extends StatelessWidget {
     await _applyBackup(context, l10n, backup);
   }
 
-  /// Replaces the wall with [backup] (its files first), with Undo on the
-  /// snackbar, and closes the sheet so the snackbar shows.
+  /// Shows what [backup] holds and how it would load; then adds it to the
+  /// wall or replaces the wall with it (its files first), with Undo on the
+  /// snackbar either way, and closes the sheet so the snackbar shows.
+  /// Nothing changes before a choice is made, and a failure to write the
+  /// files changes nothing at all.
   Future<void> _applyBackup(
     BuildContext context,
     AppLocalizations l10n,
     Backup backup,
   ) async {
+    final mode = await showRestorePreview(
+      context,
+      backup: backup,
+      notes: notes,
+    );
+    if (mode == null || !context.mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     // Kept for Undo. replaceAll never deletes photo files, so the photos
@@ -819,12 +807,19 @@ class _SettingsSheet extends StatelessWidget {
       messenger.showSnackBar(SnackBar(content: Text(l10n.importFailed)));
       return;
     }
-    notes.replaceAll(backup.boards, backup.notes, links: backup.links);
+    switch (mode) {
+      case RestoreMode.replace:
+        notes.replaceAll(backup.boards, backup.notes, links: backup.links);
+      case RestoreMode.merge:
+        notes.mergeAll(backup.boards, backup.notes, links: backup.links);
+    }
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(l10n.importSuccess),
+          content: Text(
+            mode == RestoreMode.merge ? l10n.restoreMerged : l10n.importSuccess,
+          ),
           action: SnackBarAction(
             label: l10n.undo,
             onPressed: () =>

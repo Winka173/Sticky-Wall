@@ -1497,29 +1497,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paperCustomLightness => 'Lightness';
 
   @override
-  String get boardMakePrivate => 'Make private';
+  String get boardMakePrivate => 'Lock this board';
 
   @override
-  String get boardMakePublic => 'Make public again';
+  String get boardMakePublic => 'Remove the lock';
 
   @override
   String get boardPrivateHint =>
-      'Opens with your fingerprint or screen lock; kept off the widget, search and reminder texts';
+      'Opens with your fingerprint or screen lock; kept off the widget, search and reminder texts. A lock in the app, not encryption.';
 
   @override
-  String get boardPrivate => 'Private board';
+  String get boardPrivate => 'Locked board';
 
   @override
   String get boardShutHint => 'Its notes stay hidden until you unlock it.';
 
   @override
-  String get boardUnlockReason => 'Open the private board';
+  String get boardUnlockReason => 'Open the locked board';
 
   @override
-  String get reminderPrivate => 'A reminder on a private board';
+  String get reminderPrivate => 'A reminder on a locked board';
 
   @override
-  String get widgetPrivate => 'Private board';
+  String get widgetPrivate => 'Locked board';
 
   @override
   String get packEveryday => 'Everyday';
@@ -1577,7 +1577,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Seasonal packs: Tết, Christmas, Mid-Autumn and Valentine\'s walls and stickers';
 
   @override
-  String get proPerkPrivate => 'Private boards that open with your fingerprint';
+  String get proPerkPrivate => 'Board locks that open with your fingerprint';
 
   @override
   String get proPerkCustomColor => 'Mix any paper color you like';
@@ -1820,4 +1820,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openNote => 'Open';
+
+  @override
+  String get restoreTitle => 'Restore a backup';
+
+  @override
+  String restoreMade(String date) {
+    return 'Made $date';
+  }
+
+  @override
+  String get restoreUnknownDate => 'Date unknown';
+
+  @override
+  String restoreSize(String size) {
+    return '$size MB';
+  }
+
+  @override
+  String get restoreBoards => 'Boards';
+
+  @override
+  String get restoreNotes => 'Notes';
+
+  @override
+  String restoreInTrash(int count) {
+    return '$count in the trash';
+  }
+
+  @override
+  String get restorePhotos => 'Photos';
+
+  @override
+  String get restoreRecordings => 'Voice notes';
+
+  @override
+  String get restoreThreads => 'Threads';
+
+  @override
+  String get restoreStickers => 'Stickers';
+
+  @override
+  String get restoreLocked => 'Locked boards';
+
+  @override
+  String restoreConflicts(int boards, int notes) {
+    return '$boards boards and $notes notes in it are already on this phone.';
+  }
+
+  @override
+  String get restoreMerge => 'Add to what is here';
+
+  @override
+  String get restoreMergeHint =>
+      'Everything here stays. Boards and notes from the backup are added; anything already here is not copied twice.';
+
+  @override
+  String get restoreReplace => 'Replace everything';
+
+  @override
+  String get restoreReplaceHint =>
+      'What is here now is replaced by the backup. Undo is offered right after.';
+
+  @override
+  String get restoreMerged => 'Backup added';
 }

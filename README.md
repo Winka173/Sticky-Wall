@@ -325,14 +325,14 @@ then taken well beyond it.
   1 Dec – 6 Jan; Mid-Autumn 21 days before to 3 after; Valentine's 1–15
   Feb) decide which pack is listed first; every pack can be picked all
   year
-- **Private boards** (Pro; making one public again is always free): a board
+- **Locked boards** (Pro; called *private boards* in the code, `Board.isPrivate`; removing the lock is always free): a board
   opens only after the phone's fingerprint, face or screen lock and shuts
   again after a minute in the background. This is a lock in the app, not
   encryption: the notes are stored like any other, inside Android's app
   sandbox. While the app lock is on or a private board is open, Android's
   recent-apps screen shows no notes. While shut its notes are
   covered, left out of search from other boards and of the trash list, its
-  reminders say only "A reminder on a private board", and the home-screen
+  reminders say only "A reminder on a locked board", and the home-screen
   widget never lists a private board's notes
 - **Your own paper colour** (Pro): a hue / strength / lightness mixer in the
   editor's colour row; lightness never drops below what keeps ink readable.

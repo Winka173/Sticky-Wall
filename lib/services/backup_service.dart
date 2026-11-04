@@ -20,7 +20,19 @@ class Backup {
     this.photos = const {},
     this.wallPhotos = const {},
     this.audios = const {},
+    this.version,
+    this.exportedAt,
+    this.sizeBytes = 0,
   });
+
+  /// The format version written in the file, if any.
+  final int? version;
+
+  /// When the backup was made, if the file says.
+  final DateTime? exportedAt;
+
+  /// How big the document was, for the restore preview.
+  final int sizeBytes;
 
   final List<Board> boards;
   final List<Note> notes;
@@ -149,6 +161,9 @@ class BackupService {
         photos: _files(data['photos']),
         wallPhotos: _files(data['wallPhotos']),
         audios: _files(data['audios']),
+        version: version is int ? version : null,
+        exportedAt: DateTime.tryParse(data['exportedAt'] as String? ?? ''),
+        sizeBytes: source.length,
       );
     } catch (_) {
       // Valid JSON in some other shape (or a backup with no boards).

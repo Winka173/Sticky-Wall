@@ -1485,30 +1485,30 @@ class AppLocalizationsVi extends AppLocalizations {
   String get paperCustomLightness => 'Độ sáng';
 
   @override
-  String get boardMakePrivate => 'Đặt làm riêng tư';
+  String get boardMakePrivate => 'Khóa bảng này';
 
   @override
-  String get boardMakePublic => 'Bỏ riêng tư';
+  String get boardMakePublic => 'Bỏ khóa bảng';
 
   @override
   String get boardPrivateHint =>
-      'Mở bằng vân tay hoặc khóa màn hình; không hiện trên widget, khi tìm kiếm và trong nội dung lời nhắc';
+      'Mở bằng vân tay hoặc khóa màn hình; không hiện trên widget, khi tìm kiếm và trong nội dung lời nhắc. Đây là khóa trong ứng dụng, không phải mã hóa.';
 
   @override
-  String get boardPrivate => 'Bảng riêng tư';
+  String get boardPrivate => 'Bảng có khóa';
 
   @override
   String get boardShutHint =>
       'Ghi chú trong bảng được ẩn cho tới khi bạn mở khóa.';
 
   @override
-  String get boardUnlockReason => 'Mở bảng riêng tư';
+  String get boardUnlockReason => 'Mở bảng có khóa';
 
   @override
-  String get reminderPrivate => 'Lời nhắc trong một bảng riêng tư';
+  String get reminderPrivate => 'Lời nhắc trong một bảng có khóa';
 
   @override
-  String get widgetPrivate => 'Bảng riêng tư';
+  String get widgetPrivate => 'Bảng có khóa';
 
   @override
   String get packEveryday => 'Thường ngày';
@@ -1566,7 +1566,7 @@ class AppLocalizationsVi extends AppLocalizations {
       'Gói theo mùa: tường và sticker Tết, Giáng Sinh, Trung Thu, Valentine';
 
   @override
-  String get proPerkPrivate => 'Bảng riêng tư, mở bằng vân tay';
+  String get proPerkPrivate => 'Khóa bảng bằng vân tay';
 
   @override
   String get proPerkCustomColor => 'Tự pha màu giấy theo ý thích';
@@ -1797,4 +1797,68 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get openNote => 'Mở';
+
+  @override
+  String get restoreTitle => 'Khôi phục bản sao lưu';
+
+  @override
+  String restoreMade(String date) {
+    return 'Tạo lúc $date';
+  }
+
+  @override
+  String get restoreUnknownDate => 'Không rõ ngày tạo';
+
+  @override
+  String restoreSize(String size) {
+    return '$size MB';
+  }
+
+  @override
+  String get restoreBoards => 'Bảng';
+
+  @override
+  String get restoreNotes => 'Ghi chú';
+
+  @override
+  String restoreInTrash(int count) {
+    return '$count trong thùng rác';
+  }
+
+  @override
+  String get restorePhotos => 'Ảnh';
+
+  @override
+  String get restoreRecordings => 'Ghi âm';
+
+  @override
+  String get restoreThreads => 'Dây nối';
+
+  @override
+  String get restoreStickers => 'Sticker';
+
+  @override
+  String get restoreLocked => 'Bảng có khóa';
+
+  @override
+  String restoreConflicts(int boards, int notes) {
+    return '$boards bảng và $notes ghi chú trong bản này đã có trên máy.';
+  }
+
+  @override
+  String get restoreMerge => 'Gộp vào dữ liệu hiện có';
+
+  @override
+  String get restoreMergeHint =>
+      'Mọi thứ đang có được giữ nguyên. Bảng và ghi chú trong bản sao lưu được thêm vào; thứ đã có sẽ không bị chép đôi.';
+
+  @override
+  String get restoreReplace => 'Thay thế toàn bộ';
+
+  @override
+  String get restoreReplaceHint =>
+      'Dữ liệu hiện có được thay bằng bản sao lưu. Có Hoàn tác ngay sau đó.';
+
+  @override
+  String get restoreMerged => 'Đã gộp bản sao lưu';
 }
