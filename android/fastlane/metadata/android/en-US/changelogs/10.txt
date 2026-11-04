@@ -1,0 +1,5 @@
+• Pulling a thread from a pin is much easier: the pin catches the drag at once, and the area around it is bigger
+• The first wall fits every screen: notes sit in neat rows on tablets and wide screens
+• Search boxes line up properly
+• Clearer wording across the app, with the same word for the same thing everywhere
+• A privacy policy link in Customize → Privacy

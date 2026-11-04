@@ -1,6 +1,6 @@
 # Sticky Wall 1.4.1 — QA matrix
 
-Version 1.4.1+8 on `main`.
+Version 1.4.1+8 on `main`; then 1.4.1+9 (Play rejected code 8) and 1.4.2+10.
 
 Status words:
 
@@ -16,6 +16,7 @@ Automated checks on the final commit: `flutter analyze` reports no issues; `flut
 | Target | Compiled | Emulator | Physical device | Note |
 |---|---|---|---|---|
 | Android release (.aab) | **yes**: 1.4.1 (9) (code 8 was already taken on Play), signed with the upload key (CN=Quoc Nguyen, SHA-256 03:4B:F7:…:43:2A), 66.7 MB bundle (about 30 MB of it is debug symbols kept in BUNDLE-METADATA for Play crash reports) | not run | not run | `flutter build appbundle --release --obfuscate --split-debug-info=build/symbols`; MainActivity.kt compiled. Keep `build/symbols/` to read Dart stack traces. |
+| Android release 1.4.2 (10) | **yes**: same key, uploaded with `fastlane android closed` as a draft on closed testing | sideloaded APK on BlueStacks (Android 11): first-run layout checked | not run | Pin threads, first-run rows on wide screens, search boxes, copy pass, privacy link in Customize |
 | Android debug | not run | not run | not run | Same reason |
 | iOS | **BLOCKED** | — | — | Needs macOS and Xcode (widget target, share extension, App Groups, StoreKit) |
 | Flutter test VM | yes | — | — | 261 tests |
