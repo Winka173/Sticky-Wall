@@ -1100,6 +1100,61 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a drag from just under the pin ties a thread; a tap there '
+      'still opens the note', (tester) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Aa',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.1,
+          y: 0.1,
+        ),
+        Note(
+          guid: 'b',
+          content: 'Bb',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.6,
+          y: 0.6,
+        ),
+      ],
+    );
+    Rect card(String text) => tester.getRect(
+      find.ancestor(of: find.text(text), matching: find.byType(NoteTurn)),
+    );
+    // 26px below the card's top: inside the paper, below the pin's own
+    // tap target (which ends at 28 - but scaled cards shrink it), 20px off
+    // centre.
+    final grab = card('Aa').topCenter + const Offset(20, 26);
+    final g = await tester.startGesture(grab);
+    await g.moveBy(const Offset(0, 30));
+    await tester.pump();
+    await g.moveTo(card('Bb').center);
+    await tester.pump();
+    await g.up();
+    await tester.pumpAndSettle();
+    expect(notes.links.length, 1, reason: 'the wide band pulls a thread');
+    expect(
+      notes.allNotes.firstWhere((n) => n.guid == 'a').x,
+      0.1,
+      reason: 'the note did not move',
+    );
+
+    await tester.tapAt(grab);
+    await tester.pumpAndSettle();
+    expect(
+      find.byType(TextField),
+      findsWidgets,
+      reason: 'a tap in the band opens the editor, not the pin',
+    );
+    expect(notes.allNotes.firstWhere((n) => n.guid == 'a').pinned, isFalse);
+  });
+
   testWidgets('a tap on a thread opens its sheet: arrow, label, cut, undo', (
     tester,
   ) async {
@@ -1132,8 +1187,8 @@ void main() {
       find.ancestor(of: find.text(text), matching: find.byType(NoteTurn)),
     );
     // Pins sit 14px under the top edge, centred; the yarn sags between them.
-    final pa = card('Aa').topCenter + const Offset(0, 14);
-    final pb = card('Bb').topCenter + const Offset(0, 14);
+    final pa = card('Aa').topCenter + const Offset(20, 26);
+    final pb = card('Bb').topCenter + const Offset(20, 26);
     final sag = math.min(30.0, (pa - pb).distance * 0.12);
     await tester.tapAt((pa + pb) / 2 + Offset(0, sag / 2));
     await tester.pumpAndSettle();

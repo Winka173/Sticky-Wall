@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -564,15 +565,77 @@ class _ClipPainter extends CustomPainter {
 
 /// A comfortably tappable pin: 44 wide, centered on the paper's top edge.
 /// On the wall it can also be dragged to pull a thread out of it.
+///
+/// With [reach], a wider band reaching that far down into the paper also
+/// starts a thread when dragged, so the pin is easy to grab with a thumb
+/// (44 dp tall in all). Taps and long-presses in that band still go to the
+/// paper underneath; only the tap target itself pins and unpins.
 class _PinTarget extends StatelessWidget {
-  const _PinTarget({required this.pinned, required this.cb, this.seed = ''});
+  const _PinTarget({
+    required this.pinned,
+    required this.cb,
+    this.seed = '',
+    this.reach = 0,
+  });
 
   final bool pinned;
   final NoteCallbacks cb;
   final String seed;
+  final double reach;
+
+  /// Width of the drag-only band around the tap target.
+  static const _grabWidth = 64.0;
 
   @override
   Widget build(BuildContext context) {
+    final pin = _tapTarget(context);
+    if (reach <= 0 || !cb.canDragPin) return pin;
+    return _threadDrag(
+      // Translucent: a tap or long-press here falls through to the paper.
+      behavior: HitTestBehavior.translucent,
+      child: SizedBox(
+        width: _grabWidth,
+        height: _pinInset * 2 + reach,
+        child: Align(alignment: Alignment.topCenter, child: pin),
+      ),
+    );
+  }
+
+  /// Wraps [child] so a drag on it pulls a thread. The pin's recognizer takes
+  /// the finger after a few pixels: the card's own drag and the wall's pan
+  /// wait for much more, so a drag that *starts* on the pin is always a
+  /// thread, and one that starts lower on the paper moves the note.
+  Widget _threadDrag({
+    required HitTestBehavior behavior,
+    required Widget child,
+    VoidCallback? onTap,
+  }) {
+    return RawGestureDetector(
+      behavior: behavior,
+      gestures: {
+        if (onTap != null)
+          TapGestureRecognizer:
+              GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+                TapGestureRecognizer.new,
+                (r) => r.onTap = onTap,
+              ),
+        if (cb.canDragPin)
+          _PinDragRecognizer:
+              GestureRecognizerFactoryWithHandlers<_PinDragRecognizer>(
+                _PinDragRecognizer.new,
+                (r) {
+                  r.onStart = (d) => cb.onPinDragStart!(d.globalPosition);
+                  r.onUpdate = (d) => cb.onPinDragUpdate!(d.globalPosition);
+                  r.onEnd = (d) => cb.onPinDragEnd!(d.globalPosition);
+                  r.onCancel = () => cb.onPinDragEnd!(Offset.zero);
+                },
+              ),
+      },
+      child: child,
+    );
+  }
+
+  Widget _tapTarget(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return KeyboardTappable(
       onActivate: cb.onTogglePin,
@@ -581,24 +644,9 @@ class _PinTarget extends StatelessWidget {
         button: true,
         toggled: pinned,
         label: pinned ? l10n.unpin : l10n.pin,
-        child: GestureDetector(
+        child: _threadDrag(
           behavior: HitTestBehavior.opaque,
           onTap: cb.onTogglePin,
-          // Being the innermost pan recognizer, this beats the card's own drag
-          // and the wall's pan — so a drag that *starts* on the pin is always
-          // a thread, and one that starts on the paper always moves the note.
-          onPanStart: cb.canDragPin
-              ? (d) => cb.onPinDragStart!(d.globalPosition)
-              : null,
-          onPanUpdate: cb.canDragPin
-              ? (d) => cb.onPinDragUpdate!(d.globalPosition)
-              : null,
-          onPanEnd: cb.canDragPin
-              ? (d) => cb.onPinDragEnd!(d.globalPosition)
-              : null,
-          onPanCancel: cb.canDragPin
-              ? () => cb.onPinDragEnd!(Offset.zero)
-              : null,
           child: SizedBox(
             width: 44,
             height: _pinInset * 2,
@@ -610,6 +658,23 @@ class _PinTarget extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The drag that pulls a thread out of a pin. It takes the gesture after a
+/// few pixels, well before the card's drag (about 29px) and the wall's pan,
+/// which a plain pan recognizer (36px) would lose to.
+class _PinDragRecognizer extends PanGestureRecognizer {
+  _PinDragRecognizer() {
+    dragStartBehavior = DragStartBehavior.down;
+  }
+
+  static const double _slop = 6;
+
+  @override
+  bool hasSufficientGlobalDistanceToAccept(
+    PointerDeviceKind pointerDeviceKind,
+    double? deviceTouchSlop,
+  ) => globalDistanceMoved.abs() > _slop;
 }
 
 /// Small pill showing the next reminder time; red once it is overdue.
@@ -994,7 +1059,12 @@ class StickyNoteCard extends StatelessWidget {
           if (note.type != NoteType.label && note.type != NoteType.sticker)
             Positioned(
               top: 0,
-              child: _PinTarget(pinned: note.pinned, cb: cb, seed: note.guid),
+              child: _PinTarget(
+                pinned: note.pinned,
+                cb: cb,
+                seed: note.guid,
+                reach: 16,
+              ),
             ),
           if (note.locked)
             Positioned(
