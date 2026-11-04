@@ -117,7 +117,7 @@ void main() {
     await tester.tap(find.text('Dark Chalk'));
     await tester.pumpAndSettle();
     expect(find.textContaining('What you wrote'), findsOneWidget);
-    await tester.tap(find.text('Apply to “My Wall”'));
+    await tester.tap(find.text('Apply to this board'));
     await tester.pumpAndSettle();
 
     final mine = notes.boardNotes.single;

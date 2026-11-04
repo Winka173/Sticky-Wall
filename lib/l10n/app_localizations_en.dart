@@ -12,7 +12,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Sticky Wall';
 
   @override
-  String get addNote => 'Add Note';
+  String get addNote => 'Add note';
 
   @override
   String get search => 'Search';
@@ -78,7 +78,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noteEmpty => 'The note is still empty';
 
   @override
-  String get duplicateExists => 'This link is already on the wall';
+  String get duplicateExists => 'This link is already on this board';
 
   @override
   String get noteDeleted => 'Moved to trash';
@@ -194,9 +194,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get threadTied => 'Thread tied';
 
   @override
-  String get threadTip => 'Drag from a pin onto another note to tie a thread.';
-
-  @override
   String get nightSection => 'Lights';
 
   @override
@@ -216,11 +213,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lightsOn => 'Lights on';
-
-  @override
-  String nightSchedule(String start, String end) {
-    return 'From $start to $end';
-  }
 
   @override
   String get nightStart => 'Lights off at';
@@ -445,7 +437,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get thread => 'Thread';
 
   @override
-  String get yarnColor => 'Yarn color';
+  String get yarnColor => 'Thread color';
 
   @override
   String get threadLabelHint => 'Write on the thread…';
@@ -499,9 +491,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get shareAsImage => 'Share as image';
 
   @override
   String get saveImage => 'Save image';
@@ -604,16 +593,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get patternPlain => 'Plain';
 
   @override
-  String get patternRuled => 'Ruled';
+  String get patternRuled => 'Lined';
 
   @override
   String get patternGrid => 'Grid';
 
   @override
-  String get patternDots => 'Dots';
+  String get patternDots => 'Dotted';
 
   @override
-  String get emote => 'Emote';
+  String get emote => 'Emoji';
 
   @override
   String get color => 'Paper color';
@@ -709,7 +698,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipSelectBody =>
-      'Long-press a note → Select. Draw a loop round notes on empty wall to add them, and drag any selected note to move the whole group.';
+      'Long-press a note → Select. Starting on an empty spot, draw a loop around notes to add them; drag any selected note to move the whole group.';
 
   @override
   String get tipDrawTitle => 'Draw on the wall';
@@ -723,7 +712,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipUndoBody =>
-      'An Undo pill appears for a few seconds after every move, turn, resize, tidy-up or board change.';
+      'An Undo button appears for a few seconds after every move, turn, resize, tidy-up or board change.';
 
   @override
   String movedToBoard(String name) {
@@ -737,20 +726,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportData => 'Back up notes';
 
   @override
-  String get importData => 'Load backup';
+  String get importData => 'Restore backup';
 
   @override
   String get importHint => 'Paste a backup here';
 
   @override
-  String get importSuccess => 'Backup loaded';
+  String get importSuccess => 'Backup restored';
 
   @override
   String get importFailed => 'Could not read that backup';
 
   @override
   String get importReplaceWarning =>
-      'Loading a backup replaces all current boards and notes.';
+      'Next you choose: add the backup to what is here, or replace everything.';
 
   @override
   String get typeAudio => 'Voice note';
@@ -810,11 +799,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get autoBackupRestore => 'Restore it';
 
   @override
-  String autoBackupRestoreTitle(String date) {
-    return 'Restore the backup from $date?';
-  }
-
-  @override
   String get autoBackupMissing => 'No automatic backup found on this device';
 
   @override
@@ -822,7 +806,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importNotJson =>
-      'This isn\'t a backup file: the text is not valid JSON. Paste the whole file, with nothing cut off.';
+      'This isn\'t a backup file, or part of it is missing. Paste the whole file, with nothing cut off.';
 
   @override
   String get importNotBackup => 'This isn\'t a Sticky Wall backup.';
@@ -1039,7 +1023,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locked => 'Locked';
 
   @override
-  String get selectHint => 'Tap notes, or draw a loop round them';
+  String get selectHint => 'Tap notes, or draw a loop around them';
 
   @override
   String filterShowing(String what) {
@@ -1098,7 +1082,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get threadsOfNote => 'Threads';
 
   @override
-  String get noOtherNotes => 'No other notes on this wall to tie to';
+  String get noOtherNotes => 'No other notes on this board to tie to';
 
   @override
   String get moveBoardLeft => 'Move left';
@@ -1139,21 +1123,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unstack => 'Spread out';
 
   @override
-  String get stackOpen => 'Open stack';
-
-  @override
   String otherBoardsMatches(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count more on other walls',
-      one: '1 more on other walls',
+      other: '$count more on other boards',
+      one: '1 more on other boards',
     );
     return '$_temp0';
   }
 
   @override
-  String get onOtherBoards => 'On other walls';
+  String get onOtherBoards => 'On other boards';
 
   @override
   String get proTitle => 'Sticky Wall Pro';
@@ -1197,18 +1178,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get proPending =>
-      'Payment pending. Pro unlocks as soon as Google Play confirms it.';
+      'Payment pending. Pro unlocks as soon as the store confirms it.';
 
   @override
   String get proFailed => 'The purchase didn\'t go through. Please try again.';
 
   @override
   String get proUnavailable =>
-      'Purchases aren\'t available right now. Check your connection and Google Play, then try again.';
+      'Purchases aren\'t available right now. Check your connection and app store account, then try again.';
 
   @override
   String get proKeepsLook =>
-      'Notes keep their Pro paper and wall, wherever they go.';
+      'Notes keep their Pro papers and styles wherever you move them.';
 
   @override
   String proLocked(String name) {
@@ -1310,13 +1291,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get widgetSettingsHint =>
-      'Which wall, what it lists, colors and text size';
+      'Which board, what it lists, colors and text size';
 
   @override
-  String get widgetBoardLabel => 'Wall';
+  String get widgetBoardLabel => 'Board';
 
   @override
-  String get widgetBoardCurrent => 'The open wall';
+  String get widgetBoardCurrent => 'The open board';
 
   @override
   String get widgetContentLabel => 'Shows';
@@ -1362,7 +1343,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get widgetAddHint =>
-      'To add it: touch and hold your home screen, then Widgets → Sticky Wall.';
+      'To add it: touch and hold an empty spot on your home screen, add a widget and pick Sticky Wall.';
 
   @override
   String get swatchPink => 'Pink';
@@ -1422,7 +1403,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stickerArrow => 'Arrow';
 
   @override
-  String get stickerCircle => 'Circled';
+  String get stickerCircle => 'Circle';
 
   @override
   String get stickerUnderline => 'Underline';
@@ -1474,7 +1455,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get proPerkStickers =>
-      '15 more stickers: rubber stamps, emoji and marker doodles';
+      'The whole sticker library: stamps, doodles and illustrated packs';
 
   @override
   String get proPerkMarkers =>
@@ -1584,7 +1565,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Seasonal packs: Tết, Christmas, Mid-Autumn and Valentine\'s walls and stickers';
 
   @override
-  String get proPerkPrivate => 'Board locks that open with your fingerprint';
+  String get proPerkPrivate =>
+      'Lock boards with your fingerprint or screen lock';
 
   @override
   String get proPerkCustomColor => 'Mix any paper color you like';
@@ -1644,7 +1626,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String templateLook(String name) {
-    return 'Look: $name';
+    return 'Theme: $name';
   }
 
   @override
@@ -1654,12 +1636,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String templateUsed(String name) {
-    return '“$name” is ready. Change any note, or clear the examples from the board\'s sheet.';
+    return '“$name” is ready. Change any note, or clear the examples from the board\'s menu.';
   }
 
   @override
   String applyTheme(String board) {
-    return 'Apply to “$board”';
+    return 'Apply to this board';
   }
 
   @override
@@ -1713,7 +1695,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeBody =>
-      'Notes on a real wall: write them, move them, tie them together. How would you like to start?';
+      'Sticky notes on a wall: write them, move them, tie them together. How would you like to start?';
 
   @override
   String get welcomeTemplate => 'Pick a template';
@@ -1754,7 +1736,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String memoryTooMany(int max) {
-    return 'A wall holds up to $max; the first $max are used.';
+    return 'A memory wall holds up to $max photos; the first $max are used.';
   }
 
   @override
@@ -1773,7 +1755,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get layoutTimeline => 'Timeline';
 
   @override
-  String get memoryLook => 'Look';
+  String get memoryLook => 'Theme';
 
   @override
   String get memoryCreate => 'Make the wall';
@@ -1873,7 +1855,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String restoreConflicts(int boards, int notes) {
-    return '$boards boards and $notes notes in it are already on this phone.';
+    String _temp0 = intl.Intl.pluralLogic(
+      boards,
+      locale: localeName,
+      other: '$boards boards',
+      one: '1 board',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      notes,
+      locale: localeName,
+      other: '$notes notes',
+      one: '1 note',
+    );
+    return '$_temp0 and $_temp1 in it are already on this phone.';
   }
 
   @override
@@ -1957,7 +1951,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get captionDate => 'Today\'s date';
 
   @override
-  String get layoutHero => 'Hero photo';
+  String get layoutHero => 'Big photo';
 
   @override
   String get shufflePhotos => 'Shuffle the photos';
@@ -1972,13 +1966,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get framesApplied => 'Frame changed';
 
   @override
-  String get makeHero => 'Make it the hero photo';
+  String get makeHero => 'Make it the big photo';
 
   @override
-  String get heroSet => 'Hero photo set';
+  String get heroSet => 'Big photo set';
 
   @override
-  String get pinBoard => 'Pin to the top';
+  String get pinBoard => 'Pin to top';
 
   @override
   String get unpinBoard => 'Unpin';

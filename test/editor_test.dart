@@ -233,7 +233,7 @@ void main() {
     await tester.tap(_saveButton);
     await tester.pumpAndSettle();
 
-    expect(find.text('This link is already on the wall'), findsOneWidget);
+    expect(find.text('This link is already on this board'), findsOneWidget);
     expect(notes.boardNotes.length, 1);
 
     // A different link with no title saves and shows its address.

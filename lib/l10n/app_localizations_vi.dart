@@ -78,7 +78,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get noteEmpty => 'Ghi chú vẫn đang trống';
 
   @override
-  String get duplicateExists => 'Liên kết này đã có trên tường';
+  String get duplicateExists => 'Liên kết này đã có trên bảng này';
 
   @override
   String get noteDeleted => 'Đã chuyển vào thùng rác';
@@ -150,7 +150,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get repeat => 'Lặp lại';
 
   @override
-  String get repeatNone => 'Một lần';
+  String get repeatNone => 'Không lặp lại';
 
   @override
   String get repeatDaily => 'Hằng ngày';
@@ -176,7 +176,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get move => 'Chuyển';
 
   @override
-  String get tidy => 'Xếp lại cho gọn';
+  String get tidy => 'Xếp gọn';
 
   @override
   String get tidyByColor => 'Xếp theo màu';
@@ -191,13 +191,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get threadTied => 'Đã nối dây';
 
   @override
-  String get threadTip => 'Kéo từ ghim sang tờ khác để nối dây.';
-
-  @override
   String get nightSection => 'Đèn';
 
   @override
-  String get nightModeOff => 'Luôn sáng';
+  String get nightModeOff => 'Luôn bật đèn';
 
   @override
   String get nightModeOn => 'Luôn tắt đèn';
@@ -215,11 +212,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get lightsOn => 'Bật đèn';
 
   @override
-  String nightSchedule(String start, String end) {
-    return 'Từ $start đến $end';
-  }
-
-  @override
   String get nightStart => 'Tắt đèn lúc';
 
   @override
@@ -235,7 +227,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get removePhoto => 'Bỏ ảnh';
 
   @override
-  String get autoTrashDone => 'Tự dọn việc đã xong';
+  String get autoTrashDone => 'Tự dọn danh sách đã xong';
 
   @override
   String get autoTrashDoneHint =>
@@ -254,24 +246,24 @@ class AppLocalizationsVi extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count ghi chú',
-      zero: 'Không có',
+      zero: 'Không có kết quả',
     );
     return '$_temp0';
   }
 
   @override
-  String get boardIcon => 'Biểu tượng tường';
+  String get boardIcon => 'Biểu tượng bảng';
 
   @override
   String get none => 'Không có';
 
   @override
   String get sampleDrag =>
-      'Kéo tôi đi khắp tường 👉\nChạm giữ chỗ trống để dán tờ mới ngay đó.';
+      'Kéo tôi đi khắp tường 👉\nNhấn giữ chỗ trống để dán tờ mới ngay đó.';
 
   @override
   String get sampleLongPress =>
-      'Nhấn giữ vào tôi để xem thêm: chuyển tường, chia sẻ, xóa…';
+      'Nhấn giữ vào tôi để xem thêm: chuyển bảng, chia sẻ, xóa…';
 
   @override
   String get sampleChecklistTitle => 'Thử tích vào đây ✅';
@@ -283,7 +275,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get sampleChecklist2 => 'Kéo góc để phóng to / thu nhỏ';
 
   @override
-  String get sampleChecklist3 => 'Xóa chúng tôi khi đã quen tay';
+  String get sampleChecklist3 => 'Quen tay rồi thì xóa tụi mình đi nhé';
 
   @override
   String get sampleThread => 'Kéo từ ghim của tôi sang tờ khác để nối dây 🧵';
@@ -297,7 +289,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get wallCreateHint =>
-      'Mẹo: chạm giữ vào chỗ trống trên tường để dán ghi chú hoặc ảnh ngay tại đó.';
+      'Mẹo: nhấn giữ chỗ trống trên tường để dán ghi chú hoặc ảnh ngay tại đó.';
 
   @override
   String get noMatches => 'Không có ghi chú nào khớp';
@@ -341,7 +333,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get layout => 'Bố cục';
 
   @override
-  String get viewWall => 'Dán tự do';
+  String get viewWall => 'Tường';
 
   @override
   String get viewGrid => 'Lưới';
@@ -371,7 +363,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get wallKraft => 'Giấy kraft';
 
   @override
-  String get wallMarble => 'Đá hoa';
+  String get wallMarble => 'Đá cẩm thạch';
 
   @override
   String get wallTerrazzo => 'Đá mài';
@@ -404,7 +396,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get wallLeather => 'Da đỏ';
 
   @override
-  String get wallDarkMarble => 'Đá hoa đen';
+  String get wallDarkMarble => 'Đá cẩm thạch đen';
 
   @override
   String get wallDarkWood => 'Ván gỗ tối';
@@ -440,7 +432,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get thread => 'Dây';
 
   @override
-  String get yarnColor => 'Màu len';
+  String get yarnColor => 'Màu dây';
 
   @override
   String get threadLabelHint => 'Ghi lên dây…';
@@ -495,13 +487,10 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get shareAsImage => 'Chia sẻ ảnh';
-
-  @override
   String get saveImage => 'Lưu ảnh';
 
   @override
-  String get exportBoard => 'Xuất tường thành ảnh';
+  String get exportBoard => 'Xuất bảng thành ảnh';
 
   @override
   String get exportWholeWall => 'Cả tường';
@@ -517,7 +506,7 @@ class AppLocalizationsVi extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count đã chọn',
+      other: 'Đã chọn $count',
     );
     return '$_temp0';
   }
@@ -526,7 +515,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get exportPdf => 'Xuất PDF';
 
   @override
-  String get exportMore => 'Tùy chọn nâng cao';
+  String get exportMore => 'Thêm tùy chọn';
 
   @override
   String get exportFewer => 'Ẩn tùy chọn';
@@ -567,7 +556,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get resetZoom => 'Về cỡ gốc';
 
   @override
-  String get wallDecor => 'Vết bẩn trên tường';
+  String get wallDecor => 'Vết ố & dấu vết trên tường';
 
   @override
   String get pin => 'Ghim lên đầu';
@@ -576,7 +565,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get unpin => 'Bỏ ghim';
 
   @override
-  String get reminder => 'Nhắc nhở';
+  String get reminder => 'Lời nhắc';
 
   @override
   String get addItem => 'Thêm mục';
@@ -597,28 +586,28 @@ class AppLocalizationsVi extends AppLocalizations {
   String get patternPlain => 'Trơn';
 
   @override
-  String get patternRuled => 'Kẻ ngang';
+  String get patternRuled => 'Kẻ dòng';
 
   @override
   String get patternGrid => 'Kẻ ô';
 
   @override
-  String get patternDots => 'Chấm';
+  String get patternDots => 'Chấm bi';
 
   @override
-  String get emote => 'Biểu tượng';
+  String get emote => 'Biểu tượng cảm xúc';
 
   @override
   String get color => 'Màu giấy';
 
   @override
-  String get newBoard => 'Tường mới';
+  String get newBoard => 'Bảng mới';
 
   @override
-  String get boardName => 'Tên tường';
+  String get boardName => 'Tên bảng';
 
   @override
-  String get editBoard => 'Chỉnh sửa tường';
+  String get editBoard => 'Sửa bảng';
 
   @override
   String get bold => 'In đậm';
@@ -630,7 +619,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get defaultBoardName => 'Tường của tôi';
 
   @override
-  String get deleteBoard => 'Xóa tường';
+  String get deleteBoard => 'Xóa bảng';
 
   @override
   String deleteBoardConfirm(String name) {
@@ -638,16 +627,16 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get moveToBoard => 'Chuyển sang tường khác';
+  String get moveToBoard => 'Chuyển sang bảng khác';
 
   @override
-  String get duplicate => 'Nhân đôi';
+  String get duplicate => 'Nhân bản';
 
   @override
   String get copy => 'Sao chép';
 
   @override
-  String get copyToBoard => 'Sao chép sang tường khác';
+  String get copyToBoard => 'Sao chép sang bảng khác';
 
   @override
   String copiedToBoard(int count, String name) {
@@ -673,49 +662,49 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get tipDragBody =>
-      'Kéo note bằng một ngón. Đặt hai ngón lên note để xoay và chụm phóng, hoặc dùng hai tay nắm ở góc dưới: bên phải để đổi cỡ, bên trái để xoay (chạm vào đó để thẳng lại).';
+      'Kéo ghi chú bằng một ngón. Đặt hai ngón lên ghi chú để xoay và chụm lại để đổi cỡ, hoặc dùng hai nút nắm ở góc dưới: bên phải để đổi cỡ, bên trái để xoay (chạm vào nút đó để đặt thẳng lại).';
 
   @override
   String get tipPinTitle => 'Ghim và dây';
 
   @override
   String get tipPinBody =>
-      'Chạm ghim để giữ note lên đầu. Kéo từ ghim sang tờ khác để nối dây; chạm vào dây để đổi màu, ghi nhãn, thêm mũi tên hoặc cắt.';
+      'Chạm vào ghim để giữ ghi chú ở trên cùng. Kéo từ ghim sang ghi chú khác để nối dây; chạm vào dây để đổi màu, ghi chữ, thêm mũi tên hoặc cắt.';
 
   @override
   String get tipWallTitle => 'Tường';
 
   @override
   String get tipWallBody =>
-      'Nhấn giữ chỗ trống để dán note hoặc ảnh tại đó. Chụm để zoom, pan ra lề tường và đặt note ở đó. Chạm hai lần vào note để zoom vào; nút khung hiện toàn cảnh.';
+      'Nhấn giữ chỗ trống để dán ghi chú hoặc ảnh tại đó. Chụm hai ngón để phóng to, thu nhỏ; kéo ra tận lề tường để đặt ghi chú ở đó. Chạm hai lần vào ghi chú để phóng to nó; nút khung hiện toàn cảnh.';
 
   @override
-  String get tipDropTitle => 'Chuyển sang tường khác';
+  String get tipDropTitle => 'Chuyển sang bảng khác';
 
   @override
   String get tipDropBody =>
-      'Thả ghi chú đang kéo lên một tab tường để chuyển sang tường đó. Muốn kéo xuống khay ở chân tường để xóa thì bật trong Tùy chỉnh.';
+      'Thả ghi chú đang kéo lên thẻ tên của một bảng để chuyển sang bảng đó. Muốn kéo xuống khay ở chân tường để xóa thì bật trong Tùy chỉnh.';
 
   @override
   String get tipSelectTitle => 'Chọn nhiều';
 
   @override
   String get tipSelectBody =>
-      'Nhấn giữ note → Chọn. Khoanh một vòng quanh các note trên chỗ trống để chọn thêm; kéo một tờ đang chọn là cả nhóm đi theo.';
+      'Nhấn giữ ghi chú → Chọn. Bắt đầu từ chỗ trống, khoanh một vòng quanh các ghi chú để chọn thêm; kéo một ghi chú đang chọn là cả nhóm đi theo.';
 
   @override
   String get tipDrawTitle => 'Vẽ lên tường';
 
   @override
   String get tipDrawBody =>
-      'Nút bút trên thanh công cụ mở chế độ vẽ: một ngón vẽ phía sau các note, hai ngón vẫn zoom. Hoàn tác, xóa hết và xong nằm ở thanh dưới.';
+      'Nút bút trên thanh công cụ mở chế độ vẽ: một ngón vẽ phía sau các ghi chú, hai ngón vẫn phóng to, thu nhỏ. Nút Hoàn tác, Xóa hết và Xong nằm ở thanh dưới.';
 
   @override
   String get tipUndoTitle => 'Hoàn tác';
 
   @override
   String get tipUndoBody =>
-      'Viên Hoàn tác hiện vài giây sau mỗi lần kéo, xoay, đổi cỡ, xếp gọn hay chuyển tường.';
+      'Nút Hoàn tác hiện vài giây sau mỗi lần kéo, xoay, đổi cỡ, xếp gọn hay chuyển bảng.';
 
   @override
   String movedToBoard(String name) {
@@ -729,20 +718,20 @@ class AppLocalizationsVi extends AppLocalizations {
   String get exportData => 'Sao lưu ghi chú';
 
   @override
-  String get importData => 'Nạp bản sao lưu';
+  String get importData => 'Khôi phục';
 
   @override
   String get importHint => 'Dán bản sao lưu vào đây';
 
   @override
-  String get importSuccess => 'Đã nạp bản sao lưu';
+  String get importSuccess => 'Đã khôi phục bản sao lưu';
 
   @override
   String get importFailed => 'Không đọc được bản sao lưu';
 
   @override
   String get importReplaceWarning =>
-      'Nạp bản sao lưu sẽ thay thế toàn bộ tường và ghi chú hiện tại.';
+      'Sau đó bạn chọn: gộp bản sao lưu vào dữ liệu hiện có, hoặc thay thế toàn bộ.';
 
   @override
   String get typeAudio => 'Ghi âm';
@@ -763,7 +752,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get recordAgain => 'Ghi lại';
 
   @override
-  String get deleteRecording => 'Xoá bản ghi';
+  String get deleteRecording => 'Xóa bản ghi âm';
 
   @override
   String get playVoice => 'Phát ghi âm';
@@ -802,11 +791,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get autoBackupRestore => 'Khôi phục bản này';
 
   @override
-  String autoBackupRestoreTitle(String date) {
-    return 'Khôi phục bản sao lưu ngày $date?';
-  }
-
-  @override
   String get autoBackupMissing =>
       'Không tìm thấy bản sao lưu tự động nào trên máy';
 
@@ -815,7 +799,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get importNotJson =>
-      'Đây không phải tệp sao lưu: nội dung không đúng định dạng JSON. Hãy dán trọn cả tệp, không thiếu đoạn nào.';
+      'Đây không phải tệp sao lưu, hoặc bị thiếu một phần. Hãy dán trọn cả tệp, không thiếu đoạn nào.';
 
   @override
   String get importNotBackup => 'Đây không phải bản sao lưu của Sticky Wall.';
@@ -975,7 +959,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String typeChangeDrops(String type) {
-    return 'Lưu thành “$type”? Hình vẽ hoặc địa chỉ link sẽ không được giữ lại.';
+    return 'Lưu thành “$type”? Hình vẽ hoặc địa chỉ liên kết sẽ không được giữ lại.';
   }
 
   @override
@@ -1009,7 +993,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get swatchOrange => 'Cam';
 
   @override
-  String get swatchGold => 'Vàng';
+  String get swatchGold => 'Vàng kim';
 
   @override
   String get swatchGreen => 'Xanh lá';
@@ -1050,10 +1034,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get undoRotate => 'Hoàn tác xoay';
 
   @override
-  String get undoTidy => 'Hoàn tác sắp xếp';
+  String get undoTidy => 'Hoàn tác xếp gọn';
 
   @override
-  String get undoMoveBoard => 'Hoàn tác chuyển tường';
+  String get undoMoveBoard => 'Hoàn tác chuyển bảng';
 
   @override
   String get clearInkConfirm => 'Xóa hết nét vẽ trên tường này?';
@@ -1089,7 +1073,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get threadsOfNote => 'Dây nối';
 
   @override
-  String get noOtherNotes => 'Trên tường này không còn ghi chú nào khác để nối';
+  String get noOtherNotes => 'Bảng này không còn ghi chú nào khác để nối';
 
   @override
   String get moveBoardLeft => 'Chuyển sang trái';
@@ -1129,20 +1113,17 @@ class AppLocalizationsVi extends AppLocalizations {
   String get unstack => 'Trải ra';
 
   @override
-  String get stackOpen => 'Mở chồng';
-
-  @override
   String otherBoardsMatches(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Thêm $count ở tường khác',
+      other: 'Thêm $count ở bảng khác',
     );
     return '$_temp0';
   }
 
   @override
-  String get onOtherBoards => 'Ở tường khác';
+  String get onOtherBoards => 'Ở bảng khác';
 
   @override
   String get proTitle => 'Sticky Wall Pro';
@@ -1187,18 +1168,18 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get proPending =>
-      'Đang chờ thanh toán. Pro sẽ mở ngay khi Google Play xác nhận.';
+      'Đang chờ thanh toán. Pro sẽ mở ngay khi cửa hàng ứng dụng xác nhận.';
 
   @override
   String get proFailed => 'Giao dịch chưa thành công. Bạn thử lại nhé.';
 
   @override
   String get proUnavailable =>
-      'Hiện chưa mua được. Hãy kiểm tra kết nối mạng và Google Play rồi thử lại.';
+      'Hiện chưa mua được. Hãy kiểm tra kết nối mạng và tài khoản cửa hàng ứng dụng rồi thử lại.';
 
   @override
   String get proKeepsLook =>
-      'Ghi chú vẫn giữ màu giấy và tường Pro dù được chuyển đi đâu.';
+      'Ghi chú vẫn giữ giấy và kiểu Pro dù bạn chuyển đi đâu.';
 
   @override
   String proLocked(String name) {
@@ -1351,7 +1332,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get widgetAddHint =>
-      'Cách thêm: nhấn giữ màn hình chính, chọn Tiện ích → Sticky Wall.';
+      'Cách thêm: nhấn giữ chỗ trống trên màn hình chính, thêm tiện ích rồi chọn Sticky Wall.';
 
   @override
   String get swatchPink => 'Hồng';
@@ -1366,7 +1347,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get swatchWhite => 'Trắng';
 
   @override
-  String get swatchYellow => 'Vàng chanh';
+  String get swatchYellow => 'Vàng';
 
   @override
   String get paperPlain => 'Trơn';
@@ -1375,10 +1356,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get paperLined => 'Kẻ dòng';
 
   @override
-  String get paperGrid => 'Ô vuông';
+  String get paperGrid => 'Kẻ ô';
 
   @override
-  String get paperDots => 'Chấm';
+  String get paperDots => 'Chấm bi';
 
   @override
   String get paperIndex => 'Thẻ ghi chú';
@@ -1459,11 +1440,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get proPerkPaperStyles =>
-      '5 kiểu giấy: kẻ dòng, ô vuông, chấm, thẻ ghi chú, trang vở';
+      '5 kiểu giấy: kẻ dòng, kẻ ô, chấm bi, thẻ ghi chú, trang vở';
 
   @override
   String get proPerkStickers =>
-      'Thêm 15 sticker: con dấu, emoji và hình vẽ tay';
+      'Trọn bộ sticker: con dấu, hình vẽ tay và các gói minh họa';
 
   @override
   String get proPerkMarkers => 'Thêm 5 màu bút và bút dạ quang để vẽ lên tường';
@@ -1573,7 +1554,7 @@ class AppLocalizationsVi extends AppLocalizations {
       'Gói theo mùa: tường và sticker Tết, Giáng Sinh, Trung Thu, Valentine';
 
   @override
-  String get proPerkPrivate => 'Khóa bảng bằng vân tay';
+  String get proPerkPrivate => 'Khóa bảng bằng vân tay hoặc khóa màn hình';
 
   @override
   String get proPerkCustomColor => 'Tự pha màu giấy theo ý thích';
@@ -1633,7 +1614,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String templateLook(String name) {
-    return 'Giao diện: $name';
+    return 'Chủ đề: $name';
   }
 
   @override
@@ -1648,7 +1629,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String applyTheme(String board) {
-    return 'Áp dụng cho “$board”';
+    return 'Áp dụng cho bảng này';
   }
 
   @override
@@ -1698,11 +1679,11 @@ class AppLocalizationsVi extends AppLocalizations {
   String get changeTheme => 'Đổi chủ đề';
 
   @override
-  String get welcomeTitle => 'Chào mừng tới Sticky Wall';
+  String get welcomeTitle => 'Chào mừng bạn đến với Sticky Wall';
 
   @override
   String get welcomeBody =>
-      'Ghi chú dán trên một bức tường thật: viết, kéo đi, nối dây với nhau. Bạn muốn bắt đầu thế nào?';
+      'Ghi chú dán trên tường: viết, kéo đi, nối dây với nhau. Bạn muốn bắt đầu thế nào?';
 
   @override
   String get welcomeTemplate => 'Chọn một mẫu';
@@ -1738,7 +1719,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String memoryTooMany(int max) {
-    return 'Mỗi tường giữ tối đa $max ảnh; dùng $max ảnh đầu.';
+    return 'Mỗi tường kỷ niệm giữ tối đa $max ảnh; sẽ dùng $max ảnh đầu tiên.';
   }
 
   @override
@@ -1757,7 +1738,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get layoutTimeline => 'Dòng thời gian';
 
   @override
-  String get memoryLook => 'Giao diện';
+  String get memoryLook => 'Chủ đề';
 
   @override
   String get memoryCreate => 'Tạo tường';
@@ -1996,7 +1977,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get packMarks => 'Ký hiệu ghi chú';
 
   @override
-  String get packAnimals => 'Thú cưng';
+  String get packAnimals => 'Động vật';
 
   @override
   String get packGarden => 'Vườn';
@@ -2017,8 +1998,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get packLove => 'Tình yêu & tiệc';
 
   @override
-  String get packFestiveVn => 'Tết & Trung thu';
+  String get packFestiveVn => 'Tết & Trung Thu';
 
   @override
-  String get packHolidays => 'Giáng sinh & Halloween';
+  String get packHolidays => 'Giáng Sinh & Halloween';
 }

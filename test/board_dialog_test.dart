@@ -80,7 +80,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await _openNewBoard(tester);
-    expect(find.text('Tường mới'), findsOneWidget);
+    expect(find.text('Bảng mới'), findsOneWidget);
 
     // Nothing to save yet.
     final save = find.widgetWithText(FilledButton, 'Lưu');
@@ -163,10 +163,10 @@ void main() {
 
     // Tapping the selected tab opens the manage sheet.
     await _tapTab(tester, 'Học');
-    await tester.tap(find.text('Chỉnh sửa tường'));
+    await tester.tap(find.text('Sửa bảng'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Chỉnh sửa tường'), findsOneWidget);
+    expect(find.text('Sửa bảng'), findsOneWidget);
     expect(
       tester.widget<TextField>(find.byType(TextField)).controller?.text,
       'Học',

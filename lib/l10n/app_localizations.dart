@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @addNote.
   ///
   /// In en, this message translates to:
-  /// **'Add Note'**
+  /// **'Add note'**
   String get addNote;
 
   /// No description provided for @search.
@@ -239,7 +239,7 @@ abstract class AppLocalizations {
   /// No description provided for @duplicateExists.
   ///
   /// In en, this message translates to:
-  /// **'This link is already on the wall'**
+  /// **'This link is already on this board'**
   String get duplicateExists;
 
   /// No description provided for @noteDeleted.
@@ -410,12 +410,6 @@ abstract class AppLocalizations {
   /// **'Thread tied'**
   String get threadTied;
 
-  /// No description provided for @threadTip.
-  ///
-  /// In en, this message translates to:
-  /// **'Drag from a pin onto another note to tie a thread.'**
-  String get threadTip;
-
   /// No description provided for @nightSection.
   ///
   /// In en, this message translates to:
@@ -457,12 +451,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lights on'**
   String get lightsOn;
-
-  /// No description provided for @nightSchedule.
-  ///
-  /// In en, this message translates to:
-  /// **'From {start} to {end}'**
-  String nightSchedule(String start, String end);
 
   /// No description provided for @nightStart.
   ///
@@ -875,7 +863,7 @@ abstract class AppLocalizations {
   /// No description provided for @yarnColor.
   ///
   /// In en, this message translates to:
-  /// **'Yarn color'**
+  /// **'Thread color'**
   String get yarnColor;
 
   /// No description provided for @threadLabelHint.
@@ -967,12 +955,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 photo pinned on the wall} other{{count} photos pinned on the wall}}'**
   String photosPinned(int count);
-
-  /// No description provided for @shareAsImage.
-  ///
-  /// In en, this message translates to:
-  /// **'Share as image'**
-  String get shareAsImage;
 
   /// No description provided for @saveImage.
   ///
@@ -1157,7 +1139,7 @@ abstract class AppLocalizations {
   /// No description provided for @patternRuled.
   ///
   /// In en, this message translates to:
-  /// **'Ruled'**
+  /// **'Lined'**
   String get patternRuled;
 
   /// No description provided for @patternGrid.
@@ -1169,13 +1151,13 @@ abstract class AppLocalizations {
   /// No description provided for @patternDots.
   ///
   /// In en, this message translates to:
-  /// **'Dots'**
+  /// **'Dotted'**
   String get patternDots;
 
   /// No description provided for @emote.
   ///
   /// In en, this message translates to:
-  /// **'Emote'**
+  /// **'Emoji'**
   String get emote;
 
   /// No description provided for @color.
@@ -1337,7 +1319,7 @@ abstract class AppLocalizations {
   /// No description provided for @tipSelectBody.
   ///
   /// In en, this message translates to:
-  /// **'Long-press a note → Select. Draw a loop round notes on empty wall to add them, and drag any selected note to move the whole group.'**
+  /// **'Long-press a note → Select. Starting on an empty spot, draw a loop around notes to add them; drag any selected note to move the whole group.'**
   String get tipSelectBody;
 
   /// No description provided for @tipDrawTitle.
@@ -1361,7 +1343,7 @@ abstract class AppLocalizations {
   /// No description provided for @tipUndoBody.
   ///
   /// In en, this message translates to:
-  /// **'An Undo pill appears for a few seconds after every move, turn, resize, tidy-up or board change.'**
+  /// **'An Undo button appears for a few seconds after every move, turn, resize, tidy-up or board change.'**
   String get tipUndoBody;
 
   /// No description provided for @movedToBoard.
@@ -1385,7 +1367,7 @@ abstract class AppLocalizations {
   /// No description provided for @importData.
   ///
   /// In en, this message translates to:
-  /// **'Load backup'**
+  /// **'Restore backup'**
   String get importData;
 
   /// No description provided for @importHint.
@@ -1397,7 +1379,7 @@ abstract class AppLocalizations {
   /// No description provided for @importSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Backup loaded'**
+  /// **'Backup restored'**
   String get importSuccess;
 
   /// No description provided for @importFailed.
@@ -1409,7 +1391,7 @@ abstract class AppLocalizations {
   /// No description provided for @importReplaceWarning.
   ///
   /// In en, this message translates to:
-  /// **'Loading a backup replaces all current boards and notes.'**
+  /// **'Next you choose: add the backup to what is here, or replace everything.'**
   String get importReplaceWarning;
 
   /// No description provided for @typeAudio.
@@ -1520,12 +1502,6 @@ abstract class AppLocalizations {
   /// **'Restore it'**
   String get autoBackupRestore;
 
-  /// No description provided for @autoBackupRestoreTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore the backup from {date}?'**
-  String autoBackupRestoreTitle(String date);
-
   /// No description provided for @autoBackupMissing.
   ///
   /// In en, this message translates to:
@@ -1541,7 +1517,7 @@ abstract class AppLocalizations {
   /// No description provided for @importNotJson.
   ///
   /// In en, this message translates to:
-  /// **'This isn\'t a backup file: the text is not valid JSON. Paste the whole file, with nothing cut off.'**
+  /// **'This isn\'t a backup file, or part of it is missing. Paste the whole file, with nothing cut off.'**
   String get importNotJson;
 
   /// No description provided for @importNotBackup.
@@ -1943,7 +1919,7 @@ abstract class AppLocalizations {
   /// No description provided for @selectHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap notes, or draw a loop round them'**
+  /// **'Tap notes, or draw a loop around them'**
   String get selectHint;
 
   /// No description provided for @filterShowing.
@@ -2057,7 +2033,7 @@ abstract class AppLocalizations {
   /// No description provided for @noOtherNotes.
   ///
   /// In en, this message translates to:
-  /// **'No other notes on this wall to tie to'**
+  /// **'No other notes on this board to tie to'**
   String get noOtherNotes;
 
   /// No description provided for @moveBoardLeft.
@@ -2120,22 +2096,16 @@ abstract class AppLocalizations {
   /// **'Spread out'**
   String get unstack;
 
-  /// No description provided for @stackOpen.
-  ///
-  /// In en, this message translates to:
-  /// **'Open stack'**
-  String get stackOpen;
-
   /// No description provided for @otherBoardsMatches.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 more on other walls} other{{count} more on other walls}}'**
+  /// **'{count, plural, =1{1 more on other boards} other{{count} more on other boards}}'**
   String otherBoardsMatches(int count);
 
   /// No description provided for @onOtherBoards.
   ///
   /// In en, this message translates to:
-  /// **'On other walls'**
+  /// **'On other boards'**
   String get onOtherBoards;
 
   /// No description provided for @proTitle.
@@ -2213,7 +2183,7 @@ abstract class AppLocalizations {
   /// No description provided for @proPending.
   ///
   /// In en, this message translates to:
-  /// **'Payment pending. Pro unlocks as soon as Google Play confirms it.'**
+  /// **'Payment pending. Pro unlocks as soon as the store confirms it.'**
   String get proPending;
 
   /// No description provided for @proFailed.
@@ -2225,13 +2195,13 @@ abstract class AppLocalizations {
   /// No description provided for @proUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'Purchases aren\'t available right now. Check your connection and Google Play, then try again.'**
+  /// **'Purchases aren\'t available right now. Check your connection and app store account, then try again.'**
   String get proUnavailable;
 
   /// No description provided for @proKeepsLook.
   ///
   /// In en, this message translates to:
-  /// **'Notes keep their Pro paper and wall, wherever they go.'**
+  /// **'Notes keep their Pro papers and styles wherever you move them.'**
   String get proKeepsLook;
 
   /// No description provided for @proLocked.
@@ -2423,19 +2393,19 @@ abstract class AppLocalizations {
   /// No description provided for @widgetSettingsHint.
   ///
   /// In en, this message translates to:
-  /// **'Which wall, what it lists, colors and text size'**
+  /// **'Which board, what it lists, colors and text size'**
   String get widgetSettingsHint;
 
   /// No description provided for @widgetBoardLabel.
   ///
   /// In en, this message translates to:
-  /// **'Wall'**
+  /// **'Board'**
   String get widgetBoardLabel;
 
   /// No description provided for @widgetBoardCurrent.
   ///
   /// In en, this message translates to:
-  /// **'The open wall'**
+  /// **'The open board'**
   String get widgetBoardCurrent;
 
   /// No description provided for @widgetContentLabel.
@@ -2525,7 +2495,7 @@ abstract class AppLocalizations {
   /// No description provided for @widgetAddHint.
   ///
   /// In en, this message translates to:
-  /// **'To add it: touch and hold your home screen, then Widgets → Sticky Wall.'**
+  /// **'To add it: touch and hold an empty spot on your home screen, add a widget and pick Sticky Wall.'**
   String get widgetAddHint;
 
   /// No description provided for @swatchPink.
@@ -2645,7 +2615,7 @@ abstract class AppLocalizations {
   /// No description provided for @stickerCircle.
   ///
   /// In en, this message translates to:
-  /// **'Circled'**
+  /// **'Circle'**
   String get stickerCircle;
 
   /// No description provided for @stickerUnderline.
@@ -2741,7 +2711,7 @@ abstract class AppLocalizations {
   /// No description provided for @proPerkStickers.
   ///
   /// In en, this message translates to:
-  /// **'15 more stickers: rubber stamps, emoji and marker doodles'**
+  /// **'The whole sticker library: stamps, doodles and illustrated packs'**
   String get proPerkStickers;
 
   /// No description provided for @proPerkMarkers.
@@ -2951,7 +2921,7 @@ abstract class AppLocalizations {
   /// No description provided for @proPerkPrivate.
   ///
   /// In en, this message translates to:
-  /// **'Board locks that open with your fingerprint'**
+  /// **'Lock boards with your fingerprint or screen lock'**
   String get proPerkPrivate;
 
   /// No description provided for @proPerkCustomColor.
@@ -3065,7 +3035,7 @@ abstract class AppLocalizations {
   /// No description provided for @templateLook.
   ///
   /// In en, this message translates to:
-  /// **'Look: {name}'**
+  /// **'Theme: {name}'**
   String templateLook(String name);
 
   /// No description provided for @templateFreeLook.
@@ -3077,13 +3047,13 @@ abstract class AppLocalizations {
   /// No description provided for @templateUsed.
   ///
   /// In en, this message translates to:
-  /// **'“{name}” is ready. Change any note, or clear the examples from the board\'s sheet.'**
+  /// **'“{name}” is ready. Change any note, or clear the examples from the board\'s menu.'**
   String templateUsed(String name);
 
   /// No description provided for @applyTheme.
   ///
   /// In en, this message translates to:
-  /// **'Apply to “{board}”'**
+  /// **'Apply to this board'**
   String applyTheme(String board);
 
   /// No description provided for @themeApplied.
@@ -3179,7 +3149,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeBody.
   ///
   /// In en, this message translates to:
-  /// **'Notes on a real wall: write them, move them, tie them together. How would you like to start?'**
+  /// **'Sticky notes on a wall: write them, move them, tie them together. How would you like to start?'**
   String get welcomeBody;
 
   /// No description provided for @welcomeTemplate.
@@ -3239,7 +3209,7 @@ abstract class AppLocalizations {
   /// No description provided for @memoryTooMany.
   ///
   /// In en, this message translates to:
-  /// **'A wall holds up to {max}; the first {max} are used.'**
+  /// **'A memory wall holds up to {max} photos; the first {max} are used.'**
   String memoryTooMany(int max);
 
   /// No description provided for @memoryLayout.
@@ -3275,7 +3245,7 @@ abstract class AppLocalizations {
   /// No description provided for @memoryLook.
   ///
   /// In en, this message translates to:
-  /// **'Look'**
+  /// **'Theme'**
   String get memoryLook;
 
   /// No description provided for @memoryCreate.
@@ -3419,7 +3389,7 @@ abstract class AppLocalizations {
   /// No description provided for @restoreConflicts.
   ///
   /// In en, this message translates to:
-  /// **'{boards} boards and {notes} notes in it are already on this phone.'**
+  /// **'{boards, plural, =1{1 board} other{{boards} boards}} and {notes, plural, =1{1 note} other{{notes} notes}} in it are already on this phone.'**
   String restoreConflicts(int boards, int notes);
 
   /// No description provided for @restoreMerge.
@@ -3581,7 +3551,7 @@ abstract class AppLocalizations {
   /// No description provided for @layoutHero.
   ///
   /// In en, this message translates to:
-  /// **'Hero photo'**
+  /// **'Big photo'**
   String get layoutHero;
 
   /// No description provided for @shufflePhotos.
@@ -3611,19 +3581,19 @@ abstract class AppLocalizations {
   /// No description provided for @makeHero.
   ///
   /// In en, this message translates to:
-  /// **'Make it the hero photo'**
+  /// **'Make it the big photo'**
   String get makeHero;
 
   /// No description provided for @heroSet.
   ///
   /// In en, this message translates to:
-  /// **'Hero photo set'**
+  /// **'Big photo set'**
   String get heroSet;
 
   /// No description provided for @pinBoard.
   ///
   /// In en, this message translates to:
-  /// **'Pin to the top'**
+  /// **'Pin to top'**
   String get pinBoard;
 
   /// No description provided for @unpinBoard.

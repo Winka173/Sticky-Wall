@@ -115,7 +115,7 @@ void main() {
     expect(find.text('Restore a backup'), findsOneWidget);
     expect(find.text('4 · 1 in the trash'), findsOneWidget);
     expect(
-      find.textContaining('1 boards and 1 notes in it are already'),
+      find.textContaining('1 board and 1 note in it are already'),
       findsOneWidget,
     );
     expect(c.allNotes.length, 1, reason: 'nothing changes in the preview');
