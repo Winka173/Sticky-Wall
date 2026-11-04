@@ -201,6 +201,12 @@ void main() {
       }
     });
 
+    test('no pack uses a face too narrow for the app around it', () {
+      for (final t in themePacks) {
+        expect(t.font, isNot('amatic'), reason: t.id);
+      }
+    });
+
     test('free packs use only free things; the rest are marked Pro', () {
       final free = themePacks.where((t) => !t.pro).toList();
       expect(free.length, greaterThanOrEqualTo(12));

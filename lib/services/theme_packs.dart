@@ -78,7 +78,8 @@ class ThemePack {
 int _mix(int argb) => customPaper(Color(argb));
 
 /// The packs, free ones first in each shelf. Ids are stored on boards: never
-/// rename or reuse one.
+/// rename or reuse one. The whole app takes a board's handwriting, so packs
+/// use faces that stay readable at toolbar size (no Amatic SC).
 final themePacks = <ThemePack>[
   // --- Free -------------------------------------------------------------
   const ThemePack(
@@ -98,7 +99,7 @@ final themePacks = <ThemePack>[
     category: ThemeCategory.study,
     wall: 'chalk_black',
     papers: [0, 3, 4],
-    font: 'amatic',
+    font: 'fuzzy',
     yarn: 0xFFF9A825,
     stickers: ['star', 'check'],
   ),
@@ -364,7 +365,7 @@ final themePacks = <ThemePack>[
     wall: 'chalk_navy',
     papers: [11, 3, 8],
     pin: PinStyle.magnet,
-    font: 'amatic',
+    font: 'shantell',
     thread: ThreadStyle.dashed,
     yarn: 0xFFF5F2EA,
   ),

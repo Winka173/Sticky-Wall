@@ -122,7 +122,7 @@ void main() {
 
     final mine = notes.boardNotes.single;
     expect(notes.currentBoard.themeId, 'dark_chalk');
-    expect(notes.currentBoard.fontId, 'amatic');
+    expect(notes.currentBoard.fontId, 'fuzzy');
     expect(mine.content, 'My own words');
     expect((mine.x, mine.y), (0.3, 0.4));
     expect(find.text('“Dark Chalk” applied'), findsOneWidget);
