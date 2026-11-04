@@ -1,0 +1,80 @@
+# Sticky Wall on Google Play. Run from android/:
+#
+#   fastlane android check              read-only: can the key reach the app?
+#   fastlane android build              signed release bundle (obfuscated)
+#   fastlane android closed             upload the bundle to closed testing (draft)
+#   fastlane android internal           upload the bundle to internal testing (draft)
+#   fastlane android metadata           push listing text from fastlane/metadata
+#   fastlane android pull               download listing text into fastlane/metadata
+#
+# Releases are created as drafts: review and roll them out in Play Console.
+# The key has no production rights, on purpose.
+
+default_platform(:android)
+
+ROOT = File.expand_path("../..", __dir__)
+AAB = File.join(ROOT, "build/app/outputs/bundle/release/app-release.aab")
+
+def pubspec_version
+  line = File.read(File.join(ROOT, "pubspec.yaml"))[/^version:\s*(\S+)/, 1]
+  name, code = line.split("+")
+  [name, code.to_i]
+end
+
+def upload_bundle(track)
+  UI.user_error!("No bundle at #{AAB}. Run `fastlane android build` first.") unless File.exist?(AAB)
+  name, code = pubspec_version
+  upload_to_play_store(
+    track: track,
+    aab: AAB,
+    release_status: "draft",
+    version_name: "#{name} (#{code})",
+    skip_upload_metadata: true,
+    skip_upload_images: true,
+    skip_upload_screenshots: true,
+    skip_upload_changelogs: false,
+  )
+end
+
+platform :android do
+  desc "Check that the key can open the app (read-only)"
+  lane :check do
+    validate_play_store_json_key
+    name, code = pubspec_version
+    codes = google_play_track_version_codes(track: "alpha")
+    UI.message("pubspec #{name}+#{code}; closed testing has #{codes.inspect}")
+  end
+
+  desc "Build the signed, obfuscated release bundle"
+  lane :build do
+    Dir.chdir(ROOT) do
+      sh("flutter", "build", "appbundle", "--release", "--obfuscate", "--split-debug-info=build/symbols")
+    end
+  end
+
+  desc "Upload the bundle to closed testing as a draft"
+  lane :closed do
+    upload_bundle("alpha")
+  end
+
+  desc "Upload the bundle to internal testing as a draft"
+  lane :internal do
+    upload_bundle("internal")
+  end
+
+  desc "Push store listing text (no bundle, no images)"
+  lane :metadata do
+    upload_to_play_store(
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+  end
+
+  desc "Download the store listing into fastlane/metadata"
+  lane :pull do
+    download_from_play_store
+  end
+end

@@ -1,0 +1,4 @@
+# The service-account key lives outside the repo: PLAY_KEY, or
+# ~/.secrets/play-publisher.json by default.
+json_key_file(ENV["PLAY_KEY"] || File.join(Dir.home, ".secrets", "play-publisher.json"))
+package_name("com.apps.winka.stickywall")

@@ -591,6 +591,26 @@ your test Google accounts under *Settings → License testing* so their
 purchases are free test orders. A merchant (payments) profile must be set up
 first.
 
+**Uploading with fastlane.** `android/fastlane/` talks to Play through a
+service account. Its JSON key stays outside the repo (`PLAY_KEY`, default
+`~/.secrets/play-publisher.json`); the account has testing-track, listing
+and product rights but no production or financial rights. Ruby 3.3 and the
+`fastlane` gem are needed. From `android/`:
+
+```sh
+fastlane android check      # read-only: key works, which codes are on closed testing
+fastlane android build      # flutter build appbundle --release --obfuscate ...
+fastlane android closed     # upload to closed testing as a draft release
+fastlane android internal   # same, internal testing
+fastlane android metadata   # push listing text from fastlane/metadata/android
+```
+
+Before an upload, bump `version:` in `pubspec.yaml` and add
+`fastlane/metadata/android/{en-US,vi}/changelogs/<versionCode>.txt`
+(≤ 500 characters). Releases arrive as drafts; roll them out in Play Console.
+`tool/play.py check` prints a fuller read-only report (listings, images,
+tracks, testers, the Pro product).
+
 ## Assets & credits
 
 - Wall textures: [ambientCG](https://ambientcg.com) — Cork004,

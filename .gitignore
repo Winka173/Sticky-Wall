@@ -50,3 +50,8 @@ CLAUDE.md
 
 # Golden test diffs
 test/failures/
+
+# fastlane: store images are pulled for reference only; reports are local
+android/fastlane/metadata/android/*/images/
+android/fastlane/report.xml
+android/fastlane/README.md
