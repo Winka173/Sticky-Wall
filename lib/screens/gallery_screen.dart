@@ -643,31 +643,36 @@ class BoardPreview extends StatelessWidget {
             size: previewSize,
             child: Theme(
               data: theme,
+              // A Material under the theme, so the notes' text takes the
+              // pack's handwriting rather than the page's.
               child: MediaQuery.withNoTextScaling(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: WallBackground(
-                        wall: night ? wall.atNight : wall,
-                        decor: false,
-                      ),
-                    ),
-                    Positioned.fill(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(4, 24, 4, 8),
-                        child: WallView(
-                          notes: notes,
-                          links: links,
-                          callbacksFor: (_) => _still,
-                          onMove: (_, _, _) {},
-                          onResize: (_, _) {},
-                          onBringToFront: (_) {},
-                          onCreateAt: (_, _) {},
-                          still: true,
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: WallBackground(
+                          wall: night ? wall.atNight : wall,
+                          decor: false,
                         ),
                       ),
-                    ),
-                  ],
+                      Positioned.fill(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(4, 24, 4, 8),
+                          child: WallView(
+                            notes: notes,
+                            links: links,
+                            callbacksFor: (_) => _still,
+                            onMove: (_, _, _) {},
+                            onResize: (_, _) {},
+                            onBringToFront: (_) {},
+                            onCreateAt: (_, _) {},
+                            still: true,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

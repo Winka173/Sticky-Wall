@@ -14,8 +14,11 @@ import os
 TEMPLATES = []
 
 
-def L(en, vi, x, y, c=0):
-    return {'kind': 'label', 'text': {'en': en, 'vi': vi}, 'x': x, 'y': y, 'color': c}
+def L(en, vi, x, y, c=0, scale=1.0):
+    d = {'kind': 'label', 'text': {'en': en, 'vi': vi}, 'x': x, 'y': y, 'color': c}
+    if scale != 1.0:
+        d['scale'] = scale
+    return d
 
 
 def N(en, vi, x, y, c=0, scale=1.0, rot=None, paper=None):
@@ -94,7 +97,7 @@ T('kanban_lite', 'productivity', 'clean_office',
   ('To do, doing, done: move each note along as it gets done.',
    'Cần làm, đang làm, xong: kéo ghi chú sang cột kế tiếp khi làm xong.'),
   ['work', 'project'],
-  [L('To do', 'Cần làm', 0.0, 0.0, 0), L('Doing', 'Đang làm', 0.5, 0.0, 3), L('Done', 'Xong', 1.0, 0.0, 2),
+  [L('To do', 'Cần làm', 0.0, 0.0, 0, scale=S3), L('Doing', 'Đang làm', 0.5, 0.0, 3, scale=S3), L('Done', 'Xong', 1.0, 0.0, 2, scale=S3),
    N('Draft the plan', 'Viết bản nháp kế hoạch', 0.0, 0.12, 0, scale=S3),
    N('Ask for feedback', 'Xin góp ý', 0.0, 0.34, 0, scale=S3),
    N('Design the cover', 'Thiết kế bìa', 0.5, 0.12, 3, scale=S3),
@@ -108,7 +111,7 @@ T('urgent_important', 'productivity', 'minimal_cream',
   [L('Do now', 'Làm ngay', 0.0, 0.0, 1), L('Plan it', 'Lên lịch', 1.0, 0.0, 3),
    N('Tax form due Friday', 'Tờ khai thuế hạn thứ Sáu', 0.0, 0.1, 1, scale=0.85),
    N('Learn to swim', 'Học bơi', 1.0, 0.1, 3, scale=0.85),
-   L('Hand over', 'Nhờ người khác', 0.0, 0.5, 0), L('Drop', 'Bỏ qua', 1.0, 0.5, 5),
+   L('Hand over', 'Giao việc', 0.0, 0.5, 0), L('Drop', 'Bỏ qua', 1.0, 0.5, 5),
    N('Pick up the parcel', 'Lấy bưu kiện', 0.0, 0.6, 0, scale=0.85),
    N('Scrolling at night', 'Lướt điện thoại khuya', 1.0, 0.6, 5, scale=0.85)])
 
@@ -242,7 +245,7 @@ T('revision_plan', 'study', 'clean_office',
   ('Topics to revise, how sure you are about each.',
    'Các chủ đề cần ôn và mức độ tự tin với từng phần.'),
   ['exam', 'school'],
-  [L('Not yet', 'Chưa chắc', 0.0, 0.0, 1), L('Getting there', 'Tạm ổn', 0.5, 0.0, 4), L('Got it', 'Nắm chắc', 1.0, 0.0, 2),
+  [L('Not yet', 'Chưa chắc', 0.0, 0.0, 1, scale=S3), L('Getting there', 'Tạm ổn', 0.5, 0.0, 4, scale=S3), L('Got it', 'Nắm chắc', 1.0, 0.0, 2, scale=S3),
    N('Quadratics', 'Phương trình bậc hai', 0.0, 0.12, 1, scale=S3),
    N('Poetry terms', 'Thuật ngữ thơ', 0.0, 0.34, 1, scale=S3),
    N('Past tenses', 'Các thì quá khứ', 0.5, 0.12, 4, scale=S3),
@@ -415,7 +418,7 @@ T('chores', 'family', 'rainbow_school',
   ('Who does what this week.',
    'Tuần này ai làm việc gì.'),
   ['family', 'home'],
-  [L('Mum', 'Mẹ', 0.0, 0.0, 1), L('Dad', 'Bố', 0.5, 0.0, 3), L('Kids', 'Các con', 1.0, 0.0, 0),
+  [L('Mum', 'Mẹ', 0.0, 0.0, 1, scale=S3), L('Dad', 'Bố', 0.5, 0.0, 3, scale=S3), L('Kids', 'Các con', 1.0, 0.0, 0, scale=S3),
    N('Cooking', 'Nấu ăn', 0.0, 0.12, 1, scale=S3), N('Laundry', 'Giặt đồ', 0.5, 0.12, 3, scale=S3),
    N('Dishes', 'Rửa chén', 1.0, 0.12, 0, scale=S3), N('Feed the cat', 'Cho mèo ăn', 1.0, 0.34, 0, scale=S3),
    S('star', 0.5, 0.6)])

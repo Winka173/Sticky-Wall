@@ -278,7 +278,8 @@
      },
      "x": 0.0,
      "y": 0.0,
-     "color": 0
+     "color": 0,
+     "scale": 0.72
     },
     {
      "kind": "label",
@@ -288,7 +289,8 @@
      },
      "x": 0.5,
      "y": 0.0,
-     "color": 3
+     "color": 3,
+     "scale": 0.72
     },
     {
      "kind": "label",
@@ -298,7 +300,8 @@
      },
      "x": 1.0,
      "y": 0.0,
-     "color": 2
+     "color": 2,
+     "scale": 0.72
     },
     {
      "kind": "note",
@@ -418,7 +421,7 @@
      "kind": "label",
      "text": {
       "en": "Hand over",
-      "vi": "Nhờ người khác"
+      "vi": "Giao việc"
      },
      "x": 0.0,
      "y": 0.5,
@@ -1615,7 +1618,8 @@
      },
      "x": 0.0,
      "y": 0.0,
-     "color": 1
+     "color": 1,
+     "scale": 0.72
     },
     {
      "kind": "label",
@@ -1625,7 +1629,8 @@
      },
      "x": 0.5,
      "y": 0.0,
-     "color": 4
+     "color": 4,
+     "scale": 0.72
     },
     {
      "kind": "label",
@@ -1635,7 +1640,8 @@
      },
      "x": 1.0,
      "y": 0.0,
-     "color": 2
+     "color": 2,
+     "scale": 0.72
     },
     {
      "kind": "note",
@@ -3057,7 +3063,8 @@
      },
      "x": 0.0,
      "y": 0.0,
-     "color": 1
+     "color": 1,
+     "scale": 0.72
     },
     {
      "kind": "label",
@@ -3067,7 +3074,8 @@
      },
      "x": 0.5,
      "y": 0.0,
-     "color": 3
+     "color": 3,
+     "scale": 0.72
     },
     {
      "kind": "label",
@@ -3077,7 +3085,8 @@
      },
      "x": 1.0,
      "y": 0.0,
-     "color": 0
+     "color": 0,
+     "scale": 0.72
     },
     {
      "kind": "note",
