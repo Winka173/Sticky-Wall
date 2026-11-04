@@ -1783,4 +1783,15 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get boardDuplicated => 'Đã nhân bản bảng';
+
+  @override
+  String get shareWhere => 'Lưu vào bảng nào?';
+
+  @override
+  String sharedSaved(String board) {
+    return 'Đã lưu vào “$board”';
+  }
+
+  @override
+  String get openNote => 'Mở';
 }

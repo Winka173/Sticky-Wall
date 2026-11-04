@@ -11,13 +11,27 @@ import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/pro_controller.dart';
 import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
+import 'package:sticky_wall/services/share_service.dart';
 import 'package:sticky_wall/services/template_library.dart';
 import 'package:sticky_wall/widgets/board_bar.dart';
+
+/// Hands shares to the test instead of the platform.
+class _FakeShares extends ShareReceiver {
+  void Function(SharedContent content)? deliver;
+
+  @override
+  void listen(void Function(SharedContent content) onShared) =>
+      deliver = onShared;
+
+  @override
+  void dispose() {}
+}
 
 Future<NotesController> _pumpApp(
   WidgetTester tester, {
   bool pro = false,
   bool welcome = false,
+  ShareReceiver? shares,
 }) async {
   tester.view.physicalSize = const Size(1080, 2220);
   tester.view.devicePixelRatio = 3;
@@ -50,6 +64,7 @@ Future<NotesController> _pumpApp(
       settings: SettingsController(storage),
       notes: notes,
       pro: proC,
+      shareReceiver: shares,
     ),
   );
   await tester.pumpAndSettle();
@@ -235,5 +250,46 @@ void main() {
     await tester.tap(find.widgetWithText(SnackBarAction, 'Undo'));
     await tester.pumpAndSettle();
     expect(notes.boards.any((b) => b.id == copy.id), isFalse);
+  });
+
+  testWidgets('a shared link goes straight onto the chosen board', (
+    tester,
+  ) async {
+    final shares = _FakeShares();
+    final notes = await _pumpApp(tester, shares: shares);
+    final work = notes.addBoard('Work');
+    notes.selectBoard('default');
+    await tester.pumpAndSettle();
+
+    shares.deliver!(
+      const SharedContent(text: 'Read later', url: 'https://example.com/a'),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Save to which board?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(ListTile, 'Work'));
+    await tester.pumpAndSettle();
+
+    expect(notes.currentBoardId, work.id);
+    final saved = notes.boardNotes.single;
+    expect(saved.type, NoteType.link);
+    expect(saved.url, 'https://example.com/a');
+    expect(saved.content, 'Read later');
+    expect(find.text('Saved to “Work”'), findsOneWidget);
+
+    // The same link again is not stuck up twice.
+    shares.deliver!(const SharedContent(url: 'http://www.example.com/a'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'Work'));
+    await tester.pumpAndSettle();
+    expect(notes.boardNotes, hasLength(1));
+
+    shares.deliver!(const SharedContent(text: 'Milk'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'Work'));
+    await tester.pumpAndSettle();
+    expect(notes.boardNotes, hasLength(2));
+    await tester.tap(find.widgetWithText(SnackBarAction, 'Undo'));
+    await tester.pumpAndSettle();
+    expect(notes.boardNotes, hasLength(1));
   });
 }

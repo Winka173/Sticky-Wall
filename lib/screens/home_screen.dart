@@ -619,44 +619,117 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   /// Something arrived through the system share sheet: open the editor with
   /// it filled in, so the user can still pick a board, color or emote.
+  /// Text, a link or a picture shared from another app: which board it
+  /// goes on (when there is a choice), then straight onto that wall, with
+  /// Open and Undo, rather than an editor to fill in first.
   Future<void> _onShared(SharedContent content) async {
-    // Shared into a shut private board: open it, or use an open board, so
-    // the new note never lands where it cannot be seen.
-    if (_notes.currentBoardShut) {
-      final open = await unlockPrivateBoard(
+    // Whatever was open gives way — an editor only once its user has saved
+    // or let go of their edits.
+    if (!await _makeWayForIncoming() || !mounted) return;
+    final l10n = _l10n;
+    var board = _notes.currentBoard;
+    if (_notes.boards.length > 1) {
+      final current = _notes.currentBoard;
+      final picked = await showActionSheet<Board>(
         context,
-        _notes,
-        _notes.currentBoard,
+        title: l10n.shareWhere,
+        children: [
+          for (final b in [
+            current,
+            ..._notes.boards.where((b) => b.id != current.id),
+          ])
+            ListTile(
+              leading: b.isPrivate
+                  ? const Icon(Icons.lock_outline)
+                  : b.icon.isEmpty
+                  ? const Icon(Icons.dashboard_outlined)
+                  : Text(b.icon, style: const TextStyle(fontSize: 22)),
+              title: Text(b.name.isEmpty ? l10n.defaultBoardName : b.name),
+              trailing: b.id == current.id ? const Icon(Icons.check) : null,
+              onTap: () => Navigator.pop(context, b),
+            ),
+        ],
       );
-      if (!mounted) return;
-      if (!open) {
-        final other = _notes.boards.where(_notes.isOpen).firstOrNull;
-        if (other == null) return;
-        _notes.selectBoard(other.id);
-      }
+      if (picked == null || !mounted) return;
+      board = picked;
     }
-    final draft = _notes.draft();
+    // A shut private board opens first, so the note never lands where it
+    // cannot be seen.
+    if (!_notes.isOpen(board)) {
+      final open = await unlockPrivateBoard(context, _notes, board);
+      if (!open || !mounted) return;
+    }
+    _notes.selectBoard(board.id);
+
+    final note = _notes.draft();
     if (content.imagePath.isNotEmpty) {
       final stored = await _imageService.importSharedImage(content.imagePath);
+      if (!mounted) return;
       if (stored != null) {
-        draft.imagePath = stored;
-      } else if (mounted) {
-        _toast(_l10n.photoPickFailed);
+        note.imagePath = stored;
+      } else {
+        _toast(l10n.photoPickFailed);
+        if (content.text.isEmpty && content.url.isEmpty) return;
       }
     }
-    if (!mounted) return;
+    note.content = content.text;
     if (content.url.isNotEmpty) {
-      draft.type = NoteType.link;
-      draft.url = content.url;
-    } else if (draft.hasPhoto && content.text.isEmpty) {
+      note
+        ..type = NoteType.link
+        ..url = content.url;
+      // An untitled link shows its address on the card.
+      if (note.content.isEmpty) note.content = content.url;
+      final key = content.url.toLowerCase().replaceFirst(
+        RegExp(r'^https?://(www\.)?'),
+        '',
+      );
+      final same = _notes.boardNotes.where(
+        (n) =>
+            n.type == NoteType.link &&
+            n.url.toLowerCase().replaceFirst(
+                  RegExp(r'^https?://(www\.)?'),
+                  '',
+                ) ==
+                key,
+      );
+      if (same.isNotEmpty) {
+        _toast(l10n.duplicateExists);
+        return;
+      }
+    } else if (note.hasPhoto && content.text.isEmpty) {
       // A bare picture becomes a print on the wall, not a note about one.
-      draft.type = NoteType.photo;
+      note.type = NoteType.photo;
     }
-    draft.content = content.text;
-    // Whatever was open gives way to the new note — an editor only once its
-    // user has saved or let go of their edits.
-    if (!await _makeWayForIncoming()) return;
-    await _openEditor(draft, isNew: true);
+    _notes.add(note);
+    final name = board.name.isEmpty ? l10n.defaultBoardName : board.name;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Expanded(child: Text(l10n.sharedSaved(name))),
+              TextButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  final saved = _notes.allNotes
+                      .where((n) => n.guid == note.guid && !n.isTrashed)
+                      .firstOrNull;
+                  if (saved != null) _openEditor(saved, isNew: false);
+                },
+                child: Text(l10n.openNote),
+              ),
+            ],
+          ),
+          action: SnackBarAction(
+            label: l10n.undo,
+            onPressed: () {
+              _notes.delete(note);
+              _forgetKeys([note]);
+            },
+          ),
+        ),
+      );
   }
 
   /// Completes when the open editor closes; null while none is open.

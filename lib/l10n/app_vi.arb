@@ -534,5 +534,8 @@
   "boardNoteCount": "{count, plural, =0{Chưa có ghi chú} other{{count} ghi chú}}",
   "duplicateBoard": "Nhân bản bảng",
   "boardCopyName": "{name} (bản sao)",
-  "boardDuplicated": "Đã nhân bản bảng"
+  "boardDuplicated": "Đã nhân bản bảng",
+  "shareWhere": "Lưu vào bảng nào?",
+  "sharedSaved": "Đã lưu vào “{board}”",
+  "openNote": "Mở"
 }

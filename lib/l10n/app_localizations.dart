@@ -3307,6 +3307,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Board duplicated'**
   String get boardDuplicated;
+
+  /// No description provided for @shareWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to which board?'**
+  String get shareWhere;
+
+  /// No description provided for @sharedSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to “{board}”'**
+  String sharedSaved(String board);
+
+  /// No description provided for @openNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get openNote;
 }
 
 class _AppLocalizationsDelegate

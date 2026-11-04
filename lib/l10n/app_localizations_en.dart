@@ -1806,4 +1806,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get boardDuplicated => 'Board duplicated';
+
+  @override
+  String get shareWhere => 'Save to which board?';
+
+  @override
+  String sharedSaved(String board) {
+    return 'Saved to “$board”';
+  }
+
+  @override
+  String get openNote => 'Open';
 }
