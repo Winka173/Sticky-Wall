@@ -166,7 +166,7 @@ Tiếng Anh và tiếng Việt.
 | Target audience | 13+ (not designed for children). |
 | Content rating | Utility / productivity; no user-generated content shared with others, no violence; no in-app communication. |
 | Privacy policy URL | `https://github.com/Winka173/Sticky-Wall/blob/main/PRIVACY.md` (public repo, HTTPS, EN + VI). The app links the same page from *Customize → Privacy → Privacy policy* (from build 10). |
-| App access | All functions available without login. |
+| App access (Sign-in details) | **Yes, some parts are restricted** (Pro is a one-time purchase). One instruction, no username or password: "No account or sign-in. Every free feature works right after install. Sticky Wall Pro (one-time in-app purchase) adds extra walls, fonts, pins, papers, themes, stickers and photo frames. Pro walls, fonts and pins can be tried without buying: Customize (palette icon) > tap any item marked PRO > Try it on. App lock is optional and off by default (Customize > Privacy)." |
 | Permissions to explain if asked | Notifications and exact alarms for reminders; microphone only when recording a voice note; biometric for the optional app lock; photos only through the system picker. |
 
 ## Words not to use anywhere (listing, screenshots, replies)
