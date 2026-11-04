@@ -162,6 +162,7 @@ Tiếng Anh và tiếng Việt.
 | Data safety: is data encrypted in transit? | Not applicable (nothing is transmitted). |
 | Data safety: can users request deletion? | Not applicable. Uninstalling deletes everything; notes can be deleted in the app. |
 | Ads | **No ads.** |
+| Financial features | **"My app doesn't provide any financial features"** (the one-time Pro purchase through Google Play billing is not a financial feature). |
 | Target audience | 13+ (not designed for children). |
 | Content rating | Utility / productivity; no user-generated content shared with others, no violence; no in-app communication. |
 | Privacy policy URL | The published `PRIVACY.md`. **Republish it**: 1.4.1 changed the system-backup wording and the locked-board wording. |
