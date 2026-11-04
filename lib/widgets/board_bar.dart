@@ -13,6 +13,7 @@ import 'action_sheet.dart';
 import 'board_dialog.dart';
 import 'board_picker.dart';
 import 'keyboard_tappable.dart';
+import 'photo_frames.dart';
 import 'pro_sheet.dart';
 
 /// Horizontal strip of board "tabs" with add / edit / delete.
@@ -313,6 +314,18 @@ class _BoardBarState extends State<BoardBar> {
     if (ok == true) widget.notes.deleteBoard(board.id);
   }
 
+  void _undoSnack(BuildContext context, String message, VoidCallback undo) {
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          action: SnackBarAction(label: l10n.undo, onPressed: undo),
+        ),
+      );
+  }
+
   /// The "+": a blank board, or one of the templates.
   Future<void> _newBoard(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
@@ -394,6 +407,18 @@ class _BoardBarState extends State<BoardBar> {
           title: Text(l10n.changeTheme),
           onTap: () => Navigator.pop(context, 'theme'),
         ),
+        if (widget.notes.printsOn(board.id).length > 1) ...[
+          ListTile(
+            leading: const Icon(Icons.shuffle),
+            title: Text(l10n.shufflePhotos),
+            onTap: () => Navigator.pop(context, 'shuffle'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.filter_frames_outlined),
+            title: Text(l10n.framesAll),
+            onTap: () => Navigator.pop(context, 'frames'),
+          ),
+        ],
         if (widget.notes.sampleNotes(board.id).isNotEmpty)
           ListTile(
             leading: const Icon(Icons.cleaning_services_outlined),
@@ -441,6 +466,28 @@ class _BoardBarState extends State<BoardBar> {
         themes: true,
       );
       if (context.mounted) showGalleryResult(context, result);
+      return;
+    }
+    if (action == 'shuffle') {
+      final undo = widget.notes.rearrangePrints(
+        board.id,
+        seed: DateTime.now().microsecondsSinceEpoch.toString(),
+      );
+      _undoSnack(context, l10n.photosShuffled, undo);
+      return;
+    }
+    if (action == 'frames') {
+      final frame = await showFramePicker(context, title: l10n.framesAll);
+      if (frame == null || !context.mounted) return;
+      if (frame.pro && !pro) {
+        await showProSheet(context);
+        return;
+      }
+      final undo = widget.notes.setFrames(
+        widget.notes.printsOn(board.id),
+        frame,
+      );
+      _undoSnack(context, l10n.framesApplied, undo);
       return;
     }
     if (action == 'samples') {

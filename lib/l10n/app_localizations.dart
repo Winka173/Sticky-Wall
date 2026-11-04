@@ -3439,6 +3439,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backup added'**
   String get restoreMerged;
+
+  /// No description provided for @packFeelings.
+  ///
+  /// In en, this message translates to:
+  /// **'Feelings'**
+  String get packFeelings;
+
+  /// No description provided for @packStudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Study & desk'**
+  String get packStudy;
+
+  /// No description provided for @packHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get packHome;
+
+  /// No description provided for @packPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Planner'**
+  String get packPlanner;
+
+  /// No description provided for @packNature.
+  ///
+  /// In en, this message translates to:
+  /// **'Nature'**
+  String get packNature;
+
+  /// No description provided for @packFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & treats'**
+  String get packFood;
+
+  /// No description provided for @packTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get packTravel;
+
+  /// No description provided for @packVietnam.
+  ///
+  /// In en, this message translates to:
+  /// **'Vietnam'**
+  String get packVietnam;
+
+  /// No description provided for @packTapes.
+  ///
+  /// In en, this message translates to:
+  /// **'Washi tape'**
+  String get packTapes;
+
+  /// No description provided for @framePrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain print'**
+  String get framePrint;
+
+  /// No description provided for @framePolaroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Polaroid'**
+  String get framePolaroid;
+
+  /// No description provided for @frameFilm.
+  ///
+  /// In en, this message translates to:
+  /// **'Film strip'**
+  String get frameFilm;
+
+  /// No description provided for @frameVintage.
+  ///
+  /// In en, this message translates to:
+  /// **'Vintage'**
+  String get frameVintage;
+
+  /// No description provided for @frameTorn.
+  ///
+  /// In en, this message translates to:
+  /// **'Torn paper'**
+  String get frameTorn;
+
+  /// No description provided for @frameRounded.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounded'**
+  String get frameRounded;
+
+  /// No description provided for @frameScrapbook.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrapbook'**
+  String get frameScrapbook;
+
+  /// No description provided for @photoFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo frame'**
+  String get photoFrame;
+
+  /// No description provided for @memoryCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Captions'**
+  String get memoryCaption;
+
+  /// No description provided for @captionNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get captionNone;
+
+  /// No description provided for @captionNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Numbers'**
+  String get captionNumbers;
+
+  /// No description provided for @captionDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s date'**
+  String get captionDate;
+
+  /// No description provided for @layoutHero.
+  ///
+  /// In en, this message translates to:
+  /// **'Hero photo'**
+  String get layoutHero;
+
+  /// No description provided for @shufflePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle the photos'**
+  String get shufflePhotos;
+
+  /// No description provided for @framesAll.
+  ///
+  /// In en, this message translates to:
+  /// **'One frame for every photo'**
+  String get framesAll;
+
+  /// No description provided for @photosShuffled.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos shuffled'**
+  String get photosShuffled;
+
+  /// No description provided for @framesApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame changed'**
+  String get framesApplied;
+
+  /// No description provided for @makeHero.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it the hero photo'**
+  String get makeHero;
+
+  /// No description provided for @heroSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Hero photo set'**
+  String get heroSet;
 }
 
 class _AppLocalizationsDelegate

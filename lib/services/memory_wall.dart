@@ -19,22 +19,125 @@ enum MemoryLayout {
 
   /// One print after another down the wall, tied in order with threads.
   timeline,
+
+  /// One photo large in the middle, the others smaller around it.
+  hero,
 }
+
+/// What is written under each print when a memory wall is made.
+enum CaptionPreset { none, numbers, date }
 
 /// The photos most of a phone screen can show at once; the rest of a
 /// batch is laid out the same way and is a pan away.
 const memoryWallMax = 20;
 
+/// Where [n] prints go for [layout], as fractions of the wall like every
+/// note, below a title strip when [top] leaves room for one. [seed] makes a
+/// collage's scatter (and a hero's ring) differ from one shuffle to the
+/// next, and the same for the same seed.
+List<({double x, double y, double scale, double? rotation})> memoryPositions(
+  int n,
+  MemoryLayout layout, {
+  double top = 0.04,
+  String seed = '',
+}) {
+  // Columns and size from how many there are: a print is 168 px wide at
+  // scale 1, and a phone wall is about 360 px.
+  final columns = switch (layout) {
+    MemoryLayout.film || MemoryLayout.timeline => 2,
+    _ => n <= 4 ? 2 : (n <= 12 ? 3 : 4),
+  };
+  final rows = (n / columns).ceil();
+  final double scale = switch (layout) {
+    MemoryLayout.timeline => n <= 4 ? 0.9 : (n <= 8 ? 0.72 : 0.6),
+    MemoryLayout.film => rows <= 3 ? 0.85 : (rows <= 5 ? 0.66 : 0.55),
+    MemoryLayout.hero => n <= 5 ? 0.62 : (n <= 9 ? 0.52 : 0.44),
+    _ => switch (columns) {
+      2 => 0.95,
+      3 => 0.68,
+      _ => 0.52,
+    },
+  };
+  double rowY(int r) =>
+      rows <= 1 ? (top + 0.3) : top + (0.98 - top) * r / (rows - 1);
+
+  final out = <({double x, double y, double scale, double? rotation})>[];
+  for (var i = 0; i < n; i++) {
+    final h = stableHash('$seed#$i');
+    final jitter = (h % 1000) / 1000 - 0.5; // -0.5..0.5
+    final jitter2 = ((h ~/ 1000) % 1000) / 1000 - 0.5;
+    switch (layout) {
+      case MemoryLayout.collage:
+        final c = i % columns;
+        final r = i ~/ columns;
+        final x = columns == 1 ? 0.5 : c / (columns - 1);
+        out.add((
+          x: (x + jitter * 0.12).clamp(0.0, 1.0),
+          y: (rowY(r) + jitter2 * 0.06).clamp(0.0, 1.0),
+          scale: scale,
+          rotation: jitter * 0.22,
+        ));
+      case MemoryLayout.prints:
+        final c = i % columns;
+        out.add((
+          x: columns == 1 ? 0.5 : c / (columns - 1),
+          y: rowY(i ~/ columns),
+          scale: scale,
+          rotation: 0,
+        ));
+      case MemoryLayout.film:
+        out.add((
+          x: i.isEven ? 0.08 : 0.92,
+          y: rowY(i ~/ 2),
+          scale: scale,
+          rotation: 0,
+        ));
+      case MemoryLayout.timeline:
+        // Down the wall, swinging left and right.
+        final steps = math.max(n - 1, 1);
+        out.add((
+          x: i.isEven ? 0.0 : 1.0,
+          y: n == 1 ? top + 0.3 : top + (0.98 - top) * i / steps,
+          scale: scale,
+          rotation: (i.isEven ? -1 : 1) * 0.04,
+        ));
+      case MemoryLayout.hero:
+        if (i == 0) {
+          out.add((x: 0.5, y: top + 0.22, scale: 1.25, rotation: 0));
+          continue;
+        }
+        // The rest in two arcs: beside and below the hero, then a row at
+        // the foot.
+        final k = i - 1;
+        final around = n - 1;
+        final t = around == 1 ? 0.5 : k / (around - 1);
+        final x = (k.isEven ? 0.0 : 1.0);
+        final y = top + 0.02 + t * (0.96 - top);
+        out.add((
+          x: (x + jitter * 0.06).clamp(0.0, 1.0),
+          y: y.clamp(0.0, 1.0),
+          scale: scale,
+          rotation: jitter * 0.14,
+        ));
+    }
+  }
+  return out;
+}
+
 /// A memory wall's prints for board [boardId]: each photo a print of its
 /// own (editable like any note: moved, turned, captioned, tied, stickered),
-/// placed by [layout] within the wall, plus the threads a timeline ties.
-/// [photos] are stored file names, in the order picked.
+/// placed by [layout] within the wall, in [frame], with [caption] written
+/// under each ([date] is what the date caption says), plus the threads a
+/// timeline ties. [photos] are stored file names, in the order picked.
 ({List<Note> notes, List<NoteLink> links}) memoryWallNotes(
   List<String> photos,
   String boardId,
   MemoryLayout layout, {
   ThemePack? pack,
   String title = '',
+  PhotoFrame frame = PhotoFrame.print,
+  CaptionPreset caption = CaptionPreset.none,
+  String date = '',
   DateTime? now,
 }) {
   const uuid = Uuid();
@@ -68,71 +171,27 @@ const memoryWallMax = 20;
     );
   }
 
-  // Columns and size from how many there are: a print is 168 px wide at
-  // scale 1, and a phone wall is about 360 px.
-  final columns = switch (layout) {
-    MemoryLayout.film || MemoryLayout.timeline => 2,
-    _ => n <= 4 ? 2 : (n <= 12 ? 3 : 4),
-  };
-  final rows = (n / columns).ceil();
-  final double scale = switch (layout) {
-    MemoryLayout.timeline => n <= 4 ? 0.9 : (n <= 8 ? 0.72 : 0.6),
-    MemoryLayout.film => rows <= 3 ? 0.85 : (rows <= 5 ? 0.66 : 0.55),
-    _ => switch (columns) {
-      2 => 0.95,
-      3 => 0.68,
-      _ => 0.52,
-    },
-  };
-  double rowY(int r) =>
-      rows <= 1 ? (top + 0.3) : top + (0.98 - top) * r / (rows - 1);
-
+  final spots = memoryPositions(n, layout, top: top, seed: boardId);
   for (final (i, file) in shown.indexed) {
-    final seed = stableHash('$boardId$file$i');
-    final jitter = (seed % 1000) / 1000 - 0.5; // -0.5..0.5
-    final jitter2 = ((seed ~/ 1000) % 1000) / 1000 - 0.5;
-    double x;
-    double y;
-    double? rotation;
-    switch (layout) {
-      case MemoryLayout.collage:
-        final c = i % columns;
-        final r = i ~/ columns;
-        x = columns == 1 ? 0.5 : c / (columns - 1);
-        x = (x + jitter * 0.12).clamp(0.0, 1.0);
-        y = (rowY(r) + jitter2 * 0.06).clamp(0.0, 1.0);
-        rotation = jitter * 0.22;
-      case MemoryLayout.prints:
-        final c = i % columns;
-        final r = i ~/ columns;
-        x = columns == 1 ? 0.5 : c / (columns - 1);
-        y = rowY(r);
-        rotation = 0;
-      case MemoryLayout.film:
-        final c = i % 2;
-        final r = i ~/ 2;
-        x = c == 0 ? 0.08 : 0.92;
-        y = rowY(r);
-        rotation = 0;
-      case MemoryLayout.timeline:
-        // Down the wall, swinging left and right.
-        final steps = math.max(n - 1, 1);
-        x = i.isEven ? 0.0 : 1.0;
-        y = n == 1 ? top + 0.3 : top + (0.98 - top) * i / steps;
-        rotation = (i.isEven ? -1 : 1) * 0.04;
-    }
+    final spot = spots[i];
     place(
       Note(
         guid: uuid.v4(),
-        content: '',
+        content: switch (caption) {
+          CaptionPreset.none => '',
+          CaptionPreset.numbers => '${i + 1}',
+          CaptionPreset.date => date,
+        },
         type: NoteType.photo,
         imagePath: file,
+        frame: frame,
         boardId: boardId,
+        colorIndex: pack?.paperAt(i),
         createdAt: start,
-        x: x,
-        y: y,
-        scale: scale,
-        rotation: rotation,
+        x: spot.x,
+        y: spot.y,
+        scale: spot.scale,
+        rotation: spot.rotation,
       ),
     );
   }

@@ -1884,4 +1884,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restoreMerged => 'Backup added';
+
+  @override
+  String get packFeelings => 'Feelings';
+
+  @override
+  String get packStudy => 'Study & desk';
+
+  @override
+  String get packHome => 'Home';
+
+  @override
+  String get packPlanner => 'Planner';
+
+  @override
+  String get packNature => 'Nature';
+
+  @override
+  String get packFood => 'Food & treats';
+
+  @override
+  String get packTravel => 'Travel';
+
+  @override
+  String get packVietnam => 'Vietnam';
+
+  @override
+  String get packTapes => 'Washi tape';
+
+  @override
+  String get framePrint => 'Plain print';
+
+  @override
+  String get framePolaroid => 'Polaroid';
+
+  @override
+  String get frameFilm => 'Film strip';
+
+  @override
+  String get frameVintage => 'Vintage';
+
+  @override
+  String get frameTorn => 'Torn paper';
+
+  @override
+  String get frameRounded => 'Rounded';
+
+  @override
+  String get frameScrapbook => 'Scrapbook';
+
+  @override
+  String get photoFrame => 'Photo frame';
+
+  @override
+  String get memoryCaption => 'Captions';
+
+  @override
+  String get captionNone => 'None';
+
+  @override
+  String get captionNumbers => 'Numbers';
+
+  @override
+  String get captionDate => 'Today\'s date';
+
+  @override
+  String get layoutHero => 'Hero photo';
+
+  @override
+  String get shufflePhotos => 'Shuffle the photos';
+
+  @override
+  String get framesAll => 'One frame for every photo';
+
+  @override
+  String get photosShuffled => 'Photos shuffled';
+
+  @override
+  String get framesApplied => 'Frame changed';
+
+  @override
+  String get makeHero => 'Make it the hero photo';
+
+  @override
+  String get heroSet => 'Hero photo set';
 }

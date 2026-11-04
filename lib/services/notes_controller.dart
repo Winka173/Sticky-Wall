@@ -634,6 +634,9 @@ class NotesController extends ChangeNotifier {
     List<String> photos,
     MemoryLayout layout, {
     ThemePack? pack,
+    PhotoFrame frame = PhotoFrame.print,
+    CaptionPreset caption = CaptionPreset.none,
+    String date = '',
   }) {
     final board = addBoard(title);
     if (pack != null) {
@@ -650,10 +653,100 @@ class NotesController extends ChangeNotifier {
       layout,
       pack: pack,
       title: title,
+      frame: frame,
+      caption: caption,
+      date: date,
     );
     viewMode = ViewMode.wall;
     seed(made.notes, links: made.links);
     return board;
+  }
+
+  /// The live photo prints on board [boardId], in the order they were added.
+  List<Note> printsOn(String boardId) => [
+    for (final n in _notes)
+      if (n.boardId == boardId && !n.isTrashed && n.type == NoteType.photo) n,
+  ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  /// Lays the prints of board [boardId] out again: a fresh collage for
+  /// [seed] (the same seed gives the same wall), or [layout]. Only their
+  /// places, sizes and turns change: photos, captions, frames and threads
+  /// stay. With [hero], that print goes first, large in the middle. Returns
+  /// what puts them back (for Undo).
+  VoidCallback rearrangePrints(
+    String boardId, {
+    MemoryLayout layout = MemoryLayout.collage,
+    String seed = '',
+    String? hero,
+  }) {
+    final prints = printsOn(boardId);
+    if (hero != null) {
+      final first = prints.where((n) => n.guid == hero).firstOrNull;
+      if (first != null) {
+        prints
+          ..remove(first)
+          ..insert(0, first);
+      }
+    } else if (seed.isNotEmpty) {
+      prints.shuffle(math.Random(stableHash(seed)));
+    }
+    final before = {
+      for (final n in prints) n.guid: (n.x, n.y, n.scale, n.rotation),
+    };
+    // Leave room for a title strip when the board has one at the top.
+    final titled = _notes.any(
+      (n) =>
+          n.boardId == boardId &&
+          !n.isTrashed &&
+          n.type == NoteType.label &&
+          n.y < 0.05,
+    );
+    final spots = memoryPositions(
+      prints.length,
+      hero != null ? MemoryLayout.hero : layout,
+      top: titled ? 0.14 : 0.04,
+      seed: '$boardId$seed',
+    );
+    for (final (i, n) in prints.indexed) {
+      n
+        ..x = spots[i].x
+        ..y = spots[i].y
+        ..scale = spots[i].scale
+        ..rotation = spots[i].rotation;
+    }
+    _persistNotes();
+    notifyListeners();
+    return () {
+      for (final n in _notes) {
+        final b = before[n.guid];
+        if (b == null) continue;
+        n
+          ..x = b.$1
+          ..y = b.$2
+          ..scale = b.$3
+          ..rotation = b.$4;
+      }
+      _persistNotes();
+      notifyListeners();
+    };
+  }
+
+  /// Puts [frame] on [prints] (every print on the board, or one). Returns
+  /// what puts the old frames back (for Undo).
+  VoidCallback setFrames(List<Note> prints, PhotoFrame frame) {
+    final before = {for (final n in prints) n.guid: n.frame};
+    for (final n in prints) {
+      n.frame = frame;
+    }
+    _persistNotes();
+    notifyListeners();
+    return () {
+      for (final n in _notes) {
+        if (before[n.guid] case final f?) n.frame = f;
+      }
+      _persistNotes();
+      notifyListeners();
+    };
   }
 
   /// Removes the first-run examples from board [boardId] for good (they

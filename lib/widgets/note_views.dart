@@ -13,6 +13,7 @@ import '../util/rich_note.dart';
 import 'audio_note.dart';
 import 'drawing_canvas.dart';
 import 'keyboard_tappable.dart';
+import 'photo_frames.dart';
 import 'stickers.dart';
 
 /// The spoken name of paper colour [index] (null: the one picked from the
@@ -1294,6 +1295,26 @@ class StickyNoteCard extends StatelessWidget {
         note.content.isNotEmpty ||
         note.emoji.isNotEmpty ||
         note.reminderAt != null;
+    if (note.frame != PhotoFrame.print) {
+      return FramedPrint(
+        frame: note.frame,
+        seed: note.guid,
+        paper: paperColorOf(context, note.colorIndex, note.guid),
+        selected: selected,
+        raised: raised,
+        photo: NotePhoto(
+          path: note.imagePath,
+          maxHeight: 230,
+          radius: 0,
+          semanticLabel: hasCaption
+              ? null
+              : AppLocalizations.of(context)?.typePhoto,
+        ),
+        caption: hasCaption
+            ? _NoteBody(note: note, cb: cb, maxContentLines: maxContentLines)
+            : null,
+      );
+    }
     return Container(
       width: double.infinity,
       decoration: paperDecoration(

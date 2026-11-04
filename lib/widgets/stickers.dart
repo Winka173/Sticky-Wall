@@ -8,15 +8,27 @@ import '../theme.dart';
 import 'keyboard_tappable.dart';
 import 'pro_sheet.dart';
 
-/// How a sticker is drawn: a big emoji, a rubber stamp with a word on it, or
-/// a marker doodle painted in code (so the set costs no download size).
-enum StickerKind { emoji, stamp, doodle }
+part 'sticker_assets.g.dart';
+
+/// How a sticker is drawn: a big emoji, a rubber stamp with a word on it, a
+/// marker doodle painted in code, or an illustration bundled as a picture
+/// (see sticker_assets.g.dart and tool/import_art.py).
+enum StickerKind { emoji, stamp, doodle, image }
 
 /// Which shelf of the picker a sticker sits on: everyday ones, or a
 /// season's pack (Sticky Wall Pro). Every pack can be picked all year; the
 /// one whose occasion is near is shown first.
 enum StickerPack {
   everyday(null),
+  feelings(null),
+  study(null),
+  home(null),
+  planner(null),
+  nature(null),
+  food(null),
+  travel(null),
+  vietnam(null),
+  tapes(null),
   tet(Season.tet),
   christmas(Season.christmas),
   midAutumn(Season.midAutumn),
@@ -39,7 +51,25 @@ class Sticker {
     this.emoji = '',
     this.ink = 0,
     this.pack = StickerPack.everyday,
+    this.asset = '',
+    this.nameEn = '',
+    this.nameVi = '',
+    this.free = false,
+    this.aspect = 1,
   });
+
+  /// The bundled picture of an [StickerKind.image] sticker.
+  final String asset;
+
+  /// An illustration's name, read out and shown in the picker.
+  final String nameEn;
+  final String nameVi;
+
+  /// Comes with the free app.
+  final bool free;
+
+  /// Height over width of an illustration (a tape is long and low).
+  final double aspect;
 
   final String id;
   final StickerKind kind;
@@ -52,14 +82,17 @@ class Sticker {
 
   final StickerPack pack;
 
-  /// The first three emoji come with the app, so stickers can be found and
-  /// tried; the rest are Sticky Wall Pro's.
-  bool get pro => !_free.contains(id);
+  /// The first three emoji and the illustrations marked [free] come with
+  /// the app; the rest are Sticky Wall Pro's.
+  bool get pro => !(free || _free.contains(id));
 
   static const _free = {'star', 'heart', 'check'};
 }
 
-const stickers = [
+/// Every sticker: the code-drawn set, then the illustrations.
+const stickers = [...drawnStickers, ...artStickers];
+
+const drawnStickers = [
   Sticker('star', StickerKind.emoji, emoji: '⭐'),
   Sticker('heart', StickerKind.emoji, emoji: '❤️'),
   Sticker('check', StickerKind.emoji, emoji: '✅'),
@@ -142,6 +175,15 @@ const stickers = [
 String stickerPackLabel(AppLocalizations l10n, StickerPack pack) =>
     switch (pack) {
       StickerPack.everyday => l10n.packEveryday,
+      StickerPack.feelings => l10n.packFeelings,
+      StickerPack.study => l10n.packStudy,
+      StickerPack.home => l10n.packHome,
+      StickerPack.planner => l10n.packPlanner,
+      StickerPack.nature => l10n.packNature,
+      StickerPack.food => l10n.packFood,
+      StickerPack.travel => l10n.packTravel,
+      StickerPack.vietnam => l10n.packVietnam,
+      StickerPack.tapes => l10n.packTapes,
       StickerPack.tet => l10n.packTet,
       StickerPack.christmas => l10n.packChristmas,
       StickerPack.midAutumn => l10n.packMidAutumn,
@@ -155,24 +197,26 @@ Sticker stickerById(String id) =>
 /// The words a stamp carries, or a doodle's spoken name; an emoji sticker
 /// is read out by its character.
 String stickerLabel(AppLocalizations l10n, Sticker sticker) =>
-    switch (sticker.id) {
-      'urgent' => l10n.stampUrgent,
-      'done' => l10n.stampDone,
-      'important' => l10n.stampImportant,
-      'later' => l10n.stampLater,
-      'newyear' => l10n.stampNewYear,
-      'merry' => l10n.stampMerry,
-      'midautumn' => l10n.stampMidAutumn,
-      'love' => l10n.stampLove,
-      'mai' => l10n.stickerMai,
-      'dao' => l10n.stickerDao,
-      'starlantern' => l10n.stickerStarLantern,
-      'arrow' => l10n.stickerArrow,
-      'circle' => l10n.stickerCircle,
-      'underline' => l10n.stickerUnderline,
-      'ring' => l10n.stickerRing,
-      _ => sticker.emoji,
-    };
+    sticker.kind == StickerKind.image
+    ? (l10n.localeName.startsWith('vi') ? sticker.nameVi : sticker.nameEn)
+    : switch (sticker.id) {
+        'urgent' => l10n.stampUrgent,
+        'done' => l10n.stampDone,
+        'important' => l10n.stampImportant,
+        'later' => l10n.stampLater,
+        'newyear' => l10n.stampNewYear,
+        'merry' => l10n.stampMerry,
+        'midautumn' => l10n.stampMidAutumn,
+        'love' => l10n.stampLove,
+        'mai' => l10n.stickerMai,
+        'dao' => l10n.stickerDao,
+        'starlantern' => l10n.stickerStarLantern,
+        'arrow' => l10n.stickerArrow,
+        'circle' => l10n.stickerCircle,
+        'underline' => l10n.stickerUnderline,
+        'ring' => l10n.stickerRing,
+        _ => sticker.emoji,
+      };
 
 /// A sticker drawn [width] wide: square for emoji and doodles, a flat
 /// oblong for stamps.
@@ -182,9 +226,14 @@ class StickerArt extends StatelessWidget {
   final Sticker sticker;
   final double width;
 
-  /// Height for [width]: stamps are long and low, the rest square.
+  /// Height for [width]: stamps are long and low, illustrations keep their
+  /// own shape, the rest are square.
   static double heightFor(Sticker sticker, double width) =>
-      sticker.kind == StickerKind.stamp ? width * 0.42 : width;
+      switch (sticker.kind) {
+        StickerKind.stamp => width * 0.42,
+        StickerKind.image => width * sticker.aspect,
+        _ => width,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -215,6 +264,15 @@ class StickerArt extends StatelessWidget {
       ),
       StickerKind.doodle => CustomPaint(
         painter: _DoodlePainter(sticker.id, Color(sticker.ink)),
+      ),
+      StickerKind.image => Image.asset(
+        sticker.asset,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.medium,
+        // Kept small in memory: the picker shows dozens at once.
+        cacheWidth: (width * MediaQuery.devicePixelRatioOf(context)).round(),
+        excludeFromSemantics: true,
+        errorBuilder: (_, _, _) => const SizedBox.shrink(),
       ),
     };
     return SizedBox(
@@ -430,10 +488,17 @@ class _StickerPicker extends StatelessWidget {
   }
 
   /// Everyday stickers, then the pack whose occasion is near, then the rest.
+  /// Everyday stickers, the pack whose occasion is near, the illustrated
+  /// shelves that hold something, then the other seasons.
   static List<StickerPack> get _shelves => [
     StickerPack.everyday,
     for (final p in StickerPack.values)
       if (p.season != null && p.inSeason) p,
+    for (final p in StickerPack.values)
+      if (p.season == null &&
+          p != StickerPack.everyday &&
+          stickers.any((s) => s.pack == p))
+        p,
     for (final p in StickerPack.values)
       if (p.season != null && !p.inSeason) p,
   ];
@@ -524,7 +589,10 @@ class _StickerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final stamp = sticker.kind == StickerKind.stamp;
+    // Stamps and tapes are long and low: they get two cells.
+    final stamp =
+        sticker.kind == StickerKind.stamp ||
+        (sticker.kind == StickerKind.image && sticker.aspect < 0.6);
     final label = stickerLabel(l10n, sticker);
     return Semantics(
       button: true,

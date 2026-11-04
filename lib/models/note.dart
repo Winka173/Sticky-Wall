@@ -18,6 +18,25 @@ import 'draw_stroke.dart';
 /// at the end: the type filter stores an index (see `NoteStorage.typeFilter`).
 enum NoteType { normal, link, checklist, drawing, photo, label, audio, sticker }
 
+/// How a photo print is framed. [print] is the plain white border every
+/// version has drawn; the others came with 1.4.1's memory walls.
+enum PhotoFrame {
+  print,
+  polaroid,
+  film,
+  vintage,
+  torn,
+  rounded,
+  scrapbook;
+
+  /// Film, vintage, torn and scrapbook are Sticky Wall Pro's; a print in one
+  /// keeps it without Pro.
+  bool get pro => switch (this) {
+    print || polaroid || rounded => false,
+    _ => true,
+  };
+}
+
 /// The ruling printed on a sheet of note paper. Plain is the classic sticky
 /// note; the others are Sticky Wall Pro's.
 enum PaperStyle {
@@ -87,6 +106,7 @@ class Note {
     this.paper = PaperStyle.plain,
     this.sticker = '',
     this.sample = false,
+    this.frame = PhotoFrame.print,
     this.x = 0.5,
     this.y = 0.5,
     this.scale = 1.0,
@@ -152,6 +172,9 @@ class Note {
   /// takes it away and leaves the layout (headings, stickers). Editing the
   /// note makes it the user's own.
   bool sample;
+
+  /// The frame of a photo print ([NoteType.photo]).
+  PhotoFrame frame;
 
   DateTime createdAt;
 
@@ -282,6 +305,11 @@ class Note {
           PaperStyle.plain,
       sticker: json['sticker'] as String? ?? '',
       sample: json['sample'] as bool? ?? false,
+      // An unknown frame (from a newer version) falls back to the plain
+      // print rather than losing the photo.
+      frame:
+          PhotoFrame.values.where((f) => f.name == json['frame']).firstOrNull ??
+          PhotoFrame.print,
       createdAt:
           _date(json['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       x: (json['x'] as num?)?.toDouble() ?? 0.5,
@@ -315,6 +343,7 @@ class Note {
     if (paper != PaperStyle.plain) 'paper': paper.name,
     if (sticker.isNotEmpty) 'sticker': sticker,
     if (sample) 'sample': true,
+    if (frame != PhotoFrame.print) 'frame': frame.name,
     'createdAt': createdAt.toIso8601String(),
     'x': x,
     'y': y,

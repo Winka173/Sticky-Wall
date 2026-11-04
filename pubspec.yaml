@@ -86,6 +86,7 @@ flutter:
   assets:
     - assets/images/
     - assets/templates/
+    - assets/stickers/
 
   # Fonts (SIL OFL, licenses in assets/fonts/). Every family bundled here
   # includes the Vietnamese subset — verified glyph by glyph before adding.

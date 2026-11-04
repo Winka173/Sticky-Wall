@@ -523,7 +523,8 @@ void main() {
     });
 
     test('every seasonal sticker has a pack and the packs are Pro', () {
-      for (final pack in StickerPack.values.skip(1)) {
+      // Illustrated shelves mix free and Pro; seasonal ones are all Pro.
+      for (final pack in StickerPack.values.where((p) => p.season != null)) {
         final inPack = stickers.where((s) => s.pack == pack);
         expect(inPack, isNotEmpty, reason: pack.name);
         expect(inPack.every((s) => s.pro), isTrue);

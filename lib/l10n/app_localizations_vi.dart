@@ -1861,4 +1861,88 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get restoreMerged => 'Đã gộp bản sao lưu';
+
+  @override
+  String get packFeelings => 'Cảm xúc';
+
+  @override
+  String get packStudy => 'Học tập & bàn làm việc';
+
+  @override
+  String get packHome => 'Nhà cửa';
+
+  @override
+  String get packPlanner => 'Kế hoạch';
+
+  @override
+  String get packNature => 'Thiên nhiên';
+
+  @override
+  String get packFood => 'Đồ ăn';
+
+  @override
+  String get packTravel => 'Du lịch';
+
+  @override
+  String get packVietnam => 'Việt Nam';
+
+  @override
+  String get packTapes => 'Băng dính washi';
+
+  @override
+  String get framePrint => 'Ảnh in trơn';
+
+  @override
+  String get framePolaroid => 'Polaroid';
+
+  @override
+  String get frameFilm => 'Dải phim';
+
+  @override
+  String get frameVintage => 'Cổ điển';
+
+  @override
+  String get frameTorn => 'Giấy xé';
+
+  @override
+  String get frameRounded => 'Bo tròn';
+
+  @override
+  String get frameScrapbook => 'Sổ lưu niệm';
+
+  @override
+  String get photoFrame => 'Khung ảnh';
+
+  @override
+  String get memoryCaption => 'Chú thích';
+
+  @override
+  String get captionNone => 'Không';
+
+  @override
+  String get captionNumbers => 'Đánh số';
+
+  @override
+  String get captionDate => 'Ngày hôm nay';
+
+  @override
+  String get layoutHero => 'Ảnh chính';
+
+  @override
+  String get shufflePhotos => 'Xáo vị trí ảnh';
+
+  @override
+  String get framesAll => 'Một khung cho mọi ảnh';
+
+  @override
+  String get photosShuffled => 'Đã xáo ảnh';
+
+  @override
+  String get framesApplied => 'Đã đổi khung ảnh';
+
+  @override
+  String get makeHero => 'Đặt làm ảnh chính';
+
+  @override
+  String get heroSet => 'Đã đặt ảnh chính';
 }

@@ -35,6 +35,7 @@ import '../widgets/keyboard_tappable.dart';
 import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
 import '../widgets/peel_away.dart';
+import '../widgets/photo_frames.dart';
 import '../widgets/photo_viewer.dart';
 import '../widgets/pro_sheet.dart';
 import '../widgets/settings_sheet.dart';
@@ -541,8 +542,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     for (final f in stored.skip(memoryWallMax)) {
       unawaited(ImageService.deleteFile(f));
     }
-    final (layout, pack) = choice;
-    _notes.addMemoryWall(l10n.memoryTitle, used, layout, pack: pack);
+    _notes.addMemoryWall(
+      l10n.memoryTitle,
+      used,
+      choice.layout,
+      pack: choice.look,
+      frame: choice.frame,
+      caption: choice.caption,
+      date: MaterialLocalizations.of(context).formatMediumDate(DateTime.now()),
+    );
     _toast(l10n.memoryMade(used.length));
   }
 

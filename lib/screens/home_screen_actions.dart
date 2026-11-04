@@ -201,6 +201,20 @@ extension _NoteActions on _HomeScreenState {
             title: Text(l10n.viewPhoto),
             onTap: () => Navigator.pop(context, 'photo'),
           ),
+        if (note.type == NoteType.photo)
+          ListTile(
+            leading: const Icon(Icons.filter_frames_outlined),
+            title: Text(l10n.photoFrame),
+            onTap: () => Navigator.pop(context, 'frame'),
+          ),
+        if (note.type == NoteType.photo &&
+            onWall &&
+            _notes.printsOn(note.boardId).length > 2)
+          ListTile(
+            leading: const Icon(Icons.center_focus_strong_outlined),
+            title: Text(l10n.makeHero),
+            onTap: () => Navigator.pop(context, 'hero'),
+          ),
         ListTile(
           leading: Icon(note.locked ? Icons.lock_open : Icons.lock_outline),
           title: Text(note.locked ? l10n.unlock : l10n.lockInPlace),
@@ -269,6 +283,18 @@ extension _NoteActions on _HomeScreenState {
       return;
     }
     switch (action) {
+      case 'frame':
+        final frame = await showFramePicker(context, current: note.frame);
+        if (frame == null || !mounted) return;
+        if (frame.pro && !pro) {
+          await showProSheet(context);
+          return;
+        }
+        final undo = _notes.setFrames([note], frame);
+        _undoToast(l10n.framesApplied, undo);
+      case 'hero':
+        final undo = _notes.rearrangePrints(note.boardId, hero: note.guid);
+        _undoToast(l10n.heroSet, undo);
       case 'pro':
         await showProSheet(context);
       case 'edit':

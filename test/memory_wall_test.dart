@@ -97,7 +97,7 @@ void main() {
     tester.view.physicalSize = const Size(1080, 2220);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    (MemoryLayout, ThemePack)? picked;
+    MemoryWallChoice? picked;
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(fontChoices.first),
@@ -121,10 +121,72 @@ void main() {
     expect(find.textContaining('first 20'), findsOneWidget);
     await tester.tap(find.text('Timeline'));
     await tester.pump();
+    await tester.ensureVisible(find.text('Make the wall'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Make the wall'));
     await tester.pumpAndSettle();
-    expect(picked?.$1, MemoryLayout.timeline);
+    expect(picked?.layout, MemoryLayout.timeline);
+    expect(picked?.frame, PhotoFrame.polaroid);
     // Without Pro the look falls back to a free one.
-    expect(picked?.$2.pro, isFalse);
+    expect(picked?.look.pro, isFalse);
+  });
+
+  test('shuffle, hero and frames move only the prints, and undo', () async {
+    SharedPreferences.setMockInitialValues({});
+    final storage = await NoteStorage.create();
+    await storage.saveBoards([Board(id: 'default', name: '')]);
+    await storage.saveNotes([]);
+    final c = NotesController(storage, ReminderService());
+    final board = c.addMemoryWall(
+      'Trip',
+      _photos(6),
+      MemoryLayout.prints,
+      frame: PhotoFrame.film,
+      caption: CaptionPreset.numbers,
+    );
+    final prints = c.printsOn(board.id);
+    expect(prints.map((n) => n.content), ['1', '2', '3', '4', '5', '6']);
+    expect(prints.every((n) => n.frame == PhotoFrame.film), isTrue);
+    final title = c.boardNotes.firstWhere((n) => n.type == NoteType.label);
+    final before = [for (final n in prints) (n.x, n.y)];
+
+    // The same seed lays the same wall out.
+    final undo = c.rearrangePrints(board.id, seed: 'a');
+    final first = [for (final n in c.printsOn(board.id)) (n.x, n.y)];
+    undo();
+    expect([for (final n in prints) (n.x, n.y)], before);
+    c.rearrangePrints(board.id, seed: 'a');
+    expect([for (final n in c.printsOn(board.id)) (n.x, n.y)], first);
+    expect((title.x, title.y), (0.5, 0.0), reason: 'the title stays');
+    expect(prints.map((n) => n.content).toSet(), {
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+    });
+    for (final n in prints) {
+      expect(n.x, inInclusiveRange(0, 1));
+      expect(n.y, inInclusiveRange(0, 1));
+    }
+
+    final hero = prints[3];
+    c.rearrangePrints(board.id, hero: hero.guid);
+    expect(hero.scale, greaterThan(prints[0].scale));
+    expect(hero.x, 0.5);
+
+    final undoFrames = c.setFrames(prints, PhotoFrame.torn);
+    expect(prints.every((n) => n.frame == PhotoFrame.torn), isTrue);
+    undoFrames();
+    expect(prints.every((n) => n.frame == PhotoFrame.film), isTrue);
+
+    // Frames survive a save and a load.
+    final reloaded = Note.fromJson(prints.first.toJson());
+    expect(reloaded.frame, PhotoFrame.film);
+    expect(
+      Note.fromJson({...prints.first.toJson(), 'frame': 'hologram'}).frame,
+      PhotoFrame.print,
+    );
   });
 }

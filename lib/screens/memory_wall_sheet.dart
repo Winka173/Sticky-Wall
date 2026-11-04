@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/note.dart';
 import '../services/memory_wall.dart';
 import '../services/pro_controller.dart';
 import '../services/theme_packs.dart';
 import '../theme.dart';
+import '../widgets/photo_frames.dart';
 import '../widgets/pro_sheet.dart';
 import 'gallery_screen.dart';
 
@@ -21,13 +23,21 @@ const memoryWallLooks = [
   'dark_chalk',
 ];
 
-/// Asks how [count] picked photos should be laid out and in which look.
-/// Returns null when cancelled.
-Future<(MemoryLayout, ThemePack)?> showMemoryWallSheet(
+/// What the memory-wall sheet settled on.
+typedef MemoryWallChoice = ({
+  MemoryLayout layout,
+  ThemePack look,
+  PhotoFrame frame,
+  CaptionPreset caption,
+});
+
+/// Asks how [count] picked photos should be laid out, framed and captioned,
+/// and in which look. Returns null when cancelled.
+Future<MemoryWallChoice?> showMemoryWallSheet(
   BuildContext context, {
   required int count,
 }) {
-  return showModalBottomSheet<(MemoryLayout, ThemePack)>(
+  return showModalBottomSheet<MemoryWallChoice>(
     context: context,
     isScrollControlled: true,
     builder: (context) => _MemoryWallSheet(count: count),
@@ -46,6 +56,8 @@ class _MemoryWallSheet extends StatefulWidget {
 class _MemoryWallSheetState extends State<_MemoryWallSheet> {
   MemoryLayout _layout = MemoryLayout.collage;
   ThemePack _look = themePackById(memoryWallLooks.first)!;
+  PhotoFrame _frame = PhotoFrame.polaroid;
+  CaptionPreset _caption = CaptionPreset.none;
 
   @override
   void initState() {
@@ -71,6 +83,7 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
       (MemoryLayout.prints, Icons.grid_view_outlined, l10n.layoutPrints),
       (MemoryLayout.film, Icons.movie_outlined, l10n.layoutFilm),
       (MemoryLayout.timeline, Icons.timeline, l10n.layoutTimeline),
+      (MemoryLayout.hero, Icons.center_focus_strong_outlined, l10n.layoutHero),
     ];
     return SafeArea(
       child: SingleChildScrollView(
@@ -113,6 +126,45 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
               ],
             ),
             const SizedBox(height: 16),
+            Text(l10n.photoFrame, style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                for (final f in PhotoFrame.values)
+                  ChoiceChip(
+                    avatar: f.pro && !pro
+                        ? const Icon(Icons.lock_outline, size: 16)
+                        : null,
+                    label: Text(photoFrameName(l10n, f)),
+                    selected: _frame == f,
+                    onSelected: (_) => f.pro && !pro
+                        ? showProSheet(context)
+                        : setState(() => _frame = f),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(l10n.memoryCaption, style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                for (final (c, label) in [
+                  (CaptionPreset.none, l10n.captionNone),
+                  (CaptionPreset.numbers, l10n.captionNumbers),
+                  (CaptionPreset.date, l10n.captionDate),
+                ])
+                  ChoiceChip(
+                    label: Text(label),
+                    selected: _caption == c,
+                    onSelected: (_) => setState(() => _caption = c),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
             Text(l10n.memoryLook, style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 6),
             SizedBox(
@@ -141,7 +193,12 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
             FilledButton.icon(
               icon: const Icon(Icons.photo_library_outlined),
               label: Text(l10n.memoryCreate),
-              onPressed: () => Navigator.pop(context, (_layout, _look)),
+              onPressed: () => Navigator.pop(context, (
+                layout: _layout,
+                look: _look,
+                frame: _frame,
+                caption: _caption,
+              )),
             ),
           ],
         ),

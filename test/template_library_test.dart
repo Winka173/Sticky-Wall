@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -259,6 +260,41 @@ void main() {
       expect(a.colorIndex, 0);
       expect(a.paper, PaperStyle.plain);
       expect(c.links.single.style, ThreadStyle.yarn);
+    });
+  });
+
+  group('Illustrated stickers', () {
+    final manifest =
+        (jsonDecode(
+                  File(
+                    'docs/design/STICKY_VISUAL_ASSET_MANIFEST.json',
+                  ).readAsStringSync(),
+                )
+                as Map<String, dynamic>)['assets']
+            as List<dynamic>;
+
+    test('every manifest entry is a bundled file the app lists', () {
+      final art = {for (final s in stickers) s.id: s};
+      for (final m in manifest.cast<Map<String, dynamic>>()) {
+        final file = File(m['path'] as String);
+        expect(file.existsSync(), isTrue, reason: m['path'] as String);
+        expect(file.lengthSync(), m['bytes']);
+        final s = art[m['id']];
+        expect(s, isNotNull, reason: m['id'] as String);
+        expect(s!.kind, StickerKind.image);
+        expect(s.asset, m['path']);
+        expect(s.nameEn.isNotEmpty && s.nameVi.isNotEmpty, isTrue);
+        expect(s.pro, m['free'] == true ? isFalse : isTrue);
+      }
+      expect(
+        stickers.where((s) => s.kind == StickerKind.image).length,
+        manifest.length,
+      );
+    });
+
+    test('the free app has a real set of illustrated stickers', () {
+      final free = stickers.where((s) => !s.pro).length;
+      expect(free, greaterThanOrEqualTo(20));
     });
   });
 }
