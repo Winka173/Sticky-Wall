@@ -1077,6 +1077,39 @@ class NotesController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// The board archived notes go to; made (named [name], at the end) the
+  /// first time something is archived.
+  static const archiveBoardId = 'archive';
+
+  /// Puts [notes] away on the archive board: kept, out of the way, found
+  /// there like on any board. Returns what brings them back (for Undo).
+  VoidCallback archive(List<Note> notes, {required String name}) {
+    if (_boards.every((b) => b.id != archiveBoardId)) {
+      _boards.add(Board(id: archiveBoardId, name: name, icon: '🗄️'));
+      _storage.saveBoards(_boards);
+    }
+    final before = {for (final n in notes) n.guid: (n.boardId, n.x, n.y)};
+    for (final n in notes) {
+      n.boardId = archiveBoardId;
+      _syncReminder(n);
+    }
+    _persistNotes();
+    notifyListeners();
+    return () {
+      for (final n in _notes) {
+        final b = before[n.guid];
+        if (b == null) continue;
+        n
+          ..boardId = b.$1
+          ..x = b.$2
+          ..y = b.$3;
+        _syncReminder(n);
+      }
+      _persistNotes();
+      notifyListeners();
+    };
+  }
+
   void togglePin(Note note) => pinAll([note], !note.pinned);
 
   /// Holds a note in place on the wall (or lets it go again).

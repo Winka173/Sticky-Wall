@@ -671,5 +671,9 @@
   "editedToday": "edited today",
   "editedYesterday": "edited yesterday",
   "editedOn": "edited {date}",
-  "@editedOn": {"placeholders": {"date": {"type": "String"}}}
+  "@editedOn": {"placeholders": {"date": {"type": "String"}}},
+  "archiveNote": "Archive",
+  "archiveDoneHint": "Every item is done: keep it out of the way",
+  "archiveBoard": "Archive",
+  "archived": "Moved to the Archive board"
 }

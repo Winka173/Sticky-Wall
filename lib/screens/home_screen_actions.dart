@@ -195,6 +195,19 @@ extension _NoteActions on _HomeScreenState {
           title: Text(l10n.edit),
           onTap: () => Navigator.pop(context, 'edit'),
         ),
+        // A finished list is kept, not swept away: put away on request.
+        if (note.boardId != NotesController.archiveBoardId)
+          ListTile(
+            leading: const Icon(Icons.inventory_2_outlined),
+            title: Text(l10n.archiveNote),
+            subtitle:
+                note.type == NoteType.checklist &&
+                    note.checklist.isNotEmpty &&
+                    note.checklist.every((i) => i.done)
+                ? Text(l10n.archiveDoneHint)
+                : null,
+            onTap: () => Navigator.pop(context, 'archive'),
+          ),
         if (note.hasPhoto)
           ListTile(
             leading: const Icon(Icons.photo_outlined),
@@ -319,6 +332,9 @@ extension _NoteActions on _HomeScreenState {
         await _threadsOf(note, threads);
       case 'select':
         _startSelecting(note);
+      case 'archive':
+        final undo = _notes.archive([note], name: l10n.archiveBoard);
+        _undoToast(l10n.archived, undo);
       case 'duplicate':
         unawaited(HapticFeedback.selectionClick());
         _notes.duplicate(note);

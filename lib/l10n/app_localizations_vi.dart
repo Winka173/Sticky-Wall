@@ -1963,4 +1963,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String editedOn(String date) {
     return 'sửa $date';
   }
+
+  @override
+  String get archiveNote => 'Lưu trữ';
+
+  @override
+  String get archiveDoneHint => 'Đã xong hết: cất đi cho gọn';
+
+  @override
+  String get archiveBoard => 'Lưu trữ';
+
+  @override
+  String get archived => 'Đã chuyển vào bảng Lưu trữ';
 }

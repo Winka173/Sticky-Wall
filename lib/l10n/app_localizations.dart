@@ -3637,6 +3637,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'edited {date}'**
   String editedOn(String date);
+
+  /// No description provided for @archiveNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archiveNote;
+
+  /// No description provided for @archiveDoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Every item is done: keep it out of the way'**
+  String get archiveDoneHint;
+
+  /// No description provided for @archiveBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archiveBoard;
+
+  /// No description provided for @archived.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to the Archive board'**
+  String get archived;
 }
 
 class _AppLocalizationsDelegate

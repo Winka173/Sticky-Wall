@@ -589,5 +589,9 @@
   "unpinBoard": "Bỏ ghim",
   "editedToday": "sửa hôm nay",
   "editedYesterday": "sửa hôm qua",
-  "editedOn": "sửa {date}"
+  "editedOn": "sửa {date}",
+  "archiveNote": "Lưu trữ",
+  "archiveDoneHint": "Đã xong hết: cất đi cho gọn",
+  "archiveBoard": "Lưu trữ",
+  "archived": "Đã chuyển vào bảng Lưu trữ"
 }

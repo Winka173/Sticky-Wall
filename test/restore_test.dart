@@ -123,4 +123,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(picked, RestoreMode.merge);
   });
+
+  test('archiving keeps a note, on its own board, and undoes', () async {
+    final c = await _here();
+    final note = c.allNotes.single;
+    final undo = c.archive([note], name: 'Archive');
+    expect(c.boards.last.id, NotesController.archiveBoardId);
+    expect(c.boards.last.name, 'Archive');
+    expect(note.boardId, NotesController.archiveBoardId);
+    expect(note.isTrashed, isFalse);
+    expect(c.boardNotes, isEmpty, reason: 'off the board it was on');
+    undo();
+    expect(note.boardId, 'default');
+    // A second archive reuses the board.
+    c
+      ..archive([note], name: 'Archive')
+      ..archive([note], name: 'Archive');
+    expect(
+      c.boards.where((b) => b.id == NotesController.archiveBoardId),
+      hasLength(1),
+    );
+  });
 }

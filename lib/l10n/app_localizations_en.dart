@@ -1986,4 +1986,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String editedOn(String date) {
     return 'edited $date';
   }
+
+  @override
+  String get archiveNote => 'Archive';
+
+  @override
+  String get archiveDoneHint => 'Every item is done: keep it out of the way';
+
+  @override
+  String get archiveBoard => 'Archive';
+
+  @override
+  String get archived => 'Moved to the Archive board';
 }
