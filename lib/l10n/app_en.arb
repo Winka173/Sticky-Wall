@@ -443,6 +443,8 @@
   "pinClip": "Paper clip",
   "pinMagnet": "Magnet",
   "privacySection": "Privacy",
+  "privacyPolicy": "Privacy policy",
+  "privacyPolicyHint": "What Sticky Wall keeps, and where. Opens in your browser.",
   "appLock": "App lock",
   "appLockHint": "Asks for your fingerprint, face or screen lock when Sticky Wall opens, and when it comes back after a minute away.",
   "appLockReason": "Unlock Sticky Wall",

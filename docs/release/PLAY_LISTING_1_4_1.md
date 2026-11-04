@@ -165,7 +165,7 @@ Tiếng Anh và tiếng Việt.
 | Financial features | **"My app doesn't provide any financial features"** (the one-time Pro purchase through Google Play billing is not a financial feature). |
 | Target audience | 13+ (not designed for children). |
 | Content rating | Utility / productivity; no user-generated content shared with others, no violence; no in-app communication. |
-| Privacy policy URL | The published `PRIVACY.md`. **Republish it**: 1.4.1 changed the system-backup wording and the locked-board wording. |
+| Privacy policy URL | `https://github.com/Winka173/Sticky-Wall/blob/main/PRIVACY.md` (public repo, HTTPS, EN + VI). The app links the same page from *Customize → Privacy → Privacy policy* (from build 10). |
 | App access | All functions available without login. |
 | Permissions to explain if asked | Notifications and exact alarms for reminders; microphone only when recording a voice note; biometric for the optional app lock; photos only through the system picker. |
 

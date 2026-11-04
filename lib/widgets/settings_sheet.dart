@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/board.dart';
@@ -26,6 +27,10 @@ import 'pro_sheet.dart';
 import 'restore_preview.dart';
 
 part 'widget_settings_sheet.dart';
+
+/// The published privacy policy (the Play listing links the same page).
+const privacyPolicyUrl =
+    'https://github.com/Winka173/Sticky-Wall/blob/main/PRIVACY.md';
 
 /// Localized display name for a bundled wall texture.
 String wallLabel(AppLocalizations l10n, String id) => switch (id) {
@@ -497,6 +502,25 @@ class _SettingsSheet extends StatelessWidget {
               notes: notes,
             ),
           ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.policy_outlined, color: AppColors.ink),
+          title: Text(
+            l10n.privacyPolicy,
+            style: const TextStyle(fontSize: 16, color: AppColors.ink),
+          ),
+          subtitle: Text(
+            l10n.privacyPolicyHint,
+            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+          ),
+          trailing: const Icon(Icons.open_in_new, color: AppColors.inkSoft),
+          onTap: () => unawaited(
+            launchUrl(
+              Uri.parse(privacyPolicyUrl),
+              mode: LaunchMode.externalApplication,
+            ),
+          ),
+        ),
         const SizedBox(height: 8),
         _SectionTitle(l10n.dataSection),
         ListTile(

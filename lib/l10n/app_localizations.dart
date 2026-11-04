@@ -2366,6 +2366,18 @@ abstract class AppLocalizations {
   /// **'Privacy'**
   String get privacySection;
 
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @privacyPolicyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What Sticky Wall keeps, and where. Opens in your browser.'**
+  String get privacyPolicyHint;
+
   /// No description provided for @appLock.
   ///
   /// In en, this message translates to:

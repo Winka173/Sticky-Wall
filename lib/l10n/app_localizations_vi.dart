@@ -1270,6 +1270,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get privacySection => 'Riêng tư';
 
   @override
+  String get privacyPolicy => 'Chính sách quyền riêng tư';
+
+  @override
+  String get privacyPolicyHint =>
+      'Sticky Wall lưu gì và lưu ở đâu. Mở trong trình duyệt.';
+
+  @override
   String get appLock => 'Khóa ứng dụng';
 
   @override

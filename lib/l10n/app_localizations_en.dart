@@ -1280,6 +1280,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacySection => 'Privacy';
 
   @override
+  String get privacyPolicy => 'Privacy policy';
+
+  @override
+  String get privacyPolicyHint =>
+      'What Sticky Wall keeps, and where. Opens in your browser.';
+
+  @override
   String get appLock => 'App lock';
 
   @override
