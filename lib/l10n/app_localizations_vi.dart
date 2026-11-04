@@ -1758,4 +1758,29 @@ class AppLocalizationsVi extends AppLocalizations {
   String memoryMade(int count) {
     return 'Đã dán $count ảnh lên tường kỷ niệm. Chạm vào ảnh để thêm chú thích.';
   }
+
+  @override
+  String get allBoards => 'Tất cả bảng';
+
+  @override
+  String boardNoteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ghi chú',
+      zero: 'Chưa có ghi chú',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get duplicateBoard => 'Nhân bản bảng';
+
+  @override
+  String boardCopyName(String name) {
+    return '$name (bản sao)';
+  }
+
+  @override
+  String get boardDuplicated => 'Đã nhân bản bảng';
 }

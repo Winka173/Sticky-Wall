@@ -1780,4 +1780,30 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0. Tap one to add a caption.';
   }
+
+  @override
+  String get allBoards => 'All boards';
+
+  @override
+  String boardNoteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes',
+      one: '1 note',
+      zero: 'No notes',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get duplicateBoard => 'Duplicate board';
+
+  @override
+  String boardCopyName(String name) {
+    return '$name (copy)';
+  }
+
+  @override
+  String get boardDuplicated => 'Board duplicated';
 }

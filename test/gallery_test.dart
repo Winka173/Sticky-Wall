@@ -178,4 +178,62 @@ void main() {
     await tester.pumpAndSettle();
     expect(notes.boardNotes.single.content, 'My own words');
   });
+
+  testWidgets('all boards: pictures, switch, duplicate with Undo', (
+    tester,
+  ) async {
+    final notes = await _pumpApp(tester);
+    final work = notes.addBoard('Work');
+    notes
+      ..seed(
+        [
+          Note(
+            guid: 'w1',
+            content: 'Ship it',
+            createdAt: DateTime(2026),
+            boardId: work.id,
+            stack: 's',
+          ),
+          Note(
+            guid: 'w2',
+            content: 'Test it',
+            createdAt: DateTime(2026),
+            boardId: work.id,
+            stack: 's',
+          ),
+        ],
+        links: const [NoteLink('w1', 'w2')],
+      )
+      ..selectBoard('default');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('All boards'));
+    await tester.pumpAndSettle();
+    expect(find.text('2 notes'), findsOneWidget);
+    expect(find.text('1 note'), findsOneWidget);
+    await tester.tap(find.text('Work').last);
+    await tester.pumpAndSettle();
+    expect(notes.currentBoardId, work.id);
+
+    await tester.tap(find.byTooltip('All boards'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('More').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Duplicate board'));
+    await tester.pumpAndSettle();
+    final copy = notes.currentBoard;
+    expect(copy.name, 'Work (copy)');
+    expect(notes.boards.indexOf(copy), notes.boards.indexOf(work) + 1);
+    final copied = notes.boardNotes;
+    expect(copied.map((n) => n.content).toSet(), {'Ship it', 'Test it'});
+    expect(copied.every((n) => !{'w1', 'w2'}.contains(n.guid)), isTrue);
+    expect(copied.first.stack, isNot('s'), reason: 'its own stack');
+    expect(copied.first.stack, copied.last.stack);
+    expect(notes.linksOn(copy.id), hasLength(1));
+    expect(notes.linksOn(work.id), hasLength(1), reason: 'original kept');
+
+    await tester.tap(find.widgetWithText(SnackBarAction, 'Undo'));
+    await tester.pumpAndSettle();
+    expect(notes.boards.any((b) => b.id == copy.id), isFalse);
+  });
 }

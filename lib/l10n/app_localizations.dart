@@ -3277,6 +3277,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 photo is on your memory wall} other{{count} photos are on your memory wall}}. Tap one to add a caption.'**
   String memoryMade(int count);
+
+  /// No description provided for @allBoards.
+  ///
+  /// In en, this message translates to:
+  /// **'All boards'**
+  String get allBoards;
+
+  /// No description provided for @boardNoteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No notes} =1{1 note} other{{count} notes}}'**
+  String boardNoteCount(int count);
+
+  /// No description provided for @duplicateBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate board'**
+  String get duplicateBoard;
+
+  /// No description provided for @boardCopyName.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (copy)'**
+  String boardCopyName(String name);
+
+  /// No description provided for @boardDuplicated.
+  ///
+  /// In en, this message translates to:
+  /// **'Board duplicated'**
+  String get boardDuplicated;
 }
 
 class _AppLocalizationsDelegate

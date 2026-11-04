@@ -529,5 +529,10 @@
   "memoryLook": "Giao diện",
   "memoryCreate": "Tạo tường",
   "memoryTitle": "Kỷ niệm",
-  "memoryMade": "Đã dán {count} ảnh lên tường kỷ niệm. Chạm vào ảnh để thêm chú thích."
+  "memoryMade": "Đã dán {count} ảnh lên tường kỷ niệm. Chạm vào ảnh để thêm chú thích.",
+  "allBoards": "Tất cả bảng",
+  "boardNoteCount": "{count, plural, =0{Chưa có ghi chú} other{{count} ghi chú}}",
+  "duplicateBoard": "Nhân bản bảng",
+  "boardCopyName": "{name} (bản sao)",
+  "boardDuplicated": "Đã nhân bản bảng"
 }

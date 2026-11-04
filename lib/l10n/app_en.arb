@@ -602,5 +602,12 @@
   "memoryCreate": "Make the wall",
   "memoryTitle": "Memories",
   "memoryMade": "{count, plural, =1{1 photo is on your memory wall} other{{count} photos are on your memory wall}}. Tap one to add a caption.",
-  "@memoryMade": {"placeholders": {"count": {"type": "int"}}}
+  "@memoryMade": {"placeholders": {"count": {"type": "int"}}},
+  "allBoards": "All boards",
+  "boardNoteCount": "{count, plural, =0{No notes} =1{1 note} other{{count} notes}}",
+  "@boardNoteCount": {"placeholders": {"count": {"type": "int"}}},
+  "duplicateBoard": "Duplicate board",
+  "boardCopyName": "{name} (copy)",
+  "@boardCopyName": {"placeholders": {"name": {"type": "String"}}},
+  "boardDuplicated": "Board duplicated"
 }

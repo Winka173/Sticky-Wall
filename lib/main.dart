@@ -81,8 +81,7 @@ Future<void> main() async {
   // While the app lock is on or a private board is open, the recent-apps
   // screen shows no notes.
   void syncRecents() => RecentsPrivacy.hide(
-    settings.appLock ||
-        notes.boards.any((b) => b.isPrivate && notes.isOpen(b)),
+    settings.appLock || notes.boards.any((b) => b.isPrivate && notes.isOpen(b)),
   );
   settings.addListener(syncRecents);
   notes.addListener(syncRecents);

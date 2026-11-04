@@ -11,6 +11,7 @@ import '../services/pro_controller.dart';
 import '../theme.dart';
 import 'action_sheet.dart';
 import 'board_dialog.dart';
+import 'board_picker.dart';
 import 'keyboard_tappable.dart';
 import 'pro_sheet.dart';
 
@@ -136,6 +137,32 @@ class _BoardBarState extends State<BoardBar> {
       height: 44,
       child: Row(
         children: [
+          // Every board at once, with a picture of each, once there are a
+          // few: the tab strip alone means scrolling sideways to find one.
+          if (boards.length > 1)
+            Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Tooltip(
+                message: l10n.allBoards,
+                child: KeyboardTappable(
+                  onActivate: () => _pick(context),
+                  circle: true,
+                  child: Semantics(
+                    button: true,
+                    label: l10n.allBoards,
+                    excludeSemantics: true,
+                    child: InkResponse(
+                      onTap: () => _pick(context),
+                      child: SizedBox(
+                        width: 40,
+                        height: 44,
+                        child: Icon(Icons.apps, color: textColor),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           // Shrink-wrapped so the "+" follows the last tab directly while
           // they fit, and only becomes a fixed trailing button once the
           // strip has to scroll.
@@ -246,6 +273,44 @@ class _BoardBarState extends State<BoardBar> {
     final draft = await showBoardDialog(context);
     if (draft == null || draft.name.isEmpty || !context.mounted) return;
     widget.notes.addBoard(draft.name, icon: draft.icon);
+  }
+
+  Future<void> _pick(BuildContext context) => showBoardPicker(
+    context,
+    notes: widget.notes,
+    onDelete: (board) =>
+        _confirmDelete(context, AppLocalizations.of(context)!, board),
+  );
+
+  /// Deletes [board] once the user agrees, saying how many notes go with it.
+  Future<void> _confirmDelete(
+    BuildContext context,
+    AppLocalizations l10n,
+    Board board,
+  ) async {
+    // Trashed notes go too: deleting a board skips the trash entirely.
+    final count = widget.notes.allNotes
+        .where((n) => n.boardId == board.id)
+        .length;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteBoardConfirm(_displayName(l10n, board))),
+        content: count == 0 ? null : Text(l10n.deleteBoardWithNotes(count)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.deleteIcon),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) widget.notes.deleteBoard(board.id);
   }
 
   /// The "+": a blank board, or one of the templates.
@@ -406,31 +471,7 @@ class _BoardBarState extends State<BoardBar> {
       if (draft == null) return;
       widget.notes.updateBoard(board.id, name: draft.name, icon: draft.icon);
     } else if (action == 'delete') {
-      // Trashed notes go too: deleting a board skips the trash entirely.
-      final count = widget.notes.allNotes
-          .where((n) => n.boardId == board.id)
-          .length;
-      final ok = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(l10n.deleteBoardConfirm(_displayName(l10n, board))),
-          content: count == 0 ? null : Text(l10n.deleteBoardWithNotes(count)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(l10n.cancel),
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.deleteIcon,
-              ),
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(l10n.delete),
-            ),
-          ],
-        ),
-      );
-      if (ok == true) widget.notes.deleteBoard(board.id);
+      await _confirmDelete(context, l10n, board);
     }
   }
 }

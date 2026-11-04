@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/board.dart';
+import '../models/draw_stroke.dart';
 import '../models/note.dart';
 import '../models/view_mode.dart';
 import '../theme.dart';
@@ -288,6 +289,64 @@ class NotesController extends ChangeNotifier {
       ..setCurrentBoardId(_currentBoardId);
     _persistNotes();
     notifyListeners();
+  }
+
+  /// A copy of board [id] named [name], right after it, with copies of its
+  /// notes, threads, stacks and marker strokes, and switches to it. Its own
+  /// wall photo is not shared (deleting either board would take the file);
+  /// the copy shows the texture instead.
+  Board duplicateBoard(String id, String name) {
+    final source = _boards.firstWhere((b) => b.id == id);
+    final copy = Board(
+      id: _uuid.v4(),
+      name: name,
+      wallIndex: source.wallIndex,
+      icon: source.icon,
+      themeId: source.themeId,
+      fontId: source.fontId,
+      pinStyle: source.pinStyle,
+      isPrivate: source.isPrivate,
+      strokes: [
+        for (final s in source.strokes) DrawStroke.fromJson(s.toJson()),
+      ],
+    );
+    final guids = <String, String>{};
+    final stacks = <String, String>{};
+    final copies = <Note>[];
+    for (final n in _notes) {
+      if (n.boardId != id || n.isTrashed) continue;
+      final json = n.toJson();
+      final guid = _uuid.v4();
+      guids[n.guid] = guid;
+      json['guid'] = guid;
+      json['boardId'] = copy.id;
+      final stack = n.stack;
+      if (stack != null) json['stack'] = stacks[stack] ??= _uuid.v4();
+      final made = Note.fromJson(json)
+        ..reminderAt = null
+        ..repeat = ReminderRepeat.none;
+      copies.add(made);
+    }
+    final links = [
+      for (final l in linksOn(id))
+        if (guids[l.a] case final a?)
+          if (guids[l.b] case final b?)
+            NoteLink(
+              a,
+              b,
+              color: l.color,
+              label: l.label,
+              arrow: l.arrow,
+              style: l.style,
+            ),
+    ];
+    _boards.insert(_boards.indexOf(source) + 1, copy);
+    // A copy of a private board is open while its original is.
+    if (copy.isPrivate && isOpen(source)) _openPrivate.add(copy.id);
+    _storage.saveBoards(_boards);
+    seed(copies, links: links);
+    selectBoard(copy.id);
+    return copy;
   }
 
   /// Switches the current board to one of the built-in textures. The board's
