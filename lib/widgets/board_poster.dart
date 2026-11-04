@@ -100,6 +100,10 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
   late bool _selectedOnly = widget.selected.isNotEmpty;
   double _pixelRatio = 3;
 
+  /// The finer choices are shown: open from the start when notes were
+  /// selected, so the "only these" choice is seen.
+  late bool _advanced = widget.selected.isNotEmpty;
+
   // Trimming: the part of the picture that is kept, as fractions of it, and
   // whether the handles are out.
   Rect _crop = const Rect.fromLTWH(0, 0, 1, 1);
@@ -206,45 +210,15 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
         elevation: 0,
         title: Text(l10n.exportBoard),
         actions: [
-          // While trimming, the button becomes the way out (a check), so the
-          // mode shows by shape and name, not only by the accent colour.
-          IconButton(
-            tooltip: _cropping ? l10n.cropDone : l10n.cropImage,
-            isSelected: _cropping,
-            icon: Icon(
-              _cropping ? Icons.check : Icons.crop,
-              color: _cropping || _trimmed ? AppColors.accent : null,
-            ),
-            onPressed: _busy
-                ? null
-                : () => setState(() => _cropping = !_cropping),
-          ),
-          PopupMenuButton<String>(
-            tooltip: l10n.moreActions,
-            enabled: !_busy,
-            icon: _working == 'pdf' || _working == 'widget'
-                ? const _Spinner(color: AppColors.chalk)
-                : null,
-            onSelected: (v) {
-              if (v == 'pdf') _sharePdf(l10n);
-              if (v == 'widget') _toWidget(l10n);
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'pdf',
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.picture_as_pdf_outlined,
-                      size: 18,
-                      color: AppColors.ink,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(l10n.sharePdf),
-                  ],
-                ),
-              ),
-              if (widget.onShowOnWidget != null)
+          if (widget.onShowOnWidget != null)
+            PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
+              enabled: !_busy,
+              icon: _working == 'widget'
+                  ? const _Spinner(color: AppColors.chalk)
+                  : null,
+              onSelected: (_) => _toWidget(l10n),
+              itemBuilder: (context) => [
                 PopupMenuItem(
                   value: 'widget',
                   child: Row(
@@ -259,8 +233,8 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
                     ],
                   ),
                 ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
       body: Column(
@@ -427,7 +401,8 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
     setState(() => _measured = next);
   }
 
-  /// Which part, which notes, how sharp — only the choices that apply.
+  /// The quick jobs — save, PDF, share — at a good default size; which
+  /// part, which notes, how sharp and the trim sit behind "More options".
   Widget _options(AppLocalizations l10n) {
     final style = SegmentedButton.styleFrom(
       foregroundColor: AppColors.chalk,
@@ -438,73 +413,124 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
       // The app's own face, a size down.
       textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 13),
     );
+    final outlined = OutlinedButton.styleFrom(
+      foregroundColor: AppColors.chalk,
+      disabledForegroundColor: AppColors.chalk.withValues(alpha: 0.5),
+      side: BorderSide(color: AppColors.chalk.withValues(alpha: 0.6)),
+    );
+    final advanced = _advanced || _cropping;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 8,
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          if (widget.viewport != null)
-            SegmentedButton<bool>(
-              style: style,
-              showSelectedIcon: false,
-              segments: [
-                ButtonSegment(value: false, label: Text(l10n.exportWholeWall)),
-                ButtonSegment(value: true, label: Text(l10n.exportVisible)),
-              ],
-              selected: {_visibleOnly},
-              onSelectionChanged: (s) =>
-                  setState(() => _visibleOnly = s.single),
+          if (advanced)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  if (widget.viewport != null)
+                    SegmentedButton<bool>(
+                      style: style,
+                      showSelectedIcon: false,
+                      segments: [
+                        ButtonSegment(
+                          value: false,
+                          label: Text(l10n.exportWholeWall),
+                        ),
+                        ButtonSegment(
+                          value: true,
+                          label: Text(l10n.exportVisible),
+                        ),
+                      ],
+                      selected: {_visibleOnly},
+                      onSelectionChanged: (s) =>
+                          setState(() => _visibleOnly = s.single),
+                    ),
+                  if (widget.selected.isNotEmpty)
+                    SegmentedButton<bool>(
+                      style: style,
+                      showSelectedIcon: false,
+                      segments: [
+                        ButtonSegment(
+                          value: false,
+                          label: Text(l10n.exportAllNotes),
+                        ),
+                        ButtonSegment(
+                          value: true,
+                          label: Text(
+                            l10n.exportSelectedNotes(widget.selected.length),
+                          ),
+                        ),
+                      ],
+                      selected: {_selectedOnly},
+                      onSelectionChanged: (s) =>
+                          setState(() => _selectedOnly = s.single),
+                    ),
+                  SegmentedButton<double>(
+                    style: style,
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(value: 2, label: Text('2×')),
+                      ButtonSegment(value: 3, label: Text('3×')),
+                      ButtonSegment(value: 4, label: Text('4×')),
+                    ],
+                    selected: {_pixelRatio},
+                    onSelectionChanged: (s) =>
+                        setState(() => _pixelRatio = s.single),
+                  ),
+                  // While trimming, the button becomes the way out (a
+                  // check), so the mode shows by shape and name.
+                  OutlinedButton.icon(
+                    style: outlined,
+                    icon: Icon(
+                      _cropping ? Icons.check : Icons.crop,
+                      color: _cropping || _trimmed ? AppColors.accent : null,
+                    ),
+                    label: Text(_cropping ? l10n.cropDone : l10n.cropImage),
+                    onPressed: _busy
+                        ? null
+                        : () => setState(() => _cropping = !_cropping),
+                  ),
+                  if (_trimmed)
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.accent,
+                      ),
+                      icon: const Icon(Icons.crop_free, size: 18),
+                      label: Text(l10n.cropReset),
+                      onPressed: () => setState(() {
+                        _crop = const Rect.fromLTWH(0, 0, 1, 1);
+                      }),
+                    ),
+                ],
+              ),
             ),
-          if (widget.selected.isNotEmpty)
-            SegmentedButton<bool>(
-              style: style,
-              showSelectedIcon: false,
-              segments: [
-                ButtonSegment(value: false, label: Text(l10n.exportAllNotes)),
-                ButtonSegment(
-                  value: true,
-                  label: Text(l10n.exportSelectedNotes(widget.selected.length)),
-                ),
-              ],
-              selected: {_selectedOnly},
-              onSelectionChanged: (s) =>
-                  setState(() => _selectedOnly = s.single),
-            ),
-          SegmentedButton<double>(
-            style: style,
-            showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(value: 2, label: Text('2×')),
-              ButtonSegment(value: 3, label: Text('3×')),
-              ButtonSegment(value: 4, label: Text('4×')),
-            ],
-            selected: {_pixelRatio},
-            onSelectionChanged: (s) => setState(() => _pixelRatio = s.single),
-          ),
-          // The two jobs people come here for, named, beside the size they
-          // will come out at (the bar above only has room for icons).
+          // The jobs people come here for, named.
           Wrap(
             spacing: 10,
             runSpacing: 8,
+            alignment: WrapAlignment.center,
             children: [
               OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.chalk,
-                  disabledForegroundColor: AppColors.chalk.withValues(
-                    alpha: 0.5,
-                  ),
-                  side: BorderSide(
-                    color: AppColors.chalk.withValues(alpha: 0.6),
-                  ),
-                ),
+                style: outlined,
                 icon: _working == 'save'
                     ? const _Spinner(color: AppColors.chalk)
                     : const Icon(Icons.save_alt),
                 label: Text(l10n.saveImage),
                 onPressed: _busy ? null : () => _save(l10n),
+              ),
+              OutlinedButton.icon(
+                style: outlined,
+                icon: _working == 'pdf'
+                    ? const _Spinner(color: AppColors.chalk)
+                    : const Icon(Icons.picture_as_pdf_outlined),
+                label: Text(l10n.exportPdf),
+                onPressed: _busy ? null : () => _sharePdf(l10n),
               ),
               FilledButton.icon(
                 style: FilledButton.styleFrom(
@@ -523,15 +549,16 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
               ),
             ],
           ),
-          if (_trimmed)
-            TextButton.icon(
-              style: TextButton.styleFrom(foregroundColor: AppColors.accent),
-              icon: const Icon(Icons.crop_free, size: 18),
-              label: Text(l10n.cropReset),
-              onPressed: () => setState(() {
-                _crop = const Rect.fromLTWH(0, 0, 1, 1);
-              }),
+          TextButton.icon(
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.chalk.withValues(alpha: 0.85),
             ),
+            icon: Icon(advanced ? Icons.expand_less : Icons.tune, size: 18),
+            label: Text(advanced ? l10n.exportFewer : l10n.exportMore),
+            onPressed: _cropping
+                ? null
+                : () => setState(() => _advanced = !_advanced),
+          ),
         ],
       ),
     );

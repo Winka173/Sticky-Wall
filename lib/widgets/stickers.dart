@@ -13,7 +13,8 @@ import 'pro_sheet.dart';
 enum StickerKind { emoji, stamp, doodle }
 
 /// Which shelf of the picker a sticker sits on: everyday ones, or a
-/// season's pack (Sticky Wall Pro), offered only around its occasion.
+/// season's pack (Sticky Wall Pro). Every pack can be picked all year; the
+/// one whose occasion is near is shown first.
 enum StickerPack {
   everyday(null),
   tet(Season.tet),
@@ -25,6 +26,7 @@ enum StickerPack {
 
   final Season? season;
 
+  /// Around its occasion: shelved first, marked "until …".
   bool get inSeason => season == null || seasonOpen(season!);
 }
 
@@ -416,22 +418,25 @@ class _StickerPicker extends StatelessWidget {
 
   final String? current;
 
-  /// "Until 21 Feb" while a pack is open, "Back 12 Jan – 21 Feb" while it
-  /// waits; nothing for everyday stickers.
+  /// "Until 21 Feb" while a pack's occasion is near; nothing otherwise.
   String? _seasonNote(BuildContext context, StickerPack pack) {
     final season = pack.season;
-    if (season == null) return null;
+    if (season == null || !pack.inSeason) return null;
     final window = currentOrNextSeason(season);
     if (window == null) return null;
     final l10n = AppLocalizations.of(context)!;
     final dates = MaterialLocalizations.of(context);
-    return pack.inSeason
-        ? l10n.seasonUntil(dates.formatShortMonthDay(window.end))
-        : l10n.seasonBack(
-            dates.formatShortMonthDay(window.start),
-            dates.formatShortMonthDay(window.end),
-          );
+    return l10n.seasonUntil(dates.formatShortMonthDay(window.end));
   }
+
+  /// Everyday stickers, then the pack whose occasion is near, then the rest.
+  static List<StickerPack> get _shelves => [
+    StickerPack.everyday,
+    for (final p in StickerPack.values)
+      if (p.season != null && p.inSeason) p,
+    for (final p in StickerPack.values)
+      if (p.season != null && !p.inSeason) p,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -453,7 +458,7 @@ class _StickerPicker extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 20, color: AppColors.ink),
               ),
-              for (final pack in StickerPack.values) ...[
+              for (final pack in _shelves) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(4, 14, 4, 8),
                   child: Text.rich(
@@ -478,25 +483,21 @@ class _StickerPicker extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Out of season a pack waits, named, with its dates.
-                if (pack.inSeason)
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final sticker in stickers.where(
-                        (s) => s.pack == pack,
-                      ))
-                        _StickerTile(
-                          sticker: sticker,
-                          selected: sticker.id == current,
-                          locked: sticker.pro && !pro,
-                          onTap: sticker.pro && !pro
-                              ? () => showProSheet(context)
-                              : () => Navigator.pop(context, sticker.id),
-                        ),
-                    ],
-                  ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final sticker in stickers.where((s) => s.pack == pack))
+                      _StickerTile(
+                        sticker: sticker,
+                        selected: sticker.id == current,
+                        locked: sticker.pro && !pro,
+                        onTap: sticker.pro && !pro
+                            ? () => showProSheet(context)
+                            : () => Navigator.pop(context, sticker.id),
+                      ),
+                  ],
+                ),
               ],
             ],
           ),

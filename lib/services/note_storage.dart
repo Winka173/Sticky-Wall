@@ -41,6 +41,7 @@ class NoteStorage {
   static const _nightStartKey = 'nightStart';
   static const _nightEndKey = 'nightEnd';
   static const _autoTrashDoneKey = 'autoTrashDone';
+  static const _dragToDeleteKey = 'dragToDelete';
   static const _tipsPendingKey = 'tipsPending';
   static const _autoBackupKey = 'autoBackup';
   static const _lastAutoBackupKey = 'lastAutoBackup';
@@ -194,6 +195,12 @@ class NoteStorage {
   bool get autoTrashDone => _prefs.getBool(_autoTrashDoneKey) ?? false;
   Future<void> setAutoTrashDone(bool value) =>
       _prefs.setBool(_autoTrashDoneKey, value);
+
+  /// Whether dragging a note to the foot of the wall offers a delete tray.
+  /// Off unless switched on: a slip of the finger should never bin a note.
+  bool get dragToDelete => _prefs.getBool(_dragToDeleteKey) ?? false;
+  Future<void> setDragToDelete(bool value) =>
+      _prefs.setBool(_dragToDeleteKey, value);
 
   /// Whether the gesture tips are still owed: set on a fresh install, cleared
   /// once the sheet has been shown.

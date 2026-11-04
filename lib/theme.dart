@@ -215,11 +215,11 @@ class WallStyle {
   /// Part of Sticky Wall Pro: shown to everyone, chosen only once bought.
   final bool pro;
 
-  /// A seasonal pack's wall: offered only around its occasion (a board
-  /// that has it keeps it all year).
+  /// A seasonal pack's wall. It can be picked all year; around its
+  /// occasion it is listed first.
   final Season? season;
 
-  /// Whether it can be picked today.
+  /// Whether its occasion is near (always true for a year-round wall).
   bool get inSeason => season == null || seasonOpen(season!);
 
   /// The same wall with the lights off: whatever the texture, text turns to

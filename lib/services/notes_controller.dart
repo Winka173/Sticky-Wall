@@ -184,22 +184,9 @@ class NotesController extends ChangeNotifier {
     selectBoard(_boards[index].id);
   }
 
-  /// Creates a board with the given tab appearance and switches to it.
-  Board addBoard(
-    String name, {
-    String icon = '',
-    bool bold = false,
-    bool italic = false,
-    bool underline = false,
-  }) {
-    final board = Board(
-      id: _uuid.v4(),
-      name: name,
-      icon: icon,
-      bold: bold,
-      italic: italic,
-      underline: underline,
-    );
+  /// Creates a board with the given name and icon and switches to it.
+  Board addBoard(String name, {String icon = ''}) {
+    final board = Board(id: _uuid.v4(), name: name, icon: icon);
     _boards.add(board);
     _storage.saveBoards(_boards);
     selectBoard(board.id);
@@ -257,21 +244,11 @@ class NotesController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Changes how a board's tab reads; anything left null keeps its value.
-  void updateBoard(
-    String id, {
-    String? name,
-    String? icon,
-    bool? bold,
-    bool? italic,
-    bool? underline,
-  }) {
+  /// Renames a board or changes its icon; anything left null keeps its value.
+  void updateBoard(String id, {String? name, String? icon}) {
     final board = _boards.firstWhere((b) => b.id == id);
     if (name != null) board.name = name;
     if (icon != null) board.icon = icon;
-    if (bold != null) board.bold = bold;
-    if (italic != null) board.italic = italic;
-    if (underline != null) board.underline = underline;
     _storage.saveBoards(_boards);
     notifyListeners();
   }

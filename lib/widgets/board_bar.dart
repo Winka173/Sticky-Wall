@@ -242,13 +242,7 @@ class _BoardBarState extends State<BoardBar> {
     final draft = await showBoardDialog(context);
     if (draft == null || draft.name.isEmpty || !context.mounted) return;
     final l10n = AppLocalizations.of(context)!;
-    final board = widget.notes.addBoard(
-      draft.name,
-      icon: draft.icon,
-      bold: draft.bold,
-      italic: draft.italic,
-      underline: draft.underline,
-    );
+    final board = widget.notes.addBoard(draft.name, icon: draft.icon);
     final headings = templateNotes(draft.template, l10n, board.id);
     if (headings.isNotEmpty) widget.notes.seed(headings);
   }
@@ -270,9 +264,6 @@ class _BoardBarState extends State<BoardBar> {
       title: board.icon.isEmpty
           ? _displayName(l10n, board)
           : '${board.icon} ${_displayName(l10n, board)}',
-      titleStyle: board.decorate(
-        const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      ),
       children: [
         ListTile(
           leading: const Icon(Icons.edit_outlined),
@@ -338,14 +329,7 @@ class _BoardBarState extends State<BoardBar> {
     if (action == 'edit') {
       final draft = await showBoardDialog(context, board: board);
       if (draft == null) return;
-      widget.notes.updateBoard(
-        board.id,
-        name: draft.name,
-        icon: draft.icon,
-        bold: draft.bold,
-        italic: draft.italic,
-        underline: draft.underline,
-      );
+      widget.notes.updateBoard(board.id, name: draft.name, icon: draft.icon);
     } else if (action == 'delete') {
       // Trashed notes go too: deleting a board skips the trash entirely.
       final count = widget.notes.allNotes
@@ -376,7 +360,7 @@ class _BoardBarState extends State<BoardBar> {
   }
 }
 
-/// A board tab: icon + name in the board's own formatting, filled when it is
+/// A board tab: icon + name, filled when it is
 /// the current board. Tap to switch; tap the current one to edit, move or
 /// delete it; long-press and drag to reorder.
 class _BoardChip extends StatelessWidget {
@@ -465,17 +449,12 @@ class _BoardChip extends StatelessWidget {
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: board.decorate(
-                        TextStyle(
-                          color: textColor,
-                          fontSize: 16,
-                          fontWeight: selected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          // The underline is drawn in the text color by default; on
-                          // a dark wall that is the chalk, which is what we want.
-                          decorationColor: textColor,
-                        ),
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 16,
+                        fontWeight: selected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                     ),
                   ),

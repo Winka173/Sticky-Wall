@@ -24,11 +24,13 @@ Future<NotesController> _pumpApp(
   WidgetTester tester, {
   List<Note> notes = const [],
   ViewMode? viewMode,
+  bool dragToDelete = false,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final storage = await NoteStorage.create();
   await storage.saveNotes(notes);
   if (viewMode != null) await storage.setViewMode(viewMode);
+  if (dragToDelete) await storage.setDragToDelete(true);
   final controller = NotesController(storage, ReminderService());
   await tester.pumpWidget(
     StickyWallApp(settings: SettingsController(storage), notes: controller),
@@ -693,7 +695,12 @@ void main() {
     await tester.tap(find.text('Export board as image'));
     await tester.pumpAndSettle();
     expect(find.byType(CropFrame), findsNothing);
-    await tester.tap(find.byTooltip('Trim'));
+    // The quick jobs are named on the page; the trim is a finer choice.
+    expect(find.text('Export PDF'), findsOneWidget);
+    expect(find.text('Trim'), findsNothing);
+    await tester.tap(find.text('More options'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Trim'));
     await tester.pumpAndSettle();
     final frame = find.byType(CropFrame);
     expect(frame, findsOneWidget);
@@ -897,6 +904,7 @@ void main() {
     final notes = await _pumpApp(
       tester,
       viewMode: ViewMode.wall,
+      dragToDelete: true,
       notes: [
         Note(
           guid: 'a',
@@ -1341,9 +1349,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('4×'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('More'));
-    await tester.pumpAndSettle();
-    expect(find.text('Share as PDF'), findsOneWidget);
+    expect(find.text('Export PDF'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -1404,6 +1410,7 @@ void main() {
     await _pumpApp(
       tester,
       viewMode: ViewMode.wall,
+      dragToDelete: true,
       notes: [
         Note(
           guid: 'a',

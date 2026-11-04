@@ -1,5 +1,3 @@
-import 'package:flutter/painting.dart';
-
 import 'draw_stroke.dart';
 
 /// A named wall that holds its own set of notes and its own wall texture.
@@ -13,9 +11,6 @@ class Board {
     String? savedWallImage,
     bool? savedWallImageDark,
     this.icon = '',
-    this.bold = false,
-    this.italic = false,
-    this.underline = false,
     this.isPrivate = false,
     List<DrawStroke>? strokes,
   }) : strokes = strokes ?? [],
@@ -45,12 +40,6 @@ class Board {
   /// Optional emoji shown on the board's tab.
   String icon;
 
-  /// How the name is written on the tab. Whole-name formatting, so it reads
-  /// the same everywhere the board is listed.
-  bool bold;
-  bool italic;
-  bool underline;
-
   /// A private board (Sticky Wall Pro) opens only after the phone's lock,
   /// and keeps its notes off the widget, out of search from other boards,
   /// out of the trash list and out of reminder texts while shut.
@@ -64,14 +53,6 @@ class Board {
 
   bool get hasSavedWallImage => savedWallImage.isNotEmpty;
 
-  /// [base] with this board's formatting laid on top. Anything not switched
-  /// on is left as [base] has it, so a selected tab can still be bold.
-  TextStyle decorate(TextStyle base) => base.copyWith(
-    fontWeight: bold ? FontWeight.bold : null,
-    fontStyle: italic ? FontStyle.italic : null,
-    decoration: underline ? TextDecoration.underline : null,
-  );
-
   factory Board.fromJson(Map<String, dynamic> json) => Board(
     id: json['id'] as String,
     name: json['name'] as String? ?? '',
@@ -81,10 +62,10 @@ class Board {
     // Absent before photos were kept: falls back to the photo on show.
     savedWallImage: json['savedWallImage'] as String?,
     savedWallImageDark: json['savedWallImageDark'] as bool?,
+    // Saves from 1.3 and earlier may carry 'bold' / 'italic' / 'underline'
+    // for the name. Names are plain text since 1.4: the words are kept and
+    // the flags dropped (they are not written back).
     icon: json['icon'] as String? ?? '',
-    bold: json['bold'] as bool? ?? false,
-    italic: json['italic'] as bool? ?? false,
-    underline: json['underline'] as bool? ?? false,
     isPrivate: json['private'] as bool? ?? false,
     strokes: (json['strokes'] as List<dynamic>? ?? [])
         .map((e) => DrawStroke.fromJson(e as Map<String, dynamic>))
@@ -100,9 +81,6 @@ class Board {
     if (savedWallImage.isNotEmpty) 'savedWallImage': savedWallImage,
     if (savedWallImage.isNotEmpty) 'savedWallImageDark': savedWallImageDark,
     'icon': icon,
-    'bold': bold,
-    'italic': italic,
-    'underline': underline,
     if (isPrivate) 'private': true,
     if (strokes.isNotEmpty) 'strokes': strokes.map((s) => s.toJson()).toList(),
   };

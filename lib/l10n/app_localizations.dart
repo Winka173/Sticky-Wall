@@ -506,6 +506,18 @@ abstract class AppLocalizations {
   /// **'A list with every item ticked moves to the trash after a day.'**
   String get autoTrashDoneHint;
 
+  /// No description provided for @dragToDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to the foot to delete'**
+  String get dragToDelete;
+
+  /// No description provided for @dragToDeleteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A tray comes up at the foot of the wall; drop a note on it to delete it (Undo is offered).'**
+  String get dragToDeleteHint;
+
   /// No description provided for @resultCount.
   ///
   /// In en, this message translates to:
@@ -998,11 +1010,23 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 selected} other{{count} selected}}'**
   String exportSelectedNotes(int count);
 
-  /// No description provided for @sharePdf.
+  /// No description provided for @exportPdf.
   ///
   /// In en, this message translates to:
-  /// **'Share as PDF'**
-  String get sharePdf;
+  /// **'Export PDF'**
+  String get exportPdf;
+
+  /// No description provided for @exportMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get exportMore;
+
+  /// No description provided for @exportFewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer options'**
+  String get exportFewer;
 
   /// No description provided for @cropImage.
   ///
@@ -1178,12 +1202,6 @@ abstract class AppLocalizations {
   /// **'Edit board'**
   String get editBoard;
 
-  /// No description provided for @nameStyle.
-  ///
-  /// In en, this message translates to:
-  /// **'Name style'**
-  String get nameStyle;
-
   /// No description provided for @bold.
   ///
   /// In en, this message translates to:
@@ -1195,12 +1213,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Italic'**
   String get italic;
-
-  /// No description provided for @underline.
-  ///
-  /// In en, this message translates to:
-  /// **'Underline'**
-  String get underline;
 
   /// No description provided for @defaultBoardName.
   ///
@@ -1307,13 +1319,13 @@ abstract class AppLocalizations {
   /// No description provided for @tipDropTitle.
   ///
   /// In en, this message translates to:
-  /// **'Drop to delete or move'**
+  /// **'Move to another board'**
   String get tipDropTitle;
 
   /// No description provided for @tipDropBody.
   ///
   /// In en, this message translates to:
-  /// **'Drag a note down near the foot of the wall and a small tray appears; drop the note on it to delete. Drop on a board tab instead to move it to that board.'**
+  /// **'Drop a dragged note on a board tab to move it to that board. Deleting by dragging it to a tray at the foot of the wall can be switched on in Customize.'**
   String get tipDropBody;
 
   /// No description provided for @tipSelectTitle.
@@ -2995,12 +3007,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'until {date}'**
   String seasonUntil(String date);
-
-  /// No description provided for @seasonBack.
-  ///
-  /// In en, this message translates to:
-  /// **'back {from} – {to}'**
-  String seasonBack(String from, String to);
 
   /// No description provided for @confirmItsYou.
   ///

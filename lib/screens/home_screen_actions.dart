@@ -478,10 +478,7 @@ extension _NoteActions on _HomeScreenState {
             leading: board.icon.isEmpty
                 ? const Icon(Icons.dashboard_outlined)
                 : Text(board.icon, style: const TextStyle(fontSize: 22)),
-            title: Text(
-              _boardName(board),
-              style: board.decorate(const TextStyle()),
-            ),
+            title: Text(_boardName(board)),
             onTap: () => Navigator.pop(context, board),
           ),
       ],

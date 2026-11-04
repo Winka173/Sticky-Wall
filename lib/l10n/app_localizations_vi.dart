@@ -242,6 +242,13 @@ class AppLocalizationsVi extends AppLocalizations {
       'Danh sách đã tích hết sẽ vào thùng rác sau 1 ngày.';
 
   @override
+  String get dragToDelete => 'Kéo xuống chân tường để xóa';
+
+  @override
+  String get dragToDeleteHint =>
+      'Một khay hiện ra ở chân tường; thả ghi chú vào đó để xóa (có Hoàn tác).';
+
+  @override
   String resultCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -516,7 +523,13 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get sharePdf => 'Chia sẻ PDF';
+  String get exportPdf => 'Xuất PDF';
+
+  @override
+  String get exportMore => 'Tùy chọn nâng cao';
+
+  @override
+  String get exportFewer => 'Ẩn tùy chọn';
 
   @override
   String get cropImage => 'Cắt bớt';
@@ -608,16 +621,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get editBoard => 'Chỉnh sửa tường';
 
   @override
-  String get nameStyle => 'Kiểu chữ tên';
-
-  @override
   String get bold => 'In đậm';
 
   @override
   String get italic => 'In nghiêng';
-
-  @override
-  String get underline => 'Gạch chân';
 
   @override
   String get defaultBoardName => 'Tường của tôi';
@@ -683,11 +690,11 @@ class AppLocalizationsVi extends AppLocalizations {
       'Nhấn giữ chỗ trống để dán note hoặc ảnh tại đó. Chụm để zoom, pan ra lề tường và đặt note ở đó. Chạm hai lần vào note để zoom vào; nút khung hiện toàn cảnh.';
 
   @override
-  String get tipDropTitle => 'Thả để xóa hoặc chuyển';
+  String get tipDropTitle => 'Chuyển sang tường khác';
 
   @override
   String get tipDropBody =>
-      'Kéo note xuống gần đáy tường thì khay nhỏ hiện ra, thả vào đó để xóa. Thả lên tab tường thì chuyển sang tường đó.';
+      'Thả ghi chú đang kéo lên một tab tường để chuyển sang tường đó. Muốn kéo xuống khay ở chân tường để xóa thì bật trong Tùy chỉnh.';
 
   @override
   String get tipSelectTitle => 'Chọn nhiều';
@@ -1594,11 +1601,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String seasonUntil(String date) {
     return 'đến $date';
-  }
-
-  @override
-  String seasonBack(String from, String to) {
-    return 'mở lại $from – $to';
   }
 
   @override

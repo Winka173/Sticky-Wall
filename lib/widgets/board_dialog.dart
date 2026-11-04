@@ -29,9 +29,6 @@ const boardIcons = [
 typedef BoardDraft = ({
   String name,
   String icon,
-  bool bold,
-  bool italic,
-  bool underline,
 
   /// What a new board starts with (always blank when editing).
   BoardTemplate template,
@@ -41,7 +38,7 @@ typedef BoardDraft = ({
 /// anyway, so more would only be hidden.
 const _maxNameLength = 40;
 
-/// Opens the board editor — name, icon and text formatting in one place.
+/// Opens the board editor — name and icon in one place.
 /// Pass [board] to edit an existing one; leave it out for a new board.
 /// Returns the trimmed draft, or null when cancelled.
 Future<BoardDraft?> showBoardDialog(BuildContext context, {Board? board}) {
@@ -51,8 +48,7 @@ Future<BoardDraft?> showBoardDialog(BuildContext context, {Board? board}) {
   );
 }
 
-/// One paper dialog: the name field shows the formatting live, so what you
-/// see is exactly what lands on the tab.
+/// One paper dialog: a plain name and an optional emoji icon.
 class _BoardDialog extends StatefulWidget {
   const _BoardDialog({this.board});
 
@@ -67,11 +63,6 @@ class _BoardDialogState extends State<_BoardDialog> {
   // "Save" on an untouched default board would freeze it in one language.
   late final _name = TextEditingController(text: widget.board?.name ?? '');
   late String _icon = widget.board?.icon ?? '';
-  late final _format = <_Format>{
-    if (widget.board?.bold ?? false) _Format.bold,
-    if (widget.board?.italic ?? false) _Format.italic,
-    if (widget.board?.underline ?? false) _Format.underline,
-  };
 
   bool get _isNew => widget.board == null;
   BoardTemplate _template = BoardTemplate.blank;
@@ -89,22 +80,10 @@ class _BoardDialogState extends State<_BoardDialog> {
     super.dispose();
   }
 
-  /// The formatting as it would be stored, applied to [base].
-  TextStyle _styled(TextStyle base) => base.copyWith(
-    fontWeight: _format.contains(_Format.bold) ? FontWeight.bold : null,
-    fontStyle: _format.contains(_Format.italic) ? FontStyle.italic : null,
-    decoration: _format.contains(_Format.underline)
-        ? TextDecoration.underline
-        : null,
-  );
-
   void _save() {
     Navigator.pop(context, (
       name: _name.text.trim(),
       icon: _icon,
-      bold: _format.contains(_Format.bold),
-      italic: _format.contains(_Format.italic),
-      underline: _format.contains(_Format.underline),
       template: _template,
     ));
   }
@@ -141,11 +120,6 @@ class _BoardDialogState extends State<_BoardDialog> {
                       autofocus: true,
                       textCapitalization: TextCapitalization.sentences,
                       maxLength: _maxNameLength,
-                      // Live preview: the field is written the way the tab is.
-                      style: _styled(
-                        theme.textTheme.bodyLarge ??
-                            const TextStyle(color: AppColors.ink),
-                      ),
                       decoration: InputDecoration(
                         labelText: l10n.boardName,
                         hintText: _isNew ? null : l10n.defaultBoardName,
@@ -196,37 +170,6 @@ class _BoardDialogState extends State<_BoardDialog> {
                 ),
               ],
               const SizedBox(height: 16),
-              Text(l10n.nameStyle, style: sectionStyle),
-              const SizedBox(height: 6),
-              SegmentedButton<_Format>(
-                multiSelectionEnabled: true,
-                emptySelectionAllowed: true,
-                showSelectedIcon: false,
-                selected: _format,
-                onSelectionChanged: (s) => setState(() {
-                  _format
-                    ..clear()
-                    ..addAll(s);
-                }),
-                segments: [
-                  ButtonSegment(
-                    value: _Format.bold,
-                    icon: const Icon(Icons.format_bold),
-                    tooltip: l10n.bold,
-                  ),
-                  ButtonSegment(
-                    value: _Format.italic,
-                    icon: const Icon(Icons.format_italic),
-                    tooltip: l10n.italic,
-                  ),
-                  ButtonSegment(
-                    value: _Format.underline,
-                    icon: const Icon(Icons.format_underlined),
-                    tooltip: l10n.underline,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
               Text(l10n.boardIcon, style: sectionStyle),
               const SizedBox(height: 6),
               // One scrolling line, so the dialog stays short above a keyboard.
@@ -274,8 +217,6 @@ class _BoardDialogState extends State<_BoardDialog> {
     );
   }
 }
-
-enum _Format { bold, italic, underline }
 
 /// The chosen icon beside the name field; an empty outline until one is
 /// picked.

@@ -49,32 +49,24 @@ Future<void> _tapTab(WidgetTester tester, String label) async {
 }
 
 void main() {
-  test('board formatting survives a JSON round trip', () {
-    final board = Board(
-      id: 'b',
-      name: 'Work',
-      icon: '💼',
-      bold: true,
-      italic: false,
-      underline: true,
-    );
-    final copy = Board.fromJson(board.toJson());
-    expect(copy.icon, '💼');
-    expect(copy.bold, isTrue);
-    expect(copy.italic, isFalse);
-    expect(copy.underline, isTrue);
-
-    // Older saves without the flags load as plain text.
-    final legacy = Board.fromJson({'id': 'x', 'name': 'Old'});
-    expect(legacy.bold || legacy.italic || legacy.underline, isFalse);
-    final style = copy.decorate(const TextStyle(fontSize: 16));
-    expect(style.fontWeight, FontWeight.bold);
-    expect(style.fontStyle, isNull);
-    expect(style.decoration, TextDecoration.underline);
-    expect(style.fontSize, 16);
+  test('formatted names from 1.3 load as plain names', () {
+    final legacy = Board.fromJson({
+      'id': 'b',
+      'name': 'Work',
+      'icon': 'W',
+      'bold': true,
+      'italic': false,
+      'underline': true,
+    });
+    expect(legacy.name, 'Work');
+    expect(legacy.icon, 'W');
+    final json = legacy.toJson();
+    expect(json.containsKey('bold'), isFalse);
+    expect(json.containsKey('underline'), isFalse);
+    expect(Board.fromJson(json).name, 'Work');
   });
 
-  testWidgets('new board dialog takes a name, icon and formatting', (
+  testWidgets('new board dialog takes a name and an icon', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1080, 2220);
@@ -92,13 +84,8 @@ void main() {
     expect(tester.widget<FilledButton>(save).onPressed, isNull);
 
     await tester.enterText(find.byType(TextField), ' Công việc ');
-    await tester.tap(find.byIcon(Icons.format_bold));
-    await tester.tap(find.byIcon(Icons.format_italic));
-    await tester.pump();
-    // The field previews the formatting as it is toggled.
-    final field = tester.widget<TextField>(find.byType(TextField));
-    expect(field.style?.fontWeight, FontWeight.bold);
-    expect(field.style?.fontStyle, FontStyle.italic);
+    // The name is plain text: no formatting buttons.
+    expect(find.byIcon(Icons.format_bold), findsNothing);
 
     await tester.tap(find.text('💼'));
     await tester.pump();
@@ -108,17 +95,14 @@ void main() {
     final board = notes.boards.last;
     expect(board.name, 'Công việc');
     expect(board.icon, '💼');
-    expect(board.bold, isTrue);
-    expect(board.italic, isTrue);
-    expect(board.underline, isFalse);
     expect(notes.currentBoardId, board.id);
 
-    // The tab is drawn in that formatting.
+    // The selected tab is bold, never italic or underlined.
     await tester.ensureVisible(find.text('Công việc', skipOffstage: false));
     await tester.pumpAndSettle();
     final style = _chipStyle(tester, 'Công việc');
     expect(style.fontWeight, FontWeight.bold);
-    expect(style.fontStyle, FontStyle.italic);
+    expect(style.fontStyle, isNull);
     expect(style.decoration, isNull);
   });
 
@@ -170,7 +154,7 @@ void main() {
     tester.view.devicePixelRatio = 2.75;
     addTearDown(tester.view.reset);
     final (app, notes) = await _app();
-    notes.addBoard('Học', icon: '📚', bold: true);
+    notes.addBoard('Học', icon: '📚');
     await tester.pumpWidget(app);
     await tester.pumpAndSettle();
 
@@ -184,8 +168,7 @@ void main() {
       tester.widget<TextField>(find.byType(TextField)).controller?.text,
       'Học',
     );
-    // Bold came in switched on; add underline, drop the icon.
-    await tester.tap(find.byIcon(Icons.format_underlined));
+    // Drop the icon.
     await tester.tap(find.text('Không có'));
     await tester.pump();
     await tester.tap(find.widgetWithText(FilledButton, 'Lưu'));
@@ -194,10 +177,5 @@ void main() {
     final board = notes.boards.last;
     expect(board.name, 'Học');
     expect(board.icon, '');
-    expect(board.bold, isTrue);
-    expect(board.underline, isTrue);
-    await tester.ensureVisible(find.text('Học', skipOffstage: false));
-    await tester.pumpAndSettle();
-    expect(_chipStyle(tester, 'Học').decoration, TextDecoration.underline);
   });
 }

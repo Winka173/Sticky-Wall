@@ -205,11 +205,15 @@ class _SettingsSheet extends StatelessWidget {
     bool pro,
   ) {
     final board = notes.currentBoard;
-    // A seasonal wall is offered around its occasion, and whenever it is
-    // the board's own.
+    // Every wall is offered all year; the seasonal ones come last, the one
+    // whose occasion is near first among them.
     final offered = [
-      for (final (i, w) in walls.indexed)
-        if (w.inSeason || (!board.hasWallImage && board.wallIndex == i)) w,
+      for (final w in walls)
+        if (w.season == null) w,
+      for (final w in walls)
+        if (w.season != null && w.inSeason) w,
+      for (final w in walls)
+        if (w.season != null && !w.inSeason) w,
     ];
     return ListView(
       controller: scrollController,
@@ -528,6 +532,23 @@ class _SettingsSheet extends StatelessWidget {
             settings.setAutoTrashDone(on);
             if (on) notes.sweepCompleted();
           },
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(
+            l10n.dragToDelete,
+            style: const TextStyle(fontSize: 16, color: AppColors.ink),
+          ),
+          subtitle: Text(
+            l10n.dragToDeleteHint,
+            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+          ),
+          secondary: const Icon(
+            Icons.delete_sweep_outlined,
+            color: AppColors.ink,
+          ),
+          value: settings.dragToDelete,
+          onChanged: settings.setDragToDelete,
         ),
         _autoBackupTile(context, l10n),
         if (settings.lastAutoBackup != null)

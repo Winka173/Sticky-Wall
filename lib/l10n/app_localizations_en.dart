@@ -245,6 +245,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A list with every item ticked moves to the trash after a day.';
 
   @override
+  String get dragToDelete => 'Drag to the foot to delete';
+
+  @override
+  String get dragToDeleteHint =>
+      'A tray comes up at the foot of the wall; drop a note on it to delete it (Undo is offered).';
+
+  @override
   String resultCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -523,7 +530,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sharePdf => 'Share as PDF';
+  String get exportPdf => 'Export PDF';
+
+  @override
+  String get exportMore => 'More options';
+
+  @override
+  String get exportFewer => 'Fewer options';
 
   @override
   String get cropImage => 'Trim';
@@ -615,16 +628,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editBoard => 'Edit board';
 
   @override
-  String get nameStyle => 'Name style';
-
-  @override
   String get bold => 'Bold';
 
   @override
   String get italic => 'Italic';
-
-  @override
-  String get underline => 'Underline';
 
   @override
   String get defaultBoardName => 'My Wall';
@@ -691,11 +698,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Long-press an empty spot to stick a note or photos there. Pinch to zoom, pan out to the wall’s margins and park notes there. Double-tap a note to zoom in on it; the frame button shows everything.';
 
   @override
-  String get tipDropTitle => 'Drop to delete or move';
+  String get tipDropTitle => 'Move to another board';
 
   @override
   String get tipDropBody =>
-      'Drag a note down near the foot of the wall and a small tray appears; drop the note on it to delete. Drop on a board tab instead to move it to that board.';
+      'Drop a dragged note on a board tab to move it to that board. Deleting by dragging it to a tray at the foot of the wall can be switched on in Customize.';
 
   @override
   String get tipSelectTitle => 'Select several';
@@ -1605,11 +1612,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String seasonUntil(String date) {
     return 'until $date';
-  }
-
-  @override
-  String seasonBack(String from, String to) {
-    return 'back $from – $to';
   }
 
   @override

@@ -613,18 +613,22 @@ void main() {
       expect(next.end, DateTime(2027, 2, 21));
     });
 
-    testWidgets('out of season a pack waits in the picker, with its dates', (
-      tester,
-    ) async {
-      seasonClock = () => DateTime(2026, 11, 3);
+    testWidgets('out of season a pack can still be picked', (tester) async {
+      seasonClock = () => DateTime(2026, 7, 3);
       await _pumpApp(tester, pro: true, viewMode: ViewMode.wall);
       await tester.longPress(find.byType(AddNoteButton));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sticker'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('back Jan 12'), findsOneWidget);
-      expect(find.bySemanticsLabel('Apricot blossom'), findsNothing);
-      expect(find.bySemanticsLabel('🔥'), findsOneWidget);
+      final mai = find.bySemanticsLabel('Apricot blossom');
+      await tester.scrollUntilVisible(
+        mai,
+        150,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(mai);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('back '), findsNothing);
     });
 
     testWidgets('in season its stickers can be picked', (tester) async {
@@ -644,7 +648,7 @@ void main() {
       expect(find.textContaining('until Feb 21'), findsOneWidget);
     });
 
-    test('a seasonal wall is offered only in its season', () {
+    test('a seasonal wall is featured around its occasion', () {
       final tet = walls.firstWhere((w) => w.id == 'tet');
       seasonClock = () => DateTime(2026, 11, 3);
       expect(tet.inSeason, isFalse);

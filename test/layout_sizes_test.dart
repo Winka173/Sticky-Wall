@@ -123,7 +123,9 @@ void main() {
       await tester.tap(find.text('Export board as image'));
       await tester.pumpAndSettle();
       expect(find.byType(BoardPosterPage), findsOneWidget);
-      await tester.tap(find.byTooltip('Trim'));
+      await tester.tap(find.byIcon(Icons.tune));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.crop));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: 'export');
       await tester.tap(find.byIcon(Icons.close));

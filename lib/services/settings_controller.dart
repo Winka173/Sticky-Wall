@@ -19,6 +19,7 @@ class SettingsController extends ChangeNotifier {
       _nightStart = _storage.nightStart,
       _nightEnd = _storage.nightEnd,
       _autoTrashDone = _storage.autoTrashDone,
+      _dragToDelete = _storage.dragToDelete,
       _autoBackup = _storage.autoBackup,
       _lastAutoBackup = _storage.lastAutoBackup,
       _pinStyle = pinStyleById(_storage.pinStyle),
@@ -44,6 +45,7 @@ class SettingsController extends ChangeNotifier {
   int _nightStart;
   int _nightEnd;
   bool _autoTrashDone;
+  bool _dragToDelete;
   bool _autoBackup;
   DateTime? _lastAutoBackup;
   PinStyle _pinStyle;
@@ -169,6 +171,9 @@ class SettingsController extends ChangeNotifier {
   int get nightEnd => _nightEnd;
   bool get autoTrashDone => _autoTrashDone;
 
+  /// The delete tray at the foot of the wall (off by default).
+  bool get dragToDelete => _dragToDelete;
+
   /// Weekly backup into the app's own folder (see `AutoBackup`).
   bool get autoBackup => _autoBackup;
 
@@ -278,6 +283,12 @@ class SettingsController extends ChangeNotifier {
   void setAutoTrashDone(bool value) {
     _autoTrashDone = value;
     _storage.setAutoTrashDone(value);
+    notifyListeners();
+  }
+
+  void setDragToDelete(bool value) {
+    _dragToDelete = value;
+    _storage.setDragToDelete(value);
     notifyListeners();
   }
 
