@@ -186,6 +186,9 @@ class SettingsController extends ChangeNotifier {
   /// The tips were shown; they stay reachable from the more menu.
   void markTipsSeen() => _storage.setTipsPending(false);
 
+  bool get welcomePending => _storage.welcomePending;
+  void markWelcomeSeen() => _storage.setWelcomePending(false);
+
   /// Whether the scheduled window covers [now]; the window may wrap past
   /// midnight (21 → 6). Equal start and end means "never".
   bool scheduledNightAt(DateTime now) {

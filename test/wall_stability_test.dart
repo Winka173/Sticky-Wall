@@ -109,7 +109,10 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Bảng trống'));
+    await tester.pumpAndSettle();
     expect(find.text('Tường mới'), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
     await _showKeyboard(tester);
 
     expect(tester.getRect(find.byType(WallView)), wall0);

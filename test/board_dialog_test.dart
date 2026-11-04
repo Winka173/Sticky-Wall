@@ -37,6 +37,9 @@ final _addBoard = find.descendant(
 Future<void> _openNewBoard(WidgetTester tester) async {
   await tester.tap(_addBoard);
   await tester.pumpAndSettle();
+  // The "+" offers a blank board or a template.
+  await tester.tap(find.text('Bảng trống'));
+  await tester.pumpAndSettle();
 }
 
 /// Scrolls a board tab into the strip, then taps it.

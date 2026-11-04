@@ -5,13 +5,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart' show Locale, ThemeMode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sticky_wall/l10n/app_localizations.dart';
 import 'package:sticky_wall/models/board.dart';
 import 'package:sticky_wall/models/draw_stroke.dart';
 import 'package:sticky_wall/models/note.dart';
 import 'package:sticky_wall/services/auto_backup.dart';
 import 'package:sticky_wall/services/backup_service.dart';
-import 'package:sticky_wall/services/board_templates.dart';
 import 'package:sticky_wall/services/image_service.dart';
 import 'package:sticky_wall/services/note_storage.dart';
 import 'package:sticky_wall/services/notes_controller.dart';
@@ -540,20 +538,6 @@ void main() {
       expect(a.x == b.x && a.y == b.y, isFalse, reason: 'fanned out');
 
       expect(c.duplicate(a).stack, isNull, reason: 'copies lie alone');
-    });
-
-    test('templates put locked headings on the new board', () async {
-      final l10n = await AppLocalizations.delegate.load(const Locale('en'));
-      final kanban = templateNotes(BoardTemplate.kanban, l10n, 'b');
-      expect(kanban.map((n) => n.content), ['To do', 'Doing', 'Done']);
-      expect(
-        kanban.every((n) => n.type == NoteType.label && n.locked),
-        isTrue,
-      );
-      final week = templateNotes(BoardTemplate.week, l10n, 'b');
-      expect(week.first.content, 'Monday');
-      expect(week.length, 7);
-      expect(templateNotes(BoardTemplate.blank, l10n, 'b'), isEmpty);
     });
 
     test('search counts what it finds on the other walls', () async {

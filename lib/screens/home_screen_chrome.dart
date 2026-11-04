@@ -476,27 +476,103 @@ extension _Chrome on _HomeScreenState {
   }
 
   /// Filter, pen (wall) or sort (grid/list), layout and the more menu, in a
-  /// frosted pill bottom-left, opposite the add button.
+  /// frosted pill bottom-left, opposite the add button. Each tool is named
+  /// under its icon: a row of bare icons was hard to read.
   Widget _toolPill(WallStyle wall) {
     return _Glass(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      decoration: _frosted(wall, radius: 24, strong: true),
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: _frosted(wall, radius: 28, strong: true),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           _filterButton(wall),
           if (_notes.viewMode == ViewMode.wall)
-            IconButton(
-              tooltip: _l10n.drawOnWall,
-              icon: Icon(Icons.gesture, color: wall.wallText),
-              onPressed: _marking ? null : () => _startMarking(wall),
+            Tooltip(
+              message: _l10n.drawOnWall,
+              child: Semantics(
+                button: true,
+                excludeSemantics: true,
+                label: _l10n.drawOnWall,
+                child: InkWell(
+                  customBorder: const StadiumBorder(),
+                  onTap: _marking ? null : () => _startMarking(wall),
+                  child: _toolFace(
+                    Icon(Icons.gesture, color: wall.wallText),
+                    _l10n.toolPen,
+                    wall.wallText,
+                  ),
+                ),
+              ),
             )
           else
             _sortButton(wall),
           _layoutButton(wall),
-          _moreButton(wall),
+          _moreButton(
+            wall,
+            child: _toolFace(
+              Icon(Icons.more_vert, color: wall.wallText),
+              _l10n.toolMore,
+              wall.wallText,
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  /// One tool in the pill: its icon with a short name under it.
+  Widget _toolFace(Widget icon, String label, Color color) {
+    return SizedBox(
+      width: 54,
+      height: 52,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconTheme.merge(data: const IconThemeData(size: 22), child: icon),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: color, fontSize: 11, height: 1.1),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The way to every kind of note besides the plain one the yellow button
+  /// makes: a small labelled pill above it (its long-press does the same).
+  Widget _moreKindsButton(WallStyle wall) {
+    return Tooltip(
+      message: _l10n.addOtherKinds,
+      child: Semantics(
+        button: true,
+        excludeSemantics: true,
+        label: _l10n.addOtherKinds,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            customBorder: const StadiumBorder(),
+            onTap: _quickAdd,
+            child: _Glass(
+              decoration: _frosted(wall, radius: 20, strong: true),
+              padding: const EdgeInsets.fromLTRB(10, 8, 14, 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add, size: 18, color: wall.wallText),
+                  const SizedBox(width: 4),
+                  Text(
+                    _l10n.addOtherKindsShort,
+                    style: TextStyle(color: wall.wallText, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -549,14 +625,18 @@ extension _Chrome on _HomeScreenState {
     ];
     return PopupMenuButton<int>(
       tooltip: l10n.type,
-      icon: Badge(
-        isLabelVisible: active,
-        smallSize: 8,
-        backgroundColor: AppColors.accent,
-        child: Icon(
-          active ? Icons.filter_alt : Icons.filter_alt_outlined,
-          color: wall.wallText,
+      child: _toolFace(
+        Badge(
+          isLabelVisible: active,
+          smallSize: 8,
+          backgroundColor: AppColors.accent,
+          child: Icon(
+            active ? Icons.filter_alt : Icons.filter_alt_outlined,
+            color: wall.wallText,
+          ),
         ),
+        l10n.toolFilter,
+        wall.wallText,
       ),
       onSelected: (v) => _notes.typeFilter = v,
       itemBuilder: (context) => [
@@ -577,7 +657,11 @@ extension _Chrome on _HomeScreenState {
     ];
     return PopupMenuButton<int>(
       tooltip: l10n.sortTooltip,
-      icon: Icon(Icons.swap_vert, color: wall.wallText),
+      child: _toolFace(
+        Icon(Icons.swap_vert, color: wall.wallText),
+        l10n.toolSort,
+        wall.wallText,
+      ),
       onSelected: (i) =>
           _notes.setSort(byCreated: options[i].$3, ascending: options[i].$4),
       itemBuilder: (context) => [
@@ -604,9 +688,13 @@ extension _Chrome on _HomeScreenState {
     // button whose icon meant "what you'll get next".
     return PopupMenuButton<ViewMode>(
       tooltip: _l10n.layout,
-      icon: Icon(
-        _HomeScreenState._layoutIcon(_notes.viewMode),
-        color: wall.wallText,
+      child: _toolFace(
+        Icon(
+          _HomeScreenState._layoutIcon(_notes.viewMode),
+          color: wall.wallText,
+        ),
+        _layoutLabel(_notes.viewMode),
+        wall.wallText,
       ),
       onSelected: (m) => _notes.viewMode = m,
       itemBuilder: (context) => [
@@ -660,6 +748,11 @@ extension _Chrome on _HomeScreenState {
             _wallHandle.fitAll();
           case 'tips':
             _showTips();
+          case 'gallery':
+            GalleryScreen.open(
+              context,
+              notes: _notes,
+            ).then((r) => mounted ? showGalleryResult(context, r) : null);
           case 'trash':
             Navigator.of(context).push(
               MaterialPageRoute<void>(
@@ -672,6 +765,11 @@ extension _Chrome on _HomeScreenState {
       },
       // Grouped: add to the wall, arrange it, take it away, the app.
       itemBuilder: (context) => [
+        _menuItem(
+          'gallery',
+          l10n.galleryTitle,
+          icon: Icons.dashboard_customize_outlined,
+        ),
         _menuItem(
           'photos',
           l10n.pinPhotos,

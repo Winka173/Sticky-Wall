@@ -6,11 +6,14 @@ import 'package:uuid/uuid.dart';
 import '../models/board.dart';
 import '../models/note.dart';
 import '../models/view_mode.dart';
+import '../theme.dart';
 import '../util/angles.dart';
 import '../util/rich_note.dart';
 import '../util/text_fold.dart';
 import 'note_storage.dart';
 import 'reminder_service.dart';
+import 'template_library.dart';
+import 'theme_packs.dart';
 
 /// Removes a stored file that no note or board refers to any more.
 typedef FileRemover = void Function(String stored);
@@ -508,6 +511,8 @@ class NotesController extends ChangeNotifier {
   /// Replaces the stored note that has the same guid (the dialog edits a
   /// clone), preserving its position in the list.
   void update(Note note) {
+    // Written on, a template's example is the user's own note now.
+    note.sample = false;
     _refreshCompleted(note);
     final i = _notes.indexWhere((n) => n.guid == note.guid);
     if (i == -1) {
@@ -527,6 +532,160 @@ class NotesController extends ChangeNotifier {
     _links.addAll(links);
     _persistNotes();
     _storage.saveLinks(_links);
+    notifyListeners();
+  }
+
+  /// A new board started from [template], written in [languageCode] and
+  /// dressed in [pack] (its wall, papers, ruling, handwriting, pin and
+  /// thread) when one is given. Switches to it. With [into], that board is
+  /// used instead (renamed to the template), as on a fresh install.
+  Board addBoardFromTemplate(
+    BoardTemplateDef template,
+    String languageCode, {
+    ThemePack? pack,
+    String? into,
+  }) {
+    final Board board;
+    if (into != null) {
+      board = _boards.firstWhere((b) => b.id == into)
+        ..name = template.name.of(languageCode);
+      _storage.saveBoards(_boards);
+      selectBoard(board.id);
+    } else {
+      board = addBoard(template.name.of(languageCode));
+    }
+    if (pack != null) {
+      board
+        ..wallIndex = pack.wallIndex
+        ..themeId = pack.id
+        ..fontId = pack.font
+        ..pinStyle = pack.pin == PinStyle.classic ? '' : pack.pin.name;
+      _storage.saveBoards(_boards);
+    }
+    final made = template.build(board.id, languageCode, pack: pack);
+    seed(made.notes, links: made.links);
+    return board;
+  }
+
+  /// Removes the first-run examples from board [boardId] for good (they
+  /// never were the user's) with the threads tied to them.
+  /// With [only], just those of them.
+  void discardSamples(String boardId, {Set<String>? only}) {
+    final ids = {
+      for (final n in sampleNotes(boardId))
+        if (only == null || only.contains(n.guid)) n.guid,
+    };
+    if (ids.isEmpty) return;
+    _notes.removeWhere((n) => ids.contains(n.guid));
+    _links.removeWhere((l) => ids.contains(l.a) || ids.contains(l.b));
+    _persistNotes();
+    _storage.saveLinks(_links);
+    notifyListeners();
+  }
+
+  /// Takes a template's examples off board [boardId] (to the trash, with
+  /// Undo through [undoDelete]) and leaves its headings, stickers and wall.
+  int clearSamples(String boardId) {
+    final samples = sampleNotes(boardId);
+    trashAll(samples);
+    return samples.length;
+  }
+
+  /// The example notes a template put on board [boardId] that are still as
+  /// it left them.
+  List<Note> sampleNotes(String boardId) => [
+    for (final n in _notes)
+      if (n.boardId == boardId && n.sample && !n.isTrashed) n,
+  ];
+
+  /// Puts a theme pack on board [boardId]: its wall, its papers on the notes
+  /// in reading order, its ruling on the sheets that can take it, its
+  /// thread on every tie, and its handwriting and pin for the board. What
+  /// the notes say, where they sit, their links and dates stay as they are.
+  /// Returns a function that puts everything back (for Undo).
+  VoidCallback applyTheme(String boardId, ThemePack pack) {
+    final board = _boards.firstWhere((b) => b.id == boardId);
+    final before = (
+      wallIndex: board.wallIndex,
+      wallImage: board.wallImage,
+      wallImageDark: board.wallImageDark,
+      themeId: board.themeId,
+      fontId: board.fontId,
+      pinStyle: board.pinStyle,
+    );
+    final notes = [
+      for (final n in _notes)
+        if (n.boardId == boardId && !n.isTrashed) n,
+    ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    final looks = {for (final n in notes) n.guid: (n.colorIndex, n.paper)};
+    final links = List<NoteLink>.of(_links);
+
+    board
+      ..wallIndex = pack.wallIndex
+      // A photo of the user's own stays saved, one tap away in Customize.
+      ..wallImage = ''
+      ..wallImageDark = false
+      ..themeId = pack.id
+      ..fontId = pack.font
+      ..pinStyle = pack.pin == PinStyle.classic ? '' : pack.pin.name;
+    var i = 0;
+    for (final n in notes) {
+      switch (n.type) {
+        case NoteType.photo || NoteType.sticker:
+          continue;
+        case _:
+          n.colorIndex = pack.paperAt(i++);
+          if (pack.paper.suits(n.type)) n.paper = pack.paper;
+      }
+    }
+    final ids = {for (final n in notes) n.guid};
+    for (var k = 0; k < _links.length; k++) {
+      final l = _links[k];
+      if (ids.contains(l.a) || ids.contains(l.b)) {
+        _links[k] = l.copyWith(style: pack.thread, color: pack.yarn);
+      }
+    }
+    _storage
+      ..saveBoards(_boards)
+      ..saveLinks(_links);
+    _persistNotes();
+    notifyListeners();
+
+    return () {
+      board
+        ..wallIndex = before.wallIndex
+        ..wallImage = before.wallImage
+        ..wallImageDark = before.wallImageDark
+        ..themeId = before.themeId
+        ..fontId = before.fontId
+        ..pinStyle = before.pinStyle;
+      for (final n in _notes) {
+        final look = looks[n.guid];
+        if (look == null) continue;
+        n
+          ..colorIndex = look.$1
+          ..paper = look.$2;
+      }
+      _links
+        ..clear()
+        ..addAll(links);
+      _storage
+        ..saveBoards(_boards)
+        ..saveLinks(_links);
+      _persistNotes();
+      notifyListeners();
+    };
+  }
+
+  /// Drops the board's own handwriting and pin, so the ones chosen in
+  /// Customize show on it again.
+  void clearBoardStyle(String boardId) {
+    final board = _boards.firstWhere((b) => b.id == boardId);
+    if (board.fontId.isEmpty && board.pinStyle.isEmpty) return;
+    board
+      ..fontId = ''
+      ..pinStyle = '';
+    _storage.saveBoards(_boards);
     notifyListeners();
   }
 

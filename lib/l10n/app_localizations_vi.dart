@@ -950,6 +950,24 @@ class AppLocalizationsVi extends AppLocalizations {
   String get pinShort => 'Ghim';
 
   @override
+  String get toolFilter => 'Lọc';
+
+  @override
+  String get toolPen => 'Bút';
+
+  @override
+  String get toolSort => 'Sắp xếp';
+
+  @override
+  String get toolMore => 'Khác';
+
+  @override
+  String get addOtherKinds => 'Thêm loại ghi chú khác';
+
+  @override
+  String get addOtherKindsShort => 'Loại khác';
+
+  @override
   String get colorShort => 'Màu';
 
   @override
@@ -1089,33 +1107,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get remindersChannelDescription => 'Lời nhắc bạn đặt trên ghi chú';
 
   @override
-  String get boardTemplate => 'Bắt đầu từ';
-
-  @override
-  String get templateBlank => 'Trống';
-
-  @override
-  String get templateKanban => 'Kanban';
-
-  @override
-  String get templateWeek => 'Kế hoạch tuần';
-
-  @override
-  String get templateBrainstorm => 'Động não';
-
-  @override
-  String get kanbanTodo => 'Cần làm';
-
-  @override
-  String get kanbanDoing => 'Đang làm';
-
-  @override
-  String get kanbanDone => 'Xong';
-
-  @override
-  String get brainstormCenter => 'Ý tưởng chính';
-
-  @override
   String get stackNotes => 'Xếp chồng với…';
 
   @override
@@ -1149,27 +1140,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get onOtherBoards => 'Ở tường khác';
-
-  @override
-  String get dayMonday => 'Thứ Hai';
-
-  @override
-  String get dayTuesday => 'Thứ Ba';
-
-  @override
-  String get dayWednesday => 'Thứ Tư';
-
-  @override
-  String get dayThursday => 'Thứ Năm';
-
-  @override
-  String get dayFriday => 'Thứ Sáu';
-
-  @override
-  String get daySaturday => 'Thứ Bảy';
-
-  @override
-  String get daySunday => 'Chủ Nhật';
 
   @override
   String get proTitle => 'Sticky Wall Pro';
@@ -1605,4 +1575,141 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get confirmItsYou => 'Xác nhận là bạn';
+
+  @override
+  String get galleryTitle => 'Mẫu & chủ đề';
+
+  @override
+  String get galleryTemplates => 'Mẫu bảng';
+
+  @override
+  String get galleryThemes => 'Chủ đề';
+
+  @override
+  String get gallerySearch => 'Tìm mẫu';
+
+  @override
+  String get galleryAll => 'Tất cả';
+
+  @override
+  String get galleryFree => 'Miễn phí';
+
+  @override
+  String get galleryNothing => 'Không có mẫu nào khớp.';
+
+  @override
+  String get catProductivity => 'Kế hoạch & danh sách';
+
+  @override
+  String get catStudy => 'Học tập';
+
+  @override
+  String get catCreative => 'Sáng tạo';
+
+  @override
+  String get catPersonal => 'Cá nhân';
+
+  @override
+  String get catFamily => 'Gia đình';
+
+  @override
+  String get catSeasonal => 'Theo mùa';
+
+  @override
+  String get catClassic => 'Cổ điển';
+
+  @override
+  String get useTemplate => 'Dùng mẫu này';
+
+  @override
+  String templateLook(String name) {
+    return 'Giao diện: $name';
+  }
+
+  @override
+  String get templateFreeLook =>
+      'Giao diện này thuộc Pro nên bảng sẽ dùng nền gỗ bần; đổi lúc nào cũng được.';
+
+  @override
+  String templateUsed(String name) {
+    return '“$name” đã sẵn sàng. Sửa ghi chú nào cũng được, hoặc xóa nội dung mẫu trong menu của bảng.';
+  }
+
+  @override
+  String applyTheme(String board) {
+    return 'Áp dụng cho “$board”';
+  }
+
+  @override
+  String themeApplied(String name) {
+    return 'Đã áp dụng “$name”';
+  }
+
+  @override
+  String get themeKeepsContent =>
+      'Đổi tường, màu giấy và dòng kẻ, ghim, phông chữ và dây nối của bảng này. Chữ bạn viết và vị trí ghi chú giữ nguyên.';
+
+  @override
+  String get proUnlock => 'Mở khóa bằng Pro';
+
+  @override
+  String get previewNoteA => 'Gọi tiệm bánh';
+
+  @override
+  String get previewNoteB => 'Dã ngoại Chủ Nhật';
+
+  @override
+  String get previewItemA => 'Vé';
+
+  @override
+  String get previewItemB => 'Đồ ăn vặt';
+
+  @override
+  String get newBoardBlank => 'Bảng trống';
+
+  @override
+  String get newBoardFromTemplate => 'Từ một mẫu';
+
+  @override
+  String get newBoardFromTemplateHint =>
+      '45 bảng để bắt đầu: kế hoạch, học tập, gia đình, cảm hứng…';
+
+  @override
+  String get clearSamples => 'Xóa nội dung mẫu';
+
+  @override
+  String get clearSamplesHint => 'Giữ tiêu đề, sticker và tường';
+
+  @override
+  String get samplesCleared => 'Đã xóa nội dung mẫu';
+
+  @override
+  String get changeTheme => 'Đổi chủ đề';
+
+  @override
+  String get welcomeTitle => 'Chào mừng tới Sticky Wall';
+
+  @override
+  String get welcomeBody =>
+      'Ghi chú dán trên một bức tường thật: viết, kéo đi, nối dây với nhau. Bạn muốn bắt đầu thế nào?';
+
+  @override
+  String get welcomeTemplate => 'Chọn một mẫu';
+
+  @override
+  String get welcomeTemplateHint =>
+      'Kế hoạch, bảng học, bảng cảm hứng và nhiều nữa, sửa được ngay';
+
+  @override
+  String get welcomeBlank => 'Bắt đầu với tường trống';
+
+  @override
+  String get welcomeBlankHint => 'Các ghi chú mẫu sẽ được xóa';
+
+  @override
+  String get welcomeExplore => 'Khám phá tường mẫu';
+
+  @override
+  String get welcomeExploreHint =>
+      'Vài ghi chú chỉ cách dùng; xóa lúc nào cũng được';
 }

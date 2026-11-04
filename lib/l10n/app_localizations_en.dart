@@ -959,6 +959,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pinShort => 'Pin';
 
   @override
+  String get toolFilter => 'Filter';
+
+  @override
+  String get toolPen => 'Pen';
+
+  @override
+  String get toolSort => 'Sort';
+
+  @override
+  String get toolMore => 'More';
+
+  @override
+  String get addOtherKinds => 'Add another kind of note';
+
+  @override
+  String get addOtherKindsShort => 'Other kinds';
+
+  @override
   String get colorShort => 'Color';
 
   @override
@@ -1098,33 +1116,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remindersChannelDescription => 'Reminders you set on your notes';
 
   @override
-  String get boardTemplate => 'Start from';
-
-  @override
-  String get templateBlank => 'Blank';
-
-  @override
-  String get templateKanban => 'Kanban';
-
-  @override
-  String get templateWeek => 'Week planner';
-
-  @override
-  String get templateBrainstorm => 'Brainstorm';
-
-  @override
-  String get kanbanTodo => 'To do';
-
-  @override
-  String get kanbanDoing => 'Doing';
-
-  @override
-  String get kanbanDone => 'Done';
-
-  @override
-  String get brainstormCenter => 'Big idea';
-
-  @override
   String get stackNotes => 'Stack with…';
 
   @override
@@ -1160,27 +1151,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onOtherBoards => 'On other walls';
-
-  @override
-  String get dayMonday => 'Monday';
-
-  @override
-  String get dayTuesday => 'Tuesday';
-
-  @override
-  String get dayWednesday => 'Wednesday';
-
-  @override
-  String get dayThursday => 'Thursday';
-
-  @override
-  String get dayFriday => 'Friday';
-
-  @override
-  String get daySaturday => 'Saturday';
-
-  @override
-  String get daySunday => 'Sunday';
 
   @override
   String get proTitle => 'Sticky Wall Pro';
@@ -1616,4 +1586,141 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirmItsYou => 'Confirm it\'s you';
+
+  @override
+  String get galleryTitle => 'Templates & themes';
+
+  @override
+  String get galleryTemplates => 'Board templates';
+
+  @override
+  String get galleryThemes => 'Themes';
+
+  @override
+  String get gallerySearch => 'Search templates';
+
+  @override
+  String get galleryAll => 'All';
+
+  @override
+  String get galleryFree => 'Free';
+
+  @override
+  String get galleryNothing => 'No template matches that.';
+
+  @override
+  String get catProductivity => 'Plans & lists';
+
+  @override
+  String get catStudy => 'Study';
+
+  @override
+  String get catCreative => 'Creative';
+
+  @override
+  String get catPersonal => 'Personal';
+
+  @override
+  String get catFamily => 'Family';
+
+  @override
+  String get catSeasonal => 'Seasonal';
+
+  @override
+  String get catClassic => 'Classic';
+
+  @override
+  String get useTemplate => 'Use this template';
+
+  @override
+  String templateLook(String name) {
+    return 'Look: $name';
+  }
+
+  @override
+  String get templateFreeLook =>
+      'That look is part of Pro, so the board starts on cork; you can change it any time.';
+
+  @override
+  String templateUsed(String name) {
+    return '“$name” is ready. Change any note, or clear the examples from the board\'s sheet.';
+  }
+
+  @override
+  String applyTheme(String board) {
+    return 'Apply to “$board”';
+  }
+
+  @override
+  String themeApplied(String name) {
+    return '“$name” applied';
+  }
+
+  @override
+  String get themeKeepsContent =>
+      'Changes the wall, the papers and their ruling, the pins, the handwriting and the threads on this board. What you wrote and where it sits stay as they are.';
+
+  @override
+  String get proUnlock => 'Unlock with Pro';
+
+  @override
+  String get previewNoteA => 'Call the bakery';
+
+  @override
+  String get previewNoteB => 'Picnic on Sunday';
+
+  @override
+  String get previewItemA => 'Tickets';
+
+  @override
+  String get previewItemB => 'Snacks';
+
+  @override
+  String get newBoardBlank => 'Blank board';
+
+  @override
+  String get newBoardFromTemplate => 'From a template';
+
+  @override
+  String get newBoardFromTemplateHint =>
+      '45 boards to start from: planners, study, family, moodboards…';
+
+  @override
+  String get clearSamples => 'Clear the examples';
+
+  @override
+  String get clearSamplesHint => 'Keeps the headings, stickers and wall';
+
+  @override
+  String get samplesCleared => 'Examples cleared';
+
+  @override
+  String get changeTheme => 'Change the theme';
+
+  @override
+  String get welcomeTitle => 'Welcome to Sticky Wall';
+
+  @override
+  String get welcomeBody =>
+      'Notes on a real wall: write them, move them, tie them together. How would you like to start?';
+
+  @override
+  String get welcomeTemplate => 'Pick a template';
+
+  @override
+  String get welcomeTemplateHint =>
+      'Planners, study boards, moodboards and more, ready to edit';
+
+  @override
+  String get welcomeBlank => 'Start with a blank wall';
+
+  @override
+  String get welcomeBlankHint => 'The sample notes are cleared';
+
+  @override
+  String get welcomeExplore => 'Explore the sample wall';
+
+  @override
+  String get welcomeExploreHint =>
+      'A few notes that show what you can do; delete them any time';
 }

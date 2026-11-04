@@ -43,6 +43,7 @@ class NoteStorage {
   static const _autoTrashDoneKey = 'autoTrashDone';
   static const _dragToDeleteKey = 'dragToDelete';
   static const _tipsPendingKey = 'tipsPending';
+  static const _welcomePendingKey = 'welcomePending';
   static const _autoBackupKey = 'autoBackup';
   static const _lastAutoBackupKey = 'lastAutoBackup';
   static const _pinStyleKey = 'pinStyle';
@@ -205,6 +206,12 @@ class NoteStorage {
   /// Whether the gesture tips are still owed: set on a fresh install, cleared
   /// once the sheet has been shown.
   bool get tipsPending => _prefs.getBool(_tipsPendingKey) ?? false;
+
+  /// Whether the first-run welcome (sample wall, blank wall or a template)
+  /// is still owed.
+  bool get welcomePending => _prefs.getBool(_welcomePendingKey) ?? false;
+  Future<void> setWelcomePending(bool value) =>
+      _prefs.setBool(_welcomePendingKey, value);
   Future<void> setTipsPending(bool value) =>
       _prefs.setBool(_tipsPendingKey, value);
 

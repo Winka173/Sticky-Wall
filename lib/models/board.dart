@@ -11,6 +11,9 @@ class Board {
     String? savedWallImage,
     bool? savedWallImageDark,
     this.icon = '',
+    this.themeId = '',
+    this.fontId = '',
+    this.pinStyle = '',
     this.isPrivate = false,
     List<DrawStroke>? strokes,
   }) : strokes = strokes ?? [],
@@ -40,6 +43,15 @@ class Board {
   /// Optional emoji shown on the board's tab.
   String icon;
 
+  /// The theme pack last applied (see theme_packs.dart), or empty.
+  String themeId;
+
+  /// The board's own handwriting and pin, set by a theme pack; empty means
+  /// the ones chosen in Customize. Drawn even without Pro, like any look a
+  /// note already has.
+  String fontId;
+  String pinStyle;
+
   /// A private board (Sticky Wall Pro) opens only after the phone's lock,
   /// and keeps its notes off the widget, out of search from other boards,
   /// out of the trash list and out of reminder texts while shut.
@@ -66,6 +78,9 @@ class Board {
     // for the name. Names are plain text since 1.4: the words are kept and
     // the flags dropped (they are not written back).
     icon: json['icon'] as String? ?? '',
+    themeId: json['theme'] as String? ?? '',
+    fontId: json['font'] as String? ?? '',
+    pinStyle: json['pin'] as String? ?? '',
     isPrivate: json['private'] as bool? ?? false,
     strokes: (json['strokes'] as List<dynamic>? ?? [])
         .map((e) => DrawStroke.fromJson(e as Map<String, dynamic>))
@@ -81,6 +96,9 @@ class Board {
     if (savedWallImage.isNotEmpty) 'savedWallImage': savedWallImage,
     if (savedWallImage.isNotEmpty) 'savedWallImageDark': savedWallImageDark,
     'icon': icon,
+    if (themeId.isNotEmpty) 'theme': themeId,
+    if (fontId.isNotEmpty) 'font': fontId,
+    if (pinStyle.isNotEmpty) 'pin': pinStyle,
     if (isPrivate) 'private': true,
     if (strokes.isNotEmpty) 'strokes': strokes.map((s) => s.toJson()).toList(),
   };

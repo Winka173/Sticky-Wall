@@ -1,0 +1,4162 @@
+{
+ "version": 1,
+ "templates": [
+  {
+   "id": "daily_notes",
+   "category": "productivity",
+   "theme": "cork_classic",
+   "orientation": "portrait",
+   "tags": [
+    "daily",
+    "planning"
+   ],
+   "name": {
+    "en": "Daily Notes",
+    "vi": "Ghi chú trong ngày"
+   },
+   "description": {
+    "en": "Morning, afternoon and evening, with a to-do list for today.",
+    "vi": "Sáng, chiều, tối và một danh sách việc hôm nay."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Morning",
+      "vi": "Buổi sáng"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 0
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Afternoon",
+      "vi": "Buổi chiều"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 3
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Reply to emails",
+      "vi": "Trả lời email"
+     },
+     "x": 0.0,
+     "y": 0.12,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Lunch with Mai",
+      "vi": "Ăn trưa với Mai"
+     },
+     "x": 1.0,
+     "y": 0.12,
+     "color": 3
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Evening",
+      "vi": "Buổi tối"
+     },
+     "x": 0.0,
+     "y": 0.45,
+     "color": 5
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Call home",
+      "vi": "Gọi về nhà"
+     },
+     "x": 0.0,
+     "y": 0.57,
+     "color": 5
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Today",
+      "vi": "Hôm nay"
+     },
+     "items": [
+      {
+       "en": "Water the plants",
+       "vi": "Tưới cây"
+      },
+      {
+       "en": "Pay the bill",
+       "vi": "Đóng tiền điện"
+      },
+      {
+       "en": "Walk 20 minutes",
+       "vi": "Đi bộ 20 phút"
+      }
+     ],
+     "x": 1.0,
+     "y": 0.45,
+     "color": 2
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "weekly_planner",
+   "category": "productivity",
+   "theme": "clean_office",
+   "orientation": "portrait",
+   "tags": [
+    "weekly",
+    "planning"
+   ],
+   "name": {
+    "en": "Weekly Planner",
+    "vi": "Kế hoạch tuần"
+   },
+   "description": {
+    "en": "Seven days down the wall, a note beside each.",
+    "vi": "Bảy ngày dọc bức tường, mỗi ngày một ghi chú."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Monday",
+      "vi": "Thứ Hai"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Team meeting 9:00",
+      "vi": "Họp nhóm 9:00"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 0,
+     "scale": 0.8
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Tuesday",
+      "vi": "Thứ Ba"
+     },
+     "x": 0.0,
+     "y": 0.15,
+     "color": 1
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Gym",
+      "vi": "Đi tập"
+     },
+     "x": 1.0,
+     "y": 0.15,
+     "color": 1,
+     "scale": 0.8
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Wednesday",
+      "vi": "Thứ Tư"
+     },
+     "x": 0.0,
+     "y": 0.3,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Dentist 17:30",
+      "vi": "Nha sĩ 17:30"
+     },
+     "x": 1.0,
+     "y": 0.3,
+     "color": 2,
+     "scale": 0.8
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Thursday",
+      "vi": "Thứ Năm"
+     },
+     "x": 0.0,
+     "y": 0.45,
+     "color": 3
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Friday",
+      "vi": "Thứ Sáu"
+     },
+     "x": 0.0,
+     "y": 0.6,
+     "color": 4
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Movie night",
+      "vi": "Tối xem phim"
+     },
+     "x": 1.0,
+     "y": 0.6,
+     "color": 4,
+     "scale": 0.8
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Saturday",
+      "vi": "Thứ Bảy"
+     },
+     "x": 0.0,
+     "y": 0.75,
+     "color": 5
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Sunday",
+      "vi": "Chủ Nhật"
+     },
+     "x": 0.0,
+     "y": 0.9,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Family lunch",
+      "vi": "Ăn trưa cả nhà"
+     },
+     "x": 1.0,
+     "y": 0.9,
+     "color": 0,
+     "scale": 0.8
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "kanban_lite",
+   "category": "productivity",
+   "theme": "clean_office",
+   "orientation": "portrait",
+   "tags": [
+    "work",
+    "project"
+   ],
+   "name": {
+    "en": "Kanban Lite",
+    "vi": "Kanban gọn"
+   },
+   "description": {
+    "en": "To do, doing, done: move each note along as it gets done.",
+    "vi": "Cần làm, đang làm, xong: kéo ghi chú sang cột kế tiếp khi làm xong."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "To do",
+      "vi": "Cần làm"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 0
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Doing",
+      "vi": "Đang làm"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 3
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Done",
+      "vi": "Xong"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Draft the plan",
+      "vi": "Viết bản nháp kế hoạch"
+     },
+     "x": 0.0,
+     "y": 0.12,
+     "color": 0,
+     "scale": 0.72
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Ask for feedback",
+      "vi": "Xin góp ý"
+     },
+     "x": 0.0,
+     "y": 0.34,
+     "color": 0,
+     "scale": 0.72
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Design the cover",
+      "vi": "Thiết kế bìa"
+     },
+     "x": 0.5,
+     "y": 0.12,
+     "color": 3,
+     "scale": 0.72
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Book the room",
+      "vi": "Đặt phòng họp"
+     },
+     "x": 1.0,
+     "y": 0.12,
+     "color": 2,
+     "scale": 0.72
+    },
+    {
+     "kind": "sticker",
+     "sticker": "check",
+     "x": 1.0,
+     "y": 0.36,
+     "scale": 0.8
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "urgent_important",
+   "category": "productivity",
+   "theme": "minimal_cream",
+   "orientation": "portrait",
+   "tags": [
+    "priorities",
+    "work"
+   ],
+   "name": {
+    "en": "Urgent / Important",
+    "vi": "Gấp / Quan trọng"
+   },
+   "description": {
+    "en": "Four corners: do now, plan, hand over, drop.",
+    "vi": "Bốn góc: làm ngay, lên lịch, nhờ người khác, bỏ qua."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Do now",
+      "vi": "Làm ngay"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 1
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Plan it",
+      "vi": "Lên lịch"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 3
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Tax form due Friday",
+      "vi": "Tờ khai thuế hạn thứ Sáu"
+     },
+     "x": 0.0,
+     "y": 0.1,
+     "color": 1,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Learn to swim",
+      "vi": "Học bơi"
+     },
+     "x": 1.0,
+     "y": 0.1,
+     "color": 3,
+     "scale": 0.85
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Hand over",
+      "vi": "Nhờ người khác"
+     },
+     "x": 0.0,
+     "y": 0.5,
+     "color": 0
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Drop",
+      "vi": "Bỏ qua"
+     },
+     "x": 1.0,
+     "y": 0.5,
+     "color": 5
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Pick up the parcel",
+      "vi": "Lấy bưu kiện"
+     },
+     "x": 0.0,
+     "y": 0.6,
+     "color": 0,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Scrolling at night",
+      "vi": "Lướt điện thoại khuya"
+     },
+     "x": 1.0,
+     "y": 0.6,
+     "color": 5,
+     "scale": 0.85
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "brain_dump",
+   "category": "productivity",
+   "theme": "kraft_workshop",
+   "orientation": "portrait",
+   "tags": [
+    "thinking",
+    "quick"
+   ],
+   "name": {
+    "en": "Brain Dump",
+    "vi": "Xả đầu óc"
+   },
+   "description": {
+    "en": "Everything on your mind, anywhere on the wall. Sort it later.",
+    "vi": "Mọi thứ trong đầu, dán đâu cũng được. Sắp xếp sau."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Buy a birthday card",
+      "vi": "Mua thiệp sinh nhật"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 0,
+     "rotation": -0.06
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Fix the bike light",
+      "vi": "Sửa đèn xe đạp"
+     },
+     "x": 1.0,
+     "y": 0.05,
+     "color": 1,
+     "rotation": 0.05
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Idea: weekend market stall",
+      "vi": "Ý tưởng: bán hàng chợ cuối tuần"
+     },
+     "x": 0.45,
+     "y": 0.3,
+     "color": 4,
+     "rotation": 0.02
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Renew the passport",
+      "vi": "Gia hạn hộ chiếu"
+     },
+     "x": 0.0,
+     "y": 0.55,
+     "color": 2,
+     "rotation": 0.04
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Read that book Lan lent me",
+      "vi": "Đọc cuốn sách Lan cho mượn"
+     },
+     "x": 1.0,
+     "y": 0.6,
+     "color": 3,
+     "rotation": -0.04
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 0.5,
+     "y": 0.82
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "meal_plan",
+   "category": "productivity",
+   "theme": "warm_wood",
+   "orientation": "portrait",
+   "tags": [
+    "food",
+    "home"
+   ],
+   "name": {
+    "en": "Meal Plan",
+    "vi": "Thực đơn tuần"
+   },
+   "description": {
+    "en": "What to cook this week and what to buy for it.",
+    "vi": "Tuần này nấu gì và cần mua gì."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "This week",
+      "vi": "Tuần này"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 4
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Mon · Pho",
+      "vi": "T2 · Phở bò"
+     },
+     "x": 0.0,
+     "y": 0.1,
+     "color": 4,
+     "scale": 0.8
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Tue · Fried rice",
+      "vi": "T3 · Cơm chiên"
+     },
+     "x": 1.0,
+     "y": 0.1,
+     "color": 0,
+     "scale": 0.8
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Wed · Fish soup",
+      "vi": "T4 · Canh cá"
+     },
+     "x": 0.0,
+     "y": 0.3,
+     "color": 2,
+     "scale": 0.8
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Thu · Spring rolls",
+      "vi": "T5 · Gỏi cuốn"
+     },
+     "x": 1.0,
+     "y": 0.3,
+     "color": 1,
+     "scale": 0.8
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Fri · Eat out",
+      "vi": "T6 · Ăn ngoài"
+     },
+     "x": 0.0,
+     "y": 0.5,
+     "color": 3,
+     "scale": 0.8
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Shopping",
+      "vi": "Đi chợ"
+     },
+     "items": [
+      {
+       "en": "Rice noodles",
+       "vi": "Bánh phở"
+      },
+      {
+       "en": "Herbs",
+       "vi": "Rau thơm"
+      },
+      {
+       "en": "Eggs",
+       "vi": "Trứng"
+      },
+      {
+       "en": "Fish",
+       "vi": "Cá"
+      }
+     ],
+     "x": 1.0,
+     "y": 0.55,
+     "color": 0
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "shopping_board",
+   "category": "productivity",
+   "theme": "minimal_cream",
+   "orientation": "portrait",
+   "tags": [
+    "lists",
+    "home"
+   ],
+   "name": {
+    "en": "Shopping Board",
+    "vi": "Danh sách mua sắm"
+   },
+   "description": {
+    "en": "One list per shop, ticked off in the aisle.",
+    "vi": "Mỗi cửa hàng một danh sách, tích ngay khi mua."
+   },
+   "items": [
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Market",
+      "vi": "Chợ"
+     },
+     "items": [
+      {
+       "en": "Tomatoes",
+       "vi": "Cà chua"
+      },
+      {
+       "en": "Garlic",
+       "vi": "Tỏi"
+      },
+      {
+       "en": "Bananas",
+       "vi": "Chuối"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.0,
+     "color": 2
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Supermarket",
+      "vi": "Siêu thị"
+     },
+     "items": [
+      {
+       "en": "Dish soap",
+       "vi": "Nước rửa chén"
+      },
+      {
+       "en": "Rice 5 kg",
+       "vi": "Gạo 5 kg"
+      },
+      {
+       "en": "Milk",
+       "vi": "Sữa"
+      }
+     ],
+     "x": 1.0,
+     "y": 0.0,
+     "color": 3
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Pharmacy",
+      "vi": "Nhà thuốc"
+     },
+     "items": [
+      {
+       "en": "Plasters",
+       "vi": "Băng cá nhân"
+      },
+      {
+       "en": "Vitamin C",
+       "vi": "Vitamin C"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.5,
+     "color": 1
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Return the jacket",
+      "vi": "Đổi áo khoác"
+     },
+     "x": 1.0,
+     "y": 0.55,
+     "color": 4
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "cleaning_day",
+   "category": "productivity",
+   "theme": "felt_board",
+   "orientation": "portrait",
+   "tags": [
+    "home",
+    "family"
+   ],
+   "name": {
+    "en": "Cleaning Day",
+    "vi": "Ngày dọn nhà"
+   },
+   "description": {
+    "en": "Room by room, with who does what.",
+    "vi": "Từng phòng một, ai làm việc gì."
+   },
+   "items": [
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Kitchen",
+      "vi": "Bếp"
+     },
+     "items": [
+      {
+       "en": "Wipe the hob",
+       "vi": "Lau bếp"
+      },
+      {
+       "en": "Empty the fridge",
+       "vi": "Dọn tủ lạnh"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.0,
+     "color": 0
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Living room",
+      "vi": "Phòng khách"
+     },
+     "items": [
+      {
+       "en": "Vacuum",
+       "vi": "Hút bụi"
+      },
+      {
+       "en": "Dust shelves",
+       "vi": "Lau kệ"
+      }
+     ],
+     "x": 1.0,
+     "y": 0.0,
+     "color": 3
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Bathroom",
+      "vi": "Phòng tắm"
+     },
+     "items": [
+      {
+       "en": "Scrub the tiles",
+       "vi": "Cọ gạch"
+      },
+      {
+       "en": "New towels",
+       "vi": "Thay khăn"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.5,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Donate old clothes",
+      "vi": "Quyên góp quần áo cũ"
+     },
+     "x": 1.0,
+     "y": 0.55,
+     "color": 4
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 0.5,
+     "y": 0.85
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "habit_reminder",
+   "category": "productivity",
+   "theme": "moss_garden",
+   "orientation": "portrait",
+   "tags": [
+    "habits",
+    "health"
+   ],
+   "name": {
+    "en": "Habit Reminders",
+    "vi": "Nhắc thói quen"
+   },
+   "description": {
+    "en": "A few small habits to see every day.",
+    "vi": "Vài thói quen nhỏ để nhìn thấy mỗi ngày."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Every day",
+      "vi": "Mỗi ngày"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Drink 8 glasses of water",
+      "vi": "Uống 8 cốc nước"
+     },
+     "x": 0.0,
+     "y": 0.12,
+     "color": 3
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Stretch for 5 minutes",
+      "vi": "Giãn cơ 5 phút"
+     },
+     "x": 1.0,
+     "y": 0.12,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Phone away by 23:00",
+      "vi": "Cất điện thoại trước 23:00"
+     },
+     "x": 0.0,
+     "y": 0.42,
+     "color": 5
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Write one good thing",
+      "vi": "Viết một điều tốt"
+     },
+     "x": 1.0,
+     "y": 0.42,
+     "color": 0
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 0.5,
+     "y": 0.75
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "meeting_notes",
+   "category": "productivity",
+   "theme": "clean_office",
+   "orientation": "portrait",
+   "tags": [
+    "work"
+   ],
+   "name": {
+    "en": "Meeting Notes",
+    "vi": "Ghi chú cuộc họp"
+   },
+   "description": {
+    "en": "Agenda, decisions and who follows up.",
+    "vi": "Nội dung họp, quyết định và ai phụ trách."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Agenda",
+      "vi": "Nội dung"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 3
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Decisions",
+      "vi": "Quyết định"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 2
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Points",
+      "vi": "Các ý"
+     },
+     "items": [
+      {
+       "en": "Budget",
+       "vi": "Ngân sách"
+      },
+      {
+       "en": "Launch date",
+       "vi": "Ngày ra mắt"
+      },
+      {
+       "en": "Hiring",
+       "vi": "Tuyển người"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.1,
+     "color": 3
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Launch moves to May 12",
+      "vi": "Dời ra mắt sang 12/5"
+     },
+     "x": 1.0,
+     "y": 0.1,
+     "color": 2
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Follow up",
+      "vi": "Việc tiếp theo"
+     },
+     "x": 0.0,
+     "y": 0.55,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Linh: new budget by Fri",
+      "vi": "Linh: gửi ngân sách mới trước T6"
+     },
+     "x": 0.0,
+     "y": 0.65,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Tuan: book the venue",
+      "vi": "Tuấn: đặt địa điểm"
+     },
+     "x": 1.0,
+     "y": 0.65,
+     "color": 4
+    }
+   ],
+   "threads": [
+    {
+     "from": 2,
+     "to": 3,
+     "arrow": true
+    }
+   ]
+  },
+  {
+   "id": "budget_month",
+   "category": "productivity",
+   "theme": "minimal_cream",
+   "orientation": "portrait",
+   "tags": [
+    "money",
+    "home"
+   ],
+   "name": {
+    "en": "Monthly Budget",
+    "vi": "Ngân sách tháng"
+   },
+   "description": {
+    "en": "Money in, money out, and what to save.",
+    "vi": "Tiền vào, tiền ra và khoản để dành."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Income",
+      "vi": "Thu"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 2
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Spending",
+      "vi": "Chi"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 1
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Salary",
+      "vi": "Lương"
+     },
+     "x": 0.0,
+     "y": 0.1,
+     "color": 2,
+     "scale": 0.85
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Bills",
+      "vi": "Hóa đơn"
+     },
+     "items": [
+      {
+       "en": "Rent",
+       "vi": "Tiền nhà"
+      },
+      {
+       "en": "Electricity",
+       "vi": "Tiền điện"
+      },
+      {
+       "en": "Internet",
+       "vi": "Internet"
+      }
+     ],
+     "x": 1.0,
+     "y": 0.1,
+     "color": 1
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Saving for",
+      "vi": "Để dành cho"
+     },
+     "x": 0.0,
+     "y": 0.5,
+     "color": 4
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Trip to Da Lat",
+      "vi": "Chuyến đi Đà Lạt"
+     },
+     "x": 0.0,
+     "y": 0.6,
+     "color": 4
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 1.0,
+     "y": 0.65
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "four_subjects",
+   "category": "study",
+   "theme": "green_classroom",
+   "orientation": "portrait",
+   "tags": [
+    "school",
+    "subjects"
+   ],
+   "name": {
+    "en": "4-Subject Study Board",
+    "vi": "Bảng học 4 môn"
+   },
+   "description": {
+    "en": "A corner for each subject: what is due and what to revise.",
+    "vi": "Mỗi môn một góc: bài cần nộp và phần cần ôn."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Maths",
+      "vi": "Toán"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 0
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Literature",
+      "vi": "Ngữ văn"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 1
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Exercises p. 42",
+      "vi": "Bài tập trang 42"
+     },
+     "x": 0.0,
+     "y": 0.1,
+     "color": 0,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Essay outline",
+      "vi": "Dàn ý bài văn"
+     },
+     "x": 1.0,
+     "y": 0.1,
+     "color": 1,
+     "scale": 0.85
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "English",
+      "vi": "Tiếng Anh"
+     },
+     "x": 0.0,
+     "y": 0.45,
+     "color": 3
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Physics",
+      "vi": "Vật lý"
+     },
+     "x": 1.0,
+     "y": 0.45,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "20 new words",
+      "vi": "20 từ mới"
+     },
+     "x": 0.0,
+     "y": 0.55,
+     "color": 3,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Lab report Thu",
+      "vi": "Báo cáo thí nghiệm T5"
+     },
+     "x": 1.0,
+     "y": 0.55,
+     "color": 2,
+     "scale": 0.85
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "class_timetable",
+   "category": "study",
+   "theme": "dark_chalk",
+   "orientation": "portrait",
+   "tags": [
+    "school",
+    "weekly"
+   ],
+   "name": {
+    "en": "Class Timetable",
+    "vi": "Thời khóa biểu"
+   },
+   "description": {
+    "en": "The week at school, a day per row.",
+    "vi": "Tuần học ở trường, mỗi ngày một hàng."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Mon",
+      "vi": "Thứ 2"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Maths · English · PE",
+      "vi": "Toán · Anh · Thể dục"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 0,
+     "scale": 0.8
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Tue",
+      "vi": "Thứ 3"
+     },
+     "x": 0.0,
+     "y": 0.18,
+     "color": 1
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Literature · History",
+      "vi": "Văn · Sử"
+     },
+     "x": 1.0,
+     "y": 0.18,
+     "color": 1,
+     "scale": 0.8
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Wed",
+      "vi": "Thứ 4"
+     },
+     "x": 0.0,
+     "y": 0.36,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Physics · Chemistry",
+      "vi": "Lý · Hóa"
+     },
+     "x": 1.0,
+     "y": 0.36,
+     "color": 2,
+     "scale": 0.8
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Thu",
+      "vi": "Thứ 5"
+     },
+     "x": 0.0,
+     "y": 0.54,
+     "color": 3
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Maths · Biology",
+      "vi": "Toán · Sinh"
+     },
+     "x": 1.0,
+     "y": 0.54,
+     "color": 3,
+     "scale": 0.8
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Fri",
+      "vi": "Thứ 6"
+     },
+     "x": 0.0,
+     "y": 0.72,
+     "color": 4
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Art · English",
+      "vi": "Mỹ thuật · Anh"
+     },
+     "x": 1.0,
+     "y": 0.72,
+     "color": 4,
+     "scale": 0.8
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "homework_wall",
+   "category": "study",
+   "theme": "green_classroom",
+   "orientation": "portrait",
+   "tags": [
+    "school"
+   ],
+   "name": {
+    "en": "Homework Wall",
+    "vi": "Bảng bài tập"
+   },
+   "description": {
+    "en": "What is due, sorted by date.",
+    "vi": "Bài cần nộp, xếp theo ngày."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Due this week",
+      "vi": "Hạn tuần này"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 1
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Maths",
+      "vi": "Toán"
+     },
+     "items": [
+      {
+       "en": "Ex. 3, 4, 5",
+       "vi": "Bài 3, 4, 5"
+      },
+      {
+       "en": "Check answers",
+       "vi": "Dò đáp án"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.1,
+     "color": 0
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "English",
+      "vi": "Tiếng Anh"
+     },
+     "items": [
+      {
+       "en": "Unit 6 reading",
+       "vi": "Đọc hiểu bài 6"
+      },
+      {
+       "en": "Write 100 words",
+       "vi": "Viết 100 chữ"
+      }
+     ],
+     "x": 1.0,
+     "y": 0.1,
+     "color": 3
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Next week",
+      "vi": "Tuần sau"
+     },
+     "x": 0.0,
+     "y": 0.55,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "History project",
+      "vi": "Dự án lịch sử"
+     },
+     "x": 0.0,
+     "y": 0.65,
+     "color": 2
+    },
+    {
+     "kind": "sticker",
+     "sticker": "check",
+     "x": 1.0,
+     "y": 0.65
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "exam_countdown",
+   "category": "study",
+   "theme": "dark_academia",
+   "orientation": "portrait",
+   "tags": [
+    "exam",
+    "school"
+   ],
+   "name": {
+    "en": "Exam Countdown",
+    "vi": "Đếm ngược ngày thi"
+   },
+   "description": {
+    "en": "The exam day, the weeks before it and what to cover each week.",
+    "vi": "Ngày thi, các tuần trước đó và phần cần ôn mỗi tuần."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "EXAM · June 20",
+      "vi": "NGÀY THI · 20/6"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 1,
+     "scale": 1.1
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "4 weeks",
+      "vi": "Còn 4 tuần"
+     },
+     "x": 0.0,
+     "y": 0.25,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Algebra and geometry",
+      "vi": "Đại số và hình học"
+     },
+     "x": 1.0,
+     "y": 0.25,
+     "color": 0,
+     "scale": 0.8
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "3 weeks",
+      "vi": "Còn 3 tuần"
+     },
+     "x": 0.0,
+     "y": 0.42,
+     "color": 3
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Past papers 2023",
+      "vi": "Đề thi năm 2023"
+     },
+     "x": 1.0,
+     "y": 0.42,
+     "color": 3,
+     "scale": 0.8
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "2 weeks",
+      "vi": "Còn 2 tuần"
+     },
+     "x": 0.0,
+     "y": 0.59,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Mock exam",
+      "vi": "Thi thử"
+     },
+     "x": 1.0,
+     "y": 0.59,
+     "color": 2,
+     "scale": 0.8
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Last week",
+      "vi": "Tuần cuối"
+     },
+     "x": 0.0,
+     "y": 0.76,
+     "color": 4
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Rest and review",
+      "vi": "Nghỉ ngơi, xem lại"
+     },
+     "x": 1.0,
+     "y": 0.76,
+     "color": 4,
+     "scale": 0.8
+    }
+   ],
+   "threads": [
+    {
+     "from": 2,
+     "to": 0,
+     "arrow": true
+    }
+   ]
+  },
+  {
+   "id": "revision_plan",
+   "category": "study",
+   "theme": "clean_office",
+   "orientation": "portrait",
+   "tags": [
+    "exam",
+    "school"
+   ],
+   "name": {
+    "en": "Revision Plan",
+    "vi": "Kế hoạch ôn tập"
+   },
+   "description": {
+    "en": "Topics to revise, how sure you are about each.",
+    "vi": "Các chủ đề cần ôn và mức độ tự tin với từng phần."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Not yet",
+      "vi": "Chưa chắc"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 1
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Getting there",
+      "vi": "Tạm ổn"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 4
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Got it",
+      "vi": "Nắm chắc"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Quadratics",
+      "vi": "Phương trình bậc hai"
+     },
+     "x": 0.0,
+     "y": 0.12,
+     "color": 1,
+     "scale": 0.72
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Poetry terms",
+      "vi": "Thuật ngữ thơ"
+     },
+     "x": 0.0,
+     "y": 0.34,
+     "color": 1,
+     "scale": 0.72
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Past tenses",
+      "vi": "Các thì quá khứ"
+     },
+     "x": 0.5,
+     "y": 0.12,
+     "color": 4,
+     "scale": 0.72
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Cell structure",
+      "vi": "Cấu tạo tế bào"
+     },
+     "x": 1.0,
+     "y": 0.12,
+     "color": 2,
+     "scale": 0.72
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "language_notes",
+   "category": "study",
+   "theme": "linen_lilac",
+   "orientation": "portrait",
+   "tags": [
+    "language",
+    "school"
+   ],
+   "name": {
+    "en": "Language Notes",
+    "vi": "Sổ tay ngoại ngữ"
+   },
+   "description": {
+    "en": "New words, a phrase of the day and a grammar rule.",
+    "vi": "Từ mới, câu nói mỗi ngày và một điểm ngữ pháp."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "New words",
+      "vi": "Từ mới"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 5
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "serendipity · a lucky find",
+      "vi": "serendipity · tình cờ may mắn"
+     },
+     "x": 0.0,
+     "y": 0.1,
+     "color": 5,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "wander · to walk with no plan",
+      "vi": "wander · đi lang thang"
+     },
+     "x": 1.0,
+     "y": 0.1,
+     "color": 3,
+     "scale": 0.85
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Phrase of the day",
+      "vi": "Câu nói hôm nay"
+     },
+     "x": 0.0,
+     "y": 0.45,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Better late than never",
+      "vi": "Muộn còn hơn không"
+     },
+     "x": 0.0,
+     "y": 0.55,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Rule: since + a point in time",
+      "vi": "Ngữ pháp: since + mốc thời gian"
+     },
+     "x": 1.0,
+     "y": 0.55,
+     "color": 2
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "reading_list",
+   "category": "study",
+   "theme": "dark_academia",
+   "orientation": "portrait",
+   "tags": [
+    "books"
+   ],
+   "name": {
+    "en": "Reading List",
+    "vi": "Danh sách đọc"
+   },
+   "description": {
+    "en": "Reading now, up next, finished.",
+    "vi": "Đang đọc, sẽ đọc, đã đọc xong."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Reading now",
+      "vi": "Đang đọc"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 4
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "The Little Prince",
+      "vi": "Hoàng tử bé"
+     },
+     "x": 0.0,
+     "y": 0.1,
+     "color": 4
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Up next",
+      "vi": "Sẽ đọc"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 3
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Next",
+      "vi": "Tiếp theo"
+     },
+     "items": [
+      {
+       "en": "Norwegian Wood",
+       "vi": "Rừng Na Uy"
+      },
+      {
+       "en": "Sapiens",
+       "vi": "Sapiens"
+      }
+     ],
+     "x": 1.0,
+     "y": 0.1,
+     "color": 3
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Finished",
+      "vi": "Đã đọc"
+     },
+     "x": 0.0,
+     "y": 0.55,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Tuesdays with Morrie",
+      "vi": "Những ngày thứ Ba với thầy Morrie"
+     },
+     "x": 0.0,
+     "y": 0.65,
+     "color": 2
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 1.0,
+     "y": 0.65
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "moodboard",
+   "category": "creative",
+   "theme": "brick_loft",
+   "orientation": "portrait",
+   "tags": [
+    "design",
+    "inspiration"
+   ],
+   "name": {
+    "en": "Moodboard",
+    "vi": "Bảng cảm hứng"
+   },
+   "description": {
+    "en": "Words, colours and feelings for a project. Add photos as you go.",
+    "vi": "Từ khóa, màu sắc và cảm xúc cho một dự án. Thêm ảnh dần."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Calm",
+      "vi": "Bình yên"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 2,
+     "rotation": -0.05
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Morning light",
+      "vi": "Nắng sớm"
+     },
+     "x": 1.0,
+     "y": 0.02,
+     "color": 0,
+     "rotation": 0.04
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Linen, wood, clay",
+      "vi": "Vải lanh, gỗ, gốm"
+     },
+     "x": 0.45,
+     "y": 0.28,
+     "color": 4,
+     "rotation": 0.02
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Soft greens",
+      "vi": "Xanh lá dịu"
+     },
+     "x": 0.0,
+     "y": 0.55,
+     "color": 2,
+     "rotation": 0.05
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Handwritten",
+      "vi": "Chữ viết tay"
+     },
+     "x": 1.0,
+     "y": 0.58,
+     "color": 5,
+     "rotation": -0.03
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 0.5,
+     "y": 0.82
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "brainstorm",
+   "category": "creative",
+   "theme": "kraft_workshop",
+   "orientation": "portrait",
+   "tags": [
+    "ideas",
+    "thinking"
+   ],
+   "name": {
+    "en": "Brainstorm",
+    "vi": "Động não"
+   },
+   "description": {
+    "en": "One question in the middle, ideas tied to it.",
+    "vi": "Một câu hỏi ở giữa, các ý tưởng nối dây vào đó."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "How do we get more readers?",
+      "vi": "Làm sao có thêm người đọc?"
+     },
+     "x": 0.5,
+     "y": 0.35,
+     "color": 0,
+     "scale": 1.1
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Short videos",
+      "vi": "Video ngắn"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 1,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Newsletter",
+      "vi": "Bản tin email"
+     },
+     "x": 1.0,
+     "y": 0.02,
+     "color": 3,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Guest writers",
+      "vi": "Mời viết bài"
+     },
+     "x": 0.0,
+     "y": 0.72,
+     "color": 2,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Weekly quiz",
+      "vi": "Câu đố hằng tuần"
+     },
+     "x": 1.0,
+     "y": 0.74,
+     "color": 4,
+     "scale": 0.85
+    }
+   ],
+   "threads": [
+    {
+     "from": 1,
+     "to": 0,
+     "arrow": false
+    },
+    {
+     "from": 2,
+     "to": 0,
+     "arrow": false
+    },
+    {
+     "from": 3,
+     "to": 0,
+     "arrow": false
+    },
+    {
+     "from": 4,
+     "to": 0,
+     "arrow": false
+    }
+   ]
+  },
+  {
+   "id": "storyboard",
+   "category": "creative",
+   "theme": "polaroid_studio",
+   "orientation": "portrait",
+   "tags": [
+    "film",
+    "story"
+   ],
+   "name": {
+    "en": "Storyboard Frames",
+    "vi": "Phân cảnh"
+   },
+   "description": {
+    "en": "Six frames in order; sketch or write each one.",
+    "vi": "Sáu khung theo thứ tự; vẽ hoặc viết từng cảnh."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "1 · Wide shot of the street",
+      "vi": "1 · Toàn cảnh con phố"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 5,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "2 · She opens the shop",
+      "vi": "2 · Cô mở cửa tiệm"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 5,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "3 · Close-up: the old clock",
+      "vi": "3 · Cận cảnh: chiếc đồng hồ cũ"
+     },
+     "x": 0.0,
+     "y": 0.33,
+     "color": 5,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "4 · A customer walks in",
+      "vi": "4 · Một vị khách bước vào"
+     },
+     "x": 1.0,
+     "y": 0.33,
+     "color": 5,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "5 · They talk; rain starts",
+      "vi": "5 · Họ trò chuyện, trời đổ mưa"
+     },
+     "x": 0.0,
+     "y": 0.66,
+     "color": 5,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "6 · Lights off, title",
+      "vi": "6 · Tắt đèn, hiện tên phim"
+     },
+     "x": 1.0,
+     "y": 0.66,
+     "color": 5,
+     "scale": 0.85
+    }
+   ],
+   "threads": [
+    {
+     "from": 0,
+     "to": 1,
+     "arrow": true
+    },
+    {
+     "from": 1,
+     "to": 2,
+     "arrow": true
+    },
+    {
+     "from": 2,
+     "to": 3,
+     "arrow": true
+    },
+    {
+     "from": 3,
+     "to": 4,
+     "arrow": true
+    },
+    {
+     "from": 4,
+     "to": 5,
+     "arrow": true
+    }
+   ]
+  },
+  {
+   "id": "character_map",
+   "category": "creative",
+   "theme": "vintage_paper",
+   "orientation": "portrait",
+   "tags": [
+    "story",
+    "writing"
+   ],
+   "name": {
+    "en": "Character Connections",
+    "vi": "Sơ đồ nhân vật"
+   },
+   "description": {
+    "en": "Who knows whom, and how.",
+    "vi": "Ai quen ai, và quan hệ thế nào."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Minh · the lead",
+      "vi": "Minh · nhân vật chính"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Hoa · his sister",
+      "vi": "Hoa · em gái"
+     },
+     "x": 0.0,
+     "y": 0.4,
+     "color": 1,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Mr Nam · the teacher",
+      "vi": "Thầy Nam · giáo viên"
+     },
+     "x": 1.0,
+     "y": 0.4,
+     "color": 3,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Lan · the rival",
+      "vi": "Lan · đối thủ"
+     },
+     "x": 0.5,
+     "y": 0.75,
+     "color": 4,
+     "scale": 0.85
+    }
+   ],
+   "threads": [
+    {
+     "from": 0,
+     "to": 1,
+     "arrow": false,
+     "label": {
+      "en": "family",
+      "vi": "gia đình"
+     }
+    },
+    {
+     "from": 0,
+     "to": 2,
+     "arrow": false,
+     "label": {
+      "en": "mentor",
+      "vi": "thầy trò"
+     }
+    },
+    {
+     "from": 0,
+     "to": 3,
+     "arrow": true,
+     "label": {
+      "en": "rivals",
+      "vi": "đối thủ"
+     }
+    },
+    {
+     "from": 1,
+     "to": 3,
+     "arrow": false,
+     "label": {
+      "en": "friends",
+      "vi": "bạn thân"
+     }
+    }
+   ]
+  },
+  {
+   "id": "creative_project",
+   "category": "creative",
+   "theme": "terrazzo_pop",
+   "orientation": "portrait",
+   "tags": [
+    "project",
+    "art"
+   ],
+   "name": {
+    "en": "Creative Project",
+    "vi": "Dự án sáng tạo"
+   },
+   "description": {
+    "en": "From idea to finished piece, step by step.",
+    "vi": "Từ ý tưởng tới thành phẩm, từng bước một."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Idea",
+      "vi": "Ý tưởng"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 0,
+     "scale": 0.8
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Sketches",
+      "vi": "Phác thảo"
+     },
+     "x": 1.0,
+     "y": 0.15,
+     "color": 1,
+     "scale": 0.8
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Materials",
+      "vi": "Vật liệu"
+     },
+     "x": 0.0,
+     "y": 0.35,
+     "color": 4,
+     "scale": 0.8
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Make it",
+      "vi": "Thực hiện"
+     },
+     "x": 1.0,
+     "y": 0.5,
+     "color": 3,
+     "scale": 0.8
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Share it",
+      "vi": "Chia sẻ"
+     },
+     "x": 0.0,
+     "y": 0.7,
+     "color": 2,
+     "scale": 0.8
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Materials",
+      "vi": "Cần chuẩn bị"
+     },
+     "items": [
+      {
+       "en": "Watercolour paper",
+       "vi": "Giấy màu nước"
+      },
+      {
+       "en": "Brushes",
+       "vi": "Cọ vẽ"
+      }
+     ],
+     "x": 1.0,
+     "y": 0.8,
+     "color": 5,
+     "scale": 0.8
+    }
+   ],
+   "threads": [
+    {
+     "from": 0,
+     "to": 1,
+     "arrow": true
+    },
+    {
+     "from": 1,
+     "to": 2,
+     "arrow": true
+    },
+    {
+     "from": 2,
+     "to": 3,
+     "arrow": true
+    },
+    {
+     "from": 3,
+     "to": 4,
+     "arrow": true
+    }
+   ]
+  },
+  {
+   "id": "color_palette",
+   "category": "creative",
+   "theme": "minimal_cream",
+   "orientation": "portrait",
+   "tags": [
+    "design",
+    "colour"
+   ],
+   "name": {
+    "en": "Colour Palette Board",
+    "vi": "Bảng phối màu"
+   },
+   "description": {
+    "en": "Papers in a row to try a palette; rename each with its use.",
+    "vi": "Các tờ giấy thành một dải màu; ghi công dụng của từng màu."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Palette",
+      "vi": "Bảng màu"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Background",
+      "vi": "Nền"
+     },
+     "x": 0.0,
+     "y": 0.12,
+     "color": 0,
+     "scale": 0.75
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Headings",
+      "vi": "Tiêu đề"
+     },
+     "x": 0.5,
+     "y": 0.12,
+     "color": 1,
+     "scale": 0.75
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Buttons",
+      "vi": "Nút bấm"
+     },
+     "x": 1.0,
+     "y": 0.12,
+     "color": 2,
+     "scale": 0.75
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Links",
+      "vi": "Liên kết"
+     },
+     "x": 0.0,
+     "y": 0.4,
+     "color": 3,
+     "scale": 0.75
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Warnings",
+      "vi": "Cảnh báo"
+     },
+     "x": 0.5,
+     "y": 0.4,
+     "color": 4,
+     "scale": 0.75
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Accents",
+      "vi": "Điểm nhấn"
+     },
+     "x": 1.0,
+     "y": 0.4,
+     "color": 5,
+     "scale": 0.75
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "vision_board",
+   "category": "personal",
+   "theme": "marble_desk",
+   "orientation": "portrait",
+   "tags": [
+    "goals",
+    "year"
+   ],
+   "name": {
+    "en": "Vision Board",
+    "vi": "Bảng ước mơ"
+   },
+   "description": {
+    "en": "What this year should feel like, in a few words.",
+    "vi": "Năm nay bạn muốn thế nào, gói trong vài chữ."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "This year",
+      "vi": "Năm nay"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 5
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Travel somewhere new",
+      "vi": "Đi một nơi mới"
+     },
+     "x": 0.0,
+     "y": 0.12,
+     "color": 3,
+     "rotation": -0.04
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Run 10 km",
+      "vi": "Chạy 10 km"
+     },
+     "x": 1.0,
+     "y": 0.14,
+     "color": 2,
+     "rotation": 0.05
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Save for a home",
+      "vi": "Để dành mua nhà"
+     },
+     "x": 0.45,
+     "y": 0.42,
+     "color": 4,
+     "rotation": 0.02
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Learn the guitar",
+      "vi": "Học đàn guitar"
+     },
+     "x": 0.0,
+     "y": 0.68,
+     "color": 1,
+     "rotation": 0.04
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 1.0,
+     "y": 0.7
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 0.5,
+     "y": 0.85
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "gratitude",
+   "category": "personal",
+   "theme": "linen_lilac",
+   "orientation": "portrait",
+   "tags": [
+    "mindful",
+    "daily"
+   ],
+   "name": {
+    "en": "Gratitude Board",
+    "vi": "Bảng biết ơn"
+   },
+   "description": {
+    "en": "One small good thing a day.",
+    "vi": "Mỗi ngày một điều nhỏ đáng biết ơn."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Thankful for",
+      "vi": "Biết ơn vì"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 1
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Warm soup on a rainy day",
+      "vi": "Bát canh nóng ngày mưa"
+     },
+     "x": 0.0,
+     "y": 0.12,
+     "color": 1,
+     "rotation": -0.03
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "A friend who listened",
+      "vi": "Một người bạn chịu lắng nghe"
+     },
+     "x": 1.0,
+     "y": 0.16,
+     "color": 5,
+     "rotation": 0.04
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Sunlight on the desk",
+      "vi": "Nắng chiếu lên bàn"
+     },
+     "x": 0.0,
+     "y": 0.45,
+     "color": 0,
+     "rotation": 0.03
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Mum's message",
+      "vi": "Tin nhắn của mẹ"
+     },
+     "x": 1.0,
+     "y": 0.5,
+     "color": 2,
+     "rotation": -0.03
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 0.5,
+     "y": 0.78
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "goal_wall",
+   "category": "personal",
+   "theme": "cork_classic",
+   "orientation": "portrait",
+   "tags": [
+    "goals"
+   ],
+   "name": {
+    "en": "Goal Wall",
+    "vi": "Bảng mục tiêu"
+   },
+   "description": {
+    "en": "One goal, the steps to it and the first one to do.",
+    "vi": "Một mục tiêu, các bước để đạt và bước đầu tiên."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Run a half marathon",
+      "vi": "Chạy bán marathon"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 1,
+     "scale": 1.1
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Steps",
+      "vi": "Các bước"
+     },
+     "items": [
+      {
+       "en": "Run 3 times a week",
+       "vi": "Chạy 3 buổi mỗi tuần"
+      },
+      {
+       "en": "Sign up for a race",
+       "vi": "Đăng ký giải"
+      },
+      {
+       "en": "Buy good shoes",
+       "vi": "Mua giày tốt"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.35,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "First: 5 km on Saturday",
+      "vi": "Trước tiên: 5 km sáng thứ Bảy"
+     },
+     "x": 1.0,
+     "y": 0.4,
+     "color": 0
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 0.5,
+     "y": 0.8
+    }
+   ],
+   "threads": [
+    {
+     "from": 1,
+     "to": 0,
+     "arrow": true
+    },
+    {
+     "from": 2,
+     "to": 0,
+     "arrow": true
+    }
+   ]
+  },
+  {
+   "id": "bucket_list",
+   "category": "personal",
+   "theme": "travel_journal",
+   "orientation": "portrait",
+   "tags": [
+    "dreams",
+    "travel"
+   ],
+   "name": {
+    "en": "Bucket List",
+    "vi": "Những điều muốn làm"
+   },
+   "description": {
+    "en": "Things to do one day, ticked off as they happen.",
+    "vi": "Những việc muốn làm một lần trong đời, tích khi đã làm."
+   },
+   "items": [
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "One day",
+      "vi": "Một ngày nào đó"
+     },
+     "items": [
+      {
+       "en": "See the northern lights",
+       "vi": "Ngắm cực quang"
+      },
+      {
+       "en": "Ha Giang loop by bike",
+       "vi": "Đi phượt Hà Giang"
+      },
+      {
+       "en": "Learn to dive",
+       "vi": "Học lặn"
+      },
+      {
+       "en": "Write a short story",
+       "vi": "Viết một truyện ngắn"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.0,
+     "color": 3
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Next up: Ha Giang in October",
+      "vi": "Sắp tới: Hà Giang tháng 10"
+     },
+     "x": 1.0,
+     "y": 0.1,
+     "color": 4
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 1.0,
+     "y": 0.5
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 0.0,
+     "y": 0.6
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "memories",
+   "category": "personal",
+   "theme": "polaroid_studio",
+   "orientation": "portrait",
+   "tags": [
+    "memories",
+    "photos"
+   ],
+   "name": {
+    "en": "Personal Memories",
+    "vi": "Kỷ niệm riêng"
+   },
+   "description": {
+    "en": "Moments worth keeping; add photos beside the words.",
+    "vi": "Những khoảnh khắc đáng nhớ; thêm ảnh bên cạnh."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "First day at the new job",
+      "vi": "Ngày đầu đi làm chỗ mới"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 0,
+     "rotation": -0.04
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Night swim at Nha Trang",
+      "vi": "Tắm biển đêm ở Nha Trang"
+     },
+     "x": 1.0,
+     "y": 0.1,
+     "color": 3,
+     "rotation": 0.05
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Grandma's 80th birthday",
+      "vi": "Sinh nhật 80 tuổi của bà"
+     },
+     "x": 0.0,
+     "y": 0.42,
+     "color": 1,
+     "rotation": 0.03
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Our first tiny flat",
+      "vi": "Căn hộ nhỏ đầu tiên"
+     },
+     "x": 1.0,
+     "y": 0.52,
+     "color": 4,
+     "rotation": -0.04
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 0.5,
+     "y": 0.82
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "milestones",
+   "category": "personal",
+   "theme": "marble_desk",
+   "orientation": "portrait",
+   "tags": [
+    "love",
+    "memories"
+   ],
+   "name": {
+    "en": "Relationship Milestones",
+    "vi": "Cột mốc của hai đứa"
+   },
+   "description": {
+    "en": "The dates that mattered, in order.",
+    "vi": "Những ngày đáng nhớ, theo thứ tự."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "First coffee · 2019",
+      "vi": "Ly cà phê đầu tiên · 2019"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 1,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "First trip · Hoi An",
+      "vi": "Chuyến đi đầu · Hội An"
+     },
+     "x": 1.0,
+     "y": 0.18,
+     "color": 0,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Moved in together",
+      "vi": "Dọn về ở chung"
+     },
+     "x": 0.0,
+     "y": 0.38,
+     "color": 3,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Adopted Miu the cat",
+      "vi": "Nhận nuôi mèo Miu"
+     },
+     "x": 1.0,
+     "y": 0.56,
+     "color": 4,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "What next?",
+      "vi": "Tiếp theo là gì?"
+     },
+     "x": 0.0,
+     "y": 0.76,
+     "color": 5,
+     "scale": 0.85
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 1.0,
+     "y": 0.82
+    }
+   ],
+   "threads": [
+    {
+     "from": 0,
+     "to": 1,
+     "arrow": true
+    },
+    {
+     "from": 1,
+     "to": 2,
+     "arrow": true
+    },
+    {
+     "from": 2,
+     "to": 3,
+     "arrow": true
+    },
+    {
+     "from": 3,
+     "to": 4,
+     "arrow": true
+    }
+   ]
+  },
+  {
+   "id": "workout_week",
+   "category": "personal",
+   "theme": "clean_office",
+   "orientation": "portrait",
+   "tags": [
+    "health",
+    "weekly"
+   ],
+   "name": {
+    "en": "Workout Week",
+    "vi": "Lịch tập tuần"
+   },
+   "description": {
+    "en": "Training days and rest days, ticked as you go.",
+    "vi": "Ngày tập và ngày nghỉ, tích khi hoàn thành."
+   },
+   "items": [
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "This week",
+      "vi": "Tuần này"
+     },
+     "items": [
+      {
+       "en": "Mon · run 5 km",
+       "vi": "T2 · chạy 5 km"
+      },
+      {
+       "en": "Wed · yoga",
+       "vi": "T4 · yoga"
+      },
+      {
+       "en": "Fri · strength",
+       "vi": "T6 · tập sức mạnh"
+      },
+      {
+       "en": "Sun · long walk",
+       "vi": "CN · đi bộ dài"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.0,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Rest is training too",
+      "vi": "Nghỉ ngơi cũng là tập"
+     },
+     "x": 1.0,
+     "y": 0.1,
+     "color": 0
+    },
+    {
+     "kind": "sticker",
+     "sticker": "check",
+     "x": 1.0,
+     "y": 0.45
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "chores",
+   "category": "family",
+   "theme": "rainbow_school",
+   "orientation": "portrait",
+   "tags": [
+    "family",
+    "home"
+   ],
+   "name": {
+    "en": "Family Chores",
+    "vi": "Việc nhà"
+   },
+   "description": {
+    "en": "Who does what this week.",
+    "vi": "Tuần này ai làm việc gì."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Mum",
+      "vi": "Mẹ"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 1
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Dad",
+      "vi": "Bố"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 3
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Kids",
+      "vi": "Các con"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Cooking",
+      "vi": "Nấu ăn"
+     },
+     "x": 0.0,
+     "y": 0.12,
+     "color": 1,
+     "scale": 0.72
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Laundry",
+      "vi": "Giặt đồ"
+     },
+     "x": 0.5,
+     "y": 0.12,
+     "color": 3,
+     "scale": 0.72
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Dishes",
+      "vi": "Rửa chén"
+     },
+     "x": 1.0,
+     "y": 0.12,
+     "color": 0,
+     "scale": 0.72
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Feed the cat",
+      "vi": "Cho mèo ăn"
+     },
+     "x": 1.0,
+     "y": 0.34,
+     "color": 0,
+     "scale": 0.72
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 0.5,
+     "y": 0.6
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "family_reminders",
+   "category": "family",
+   "theme": "felt_board",
+   "orientation": "portrait",
+   "tags": [
+    "family"
+   ],
+   "name": {
+    "en": "Family Reminders",
+    "vi": "Nhắc nhở gia đình"
+   },
+   "description": {
+    "en": "Appointments, school notes and things not to forget.",
+    "vi": "Lịch hẹn, giấy báo của trường và những việc đừng quên."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Parent meeting · Sat 8:00",
+      "vi": "Họp phụ huynh · T7 8:00"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 3
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Vaccine for Bin · 15th",
+      "vi": "Tiêm phòng cho Bin · ngày 15"
+     },
+     "x": 1.0,
+     "y": 0.05,
+     "color": 1
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Grandpa visits Sunday",
+      "vi": "Ông sang chơi Chủ Nhật"
+     },
+     "x": 0.0,
+     "y": 0.38,
+     "color": 2
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Bring to school",
+      "vi": "Mang tới trường"
+     },
+     "items": [
+      {
+       "en": "Art kit",
+       "vi": "Hộp màu"
+      },
+      {
+       "en": "Signed form",
+       "vi": "Giấy có chữ ký"
+      }
+     ],
+     "x": 1.0,
+     "y": 0.42,
+     "color": 0
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "birthday_ideas",
+   "category": "family",
+   "theme": "pastel_kawaii",
+   "orientation": "portrait",
+   "tags": [
+    "birthday",
+    "party"
+   ],
+   "name": {
+    "en": "Birthday Ideas",
+    "vi": "Ý tưởng sinh nhật"
+   },
+   "description": {
+    "en": "Gift ideas, the plan for the day and the guest list.",
+    "vi": "Ý tưởng quà, kế hoạch trong ngày và danh sách khách."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Bé Na turns 6!",
+      "vi": "Bé Na tròn 6 tuổi!"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 1,
+     "scale": 1.1
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Gift ideas",
+      "vi": "Ý tưởng quà"
+     },
+     "items": [
+      {
+       "en": "Drawing set",
+       "vi": "Bộ màu vẽ"
+      },
+      {
+       "en": "Picture books",
+       "vi": "Truyện tranh"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.3,
+     "color": 5
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Guests",
+      "vi": "Khách mời"
+     },
+     "items": [
+      {
+       "en": "Classmates",
+       "vi": "Bạn cùng lớp"
+      },
+      {
+       "en": "Cousins",
+       "vi": "Anh chị họ"
+      }
+     ],
+     "x": 1.0,
+     "y": 0.3,
+     "color": 3
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Cake: strawberry",
+      "vi": "Bánh kem: dâu"
+     },
+     "x": 0.0,
+     "y": 0.7,
+     "color": 0
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 1.0,
+     "y": 0.72
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 0.5,
+     "y": 0.88
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "wedding_lite",
+   "category": "family",
+   "theme": "soft_lavender",
+   "orientation": "portrait",
+   "tags": [
+    "wedding",
+    "planning"
+   ],
+   "name": {
+    "en": "Wedding Planning Lite",
+    "vi": "Chuẩn bị đám cưới"
+   },
+   "description": {
+    "en": "The big pieces and who is handling each.",
+    "vi": "Các việc lớn và ai lo việc nào."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Before",
+      "vi": "Trước cưới"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 5
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "On the day",
+      "vi": "Ngày cưới"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 1
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "To book",
+      "vi": "Cần đặt"
+     },
+     "items": [
+      {
+       "en": "Venue",
+       "vi": "Nhà hàng"
+      },
+      {
+       "en": "Photographer",
+       "vi": "Thợ ảnh"
+      },
+      {
+       "en": "Áo dài",
+       "vi": "Áo dài"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.1,
+     "color": 5
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Ceremony 9:00 · lunch 11:30",
+      "vi": "Lễ 9:00 · tiệc 11:30"
+     },
+     "x": 1.0,
+     "y": 0.1,
+     "color": 1
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Guest list: 120",
+      "vi": "Danh sách khách: 120"
+     },
+     "x": 0.0,
+     "y": 0.6,
+     "color": 0
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 1.0,
+     "y": 0.6
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "travel_ideas",
+   "category": "family",
+   "theme": "travel_journal",
+   "orientation": "portrait",
+   "tags": [
+    "travel"
+   ],
+   "name": {
+    "en": "Travel Idea Wall",
+    "vi": "Ý tưởng du lịch"
+   },
+   "description": {
+    "en": "Places, what to see there and what to pack.",
+    "vi": "Điểm đến, nên xem gì và cần mang gì."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Da Lat · 3 days",
+      "vi": "Đà Lạt · 3 ngày"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 3,
+     "rotation": -0.04
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Flower farms, night market",
+      "vi": "Vườn hoa, chợ đêm"
+     },
+     "x": 1.0,
+     "y": 0.14,
+     "color": 2,
+     "rotation": 0.03
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Phu Quoc · beach week",
+      "vi": "Phú Quốc · tuần lễ biển"
+     },
+     "x": 0.0,
+     "y": 0.45,
+     "color": 0,
+     "rotation": 0.04
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Pack",
+      "vi": "Đồ mang theo"
+     },
+     "items": [
+      {
+       "en": "Jacket",
+       "vi": "Áo khoác"
+      },
+      {
+       "en": "Sunscreen",
+       "vi": "Kem chống nắng"
+      },
+      {
+       "en": "Chargers",
+       "vi": "Sạc"
+      }
+     ],
+     "x": 1.0,
+     "y": 0.52,
+     "color": 4
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 0.5,
+     "y": 0.86
+    }
+   ],
+   "threads": [
+    {
+     "from": 0,
+     "to": 1,
+     "arrow": false
+    }
+   ]
+  },
+  {
+   "id": "baby_memories",
+   "category": "family",
+   "theme": "pastel_kawaii",
+   "orientation": "portrait",
+   "tags": [
+    "baby",
+    "memories"
+   ],
+   "name": {
+    "en": "Baby Memories",
+    "vi": "Kỷ niệm của bé"
+   },
+   "description": {
+    "en": "Firsts worth remembering; add a photo to each.",
+    "vi": "Những lần đầu tiên đáng nhớ; thêm ảnh cho từng mốc."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "First smile",
+      "vi": "Nụ cười đầu tiên"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 1,
+     "rotation": -0.04
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "First word: \"mẹ\"",
+      "vi": "Tiếng nói đầu tiên: \"mẹ\""
+     },
+     "x": 1.0,
+     "y": 0.1,
+     "color": 0,
+     "rotation": 0.04
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "First steps",
+      "vi": "Những bước đi đầu"
+     },
+     "x": 0.0,
+     "y": 0.42,
+     "color": 3,
+     "rotation": 0.03
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "First tooth",
+      "vi": "Chiếc răng đầu tiên"
+     },
+     "x": 1.0,
+     "y": 0.5,
+     "color": 5,
+     "rotation": -0.03
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 0.5,
+     "y": 0.8
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "recipe_board",
+   "category": "family",
+   "theme": "warm_wood",
+   "orientation": "portrait",
+   "tags": [
+    "food",
+    "home"
+   ],
+   "name": {
+    "en": "Recipe Board",
+    "vi": "Bảng công thức"
+   },
+   "description": {
+    "en": "A recipe card with what you need and the steps.",
+    "vi": "Một tấm thẻ công thức: nguyên liệu và các bước."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Grandma's braised pork",
+      "vi": "Thịt kho của bà"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 4,
+     "scale": 1.1
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "You need",
+      "vi": "Nguyên liệu"
+     },
+     "items": [
+      {
+       "en": "Pork belly",
+       "vi": "Thịt ba chỉ"
+      },
+      {
+       "en": "Eggs",
+       "vi": "Trứng"
+      },
+      {
+       "en": "Coconut water",
+       "vi": "Nước dừa"
+      },
+      {
+       "en": "Fish sauce",
+       "vi": "Nước mắm"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.3,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Brown the pork, add coconut water, simmer 1 hour",
+      "vi": "Xào thịt săn, thêm nước dừa, kho 1 tiếng"
+     },
+     "x": 1.0,
+     "y": 0.35,
+     "color": 2
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "garden_plan",
+   "category": "family",
+   "theme": "moss_garden",
+   "orientation": "portrait",
+   "tags": [
+    "garden",
+    "home"
+   ],
+   "name": {
+    "en": "Garden Plan",
+    "vi": "Kế hoạch vườn"
+   },
+   "description": {
+    "en": "What grows where, and when to water.",
+    "vi": "Trồng gì ở đâu và khi nào tưới."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Balcony",
+      "vi": "Ban công"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 2
+    },
+    {
+     "kind": "label",
+     "text": {
+      "en": "Kitchen window",
+      "vi": "Cửa sổ bếp"
+     },
+     "x": 1.0,
+     "y": 0.0,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Basil, mint",
+      "vi": "Húng quế, bạc hà"
+     },
+     "x": 0.0,
+     "y": 0.1,
+     "color": 2,
+     "scale": 0.85
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Chilli, spring onion",
+      "vi": "Ớt, hành lá"
+     },
+     "x": 1.0,
+     "y": 0.1,
+     "color": 0,
+     "scale": 0.85
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Water",
+      "vi": "Tưới cây"
+     },
+     "items": [
+      {
+       "en": "Morning, every day",
+       "vi": "Sáng, mỗi ngày"
+      },
+      {
+       "en": "Fertilise on Sundays",
+       "vi": "Bón phân Chủ Nhật"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.5,
+     "color": 3
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "tet_wishes",
+   "category": "seasonal",
+   "theme": "lunar_new_year",
+   "orientation": "portrait",
+   "tags": [
+    "tet",
+    "family"
+   ],
+   "name": {
+    "en": "Lunar New Year Wishes",
+    "vi": "Lời chúc Tết"
+   },
+   "description": {
+    "en": "Wishes for the new year, the Tết to-do list and who to visit.",
+    "vi": "Lời chúc năm mới, việc cần làm ngày Tết và nhà cần đi chúc."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Happy New Year!",
+      "vi": "Chúc mừng năm mới!"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 0,
+     "scale": 1.1
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Before Tết",
+      "vi": "Trước Tết"
+     },
+     "items": [
+      {
+       "en": "Clean the house",
+       "vi": "Dọn nhà"
+      },
+      {
+       "en": "Buy apricot blossom",
+       "vi": "Mua cành mai"
+      },
+      {
+       "en": "Wrap bánh chưng",
+       "vi": "Gói bánh chưng"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.3,
+     "color": 1
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Visit: grandparents, Uncle Hai",
+      "vi": "Đi chúc Tết: ông bà, bác Hai"
+     },
+     "x": 1.0,
+     "y": 0.32,
+     "color": 4
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Wish: health for everyone",
+      "vi": "Ước: cả nhà mạnh khỏe"
+     },
+     "x": 1.0,
+     "y": 0.65,
+     "color": 0
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 0.0,
+     "y": 0.75
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "valentine_memories",
+   "category": "seasonal",
+   "theme": "valentine",
+   "orientation": "portrait",
+   "tags": [
+    "love"
+   ],
+   "name": {
+    "en": "Valentine Memories",
+    "vi": "Kỷ niệm Valentine"
+   },
+   "description": {
+    "en": "Little notes to each other and a plan for the evening.",
+    "vi": "Những lời nhắn cho nhau và kế hoạch buổi tối."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Dinner at 19:00",
+      "vi": "Ăn tối lúc 19:00"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 1
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Thank you for the coffee every morning",
+      "vi": "Cảm ơn ly cà phê mỗi sáng"
+     },
+     "x": 1.0,
+     "y": 0.08,
+     "color": 0,
+     "rotation": 0.04
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Our song: \"Em gái mưa\"",
+      "vi": "Bài hát của hai đứa: \"Em gái mưa\""
+     },
+     "x": 0.0,
+     "y": 0.42,
+     "color": 5,
+     "rotation": -0.03
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 1.0,
+     "y": 0.45,
+     "scale": 1.2
+    },
+    {
+     "kind": "sticker",
+     "sticker": "heart",
+     "x": 0.5,
+     "y": 0.78
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "mid_autumn_board",
+   "category": "seasonal",
+   "theme": "mid_autumn",
+   "orientation": "portrait",
+   "tags": [
+    "family",
+    "kids"
+   ],
+   "name": {
+    "en": "Mid-Autumn",
+    "vi": "Trung thu"
+   },
+   "description": {
+    "en": "Lanterns, mooncakes and the evening plan.",
+    "vi": "Đèn lồng, bánh trung thu và kế hoạch buổi tối."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Full moon · 15th",
+      "vi": "Rằm tháng Tám"
+     },
+     "x": 0.5,
+     "y": 0.0,
+     "color": 4,
+     "scale": 1.1
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "To get",
+      "vi": "Cần chuẩn bị"
+     },
+     "items": [
+      {
+       "en": "Mooncakes",
+       "vi": "Bánh trung thu"
+      },
+      {
+       "en": "Star lantern",
+       "vi": "Đèn ông sao"
+      },
+      {
+       "en": "Pomelo",
+       "vi": "Bưởi"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.3,
+     "color": 0
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Lantern walk 19:30",
+      "vi": "Rước đèn 19:30"
+     },
+     "x": 1.0,
+     "y": 0.35,
+     "color": 3
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 0.5,
+     "y": 0.75
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "christmas_wishes",
+   "category": "seasonal",
+   "theme": "christmas",
+   "orientation": "portrait",
+   "tags": [
+    "gifts",
+    "family"
+   ],
+   "name": {
+    "en": "Christmas Wishes",
+    "vi": "Điều ước Giáng sinh"
+   },
+   "description": {
+    "en": "Gifts, cards and the Christmas Eve plan.",
+    "vi": "Quà tặng, thiệp và kế hoạch đêm Noel."
+   },
+   "items": [
+    {
+     "kind": "label",
+     "text": {
+      "en": "Gifts",
+      "vi": "Quà tặng"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 1
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "For",
+      "vi": "Tặng ai"
+     },
+     "items": [
+      {
+       "en": "Mum · scarf",
+       "vi": "Mẹ · khăn quàng"
+      },
+      {
+       "en": "Dad · book",
+       "vi": "Bố · sách"
+      },
+      {
+       "en": "Bin · lego",
+       "vi": "Bin · lego"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.1,
+     "color": 1
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Eve: church at 21:00",
+      "vi": "Đêm Noel: đi lễ 21:00"
+     },
+     "x": 1.0,
+     "y": 0.1,
+     "color": 2
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Send cards by the 20th",
+      "vi": "Gửi thiệp trước ngày 20"
+     },
+     "x": 1.0,
+     "y": 0.45,
+     "color": 0
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 0.5,
+     "y": 0.78
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "halloween_moodboard",
+   "category": "seasonal",
+   "theme": "warm_autumn",
+   "orientation": "portrait",
+   "tags": [
+    "party",
+    "costume"
+   ],
+   "name": {
+    "en": "Halloween Moodboard",
+    "vi": "Ý tưởng Halloween"
+   },
+   "description": {
+    "en": "Costume ideas, the party plan and the snack list.",
+    "vi": "Ý tưởng hóa trang, kế hoạch tiệc và đồ ăn vặt."
+   },
+   "items": [
+    {
+     "kind": "note",
+     "text": {
+      "en": "Costume: a friendly ghost",
+      "vi": "Hóa trang: con ma hiền"
+     },
+     "x": 0.0,
+     "y": 0.0,
+     "color": 4,
+     "rotation": -0.04
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "Carve pumpkins Fri",
+      "vi": "Khắc bí ngô tối T6"
+     },
+     "x": 1.0,
+     "y": 0.08,
+     "color": 0,
+     "rotation": 0.03
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Snacks",
+      "vi": "Đồ ăn vặt"
+     },
+     "items": [
+      {
+       "en": "Candy",
+       "vi": "Kẹo"
+      },
+      {
+       "en": "Popcorn",
+       "vi": "Bỏng ngô"
+      },
+      {
+       "en": "Pumpkin soup",
+       "vi": "Súp bí"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.42,
+     "color": 1
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 1.0,
+     "y": 0.5
+    }
+   ],
+   "threads": []
+  },
+  {
+   "id": "back_to_school",
+   "category": "seasonal",
+   "theme": "rainbow_school",
+   "orientation": "portrait",
+   "tags": [
+    "school",
+    "kids"
+   ],
+   "name": {
+    "en": "Back to School",
+    "vi": "Năm học mới"
+   },
+   "description": {
+    "en": "What to buy, forms to sign and the first-week plan.",
+    "vi": "Đồ cần mua, giấy tờ cần ký và kế hoạch tuần đầu."
+   },
+   "items": [
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "To buy",
+      "vi": "Cần mua"
+     },
+     "items": [
+      {
+       "en": "Notebooks",
+       "vi": "Vở"
+      },
+      {
+       "en": "Pens",
+       "vi": "Bút"
+      },
+      {
+       "en": "Backpack",
+       "vi": "Ba lô"
+      },
+      {
+       "en": "Uniform",
+       "vi": "Đồng phục"
+      }
+     ],
+     "x": 0.0,
+     "y": 0.0,
+     "color": 0
+    },
+    {
+     "kind": "checklist",
+     "text": {
+      "en": "Forms",
+      "vi": "Giấy tờ"
+     },
+     "items": [
+      {
+       "en": "Health form",
+       "vi": "Phiếu sức khỏe"
+      },
+      {
+       "en": "Bus card",
+       "vi": "Thẻ xe buýt"
+      }
+     ],
+     "x": 1.0,
+     "y": 0.0,
+     "color": 3
+    },
+    {
+     "kind": "note",
+     "text": {
+      "en": "First day: Sept 5, 7:00",
+      "vi": "Khai giảng: 5/9, 7:00"
+     },
+     "x": 0.0,
+     "y": 0.55,
+     "color": 1
+    },
+    {
+     "kind": "sticker",
+     "sticker": "star",
+     "x": 1.0,
+     "y": 0.6
+    }
+   ],
+   "threads": []
+  }
+ ]
+}

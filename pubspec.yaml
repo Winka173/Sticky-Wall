@@ -85,6 +85,7 @@ flutter:
   # Fabric069, Fabric034 (recoloured), Fabric030.
   assets:
     - assets/images/
+    - assets/templates/
 
   # Fonts (SIL OFL, licenses in assets/fonts/). Every family bundled here
   # includes the Vietnamese subset — verified glyph by glyph before adding.

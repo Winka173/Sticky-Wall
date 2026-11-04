@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/board.dart';
-import '../services/board_templates.dart';
 import '../theme.dart';
 
 /// Emoji offered as board icons.
@@ -26,13 +25,7 @@ const boardIcons = [
 ];
 
 /// Everything the board dialog asks for: how the tab should read.
-typedef BoardDraft = ({
-  String name,
-  String icon,
-
-  /// What a new board starts with (always blank when editing).
-  BoardTemplate template,
-});
+typedef BoardDraft = ({String name, String icon});
 
 /// Longest name that still reads on a tab; the chip ellipsizes past ~160 px
 /// anyway, so more would only be hidden.
@@ -65,7 +58,6 @@ class _BoardDialogState extends State<_BoardDialog> {
   late String _icon = widget.board?.icon ?? '';
 
   bool get _isNew => widget.board == null;
-  BoardTemplate _template = BoardTemplate.blank;
 
   @override
   void initState() {
@@ -81,11 +73,7 @@ class _BoardDialogState extends State<_BoardDialog> {
   }
 
   void _save() {
-    Navigator.pop(context, (
-      name: _name.text.trim(),
-      icon: _icon,
-      template: _template,
-    ));
+    Navigator.pop(context, (name: _name.text.trim(), icon: _icon));
   }
 
   @override
@@ -130,45 +118,6 @@ class _BoardDialogState extends State<_BoardDialog> {
                   ),
                 ],
               ),
-              if (_isNew) ...[
-                const SizedBox(height: 16),
-                Text(l10n.boardTemplate, style: sectionStyle),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    for (final (t, label, icon) in [
-                      (
-                        BoardTemplate.blank,
-                        l10n.templateBlank,
-                        Icons.crop_square,
-                      ),
-                      (
-                        BoardTemplate.kanban,
-                        l10n.templateKanban,
-                        Icons.view_week_outlined,
-                      ),
-                      (
-                        BoardTemplate.week,
-                        l10n.templateWeek,
-                        Icons.calendar_view_week_outlined,
-                      ),
-                      (
-                        BoardTemplate.brainstorm,
-                        l10n.templateBrainstorm,
-                        Icons.hub_outlined,
-                      ),
-                    ])
-                      ChoiceChip(
-                        avatar: Icon(icon, size: 18),
-                        label: Text(label),
-                        selected: _template == t,
-                        onSelected: (_) => setState(() => _template = t),
-                      ),
-                  ],
-                ),
-              ],
               const SizedBox(height: 16),
               Text(l10n.boardIcon, style: sectionStyle),
               const SizedBox(height: 6),

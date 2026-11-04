@@ -4,8 +4,8 @@ import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 
 import '../l10n/app_localizations.dart';
 import '../models/board.dart';
+import '../screens/gallery_screen.dart';
 import '../services/app_lock.dart';
-import '../services/board_templates.dart';
 import '../services/notes_controller.dart';
 import '../services/pro_controller.dart';
 import '../theme.dart';
@@ -195,7 +195,7 @@ class _BoardBarState extends State<BoardBar> {
             child: _AddChip(
               tooltip: l10n.newBoard,
               textColor: textColor,
-              onTap: () => _create(context),
+              onTap: () => _newBoard(context),
             ),
           ),
         ],
@@ -241,10 +241,36 @@ class _BoardBarState extends State<BoardBar> {
   Future<void> _create(BuildContext context) async {
     final draft = await showBoardDialog(context);
     if (draft == null || draft.name.isEmpty || !context.mounted) return;
+    widget.notes.addBoard(draft.name, icon: draft.icon);
+  }
+
+  /// The "+": a blank board, or one of the templates.
+  Future<void> _newBoard(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
-    final board = widget.notes.addBoard(draft.name, icon: draft.icon);
-    final headings = templateNotes(draft.template, l10n, board.id);
-    if (headings.isNotEmpty) widget.notes.seed(headings);
+    final choice = await showActionSheet<String>(
+      context,
+      title: l10n.newBoard,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.crop_square),
+          title: Text(l10n.newBoardBlank),
+          onTap: () => Navigator.pop(context, 'blank'),
+        ),
+        ListTile(
+          leading: const Icon(Icons.dashboard_customize_outlined),
+          title: Text(l10n.newBoardFromTemplate),
+          subtitle: Text(l10n.newBoardFromTemplateHint),
+          onTap: () => Navigator.pop(context, 'template'),
+        ),
+      ],
+    );
+    if (!context.mounted) return;
+    if (choice == 'blank') {
+      await _create(context);
+    } else if (choice == 'template') {
+      final result = await GalleryScreen.open(context, notes: widget.notes);
+      if (context.mounted) showGalleryResult(context, result);
+    }
   }
 
   Future<void> _manage(
@@ -285,6 +311,18 @@ class _BoardBarState extends State<BoardBar> {
             board.isPrivate || pro ? 'private' : 'pro',
           ),
         ),
+        ListTile(
+          leading: const Icon(Icons.palette_outlined),
+          title: Text(l10n.changeTheme),
+          onTap: () => Navigator.pop(context, 'theme'),
+        ),
+        if (widget.notes.sampleNotes(board.id).isNotEmpty)
+          ListTile(
+            leading: const Icon(Icons.cleaning_services_outlined),
+            title: Text(l10n.clearSamples),
+            subtitle: Text(l10n.clearSamplesHint),
+            onTap: () => Navigator.pop(context, 'samples'),
+          ),
         // Reordering is otherwise a long-press drag of the tab.
         if (index > 0)
           ListTile(
@@ -316,6 +354,30 @@ class _BoardBarState extends State<BoardBar> {
 
     if (action == 'pro') {
       await showProSheet(context);
+      return;
+    }
+    if (action == 'theme') {
+      final result = await GalleryScreen.open(
+        context,
+        notes: widget.notes,
+        themes: true,
+      );
+      if (context.mounted) showGalleryResult(context, result);
+      return;
+    }
+    if (action == 'samples') {
+      widget.notes.clearSamples(board.id);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(l10n.samplesCleared),
+            action: SnackBarAction(
+              label: l10n.undo,
+              onPressed: widget.notes.undoDelete,
+            ),
+          ),
+        );
       return;
     }
     if (action == 'private') {

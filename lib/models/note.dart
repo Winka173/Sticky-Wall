@@ -86,6 +86,7 @@ class Note {
     this.audioMs = 0,
     this.paper = PaperStyle.plain,
     this.sticker = '',
+    this.sample = false,
     this.x = 0.5,
     this.y = 0.5,
     this.scale = 1.0,
@@ -146,6 +147,11 @@ class Note {
   /// Which sticker a [NoteType.sticker] is (see `stickers` in
   /// widgets/stickers.dart); empty for every other type.
   String sticker;
+
+  /// Example content put there by a board template: "Clear the examples"
+  /// takes it away and leaves the layout (headings, stickers). Editing the
+  /// note makes it the user's own.
+  bool sample;
 
   DateTime createdAt;
 
@@ -275,6 +281,7 @@ class Note {
           PaperStyle.values.where((p) => p.name == json['paper']).firstOrNull ??
           PaperStyle.plain,
       sticker: json['sticker'] as String? ?? '',
+      sample: json['sample'] as bool? ?? false,
       createdAt:
           _date(json['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       x: (json['x'] as num?)?.toDouble() ?? 0.5,
@@ -307,6 +314,7 @@ class Note {
     if (audioMs > 0) 'audioMs': audioMs,
     if (paper != PaperStyle.plain) 'paper': paper.name,
     if (sticker.isNotEmpty) 'sticker': sticker,
+    if (sample) 'sample': true,
     'createdAt': createdAt.toIso8601String(),
     'x': x,
     'y': y,

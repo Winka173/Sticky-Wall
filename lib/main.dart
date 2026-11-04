@@ -65,12 +65,16 @@ Future<void> main() async {
       // they have on a phone instead of being stretched to the corners.
       wall: views.isEmpty ? null : HomeScreen.wallSizeFor(views.first),
     );
+    // Marked as examples: "Start with a blank wall" takes them away again.
+    for (final n in sample.notes) {
+      n.sample = true;
+    }
     notes.seed(sample.notes, links: sample.links);
     // The samples teach wall gestures (and one is tied to another by a
-    // thread), so a fresh install opens on the wall rather than the grid —
-    // where the gesture tips are offered once.
+    // thread), so a fresh install opens on the wall rather than the grid,
+    // under the welcome that offers a blank wall or a template instead.
     notes.viewMode = ViewMode.wall;
-    await storage.setTipsPending(true);
+    await storage.setWelcomePending(true);
   }
 
   // Keep the home-screen widget in sync with the board and notes it shows
@@ -168,15 +172,27 @@ class StickyWallApp extends StatelessWidget {
   final ProController? pro;
   final ShareReceiver? shareReceiver;
 
+  /// One per notes controller: tells the app when the open board's own
+  /// handwriting or pin changes, and not on every note moved.
+  static final _boardStyles = Expando<_BoardStyle>();
+
   @override
   Widget build(BuildContext context) {
     final pro = this.pro;
+    final boardStyle = _boardStyles[notes] ??= _BoardStyle(notes);
     final app = ListenableBuilder(
-      listenable: Listenable.merge([settings, ?pro]),
+      listenable: Listenable.merge([settings, boardStyle, ?pro]),
       builder: (context, _) {
         final unlocked = pro?.unlocked ?? false;
-        final font = settings.fontFor(pro: unlocked);
-        final pin = settings.pinStyleFor(pro: unlocked);
+        final board = notes.currentBoard;
+        // A theme pack's handwriting and pin belong to its board; one being
+        // tried on in Customize shows over it.
+        final font = settings.tryFont == null && board.fontId.isNotEmpty
+            ? fontChoiceById(board.fontId)
+            : settings.fontFor(pro: unlocked);
+        final pin = settings.tryPin == null && board.pinStyle.isNotEmpty
+            ? pinStyleById(board.pinStyle)
+            : settings.pinStyleFor(pro: unlocked);
         return _app(font, pin);
       },
     );
@@ -205,6 +221,29 @@ class StickyWallApp extends StatelessWidget {
       shareReceiver: shareReceiver,
     ),
   );
+}
+
+/// Notifies when the open board's own font or pin changes.
+class _BoardStyle extends ChangeNotifier {
+  _BoardStyle(this._notes) {
+    _key = _keyNow();
+    _notes.addListener(_check);
+  }
+
+  final NotesController _notes;
+  late String _key;
+
+  String _keyNow() {
+    final b = _notes.currentBoard;
+    return '${b.id}|${b.fontId}|${b.pinStyle}';
+  }
+
+  void _check() {
+    final key = _keyNow();
+    if (key == _key) return;
+    _key = key;
+    notifyListeners();
+  }
 }
 
 /// Material scroll physics without the platform scrollbar.

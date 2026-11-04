@@ -41,6 +41,7 @@ import '../widgets/stickers.dart';
 import '../widgets/thread_style.dart';
 import '../widgets/wall_background.dart';
 import '../widgets/wall_view.dart';
+import 'gallery_screen.dart';
 import 'trash_screen.dart';
 
 part 'home_screen_actions.dart';
@@ -399,34 +400,96 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  /// A fresh install opens on the sample wall with three ways to start: keep
+  /// exploring it, clear it, or pick a template. One sheet, never again.
+  Future<void> _welcome() async {
+    final l10n = _l10n;
+    widget.settings.markWelcomeSeen();
+    ListTile choice(String value, IconData icon, String title, String hint) =>
+        ListTile(
+          leading: Icon(icon, size: 28),
+          title: Text(title, style: const TextStyle(fontSize: 18)),
+          subtitle: Text(hint),
+          onTap: () => Navigator.pop(context, value),
+        );
+    final picked = await showActionSheet<String>(
+      context,
+      title: l10n.welcomeTitle,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+          child: Text(l10n.welcomeBody, style: const TextStyle(fontSize: 15)),
+        ),
+        choice(
+          'template',
+          Icons.dashboard_customize_outlined,
+          l10n.welcomeTemplate,
+          l10n.welcomeTemplateHint,
+        ),
+        choice(
+          'blank',
+          Icons.crop_square,
+          l10n.welcomeBlank,
+          l10n.welcomeBlankHint,
+        ),
+        choice(
+          'explore',
+          Icons.travel_explore_outlined,
+          l10n.welcomeExplore,
+          l10n.welcomeExploreHint,
+        ),
+      ],
+    );
+    if (!mounted) return;
+    switch (picked) {
+      case 'blank':
+        _notes.discardSamples(_notes.currentBoardId);
+      case 'template':
+        final board = _notes.currentBoardId;
+        final firstRun = {for (final n in _notes.sampleNotes(board)) n.guid};
+        final result = await GalleryScreen.open(
+          context,
+          notes: _notes,
+          into: board,
+        );
+        if (!mounted) return;
+        // The template takes the samples' place; backing out keeps them.
+        if (result is TemplateUsed) {
+          _notes.discardSamples(board, only: firstRun);
+        }
+        showGalleryResult(context, result);
+    }
+  }
+
   Future<void> _showTips() async {
     await showGestureTips(context);
     widget.settings.markTipsSeen();
   }
 
-  /// Long press on the add button: pick the note type straight away.
+  /// Every kind of note, from the "Other kinds" pill or a long press on the
+  /// add button. The everyday kinds come first; the voice note, which needs
+  /// the microphone, sits last under its own line.
   Future<void> _quickAdd() async {
     final l10n = _l10n;
     unawaited(HapticFeedback.mediumImpact());
+    ListTile tile(NoteType t, IconData icon, String label) => ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      onTap: () => Navigator.pop(context, t),
+    );
     final type = await showActionSheet<NoteType>(
       context,
       title: l10n.addNote,
       children: [
-        for (final (t, icon, label) in [
-          (NoteType.normal, Icons.notes, l10n.typeNormal),
-          (NoteType.link, Icons.link, l10n.typeLink),
-          (NoteType.checklist, Icons.checklist, l10n.typeChecklist),
-          (NoteType.drawing, Icons.brush_outlined, l10n.typeDrawing),
-          (NoteType.photo, Icons.photo_outlined, l10n.typePhoto),
-          (NoteType.label, Icons.label_outline, l10n.typeLabel),
-          (NoteType.audio, Icons.voicemail, l10n.typeAudio),
-          (NoteType.sticker, Icons.emoji_emotions_outlined, l10n.typeSticker),
-        ])
-          ListTile(
-            leading: Icon(icon),
-            title: Text(label),
-            onTap: () => Navigator.pop(context, t),
-          ),
+        tile(NoteType.normal, Icons.notes, l10n.typeNormal),
+        tile(NoteType.checklist, Icons.checklist, l10n.typeChecklist),
+        tile(NoteType.photo, Icons.photo_outlined, l10n.typePhoto),
+        tile(NoteType.link, Icons.link, l10n.typeLink),
+        tile(NoteType.drawing, Icons.brush_outlined, l10n.typeDrawing),
+        tile(NoteType.label, Icons.label_outline, l10n.typeLabel),
+        tile(NoteType.sticker, Icons.emoji_emotions_outlined, l10n.typeSticker),
+        const Divider(height: 1),
+        tile(NoteType.audio, Icons.voicemail, l10n.typeAudio),
       ],
     );
     if (type == null || !mounted) return;
@@ -869,7 +932,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           }
           // Marker mode belongs to the wall; leaving it ends the session.
           if (_notes.viewMode != ViewMode.wall) _marking = false;
-          if (onWall && !_tipsOffered && widget.settings.tipsPending) {
+          if (onWall && !_tipsOffered && widget.settings.welcomePending) {
+            _tipsOffered = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _welcome();
+            });
+          } else if (onWall && !_tipsOffered && widget.settings.tipsPending) {
             _tipsOffered = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) _showTips();
@@ -904,14 +972,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 floatingActionButton:
                     _selecting || _marking || _notes.currentBoardShut
                     ? null
-                    : AddNoteButton(
-                        label: _l10n.addNote,
-                        onPressed: () =>
-                            _openEditor(_notes.draft(), isNew: true),
-                        onLongPress: _quickAdd,
-                        // Shrinks to just the pencil once a free wall has notes
-                        // on it, so it covers less of them.
-                        extended: showFabLabel,
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          _moreKindsButton(wall),
+                          const SizedBox(height: 12),
+                          AddNoteButton(
+                            label: _l10n.addNote,
+                            onPressed: () =>
+                                _openEditor(_notes.draft(), isNew: true),
+                            onLongPress: _quickAdd,
+                            // Shrinks to just the pencil once a free wall has
+                            // notes on it, so it covers less of them.
+                            extended: showFabLabel,
+                          ),
+                        ],
                       ),
                 body: SafeArea(
                   // On the wall the body runs under the system bar too (the

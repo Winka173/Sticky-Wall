@@ -1784,6 +1784,42 @@ abstract class AppLocalizations {
   /// **'Pin'**
   String get pinShort;
 
+  /// No description provided for @toolFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get toolFilter;
+
+  /// No description provided for @toolPen.
+  ///
+  /// In en, this message translates to:
+  /// **'Pen'**
+  String get toolPen;
+
+  /// No description provided for @toolSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get toolSort;
+
+  /// No description provided for @toolMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get toolMore;
+
+  /// No description provided for @addOtherKinds.
+  ///
+  /// In en, this message translates to:
+  /// **'Add another kind of note'**
+  String get addOtherKinds;
+
+  /// No description provided for @addOtherKindsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Other kinds'**
+  String get addOtherKindsShort;
+
   /// No description provided for @colorShort.
   ///
   /// In en, this message translates to:
@@ -2054,60 +2090,6 @@ abstract class AppLocalizations {
   /// **'Reminders you set on your notes'**
   String get remindersChannelDescription;
 
-  /// No description provided for @boardTemplate.
-  ///
-  /// In en, this message translates to:
-  /// **'Start from'**
-  String get boardTemplate;
-
-  /// No description provided for @templateBlank.
-  ///
-  /// In en, this message translates to:
-  /// **'Blank'**
-  String get templateBlank;
-
-  /// No description provided for @templateKanban.
-  ///
-  /// In en, this message translates to:
-  /// **'Kanban'**
-  String get templateKanban;
-
-  /// No description provided for @templateWeek.
-  ///
-  /// In en, this message translates to:
-  /// **'Week planner'**
-  String get templateWeek;
-
-  /// No description provided for @templateBrainstorm.
-  ///
-  /// In en, this message translates to:
-  /// **'Brainstorm'**
-  String get templateBrainstorm;
-
-  /// No description provided for @kanbanTodo.
-  ///
-  /// In en, this message translates to:
-  /// **'To do'**
-  String get kanbanTodo;
-
-  /// No description provided for @kanbanDoing.
-  ///
-  /// In en, this message translates to:
-  /// **'Doing'**
-  String get kanbanDoing;
-
-  /// No description provided for @kanbanDone.
-  ///
-  /// In en, this message translates to:
-  /// **'Done'**
-  String get kanbanDone;
-
-  /// No description provided for @brainstormCenter.
-  ///
-  /// In en, this message translates to:
-  /// **'Big idea'**
-  String get brainstormCenter;
-
   /// No description provided for @stackNotes.
   ///
   /// In en, this message translates to:
@@ -2149,48 +2131,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On other walls'**
   String get onOtherBoards;
-
-  /// No description provided for @dayMonday.
-  ///
-  /// In en, this message translates to:
-  /// **'Monday'**
-  String get dayMonday;
-
-  /// No description provided for @dayTuesday.
-  ///
-  /// In en, this message translates to:
-  /// **'Tuesday'**
-  String get dayTuesday;
-
-  /// No description provided for @dayWednesday.
-  ///
-  /// In en, this message translates to:
-  /// **'Wednesday'**
-  String get dayWednesday;
-
-  /// No description provided for @dayThursday.
-  ///
-  /// In en, this message translates to:
-  /// **'Thursday'**
-  String get dayThursday;
-
-  /// No description provided for @dayFriday.
-  ///
-  /// In en, this message translates to:
-  /// **'Friday'**
-  String get dayFriday;
-
-  /// No description provided for @daySaturday.
-  ///
-  /// In en, this message translates to:
-  /// **'Saturday'**
-  String get daySaturday;
-
-  /// No description provided for @daySunday.
-  ///
-  /// In en, this message translates to:
-  /// **'Sunday'**
-  String get daySunday;
 
   /// No description provided for @proTitle.
   ///
@@ -3013,6 +2953,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm it\'s you'**
   String get confirmItsYou;
+
+  /// No description provided for @galleryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates & themes'**
+  String get galleryTitle;
+
+  /// No description provided for @galleryTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Board templates'**
+  String get galleryTemplates;
+
+  /// No description provided for @galleryThemes.
+  ///
+  /// In en, this message translates to:
+  /// **'Themes'**
+  String get galleryThemes;
+
+  /// No description provided for @gallerySearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search templates'**
+  String get gallerySearch;
+
+  /// No description provided for @galleryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get galleryAll;
+
+  /// No description provided for @galleryFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get galleryFree;
+
+  /// No description provided for @galleryNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No template matches that.'**
+  String get galleryNothing;
+
+  /// No description provided for @catProductivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans & lists'**
+  String get catProductivity;
+
+  /// No description provided for @catStudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Study'**
+  String get catStudy;
+
+  /// No description provided for @catCreative.
+  ///
+  /// In en, this message translates to:
+  /// **'Creative'**
+  String get catCreative;
+
+  /// No description provided for @catPersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get catPersonal;
+
+  /// No description provided for @catFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get catFamily;
+
+  /// No description provided for @catSeasonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Seasonal'**
+  String get catSeasonal;
+
+  /// No description provided for @catClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic'**
+  String get catClassic;
+
+  /// No description provided for @useTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this template'**
+  String get useTemplate;
+
+  /// No description provided for @templateLook.
+  ///
+  /// In en, this message translates to:
+  /// **'Look: {name}'**
+  String templateLook(String name);
+
+  /// No description provided for @templateFreeLook.
+  ///
+  /// In en, this message translates to:
+  /// **'That look is part of Pro, so the board starts on cork; you can change it any time.'**
+  String get templateFreeLook;
+
+  /// No description provided for @templateUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” is ready. Change any note, or clear the examples from the board\'s sheet.'**
+  String templateUsed(String name);
+
+  /// No description provided for @applyTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply to “{board}”'**
+  String applyTheme(String board);
+
+  /// No description provided for @themeApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” applied'**
+  String themeApplied(String name);
+
+  /// No description provided for @themeKeepsContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes the wall, the papers and their ruling, the pins, the handwriting and the threads on this board. What you wrote and where it sits stay as they are.'**
+  String get themeKeepsContent;
+
+  /// No description provided for @proUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with Pro'**
+  String get proUnlock;
+
+  /// No description provided for @previewNoteA.
+  ///
+  /// In en, this message translates to:
+  /// **'Call the bakery'**
+  String get previewNoteA;
+
+  /// No description provided for @previewNoteB.
+  ///
+  /// In en, this message translates to:
+  /// **'Picnic on Sunday'**
+  String get previewNoteB;
+
+  /// No description provided for @previewItemA.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets'**
+  String get previewItemA;
+
+  /// No description provided for @previewItemB.
+  ///
+  /// In en, this message translates to:
+  /// **'Snacks'**
+  String get previewItemB;
+
+  /// No description provided for @newBoardBlank.
+  ///
+  /// In en, this message translates to:
+  /// **'Blank board'**
+  String get newBoardBlank;
+
+  /// No description provided for @newBoardFromTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'From a template'**
+  String get newBoardFromTemplate;
+
+  /// No description provided for @newBoardFromTemplateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'45 boards to start from: planners, study, family, moodboards…'**
+  String get newBoardFromTemplateHint;
+
+  /// No description provided for @clearSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the examples'**
+  String get clearSamples;
+
+  /// No description provided for @clearSamplesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps the headings, stickers and wall'**
+  String get clearSamplesHint;
+
+  /// No description provided for @samplesCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Examples cleared'**
+  String get samplesCleared;
+
+  /// No description provided for @changeTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the theme'**
+  String get changeTheme;
+
+  /// No description provided for @welcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Sticky Wall'**
+  String get welcomeTitle;
+
+  /// No description provided for @welcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes on a real wall: write them, move them, tie them together. How would you like to start?'**
+  String get welcomeBody;
+
+  /// No description provided for @welcomeTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a template'**
+  String get welcomeTemplate;
+
+  /// No description provided for @welcomeTemplateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Planners, study boards, moodboards and more, ready to edit'**
+  String get welcomeTemplateHint;
+
+  /// No description provided for @welcomeBlank.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with a blank wall'**
+  String get welcomeBlank;
+
+  /// No description provided for @welcomeBlankHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The sample notes are cleared'**
+  String get welcomeBlankHint;
+
+  /// No description provided for @welcomeExplore.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore the sample wall'**
+  String get welcomeExplore;
+
+  /// No description provided for @welcomeExploreHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A few notes that show what you can do; delete them any time'**
+  String get welcomeExploreHint;
 }
 
 class _AppLocalizationsDelegate
