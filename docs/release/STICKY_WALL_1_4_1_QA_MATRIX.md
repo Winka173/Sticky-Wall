@@ -15,7 +15,7 @@ Automated checks on the final commit: `flutter analyze` reports no issues; `flut
 
 | Target | Compiled | Emulator | Physical device | Note |
 |---|---|---|---|---|
-| Android release (.aab) | **BLOCKED** | — | — | Needs the upload keystore and `android/key.properties`. Gradle was not run because the machine is shared with another agent. The `MainActivity.kt` recents change has never been compiled. |
+| Android release (.aab) | **yes**: 1.4.1 (8), signed with the upload key (CN=Quoc Nguyen, SHA-256 03:4B:F7:…:43:2A), 66.7 MB bundle (about 30 MB of it is debug symbols kept in BUNDLE-METADATA for Play crash reports) | not run | not run | `flutter build appbundle --release --obfuscate --split-debug-info=build/symbols`; MainActivity.kt compiled. Keep `build/symbols/` to read Dart stack traces. |
 | Android debug | not run | not run | not run | Same reason |
 | iOS | **BLOCKED** | — | — | Needs macOS and Xcode (widget target, share extension, App Groups, StoreKit) |
 | Flutter test VM | yes | — | — | 261 tests |
