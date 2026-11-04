@@ -25,7 +25,7 @@ import json
 import os
 import sys
 
-from PIL import Image
+from PIL import Image, ImageFilter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS = os.path.join(ROOT, 'assets', 'stickers')
@@ -51,22 +51,34 @@ MAX_EDGE = 360  # px: a sticker is at most ~120 dp wide at 3x
 
 
 def key_green(im):
-    """Real alpha from the flat green, and the green spill taken back out."""
+    """Real alpha from the flat green ground, and the green spill taken out
+    of the anti-aliased rim only: greens inside the art (leaves, mint tape,
+    avocado) are left exactly as drawn."""
     im = im.convert('RGBA')
-    px = im.load()
     w, h = im.size
+    px = im.load()
+    ground = Image.new('L', (w, h), 0)
+    gp = ground.load()
     for y in range(h):
         for x in range(w):
             r, g, b, _ = px[x, y]
-            spill = g - max(r, b)
-            if spill > 90:
+            if g >= 200 and g - max(r, b) >= 90:
+                gp[x, y] = 255
+    # The rim: within a few pixels of the ground.
+    near = ground.filter(ImageFilter.MaxFilter(7)).load()
+    for y in range(h):
+        for x in range(w):
+            if gp[x, y]:
                 px[x, y] = (0, 0, 0, 0)
-            elif spill > 20:
-                a = int(255 * (90 - spill) / 70)
-                g2 = max(r, b)
-                px[x, y] = (r, g2, b, a)
-            elif spill > 0:
-                px[x, y] = (r, max(r, b), b, 255)
+                continue
+            if not near[x, y]:
+                continue
+            r, g, b, _ = px[x, y]
+            spill = g - max(r, b)
+            if spill <= 10:
+                continue
+            a = max(0, min(255, int(255 * (1 - (spill - 10) / 120))))
+            px[x, y] = (r, max(r, b), b, a)
     return im
 
 
