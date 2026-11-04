@@ -57,13 +57,13 @@ Automated checks on the final commit: `flutter analyze` reports no issues; `flut
 
 | Type | Requested | Generated | Approved | Integrated | In app | Free |
 |---|---|---|---|---|---|---|
-| Illustrated stickers | 150–200 | 126 (batches 1–3) | 126 | 126 | 126 | 36 |
-| Washi tapes | 30–40 | 24 | 24 | 24 | 24 | 0 |
+| Illustrated stickers | 150–200 | 162 (batches 1–4) | 161 | 161 | 161 | 45 |
+| Washi tapes | 30–40 | 36 | 36 | 36 | 36 | 0 |
 | Photo frames | 20–30 | 7 (code) | 7 | 7 | 7 | 3 |
 | Pins / clips / magnets | 15–20 | 0 new | — | 6 (from 1.3, code) | 6 | 1 |
 | Papers / textures | 20–30 | 0 new | — | 12 colours + mixer, 6 rulings (from 1.3) | — | 6 colours, plain |
 
-Batch 4 (36 stickers, 12 tapes) is in production; this table is updated when it lands.
+One generated sticker was not approved: wireless earbuds in an open case looked too close to a well-known product, so it was dropped. Batch 4's tape ids repeated batch 2's despite the brief; they were renamed on import (no file overwritten).
 
 ## Performance (test VM, not a device)
 
@@ -75,7 +75,7 @@ From `test/perf_test.dart`:
 
 Not measured: device FPS, RAM and export time.
 
-Sticker bundle: about 1.6 MB for 150 files. Pictures are decoded at 128–384 px.
+Sticker bundle: about 2.0 MB for 197 files. Pictures are decoded at 128–384 px.
 
 ## Manual smoke checklist (to run on a physical Android phone)
 

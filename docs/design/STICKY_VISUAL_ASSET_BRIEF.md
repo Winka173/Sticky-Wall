@@ -55,7 +55,7 @@ Memory budget:
 - Pictures are decoded at 128–384 px wide, in steps of 64 (`stickerCacheWidth`), never at full size.
 - The picker builds shelves lazily inside a scroll view.
 
-Size budget: about 10 KB per sticker. Batches 1 and 2 total 0.86 MB for 84 files.
+Size budget: about 10 KB per sticker; all four batches total 2.0 MB for 197 files.
 
 ## Handoff log
 
@@ -63,7 +63,10 @@ Size budget: about 10 KB per sticker. Batches 1 and 2 total 0.86 MB for 84 files
 |---|---|---|---|---|---|
 | b1 | 2026-11-04 | 4 sticker sheets (study, home, Vietnam, feelings) = 36 | 4 sheets + manifest, 1024² | Approved as is: consistent style, clean flat ground, no text or brands | 36 (27 free, 9 Pro) |
 | b2 | 2026-11-04 | 4 sticker sheets (nature, food, travel, planner) + 2 tape sheets = 48 | 6 sheets + manifest | Approved. Importer bug (greens greyed) found on the tape sheet and fixed on our side | 48 (9 free, 39 Pro) |
-| b3 | 2026-11-04 | 6 sticker sheets (animals, hobbies, cozy, Tết & Mid-Autumn, holidays, love) + 2 tape sheets = 66 | see below | see below | see below |
+| b3 | 2026-11-04 | 6 sticker sheets (animals, hobbies, cozy, Tết & Mid-Autumn, holidays, love) + 2 tape sheets = 66 | 8 sheets + manifest (Codex redrew a brown checkerboard tape as black and white on its own review) | Approved; the `sw3_` id prefix Codex added was dropped on import | 66 (Pro) |
+| b4 | 2026-11-04 | 4 sticker sheets (sea & beach, garden, note marks, desk & office) + 2 tape sheets = 48 | 6 sheets + manifest | 47 approved. Wireless earbuds dropped (too close to a known product). Tape ids repeated batch 2's although the brief forbade it; renamed from their English names on import. | 47 (9 note marks free, the rest Pro) |
+
+**Totals in the app:** 161 illustrated stickers (45 free) and 36 washi tapes (Pro), 197 files, about 2.0 MB.
 
 Not commissioned in this pass (with the reason):
 
