@@ -335,6 +335,7 @@
   "toolFilter": "Filter",
   "toolPen": "Pen",
   "toolSort": "Sort",
+  "toolLayout": "Layout",
   "toolMore": "More",
   "addOtherKinds": "Add another kind of note",
   "addOtherKindsShort": "Other kinds",

@@ -694,7 +694,8 @@ extension _Chrome on _HomeScreenState {
           _HomeScreenState._layoutIcon(_notes.viewMode),
           color: wall.wallText,
         ),
-        _layoutLabel(_notes.viewMode),
+        // A short fixed name: "Freeform wall" and the like did not fit.
+        _l10n.toolLayout,
         wall.wallText,
       ),
       onSelected: (m) => _notes.viewMode = m,

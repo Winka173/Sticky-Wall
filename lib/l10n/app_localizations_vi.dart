@@ -959,6 +959,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get toolSort => 'Sắp xếp';
 
   @override
+  String get toolLayout => 'Bố cục';
+
+  @override
   String get toolMore => 'Khác';
 
   @override

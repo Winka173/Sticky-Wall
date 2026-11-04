@@ -968,6 +968,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get toolSort => 'Sort';
 
   @override
+  String get toolLayout => 'Layout';
+
+  @override
   String get toolMore => 'More';
 
   @override

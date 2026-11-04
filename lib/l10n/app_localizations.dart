@@ -1802,6 +1802,12 @@ abstract class AppLocalizations {
   /// **'Sort'**
   String get toolSort;
 
+  /// No description provided for @toolLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Layout'**
+  String get toolLayout;
+
   /// No description provided for @toolMore.
   ///
   /// In en, this message translates to:
