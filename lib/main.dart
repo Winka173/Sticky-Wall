@@ -13,6 +13,7 @@ import 'services/image_service.dart';
 import 'services/note_storage.dart';
 import 'services/notes_controller.dart';
 import 'services/pro_controller.dart';
+import 'services/recents_privacy.dart';
 import 'services/reminder_service.dart';
 import 'services/sample_notes.dart';
 import 'services/settings_controller.dart';
@@ -76,6 +77,16 @@ Future<void> main() async {
     notes.viewMode = ViewMode.wall;
     await storage.setWelcomePending(true);
   }
+
+  // While the app lock is on or a private board is open, the recent-apps
+  // screen shows no notes.
+  void syncRecents() => RecentsPrivacy.hide(
+    settings.appLock ||
+        notes.boards.any((b) => b.isPrivate && notes.isOpen(b)),
+  );
+  settings.addListener(syncRecents);
+  notes.addListener(syncRecents);
+  syncRecents();
 
   // Keep the home-screen widget in sync with the board and notes it shows
   // (and with the language, so untitled notes get the right placeholder).

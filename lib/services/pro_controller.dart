@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart'
@@ -34,11 +35,14 @@ enum ProStatus {
 ///
 /// The unlock is cached in [NoteStorage] so the app opens unlocked offline;
 /// every start also asks the store to restore purchases, which unlocks a
-/// reinstall and settles a payment that was pending.
+/// reinstall and settles a payment that was pending, and (on Google Play)
+/// asks what the account owns, so a refunded or revoked order stops
+/// unlocking Pro. Without an answer from the store the cache stands.
 class ProController extends ChangeNotifier {
   /// [store] is null where there is no store to buy from (web, tests): Pro
-  /// then stays as cached.
-  ProController(this._storage, {this._store})
+  /// then stays as cached. [ownership] replaces the Google Play query in
+  /// tests: true owned, false not owned, null no answer.
+  ProController(this._storage, {this._store, this._ownership})
     : _unlocked = _storage.proUnlocked,
       _status = _store == null ? ProStatus.unavailable : ProStatus.idle;
 
@@ -48,6 +52,7 @@ class ProController extends ChangeNotifier {
 
   final NoteStorage _storage;
   final InAppPurchase? _store;
+  final Future<bool?> Function()? _ownership;
 
   bool _unlocked;
   ProStatus _status;
@@ -72,6 +77,7 @@ class ProController extends ChangeNotifier {
     final store = _store;
     if (store == null) {
       _setStatus(ProStatus.unavailable);
+      await checkOwnership();
       return;
     }
     _updates = store.purchaseStream.listen(
@@ -87,6 +93,49 @@ class ProController extends ChangeNotifier {
     } catch (e) {
       debugPrint('Restore at start skipped: $e');
     }
+    await checkOwnership();
+  }
+
+  /// Asks the store whether this account still owns Pro. Only a clear "no"
+  /// takes a cached unlock away (a refund, a cancelled or charged-back
+  /// order); being offline, Play being missing or an error keeps it, so a
+  /// paying user is never locked out by a bad connection. Notes keep their
+  /// Pro look either way; only choosing Pro things stops.
+  Future<void> checkOwnership() async {
+    if (!_unlocked) return;
+    final owned = await (_ownership ?? _playOwnership)();
+    if (owned == false) _revoke();
+  }
+
+  /// Google Play's own list of what the account holds.
+  Future<bool?> _playOwnership() async {
+    final store = _store;
+    if (store == null ||
+        kIsWeb ||
+        defaultTargetPlatform != TargetPlatform.android) {
+      return null;
+    }
+    try {
+      final android = store
+          .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
+      final response = await android.queryPastPurchases();
+      if (response.error != null) return null;
+      return response.pastPurchases.any(
+        (p) =>
+            p.productID == productId &&
+            p.billingClientPurchase.purchaseState ==
+                PurchaseStateWrapper.purchased,
+      );
+    } catch (e) {
+      debugPrint('Ownership check skipped: $e');
+      return null;
+    }
+  }
+
+  void _revoke() {
+    _unlocked = false;
+    unawaited(_storage.setProUnlocked(false));
+    notifyListeners();
   }
 
   /// Asks the store for the product (and so its price); the Pro sheet calls

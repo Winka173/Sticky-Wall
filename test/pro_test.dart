@@ -168,6 +168,28 @@ void main() {
       expect(ProController(storage).unlocked, isTrue);
     });
 
+    test('a refunded order stops unlocking Pro; no answer keeps it', () async {
+      SharedPreferences.setMockInitialValues({});
+      final storage = await NoteStorage.create();
+      ProController(storage).unlockForTesting();
+
+      // Offline, or Play missing: the cached unlock stands.
+      final offline = ProController(storage, ownership: () async => null);
+      await offline.init();
+      expect(offline.unlocked, isTrue);
+
+      // Still owned.
+      final owned = ProController(storage, ownership: () async => true);
+      await owned.init();
+      expect(owned.unlocked, isTrue);
+
+      // Play answers that the account no longer owns it (refund, revoke).
+      final refunded = ProController(storage, ownership: () async => false);
+      await refunded.init();
+      expect(refunded.unlocked, isFalse);
+      expect(ProController(storage).unlocked, isFalse, reason: 'remembered');
+    });
+
     testWidgets('a Pro wall tapped again without Pro opens the Pro sheet', (
       tester,
     ) async {
