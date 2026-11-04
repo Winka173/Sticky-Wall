@@ -3607,6 +3607,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hero photo set'**
   String get heroSet;
+
+  /// No description provided for @pinBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to the top'**
+  String get pinBoard;
+
+  /// No description provided for @unpinBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get unpinBoard;
+
+  /// No description provided for @editedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'edited today'**
+  String get editedToday;
+
+  /// No description provided for @editedYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'edited yesterday'**
+  String get editedYesterday;
+
+  /// No description provided for @editedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'edited {date}'**
+  String editedOn(String date);
 }
 
 class _AppLocalizationsDelegate

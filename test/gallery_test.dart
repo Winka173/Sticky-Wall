@@ -224,8 +224,8 @@ void main() {
 
     await tester.tap(find.byTooltip('All boards'));
     await tester.pumpAndSettle();
-    expect(find.text('2 notes'), findsOneWidget);
-    expect(find.text('1 note'), findsOneWidget);
+    expect(find.textContaining('2 notes'), findsOneWidget);
+    expect(find.textContaining('1 note'), findsWidgets);
     await tester.tap(find.text('Work').last);
     await tester.pumpAndSettle();
     expect(notes.currentBoardId, work.id);

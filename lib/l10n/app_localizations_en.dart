@@ -1968,4 +1968,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get heroSet => 'Hero photo set';
+
+  @override
+  String get pinBoard => 'Pin to the top';
+
+  @override
+  String get unpinBoard => 'Unpin';
+
+  @override
+  String get editedToday => 'edited today';
+
+  @override
+  String get editedYesterday => 'edited yesterday';
+
+  @override
+  String editedOn(String date) {
+    return 'edited $date';
+  }
 }

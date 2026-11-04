@@ -572,7 +572,9 @@ class NotesController extends ChangeNotifier {
   /// clone), preserving its position in the list.
   void update(Note note) {
     // Written on, a template's example is the user's own note now.
-    note.sample = false;
+    note
+      ..sample = false
+      ..editedAt = DateTime.now();
     _refreshCompleted(note);
     final i = _notes.indexWhere((n) => n.guid == note.guid);
     if (i == -1) {
@@ -660,6 +662,25 @@ class NotesController extends ChangeNotifier {
     viewMode = ViewMode.wall;
     seed(made.notes, links: made.links);
     return board;
+  }
+
+  /// When something on board [boardId] was last made or edited, if ever.
+  DateTime? lastEdited(String boardId) {
+    DateTime? last;
+    for (final n in _notes) {
+      if (n.boardId != boardId || n.isTrashed) continue;
+      final t = n.touchedAt;
+      if (last == null || t.isAfter(last)) last = t;
+    }
+    return last;
+  }
+
+  /// Pins board [boardId] to the top of *All boards*, or takes it off.
+  void toggleFavorite(String boardId) {
+    final board = _boards.firstWhere((b) => b.id == boardId);
+    board.favorite = !board.favorite;
+    _storage.saveBoards(_boards);
+    notifyListeners();
   }
 
   /// The live photo prints on board [boardId], in the order they were added.

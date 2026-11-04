@@ -664,5 +664,11 @@
   "photosShuffled": "Photos shuffled",
   "framesApplied": "Frame changed",
   "makeHero": "Make it the hero photo",
-  "heroSet": "Hero photo set"
+  "heroSet": "Hero photo set",
+  "pinBoard": "Pin to the top",
+  "unpinBoard": "Unpin",
+  "editedToday": "edited today",
+  "editedYesterday": "edited yesterday",
+  "editedOn": "edited {date}",
+  "@editedOn": {"placeholders": {"date": {"type": "String"}}}
 }

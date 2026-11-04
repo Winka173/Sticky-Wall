@@ -584,5 +584,10 @@
   "photosShuffled": "Đã xáo ảnh",
   "framesApplied": "Đã đổi khung ảnh",
   "makeHero": "Đặt làm ảnh chính",
-  "heroSet": "Đã đặt ảnh chính"
+  "heroSet": "Đã đặt ảnh chính",
+  "pinBoard": "Ghim lên đầu",
+  "unpinBoard": "Bỏ ghim",
+  "editedToday": "sửa hôm nay",
+  "editedYesterday": "sửa hôm qua",
+  "editedOn": "sửa {date}"
 }

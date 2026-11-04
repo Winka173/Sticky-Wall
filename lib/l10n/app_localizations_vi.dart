@@ -1945,4 +1945,21 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get heroSet => 'Đã đặt ảnh chính';
+
+  @override
+  String get pinBoard => 'Ghim lên đầu';
+
+  @override
+  String get unpinBoard => 'Bỏ ghim';
+
+  @override
+  String get editedToday => 'sửa hôm nay';
+
+  @override
+  String get editedYesterday => 'sửa hôm qua';
+
+  @override
+  String editedOn(String date) {
+    return 'sửa $date';
+  }
 }

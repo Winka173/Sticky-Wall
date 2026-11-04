@@ -36,6 +36,18 @@ class _BoardPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final height = MediaQuery.sizeOf(context).height;
+    // Pinned boards first, then the most recently edited.
+    final ordered = List.of(notes.boards)
+      ..sort((a, b) {
+        if (a.favorite != b.favorite) return a.favorite ? -1 : 1;
+        final ta = notes.lastEdited(a.id);
+        final tb = notes.lastEdited(b.id);
+        // Boards with nothing on them go last.
+        if (ta == null || tb == null) {
+          return (tb == null ? 0 : 1) - (ta == null ? 0 : 1);
+        }
+        return tb.compareTo(ta);
+      });
     return SafeArea(
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: height * 0.88),
@@ -57,9 +69,9 @@ class _BoardPicker extends StatelessWidget {
                   crossAxisSpacing: 14,
                   childAspectRatio: 0.62,
                 ),
-                itemCount: notes.boards.length,
+                itemCount: ordered.length,
                 itemBuilder: (context, i) => _BoardCard(
-                  board: notes.boards[i],
+                  board: ordered[i],
                   notes: notes,
                   onDelete: onDelete,
                 ),
@@ -150,6 +162,10 @@ class _BoardCard extends StatelessWidget {
                   Text(board.icon, style: const TextStyle(fontSize: 16)),
                   const SizedBox(width: 4),
                 ],
+                if (board.favorite) ...[
+                  const Icon(Icons.push_pin, size: 15),
+                  const SizedBox(width: 2),
+                ],
                 if (board.isPrivate) ...[
                   const Icon(Icons.lock_outline, size: 15),
                   const SizedBox(width: 2),
@@ -191,11 +207,19 @@ class _BoardCard extends StatelessWidget {
                             ),
                           ),
                         );
+                    } else if (v == 'favorite') {
+                      notes.toggleFavorite(board.id);
                     } else if (v == 'delete') {
                       await onDelete(board);
                     }
                   },
                   itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'favorite',
+                      child: Text(
+                        board.favorite ? l10n.unpinBoard : l10n.pinBoard,
+                      ),
+                    ),
                     if (!shut)
                       PopupMenuItem(
                         value: 'duplicate',
@@ -214,7 +238,13 @@ class _BoardCard extends StatelessWidget {
               ],
             ),
             Text(
-              shut ? l10n.boardPrivate : l10n.boardNoteCount(onBoard.length),
+              shut
+                  ? l10n.boardPrivate
+                  : [
+                      l10n.boardNoteCount(onBoard.length),
+                      if (notes.lastEdited(board.id) case final t?)
+                        _edited(context, l10n, t),
+                    ].join(' · '),
               style: const TextStyle(fontSize: 12.5, color: AppColors.inkSoft),
             ),
           ],
@@ -222,4 +252,17 @@ class _BoardCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// "Edited today", "Edited yesterday" or "Edited 3 Nov".
+String _edited(BuildContext context, AppLocalizations l10n, DateTime when) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final day = DateTime(when.year, when.month, when.day);
+  final ago = today.difference(day).inDays;
+  if (ago <= 0) return l10n.editedToday;
+  if (ago == 1) return l10n.editedYesterday;
+  return l10n.editedOn(
+    MaterialLocalizations.of(context).formatShortMonthDay(when),
+  );
 }

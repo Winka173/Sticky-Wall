@@ -107,6 +107,7 @@ class Note {
     this.sticker = '',
     this.sample = false,
     this.frame = PhotoFrame.print,
+    this.editedAt,
     this.x = 0.5,
     this.y = 0.5,
     this.scale = 1.0,
@@ -175,6 +176,15 @@ class Note {
 
   /// The frame of a photo print ([NoteType.photo]).
   PhotoFrame frame;
+
+  /// When its words or look were last changed in the editor; null until then.
+  DateTime? editedAt;
+
+  /// The later of when it was made and when it was last edited.
+  DateTime get touchedAt {
+    final e = editedAt;
+    return e != null && e.isAfter(createdAt) ? e : createdAt;
+  }
 
   DateTime createdAt;
 
@@ -305,6 +315,7 @@ class Note {
           PaperStyle.plain,
       sticker: json['sticker'] as String? ?? '',
       sample: json['sample'] as bool? ?? false,
+      editedAt: _date(json['edited']),
       // An unknown frame (from a newer version) falls back to the plain
       // print rather than losing the photo.
       frame:
@@ -343,6 +354,7 @@ class Note {
     if (paper != PaperStyle.plain) 'paper': paper.name,
     if (sticker.isNotEmpty) 'sticker': sticker,
     if (sample) 'sample': true,
+    if (editedAt != null) 'edited': editedAt!.toIso8601String(),
     if (frame != PhotoFrame.print) 'frame': frame.name,
     'createdAt': createdAt.toIso8601String(),
     'x': x,

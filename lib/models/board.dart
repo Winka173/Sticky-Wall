@@ -14,6 +14,7 @@ class Board {
     this.themeId = '',
     this.fontId = '',
     this.pinStyle = '',
+    this.favorite = false,
     this.isPrivate = false,
     List<DrawStroke>? strokes,
   }) : strokes = strokes ?? [],
@@ -52,6 +53,9 @@ class Board {
   String fontId;
   String pinStyle;
 
+  /// Pinned to the top of *All boards*.
+  bool favorite;
+
   /// A private board (Sticky Wall Pro) opens only after the phone's lock,
   /// and keeps its notes off the widget, out of search from other boards,
   /// out of the trash list and out of reminder texts while shut.
@@ -81,6 +85,7 @@ class Board {
     themeId: json['theme'] as String? ?? '',
     fontId: json['font'] as String? ?? '',
     pinStyle: json['pin'] as String? ?? '',
+    favorite: json['favorite'] as bool? ?? false,
     isPrivate: json['private'] as bool? ?? false,
     strokes: (json['strokes'] as List<dynamic>? ?? [])
         .map((e) => DrawStroke.fromJson(e as Map<String, dynamic>))
@@ -99,6 +104,7 @@ class Board {
     if (themeId.isNotEmpty) 'theme': themeId,
     if (fontId.isNotEmpty) 'font': fontId,
     if (pinStyle.isNotEmpty) 'pin': pinStyle,
+    if (favorite) 'favorite': true,
     if (isPrivate) 'private': true,
     if (strokes.isNotEmpty) 'strokes': strokes.map((s) => s.toJson()).toList(),
   };
