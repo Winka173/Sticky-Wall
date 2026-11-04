@@ -223,12 +223,9 @@ class _TemplatesTabState extends State<_TemplatesTab>
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: TextField(
                 controller: _search,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search),
-                  hintText: l10n.gallerySearch,
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                ),
+                textAlignVertical: TextAlignVertical.center,
+                textInputAction: TextInputAction.search,
+                decoration: searchFieldDecoration(l10n.gallerySearch),
               ),
             ),
             _Chips<TemplateCategory>(

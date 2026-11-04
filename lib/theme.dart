@@ -110,6 +110,29 @@ abstract class AppColors {
 }
 
 /// Corner radii: paper is barely rounded; controls and sheets more so.
+/// A rounded, softly filled search box with the magnifier centred on the
+/// text line. Pair it with `textAlignVertical: TextAlignVertical.center`.
+InputDecoration searchFieldDecoration(String hint) {
+  const shape = OutlineInputBorder(
+    borderRadius: BorderRadius.all(Radius.circular(AppRadii.control * 2)),
+    borderSide: BorderSide(color: AppColors.inkHint),
+  );
+  return InputDecoration(
+    hintText: hint,
+    prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.inkSoft),
+    prefixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+    isDense: true,
+    contentPadding: const EdgeInsets.fromLTRB(0, 12, 16, 12),
+    filled: true,
+    fillColor: AppColors.ink.withValues(alpha: 0.04),
+    border: shape,
+    enabledBorder: shape,
+    focusedBorder: shape.copyWith(
+      borderSide: const BorderSide(color: AppColors.ink, width: 1.6),
+    ),
+  );
+}
+
 abstract class AppRadii {
   static const paper = 3.0;
   static const control = 8.0;

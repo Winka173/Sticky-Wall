@@ -248,9 +248,15 @@ class _ThreadSheetState extends State<_ThreadSheet> {
               controller: _label,
               maxLength: 24,
               textCapitalization: TextCapitalization.sentences,
+              textAlignVertical: TextAlignVertical.center,
               decoration: InputDecoration(
                 hintText: l10n.threadLabelHint,
-                prefixIcon: const Icon(Icons.sell_outlined),
+                prefixIcon: const Icon(Icons.sell_outlined, size: 20),
+                prefixIconConstraints: const BoxConstraints(
+                  minWidth: 40,
+                  minHeight: 44,
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 counterText: '',
                 isDense: true,
               ),
