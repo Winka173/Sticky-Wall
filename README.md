@@ -36,6 +36,34 @@ then taken well beyond it.
 
 ## Features
 
+**New in 1.4**
+- **Templates & themes** (⋮ → *Templates & themes*, the "+" board tab, or
+  a board's sheet): 45 editable board templates in six shelves (plans &
+  lists, study, creative, personal, family, seasonal) and 37 theme packs
+  (17 free). A template makes real notes, headings, to-do lists, stickers
+  and threads; its examples can be cleared from the board's sheet while
+  the layout stays. A theme pack puts a wall, papers, ruling, pin,
+  handwriting and thread on the open board without touching what the
+  notes say or where they sit, with Undo. Previews are drawn by the wall
+  itself; contact sheets of all of them are in `docs/previews/`
+- **Memory wall** (*Other kinds* or the "+" board tab): pick up to 20
+  photos, a layout (collage, prints in rows, film strip, timeline tied with
+  threads) and a look; a new board of prints that move, turn, take
+  captions and threads like any note
+- **First run**: the sample wall under a choice of a template, a blank
+  wall or exploring the samples
+- **All boards** (the grid button before the tabs): a picture of each
+  board drawn from its notes, its note count; open, duplicate (Undo) or
+  delete
+- **Shares** from other apps go straight onto a board you pick, with Open
+  and Undo, instead of opening the editor
+- Board names are plain text with an optional emoji; seasonal packs can be
+  picked all year (the one whose occasion is near is listed first); the
+  export page has Save image, Export PDF and Share up front and the rest
+  under *More options*; the delete tray at the foot of the wall is off
+  unless switched on in Customize; an *Other kinds* pill sits above the
+  add button and the bottom tools are named
+
 **Notes**
 - Seven types: **Normal** (multi-line text), **Link** (label + URL),
   **Checklist** (tickable items with done-count), **Drawing** (freehand
@@ -118,7 +146,9 @@ then taken well beyond it.
   edge and comes straight back with the finger. The wall also runs under
   the title and tool rows and the system bar, so a note panned up or down
   stays in view there instead of vanishing at an edge. Drag a note down near the
-  foot of the wall and a small **tray** slides up: drop it there to delete.
+  foot of the wall and, when *Drag to the foot to delete* is on in
+  Customize (it is off by default), a small **tray** slides up: drop it
+  there to delete.
   Drag up onto a **board tab** instead to move it to that board (the tab
   lights up). One camera button sits top right of the
   wall and only when useful: **show everything** (also in ⋮) glides the
@@ -220,14 +250,13 @@ then taken well beyond it.
   it on iOS.
 
 **Boards**
-- A new board can start from a **template**: Kanban (To do / Doing /
-  Done), Week planner (the seven days) or Brainstorm — locked tape labels
-  to stick notes under
+- A new board can start blank, from one of the **templates** or as a
+  **memory wall** (see *New in 1.4*)
 - Multiple named boards ("My Wall", "Work", …); each remembers its own wall
   texture or **custom wall photo**
-- One dialog creates or edits a board: name, an optional **emoji icon**, and
-  **bold / italic / underline** for the name, previewed live in the field and
-  drawn that way on the tab, in the manage sheet and in "Move to board"
+- One dialog creates or edits a board: a plain name and an optional
+  **emoji icon** (formatting stored by 1.3 is dropped on load, the words
+  kept)
 - Switch by tapping a board tab or swiping horizontally in grid/list; the
   content slides in the direction you moved. Tap the selected tab to edit or
   delete it; **long-press and drag** a tab to reorder boards. The "+" that
@@ -265,9 +294,9 @@ then taken well beyond it.
 
 **First launch**
 - A fresh install seeds five sample notes (with one thread tied between two
-  of them) that teach the gestures: drag, long-press, tick a checklist, pull
-  a thread, plus a doodle so the drawing type is discovered. Delete them like
-  any other note
+  of them) that teach the gestures, under a welcome that offers a template,
+  a blank wall (the samples go) or exploring them. Gesture tips stay in the
+  ⋮ menu
 
 **Privacy**
 - **App lock** (off by default, *Customize → Privacy*): asks for the phone's
@@ -290,15 +319,18 @@ then taken well beyond it.
 - **Seasonal packs** (Pro): a wall and a shelf of stickers each for Tết
   (red envelope, lantern, firecracker, apricot and peach blossom, a "Happy
   New Year" stamp), Christmas, Mid-Autumn (with a star lantern) and
-  Valentine's. The sticker picker groups stickers by pack. A pack can be
-  picked only around its occasion (`lib/util/seasons.dart`: Tết from 25
+  Valentine's. The sticker picker groups stickers by pack. The dates in
+  `lib/util/seasons.dart` (Tết from 25
   days before to 15 after, using the lunar dates for 2026–2036; Christmas
   1 Dec – 6 Jan; Mid-Autumn 21 days before to 3 after; Valentine's 1–15
-  Feb); out of season its shelf says when it is back, its wall is not
-  offered, and whatever is already on a wall stays
+  Feb) decide which pack is listed first; every pack can be picked all
+  year
 - **Private boards** (Pro; making one public again is always free): a board
   opens only after the phone's fingerprint, face or screen lock and shuts
-  again whenever the app goes to the background. While shut its notes are
+  again after a minute in the background. This is a lock in the app, not
+  encryption: the notes are stored like any other, inside Android's app
+  sandbox. While the app lock is on or a private board is open, Android's
+  recent-apps screen shows no notes. While shut its notes are
   covered, left out of search from other boards and of the trash list, its
   reminders say only "A reminder on a private board", and the home-screen
   widget never lists a private board's notes
@@ -319,7 +351,9 @@ then taken well beyond it.
   menu or by long-pressing empty wall
 - Product id `sticky_wall_pro`, a non-consumable; the unlock is cached in
   preferences and re-checked with the store at every start (which also
-  settles a pending payment and unlocks a reinstall)
+  settles a pending payment and unlocks a reinstall). On Google Play the
+  start also asks what the account owns: a clear "not owned" (refund,
+  revoked order) takes the cached unlock away; no answer keeps it
 
 **Data**
 - Everything persists locally (no backend). A single corrupt record is
@@ -421,7 +455,12 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/widgets/action_sheet.dart` | Bottom action sheet that sizes to its content (long-press menus) |
 | `lib/widgets/add_note_button.dart` | The sticky-note-with-a-pencil FAB |
 | `lib/widgets/wall_decor.dart` | Procedural stains (CustomPainter) |
-| `lib/widgets/board_bar.dart` · `board_dialog.dart` | Reorderable board tabs with a fixed "+" that keep the active tab in view, and the create / edit board dialog (name, icon, bold / italic / underline) |
+| `lib/widgets/board_bar.dart` · `board_dialog.dart` · `board_picker.dart` | Reorderable board tabs with a fixed "+" that keep the active tab in view, the create / edit board dialog (name, icon), and *All boards* with a picture of each |
+| `lib/services/theme_packs.dart` | The 37 theme packs (wall, papers, ruling, pin, handwriting, thread); `NotesController.applyTheme` puts one on a board with Undo |
+| `lib/services/template_library.dart` · `assets/templates/templates.json` · `tool/gen_templates.py` | The 45 board templates (bilingual, editable content) and their loader; regenerate the JSON with the script, check it with `test/template_library_test.dart` |
+| `lib/services/memory_wall.dart` · `lib/screens/memory_wall_sheet.dart` | Memory wall layouts and the sheet that picks one |
+| `lib/screens/gallery_screen.dart` | *Templates & themes*, with live previews (`BoardPreview`) |
+| `lib/services/recents_privacy.dart` | Asks MainActivity to keep notes out of the recent-apps screen |
 | `lib/widgets/settings_sheet.dart` | Customize sheet (wall, photo, night, font, trash) |
 | `lib/theme.dart` | Walls, fonts, palette (`AppColors`), radii, light + night themes — every control reads its look from here |
 | `lib/util/` | `foldText` (diacritic folding), `stableHash` (deterministic ids/seeds), `angles` (normalising a turn, quarter-turn snapping) |

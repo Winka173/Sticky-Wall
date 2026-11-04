@@ -55,6 +55,10 @@ handled by Android under your Google account settings, not by us.)
   fingerprint, face, PIN, pattern or password through the system prompt.
   Sticky Wall never sees or stores your fingerprint, face or code; it only
   learns whether the phone unlocked. Private boards are opened the same way.
+  The app lock and private boards hide notes inside the app; they do not
+  encrypt them. Notes are kept in the app's private storage, which Android
+  keeps apart from other apps. While the lock is on or a private board is
+  open, the phone's recent-apps screen shows no notes.
 
 ### Sticky Wall Pro
 
@@ -138,7 +142,10 @@ và tài khoản Google của bạn quản lý, không phải chúng tôi.)
   hình vẽ hoặc mật khẩu của chính điện thoại qua hộp thoại của hệ thống.
   Sticky Wall không bao giờ thấy hay lưu vân tay, khuôn mặt hay mã của bạn;
   ứng dụng chỉ biết điện thoại đã mở khóa hay chưa. Bảng riêng tư cũng được
-  mở theo cách này.
+  mở theo cách này. Khóa ứng dụng và bảng riêng tư che ghi chú bên trong ứng
+  dụng; chúng không mã hóa ghi chú. Ghi chú nằm trong bộ nhớ riêng của ứng
+  dụng, được Android tách khỏi các ứng dụng khác. Khi bật khóa hoặc đang mở
+  bảng riêng tư, màn hình đa nhiệm của điện thoại không hiện ghi chú.
 
 ### Sticky Wall Pro
 
