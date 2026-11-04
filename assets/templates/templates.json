@@ -102,6 +102,13 @@
      "x": 1.0,
      "y": 0.45,
      "color": 2
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_coffee_mug",
+     "x": 1.0,
+     "y": 0.95,
+     "scale": 0.9
     }
    ],
    "threads": []
@@ -349,7 +356,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "check",
+     "sticker": "art_check_badge",
      "x": 1.0,
      "y": 0.36,
      "scale": 0.8
@@ -458,6 +465,13 @@
      "y": 0.6,
      "color": 5,
      "scale": 0.85
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_alarm_clock",
+     "x": 0.5,
+     "y": 0.95,
+     "scale": 0.9
     }
    ],
    "threads": []
@@ -537,7 +551,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_lightbulb",
      "x": 0.5,
      "y": 0.82
     }
@@ -654,6 +668,13 @@
      "x": 1.0,
      "y": 0.55,
      "color": 0
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_shopping_bag",
+     "x": 0.0,
+     "y": 0.95,
+     "scale": 0.9
     }
    ],
    "threads": []
@@ -753,6 +774,13 @@
      "x": 1.0,
      "y": 0.55,
      "color": 4
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_shopping_bag",
+     "x": 0.5,
+     "y": 0.95,
+     "scale": 0.9
     }
    ],
    "threads": []
@@ -847,7 +875,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_sparkle",
      "x": 0.5,
      "y": 0.85
     }
@@ -924,7 +952,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_heart",
      "x": 0.5,
      "y": 0.75
     }
@@ -1031,6 +1059,13 @@
      "x": 1.0,
      "y": 0.65,
      "color": 4
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_megaphone",
+     "x": 1.0,
+     "y": 0.95,
+     "scale": 0.9
     }
    ],
    "threads": [
@@ -1136,7 +1171,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_coin_stack",
      "x": 1.0,
      "y": 0.65
     }
@@ -1244,6 +1279,13 @@
      "y": 0.55,
      "color": 2,
      "scale": 0.85
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_books",
+     "x": 0.5,
+     "y": 0.95,
+     "scale": 0.9
     }
    ],
    "threads": []
@@ -1370,6 +1412,13 @@
      "y": 0.72,
      "color": 4,
      "scale": 0.8
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_graduation_cap",
+     "x": 1.0,
+     "y": 0.95,
+     "scale": 0.9
     }
    ],
    "threads": []
@@ -1463,9 +1512,16 @@
     },
     {
      "kind": "sticker",
-     "sticker": "check",
+     "sticker": "art_check_badge",
      "x": 1.0,
      "y": 0.65
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_pencil",
+     "x": 0.0,
+     "y": 0.92,
+     "scale": 0.9
     }
    ],
    "threads": []
@@ -1582,6 +1638,13 @@
      "y": 0.76,
      "color": 4,
      "scale": 0.8
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_alarm_clock",
+     "x": 0.5,
+     "y": 0.97,
+     "scale": 0.8
     }
    ],
    "threads": [
@@ -1686,6 +1749,13 @@
      "y": 0.12,
      "color": 2,
      "scale": 0.72
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_notebook",
+     "x": 0.5,
+     "y": 0.7,
+     "scale": 0.9
     }
    ],
    "threads": []
@@ -1769,6 +1839,13 @@
      "x": 1.0,
      "y": 0.55,
      "color": 2
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_books",
+     "x": 0.5,
+     "y": 0.92,
+     "scale": 0.9
     }
    ],
    "threads": []
@@ -1862,7 +1939,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_heart",
      "x": 1.0,
      "y": 0.65
     }
@@ -1944,7 +2021,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_sparkle",
      "x": 0.5,
      "y": 0.82
     }
@@ -2023,6 +2100,13 @@
      "y": 0.74,
      "color": 4,
      "scale": 0.85
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_lightbulb",
+     "x": 0.5,
+     "y": 0.13,
+     "scale": 0.7
     }
    ],
    "threads": [
@@ -2473,6 +2557,12 @@
      "y": 0.4,
      "color": 5,
      "scale": 0.75
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_rainbow",
+     "x": 0.5,
+     "y": 0.75
     }
    ],
    "threads": []
@@ -2551,13 +2641,13 @@
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_star",
      "x": 1.0,
      "y": 0.7
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_rainbow",
      "x": 0.5,
      "y": 0.85
     }
@@ -2638,7 +2728,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_heart",
      "x": 0.5,
      "y": 0.78
     }
@@ -2709,7 +2799,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_trophy_cup",
      "x": 0.5,
      "y": 0.8
     }
@@ -2785,13 +2875,13 @@
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_star",
      "x": 1.0,
      "y": 0.5
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_heart",
      "x": 0.0,
      "y": 0.6
     }
@@ -2862,7 +2952,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_heart",
      "x": 0.5,
      "y": 0.82
     }
@@ -2944,7 +3034,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_heart_envelope",
      "x": 1.0,
      "y": 0.82
     }
@@ -3030,7 +3120,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "check",
+     "sticker": "art_trophy_cup",
      "x": 1.0,
      "y": 0.45
     }
@@ -3134,7 +3224,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_star",
      "x": 0.5,
      "y": 0.6
     }
@@ -3207,6 +3297,13 @@
      "x": 1.0,
      "y": 0.42,
      "color": 0
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_house",
+     "x": 0.0,
+     "y": 0.8,
+     "scale": 0.9
     }
    ],
    "threads": []
@@ -3292,13 +3389,13 @@
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_gift_box",
      "x": 1.0,
      "y": 0.72
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_star",
      "x": 0.5,
      "y": 0.88
     }
@@ -3389,7 +3486,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_heart",
      "x": 1.0,
      "y": 0.6
     }
@@ -3472,7 +3569,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_sun_cloud",
      "x": 0.5,
      "y": 0.86
     }
@@ -3549,7 +3646,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_heart",
      "x": 0.5,
      "y": 0.8
     }
@@ -3622,6 +3719,13 @@
      "x": 1.0,
      "y": 0.35,
      "color": 2
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_tea",
+     "x": 0.5,
+     "y": 0.92,
+     "scale": 0.9
     }
    ],
    "threads": []
@@ -3705,6 +3809,12 @@
      "x": 0.0,
      "y": 0.5,
      "color": 3
+    },
+    {
+     "kind": "sticker",
+     "sticker": "art_watering_can",
+     "x": 1.0,
+     "y": 0.6
     }
    ],
    "threads": []
@@ -3784,7 +3894,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_heart",
      "x": 0.0,
      "y": 0.75
     }
@@ -3842,14 +3952,14 @@
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_heart_envelope",
      "x": 1.0,
      "y": 0.45,
      "scale": 1.2
     },
     {
      "kind": "sticker",
-     "sticker": "heart",
+     "sticker": "art_heart_envelope",
      "x": 0.5,
      "y": 0.78
     }
@@ -3921,7 +4031,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_star",
      "x": 0.5,
      "y": 0.75
     }
@@ -4002,7 +4112,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_gift_box",
      "x": 0.5,
      "y": 0.78
     }
@@ -4075,7 +4185,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_star",
      "x": 1.0,
      "y": 0.5
     }
@@ -4160,7 +4270,7 @@
     },
     {
      "kind": "sticker",
-     "sticker": "star",
+     "sticker": "art_graduation_cap",
      "x": 1.0,
      "y": 0.6
     }

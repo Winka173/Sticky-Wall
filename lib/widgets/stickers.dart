@@ -269,8 +269,11 @@ class StickerArt extends StatelessWidget {
         sticker.asset,
         fit: BoxFit.contain,
         filterQuality: FilterQuality.medium,
-        // Kept small in memory: the picker shows dozens at once.
-        cacheWidth: (width * MediaQuery.devicePixelRatioOf(context)).round(),
+        // Kept small in memory (the picker shows dozens at once), decoded at
+        // a few fixed widths so cards of every size share them.
+        cacheWidth: stickerCacheWidth(
+          width * MediaQuery.devicePixelRatioOf(context),
+        ),
         excludeFromSemantics: true,
         errorBuilder: (_, _, _) => const SizedBox.shrink(),
       ),
@@ -291,6 +294,11 @@ class StickerArt extends StatelessWidget {
     );
   }
 }
+
+/// The width an illustrated sticker is decoded at for [pixels] on screen:
+/// rounded up to a multiple of 64, between 128 and 384.
+int stickerCacheWidth(double pixels) =>
+    ((pixels / 64).ceil() * 64).clamp(128, 384);
 
 /// A rubber stamp: the word in heavy capitals inside a double rule, inked
 /// a little unevenly.

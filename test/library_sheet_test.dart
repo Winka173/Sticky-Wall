@@ -13,6 +13,7 @@ import 'package:sticky_wall/services/template_library.dart';
 import 'package:sticky_wall/services/theme_packs.dart';
 import 'package:sticky_wall/theme.dart';
 import 'package:sticky_wall/widgets/pro_sheet.dart';
+import 'package:sticky_wall/widgets/stickers.dart';
 
 import 'preview_fonts.dart';
 
@@ -25,10 +26,7 @@ Future<void> _sheet(
   String name,
   List<(Widget, String, bool)> cells,
 ) async {
-  tester.view.physicalSize = Size(
-    _cell.width * _cols,
-    _cell.height * _rows,
-  );
+  tester.view.physicalSize = Size(_cell.width * _cols, _cell.height * _rows);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
@@ -88,6 +86,15 @@ Future<void> _sheet(
     for (final w in walls) {
       await precacheImage(AssetImage(w.asset), ctx);
     }
+    // Illustrated stickers, at every width they are decoded at.
+    for (final s in stickers.where((s) => s.kind == StickerKind.image)) {
+      for (var width = 128; width <= 384; width += 64) {
+        await precacheImage(
+          ResizeImage(AssetImage(s.asset), width: width),
+          ctx,
+        );
+      }
+    }
   });
   for (var i = 0; i < 6; i++) {
     await tester.pump(const Duration(milliseconds: 100));
@@ -110,8 +117,7 @@ void main() {
     testWidgets('templates ${page + 1}', skip: true, (tester) async {
       final slice = templates.skip(page * perSheet).take(perSheet);
       await _sheet(tester, 'templates_${page + 1}', [
-        for (final t in slice)
-          (TemplatePreview(template: t), t.name.vi, false),
+        for (final t in slice) (TemplatePreview(template: t), t.name.vi, false),
       ]);
     });
   }

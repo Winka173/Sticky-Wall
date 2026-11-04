@@ -552,6 +552,52 @@ T('back_to_school', 'seasonal', 'rainbow_school',
    C('Forms', 'Giấy tờ', [('Health form', 'Phiếu sức khỏe'), ('Bus card', 'Thẻ xe buýt')], 1.0, 0.0, 3),
    N('First day: Sept 5, 7:00', 'Khai giảng: 5/9, 7:00', 0.0, 0.55, 1), S('star', 1.0, 0.6)])
 
+# --- Illustrated stickers ------------------------------------------------
+# The emoji stand-ins give way to the illustrated stickers that come with
+# the free app, picked per board where one says more than a star.
+SWAP = {'star': 'art_star', 'heart': 'art_heart', 'check': 'art_check_badge'}
+SWAP_IN = {
+    ('brain_dump', 'star'): 'art_lightbulb',
+    ('cleaning_day', 'star'): 'art_sparkle',
+    ('budget_month', 'star'): 'art_coin_stack',
+    ('moodboard', 'star'): 'art_sparkle',
+    ('vision_board', 'heart'): 'art_rainbow',
+    ('goal_wall', 'star'): 'art_trophy_cup',
+    ('milestones', 'heart'): 'art_heart_envelope',
+    ('workout_week', 'check'): 'art_trophy_cup',
+    ('birthday_ideas', 'heart'): 'art_gift_box',
+    ('travel_ideas', 'heart'): 'art_sun_cloud',
+    ('christmas_wishes', 'star'): 'art_gift_box',
+    ('back_to_school', 'star'): 'art_graduation_cap',
+    ('valentine_memories', 'heart'): 'art_heart_envelope',
+}
+# One more where the board has room for it, out of the notes' way.
+EXTRA = {
+    'daily_notes': ('art_coffee_mug', 1.0, 0.95, 0.9),
+    'urgent_important': ('art_alarm_clock', 0.5, 0.95, 0.9),
+    'meal_plan': ('art_shopping_bag', 0.0, 0.95, 0.9),
+    'shopping_board': ('art_shopping_bag', 0.5, 0.95, 0.9),
+    'meeting_notes': ('art_megaphone', 1.0, 0.95, 0.9),
+    'four_subjects': ('art_books', 0.5, 0.95, 0.9),
+    'class_timetable': ('art_graduation_cap', 1.0, 0.95, 0.9),
+    'exam_countdown': ('art_alarm_clock', 0.5, 0.97, 0.8),
+    'revision_plan': ('art_notebook', 0.5, 0.7, 0.9),
+    'language_notes': ('art_books', 0.5, 0.92, 0.9),
+    'brainstorm': ('art_lightbulb', 0.5, 0.13, 0.7),
+    'color_palette': ('art_rainbow', 0.5, 0.75, 1.0),
+    'family_reminders': ('art_house', 0.0, 0.8, 0.9),
+    'recipe_board': ('art_tea', 0.5, 0.92, 0.9),
+    'garden_plan': ('art_watering_can', 1.0, 0.6, 1.0),
+    'homework_wall': ('art_pencil', 0.0, 0.92, 0.9),
+}
+for t in TEMPLATES:
+    for item in t['items']:
+        if item['kind'] == 'sticker':
+            item['sticker'] = SWAP_IN.get((t['id'], item['sticker']), SWAP.get(item['sticker'], item['sticker']))
+    if t['id'] in EXTRA:
+        sid, x, y, sc = EXTRA[t['id']]
+        t['items'].append(S(sid, x, y, sc))
+
 if __name__ == '__main__':
     ids = [t['id'] for t in TEMPLATES]
     assert len(ids) == len(set(ids)), 'duplicate ids'

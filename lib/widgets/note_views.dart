@@ -1139,7 +1139,11 @@ class StickyNoteCard extends StatelessWidget {
         final room = constraints.maxWidth.isFinite
             ? constraints.maxWidth
             : 160.0;
-        final width = room * (sticker.kind == StickerKind.stamp ? 0.95 : 0.62);
+        // Stamps and tapes run long and low; the rest sit smaller.
+        final long =
+            sticker.kind == StickerKind.stamp ||
+            (sticker.kind == StickerKind.image && sticker.aspect < 0.6);
+        final width = room * (long ? 0.95 : 0.62);
         return Container(
           width: double.infinity,
           alignment: Alignment.center,
