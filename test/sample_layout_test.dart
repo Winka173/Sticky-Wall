@@ -21,6 +21,9 @@ final _sizes = <String, (Size, double)>{
   'phone': (const Size(1080, 2220), 2.75),
   'tablet portrait': (const Size(1600, 2560), 2),
   'tablet landscape': (const Size(2560, 1600), 2),
+  'emulator window (landscape)': (const Size(1920, 1080), 2),
+  'large phone': (const Size(1290, 2796), 3),
+  'small tablet landscape': (const Size(1920, 1200), 2),
 };
 
 void main() {
