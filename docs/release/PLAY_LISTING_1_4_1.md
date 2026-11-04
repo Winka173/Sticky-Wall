@@ -1,4 +1,4 @@
-# Sticky Wall 1.4.1 (8) — Play Console text
+# Sticky Wall 1.4.1 (9) — Play Console text
 
 Paste-ready. Character limits are Play's; the counts were checked with a script.
 
@@ -7,7 +7,7 @@ Paste-ready. Character limits are Play's; the counts were checked with a script.
 **Release name** (internal, not shown to users)
 
 ```
-1.4.1 (8)
+1.4.1 (9)
 ```
 
 **Release notes** (≤ 500 characters per language; paste the whole block)
