@@ -66,34 +66,7 @@ extension _Chrome on _HomeScreenState {
     _notes.saveWallStrokes();
   }
 
-  Future<void> _clearInk() async {
-    if (_wallStrokes.isEmpty) return;
-    // Done empties the undo history, so a cleared wall could not come back.
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: Text(_l10n.clearInkConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(_l10n.cancel),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: AppColors.deleteIcon),
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(_l10n.clear),
-          ),
-        ],
-      ),
-    );
-    if (ok != true || !mounted) return;
-    unawaited(HapticFeedback.lightImpact());
-    _inkBegin();
-    _update(_wallStrokes.clear);
-    _notes.saveWallStrokes();
-  }
-
-  /// Pen, colours, eraser, undo, clear and done, docked at the bottom while
+  /// Pen, colours, eraser, undo and done, docked at the bottom while
   /// drawing on the wall. Compact enough for a 360dp phone in one row.
   Widget _markerBar(WallStyle wall) {
     final l10n = _l10n;
@@ -215,11 +188,6 @@ extension _Chrome on _HomeScreenState {
                 tooltip: l10n.undo,
                 icon: const Icon(Icons.undo),
                 onTap: _inkPast.isEmpty ? null : _undoInk,
-              ),
-              tool(
-                tooltip: l10n.clear,
-                icon: const Icon(Icons.delete_sweep_outlined),
-                onTap: _wallStrokes.isEmpty ? null : _clearInk,
               ),
               const SizedBox(width: 2),
               Tooltip(

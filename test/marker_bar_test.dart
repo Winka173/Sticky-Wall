@@ -2,12 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sticky_wall/main.dart';
 import 'package:sticky_wall/models/view_mode.dart';
-import 'package:sticky_wall/screens/home_screen.dart';
 import 'package:sticky_wall/services/note_storage.dart';
 import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/pro_controller.dart';
 import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
+import 'package:sticky_wall/widgets/eraser_icon.dart';
 
 /// Drawing on the wall: an eraser that looks like one, and (with Pro) any
 /// pen colour at all, mixed.
@@ -36,10 +36,7 @@ void main() {
     expect(find.byType(EraserIcon), findsOneWidget);
     await tester.tap(find.byTooltip('Eraser'));
     await tester.pump();
-    expect(
-      tester.widget<EraserIcon>(find.byType(EraserIcon)).filled,
-      isTrue,
-    );
+    expect(tester.widget<EraserIcon>(find.byType(EraserIcon)).filled, isTrue);
   });
 
   testWidgets('without Pro the mixed colour is locked and offers Pro', (

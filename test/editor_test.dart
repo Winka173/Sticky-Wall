@@ -1243,16 +1243,8 @@ void main() {
     await tester.tap(find.byTooltip('Undo'));
     await tester.pumpAndSettle();
     expect(notes.currentBoard.strokes.length, 1);
-    await tester.tap(find.byTooltip('Clear'));
-    await tester.pumpAndSettle();
-    // Wiping the wall asks first.
-    expect(find.text('Wipe everything drawn on this wall?'), findsOneWidget);
-    await tester.tap(find.widgetWithText(TextButton, 'Clear'));
-    await tester.pumpAndSettle();
-    expect(notes.currentBoard.strokes, isEmpty);
-    await tester.tap(find.byTooltip('Undo'));
-    await tester.pumpAndSettle();
-    expect(notes.currentBoard.strokes.length, 1, reason: 'clear undone');
+    // No wipe-everything button: lines go one at a time, with the eraser.
+    expect(find.byTooltip('Clear'), findsNothing);
 
     await tester.tap(find.byTooltip('Done'));
     await tester.pumpAndSettle();

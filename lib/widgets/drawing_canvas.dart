@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../l10n/app_localizations.dart';
 import '../models/draw_stroke.dart';
 import '../theme.dart';
+import 'eraser_icon.dart';
 import 'keyboard_tappable.dart';
 
 /// Width : height of every drawing surface. Strokes are stored normalized, so
@@ -274,11 +275,6 @@ class _DrawingEditorState extends State<DrawingEditor> {
     _mutate(() => _restore(_future.removeLast()));
   }
 
-  void _clear() {
-    _snapshot();
-    _mutate(widget.strokes.clear);
-  }
-
   /// Removes every stroke that passes within [_eraserReach] of [local].
   void _eraseAt(Offset local) {
     if (_size == Size.zero) return;
@@ -439,7 +435,6 @@ class _DrawingEditorState extends State<DrawingEditor> {
 
   /// Pen sizes, eraser, history and the canvas panel toggle.
   Widget _toolRow(AppLocalizations l10n) {
-    final hasStrokes = widget.strokes.isNotEmpty;
     final sizeNames = [l10n.penThin, l10n.penMedium, l10n.penThick];
     return _evenRow([
       // Three pen sizes, drawn at their real thickness.
@@ -459,7 +454,10 @@ class _DrawingEditorState extends State<DrawingEditor> {
       _ToolButton(
         tooltip: l10n.eraser,
         icon: Icons.auto_fix_normal_outlined,
-        activeIcon: Icons.auto_fix_normal,
+        picture: EraserIcon(
+          color: AppColors.ink,
+          filled: _tool == _Tool.eraser,
+        ),
         active: _tool == _Tool.eraser,
         onPressed: () => setState(
           () => _tool = _tool == _Tool.eraser ? _Tool.pen : _Tool.eraser,
@@ -474,11 +472,6 @@ class _DrawingEditorState extends State<DrawingEditor> {
         tooltip: l10n.redo,
         icon: Icons.redo,
         onPressed: _future.isNotEmpty ? _redo : null,
-      ),
-      _ToolButton(
-        tooltip: l10n.clear,
-        icon: Icons.delete_sweep_outlined,
-        onPressed: hasStrokes ? _clear : null,
       ),
       _ToolButton(
         tooltip: l10n.canvasSection,
@@ -711,11 +704,15 @@ class _ToolButton extends StatelessWidget {
     required this.onPressed,
     this.activeIcon,
     this.active = false,
+    this.picture,
   });
 
   final String tooltip;
   final IconData icon;
   final IconData? activeIcon;
+
+  /// A drawn icon in place of [icon] (the eraser).
+  final Widget? picture;
   final VoidCallback? onPressed;
   final bool active;
 
@@ -731,7 +728,7 @@ class _ToolButton extends StatelessWidget {
         minimumSize: const Size(36, _target),
         padding: EdgeInsets.zero,
       ),
-      icon: Icon(active ? activeIcon ?? icon : icon, size: 21),
+      icon: picture ?? Icon(active ? activeIcon ?? icon : icon, size: 21),
       onPressed: onPressed,
     );
   }

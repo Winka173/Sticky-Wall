@@ -31,6 +31,7 @@ import '../widgets/add_note_button.dart';
 import '../widgets/add_to_wall_sheet.dart';
 import '../widgets/board_bar.dart';
 import '../widgets/board_poster.dart';
+import '../widgets/eraser_icon.dart';
 import '../widgets/gesture_tips.dart';
 import '../widgets/guided_tour.dart';
 import '../widgets/keyboard_tappable.dart';
