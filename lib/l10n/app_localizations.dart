@@ -1262,6 +1262,84 @@ abstract class AppLocalizations {
   /// **'Gesture tips'**
   String get gestureTips;
 
+  /// No description provided for @tourReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Interactive guide'**
+  String get tourReplay;
+
+  /// No description provided for @tourTapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a note to write on it'**
+  String get tourTapTitle;
+
+  /// No description provided for @tourTapBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap any note on the wall. It opens on its paper; close it again when you are done.'**
+  String get tourTapBody;
+
+  /// No description provided for @tourDragTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a note to move it'**
+  String get tourDragTitle;
+
+  /// No description provided for @tourDragBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Put a finger on a note and slide it somewhere else on the wall.'**
+  String get tourDragBody;
+
+  /// No description provided for @tourThreadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tie two notes together'**
+  String get tourThreadTitle;
+
+  /// No description provided for @tourThreadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag from a note\'s red pin onto another note. Or long-press a note and choose \"Tie a thread to…\".'**
+  String get tourThreadBody;
+
+  /// No description provided for @tourDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s the wall'**
+  String get tourDoneTitle;
+
+  /// No description provided for @tourDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes stay where you put them. The example notes can go any time: long-press one, or clear them from the board\'s menu.'**
+  String get tourDoneBody;
+
+  /// No description provided for @tourNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get tourNext;
+
+  /// No description provided for @tourSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get tourSkip;
+
+  /// No description provided for @tourClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get tourClose;
+
+  /// No description provided for @tourFirstNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Write my first note'**
+  String get tourFirstNote;
+
   /// No description provided for @gotIt.
   ///
   /// In en, this message translates to:

@@ -681,6 +681,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gestureTips => 'Gesture tips';
 
   @override
+  String get tourReplay => 'Interactive guide';
+
+  @override
+  String get tourTapTitle => 'Tap a note to write on it';
+
+  @override
+  String get tourTapBody =>
+      'Tap any note on the wall. It opens on its paper; close it again when you are done.';
+
+  @override
+  String get tourDragTitle => 'Drag a note to move it';
+
+  @override
+  String get tourDragBody =>
+      'Put a finger on a note and slide it somewhere else on the wall.';
+
+  @override
+  String get tourThreadTitle => 'Tie two notes together';
+
+  @override
+  String get tourThreadBody =>
+      'Drag from a note\'s red pin onto another note. Or long-press a note and choose \"Tie a thread to…\".';
+
+  @override
+  String get tourDoneTitle => 'That\'s the wall';
+
+  @override
+  String get tourDoneBody =>
+      'Your notes stay where you put them. The example notes can go any time: long-press one, or clear them from the board\'s menu.';
+
+  @override
+  String get tourNext => 'Next';
+
+  @override
+  String get tourSkip => 'Skip';
+
+  @override
+  String get tourClose => 'Close';
+
+  @override
+  String get tourFirstNote => 'Write my first note';
+
+  @override
   String get gotIt => 'Got it';
 
   @override

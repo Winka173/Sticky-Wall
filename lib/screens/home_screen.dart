@@ -31,6 +31,7 @@ import '../widgets/add_note_button.dart';
 import '../widgets/board_bar.dart';
 import '../widgets/board_poster.dart';
 import '../widgets/gesture_tips.dart';
+import '../widgets/guided_tour.dart';
 import '../widgets/keyboard_tappable.dart';
 import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
@@ -445,6 +446,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
     if (!mounted) return;
     switch (picked) {
+      case 'explore':
+        _startTour();
       case 'blank':
         _notes.discardSamples(_notes.currentBoardId);
       case 'template':
@@ -467,6 +470,51 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _showTips() async {
     await showGestureTips(context);
     widget.settings.markTipsSeen();
+  }
+
+  // --- Interactive guide ---------------------------------------------------
+
+  /// The guide's current step, or null when it is not running.
+  TourStep? _tour;
+  int _tourEdits = 0;
+  int _tourLinks = 0;
+
+  /// Starts the guide on the wall as it is. Replaying it never adds or
+  /// removes anything: it only watches for the gestures.
+  void _startTour() {
+    if (_notes.viewMode != ViewMode.wall) _notes.viewMode = ViewMode.wall;
+    setState(() {
+      _tour = TourStep.tap;
+      _tourEdits = _notes.wallEdits;
+      _tourLinks = _notes.links.length;
+    });
+    widget.settings.markTipsSeen();
+  }
+
+  void _tourAdvance([TourStep? from]) {
+    final step = _tour;
+    if (step == null || (from != null && step != from)) return;
+    setState(() {
+      _tour = TourStep.values[step.index + 1];
+      _tourEdits = _notes.wallEdits;
+      _tourLinks = _notes.links.length;
+    });
+  }
+
+  void _endTour() => setState(() => _tour = null);
+
+  /// Moves the guide on when the user did what the step asks.
+  void _watchTour() {
+    final step = _tour;
+    if (step == TourStep.drag && _notes.wallEdits > _tourEdits) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _tourAdvance(TourStep.drag),
+      );
+    } else if (step == TourStep.thread && _notes.links.length > _tourLinks) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _tourAdvance(TourStep.thread),
+      );
+    }
   }
 
   /// Every kind of note, from the "Other kinds" pill or a long press on the
@@ -835,6 +883,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _openEditor(Note note, {required bool isNew}) async {
+    // Opening a note is what the guide's first step asks for.
+    if (!isNew) _tourAdvance(TourStep.tap);
     // A sticker has nothing to write on: "editing" it picks another one.
     if (note.type == NoteType.sticker && !isNew) {
       await _changeSticker(note);
@@ -1136,6 +1186,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           }
           // Marker mode belongs to the wall; leaving it ends the session.
           if (_notes.viewMode != ViewMode.wall) _marking = false;
+          _watchTour();
           if (onWall && !_tipsOffered && widget.settings.welcomePending) {
             _tipsOffered = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1286,6 +1337,29 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           ],
                         ),
                       ),
+                      if (_tour != null && onWall)
+                        Positioned(
+                          left: 12,
+                          right: 12,
+                          bottom:
+                              HomeScreen.wallFooterHeight +
+                              MediaQuery.viewPaddingOf(context).bottom +
+                              24,
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 420),
+                              child: GuidedTourCard(
+                                step: _tour!,
+                                onNext: _tourAdvance,
+                                onSkip: _endTour,
+                                onFirstNote: () {
+                                  _endTour();
+                                  _openEditor(_notes.draft(), isNew: true);
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
                       // The same breath of shade along the bottom, behind the
                       // tool pill and the add button.
                       if (onWall)

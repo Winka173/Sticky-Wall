@@ -748,6 +748,8 @@ extension _Chrome on _HomeScreenState {
             _startMarking(wall);
           case 'fit':
             _wallHandle.fitAll();
+          case 'guide':
+            _startTour();
           case 'tips':
             _showTips();
           case 'gallery':
@@ -809,6 +811,7 @@ extension _Chrome on _HomeScreenState {
           night ? l10n.lightsOn : l10n.lightsOff,
           icon: night ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
         ),
+        _menuItem('guide', l10n.tourReplay, icon: Icons.school_outlined),
         _menuItem('tips', l10n.gestureTips, icon: Icons.lightbulb_outline),
       ],
     );

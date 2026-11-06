@@ -670,6 +670,49 @@ class AppLocalizationsVi extends AppLocalizations {
   String get gestureTips => 'Mẹo cử chỉ';
 
   @override
+  String get tourReplay => 'Hướng dẫn tương tác';
+
+  @override
+  String get tourTapTitle => 'Chạm vào ghi chú để viết';
+
+  @override
+  String get tourTapBody =>
+      'Chạm vào một ghi chú bất kỳ trên tường. Ghi chú mở ra trên tờ giấy của nó; viết xong thì đóng lại.';
+
+  @override
+  String get tourDragTitle => 'Kéo ghi chú để di chuyển';
+
+  @override
+  String get tourDragBody =>
+      'Đặt một ngón lên ghi chú rồi trượt sang chỗ khác trên tường.';
+
+  @override
+  String get tourThreadTitle => 'Nối hai ghi chú';
+
+  @override
+  String get tourThreadBody =>
+      'Kéo từ ghim đỏ của một ghi chú sang ghi chú khác. Hoặc nhấn giữ ghi chú rồi chọn \"Nối dây tới…\".';
+
+  @override
+  String get tourDoneTitle => 'Vậy là xong';
+
+  @override
+  String get tourDoneBody =>
+      'Ghi chú nằm yên ở chỗ bạn đặt. Các ghi chú mẫu xóa lúc nào cũng được: nhấn giữ một tờ, hoặc xóa hết trong menu của bảng.';
+
+  @override
+  String get tourNext => 'Tiếp';
+
+  @override
+  String get tourSkip => 'Bỏ qua';
+
+  @override
+  String get tourClose => 'Đóng';
+
+  @override
+  String get tourFirstNote => 'Viết ghi chú đầu tiên';
+
+  @override
   String get gotIt => 'Đã hiểu';
 
   @override
