@@ -2402,6 +2402,12 @@ abstract class AppLocalizations {
   /// **'Sticky Wall Pro'**
   String get proTitle;
 
+  /// No description provided for @upgradeToPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Pro'**
+  String get upgradeToPro;
+
   /// No description provided for @proPitch.
   ///
   /// In en, this message translates to:

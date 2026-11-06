@@ -512,9 +512,12 @@ class _SettingsSheet extends StatelessWidget {
   /// rather than the look of the wall, in sections.
   Widget _appList(BuildContext context, AppLocalizations l10n) {
     final sync = SyncService.instance;
+    final pro = ProScope.unlockedOf(context);
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
       children: [
+        const SizedBox(height: 8),
+        _ProCard(pro: pro, l10n: l10n),
         _SectionTitle(l10n.settingsGeneral),
         _SectionTitle(l10n.languageSection, small: true),
         Wrap(
@@ -1769,4 +1772,76 @@ class _SectionTitle extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The top of Settings: Upgrade to Pro, in the accent's amber with a badge
+/// icon; once bought, a thank-you that still opens the Pro sheet.
+class _ProCard extends StatelessWidget {
+  const _ProCard({required this.pro, required this.l10n});
+
+  final bool pro;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    key: const Key('settings-pro'),
+    color: AppColors.accent.withValues(alpha: pro ? .14 : .26),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppRadii.control * 1.5),
+      side: const BorderSide(color: AppColors.accent, width: 1.5),
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      onTap: () => showProSheet(context),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: const BoxDecoration(
+                color: AppColors.accent,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.workspace_premium,
+                color: AppColors.ink,
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    pro ? l10n.proTitle : l10n.upgradeToPro,
+                    style: const TextStyle(
+                      fontFamily: 'BeVietnamPro',
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.proInk,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    pro ? l10n.proSettingsThanks : l10n.proSettingsHint,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.inkSoft,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              pro ? Icons.check_circle : Icons.chevron_right,
+              color: AppColors.proInk,
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

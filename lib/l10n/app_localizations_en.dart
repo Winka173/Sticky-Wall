@@ -1341,6 +1341,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get proTitle => 'Sticky Wall Pro';
 
   @override
+  String get upgradeToPro => 'Upgrade to Pro';
+
+  @override
   String get proPitch =>
       'One payment, yours for good. Everything you have now stays free.';
 

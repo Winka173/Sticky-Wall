@@ -23,6 +23,10 @@ abstract class AppColors {
   /// Sunny accent for the primary action and small badges.
   static const accent = Color(0xFFFFCA28);
 
+  /// Words and icons for Pro on light paper: the accent's deep amber, 5:1
+  /// on [paper].
+  static const proInk = Color(0xFF8A5300);
+
   /// Deep enough to keep 4.5:1 on the dimmed papers too.
   static const link = Color(0xFF123A73);
   static const deleteIcon = Color(0xFFC62828);

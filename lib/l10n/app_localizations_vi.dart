@@ -1319,6 +1319,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get proTitle => 'Sticky Wall Pro';
 
   @override
+  String get upgradeToPro => 'Nâng cấp lên Pro';
+
+  @override
   String get proPitch =>
       'Trả một lần, dùng mãi mãi. Mọi thứ bạn đang có vẫn miễn phí.';
 
