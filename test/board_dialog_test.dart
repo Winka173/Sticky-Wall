@@ -69,9 +69,7 @@ void main() {
     expect(Board.fromJson(json).name, 'Work');
   });
 
-  testWidgets('new board dialog takes a name and an icon', (
-    tester,
-  ) async {
+  testWidgets('new board dialog takes a name and an icon', (tester) async {
     tester.view.physicalSize = const Size(1080, 2220);
     tester.view.devicePixelRatio = 2.75;
     addTearDown(tester.view.reset);

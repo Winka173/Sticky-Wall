@@ -199,17 +199,23 @@ void main() {
       expect(removed, ['old.jpg']);
     });
 
-    test('deleteBoard purges its trashed notes too', () async {
-      final c = await _controller(notes: [_note('1', 'x')]);
-      final work = c.addBoard('Work');
-      final note = c.allNotes.single;
-      c.moveToBoard(note, work.id);
-      c.delete(note);
-      expect(c.trashed.single.guid, '1');
-      c.deleteBoard(work.id);
-      expect(c.allNotes, isEmpty);
-      expect(c.canUndo, false);
-    });
+    test(
+      'deleteBoard takes its trashed notes into the Trash with it',
+      () async {
+        final c = await _controller(notes: [_note('1', 'x')]);
+        final work = c.addBoard('Work');
+        final note = c.allNotes.single;
+        c.moveToBoard(note, work.id);
+        c.delete(note);
+        expect(c.trashed.single.guid, '1');
+        c.deleteBoard(work.id);
+        expect(c.trashed, isEmpty, reason: 'it waits inside the board now');
+        expect(c.allNotes.single.guid, '1', reason: 'nothing purged');
+        expect(c.canUndo, false);
+        c.restoreBoard(work.id);
+        expect(c.trashed.single.guid, '1');
+      },
+    );
 
     test(
       'restore falls back to the first board when its board is gone',
@@ -301,27 +307,36 @@ void main() {
       },
     );
 
-    test('a finished checklist is stamped and swept after a day', () async {
-      final c = await _controller(
-        notes: [
-          _note('1', 'list', type: NoteType.checklist)
-            ..checklist = [ChecklistItem(text: 'a'), ChecklistItem(text: 'b')],
-        ],
-      );
+    test('a finished checklist is stamped and stays put, even with the '
+        'retired auto-tidy switch left on', () async {
+      final done = _note('1', 'list', type: NoteType.checklist)
+        ..checklist = [
+          ChecklistItem(text: 'a', done: true),
+          ChecklistItem(text: 'b', done: true),
+        ]
+        ..completedAt = DateTime.now().subtract(const Duration(days: 5));
+      // An install that had "Tidy finished to-do lists" on in 1.4.
+      SharedPreferences.setMockInitialValues({
+        'autoTrashDone': true,
+        'dragToDelete': true,
+      });
+      final storage = await NoteStorage.create();
+      await storage.saveNotes([done]);
+      final c = NotesController(storage, ReminderService());
+      expect(c.trashed, isEmpty, reason: 'never swept on launch');
+      expect(c.boardNotes.single.checklistDone, isTrue);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.containsKey('autoTrashDone'), isFalse);
+      expect(prefs.containsKey('dragToDelete'), isFalse);
+
       final note = c.boardNotes.single;
-      c.toggleChecklistItem(note, 0);
+      c.toggleChecklistItem(note, 1);
       expect(note.completedAt, isNull);
       c.toggleChecklistItem(note, 1);
       expect(note.completedAt, isNotNull);
-      c.toggleChecklistItem(note, 1);
-      expect(note.completedAt, isNull);
-
-      c.toggleChecklistItem(note, 1);
-      c.sweepCompleted();
-      expect(c.trashed, isEmpty, reason: 'only just finished');
-      note.completedAt = DateTime.now().subtract(const Duration(days: 2));
-      c.sweepCompleted();
-      expect(c.trashed.single.guid, '1');
+      // A second launch long after: still there.
+      final again = NotesController(storage, ReminderService());
+      expect(again.trashed, isEmpty);
     });
   });
 
@@ -679,18 +694,21 @@ void main() {
       expect(c.links, isEmpty, reason: 'an empty list is an answer too');
     });
 
-    test('the streamed backup file reads back like the in-memory one', () async {
-      final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
-      c.connect('1', '2');
-      final dir = await Directory.systemTemp.createTemp('backup');
-      addTearDown(() => dir.delete(recursive: true));
-      final file = File('${dir.path}/b.json');
-      await BackupService().writeTo(file, c.boards, c.allNotes, c.links);
-      final backup = BackupService().decode(await file.readAsString());
-      expect(backup.notes.map((n) => n.guid), ['1', '2']);
-      expect(backup.links!.single.same('1', '2'), true);
-      expect(backup.boards.length, c.boards.length);
-    });
+    test(
+      'the streamed backup file reads back like the in-memory one',
+      () async {
+        final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
+        c.connect('1', '2');
+        final dir = await Directory.systemTemp.createTemp('backup');
+        addTearDown(() => dir.delete(recursive: true));
+        final file = File('${dir.path}/b.json');
+        await BackupService().writeTo(file, c.boards, c.allNotes, c.links);
+        final backup = BackupService().decode(await file.readAsString());
+        expect(backup.notes.map((n) => n.guid), ['1', '2']);
+        expect(backup.links!.single.same('1', '2'), true);
+        expect(backup.boards.length, c.boards.length);
+      },
+    );
 
     test('a backup carries the threads; a newer format is refused', () async {
       final c = await _controller(notes: [_note('1', 'x'), _note('2', 'y')]);
@@ -980,7 +998,9 @@ void main() {
     });
 
     test('the type filter finds voice notes', () async {
-      final c = await _controller(notes: [voice('1', 'v.m4a'), _note('2', 'x')]);
+      final c = await _controller(
+        notes: [voice('1', 'v.m4a'), _note('2', 'x')],
+      );
       c.typeFilter = 6;
       expect(c.visibleNotes.map((n) => n.guid), ['1']);
     });
@@ -1022,48 +1042,51 @@ void main() {
         to.deleteSync(recursive: true);
       });
 
-      test('both backup writers carry the recordings and restore them', () async {
-        ImageService.docsDirForTest = from.path;
-        File('${from.path}/note_audio/v1.m4a')
-          ..createSync(recursive: true)
-          ..writeAsBytesSync([7, 8, 9]);
-        File('${from.path}/note_images/p1.jpg')
-          ..createSync(recursive: true)
-          ..writeAsBytesSync([1]);
-        final c = await _controller(
-          notes: [
-            voice('1', 'v1.m4a'),
-            voice('2', 'gone.m4a'),
-            _note('3', 'x', image: 'p1.jpg'),
-          ],
-        );
-        final inMemory = BackupService().decode(
-          await BackupService().encodeWithPhotos(
-            c.boards,
-            c.allNotes,
-            c.links,
-          ),
-        );
-        final file = File('${from.path}/stream.json');
-        await BackupService().writeTo(file, c.boards, c.allNotes, c.links);
-        final streamed = BackupService().decode(await file.readAsString());
+      test(
+        'both backup writers carry the recordings and restore them',
+        () async {
+          ImageService.docsDirForTest = from.path;
+          File('${from.path}/note_audio/v1.m4a')
+            ..createSync(recursive: true)
+            ..writeAsBytesSync([7, 8, 9]);
+          File('${from.path}/note_images/p1.jpg')
+            ..createSync(recursive: true)
+            ..writeAsBytesSync([1]);
+          final c = await _controller(
+            notes: [
+              voice('1', 'v1.m4a'),
+              voice('2', 'gone.m4a'),
+              _note('3', 'x', image: 'p1.jpg'),
+            ],
+          );
+          final inMemory = BackupService().decode(
+            await BackupService().encodeWithPhotos(
+              c.boards,
+              c.allNotes,
+              c.links,
+            ),
+          );
+          final file = File('${from.path}/stream.json');
+          await BackupService().writeTo(file, c.boards, c.allNotes, c.links);
+          final streamed = BackupService().decode(await file.readAsString());
 
-        for (final backup in [inMemory, streamed]) {
-          expect(backup.audios.keys, ['v1.m4a']);
-          expect(backup.photos.keys, ['p1.jpg']);
-          expect(backup.notes.first.audioPath, 'v1.m4a');
-          expect(backup.notes.first.audioMs, 4200);
-        }
+          for (final backup in [inMemory, streamed]) {
+            expect(backup.audios.keys, ['v1.m4a']);
+            expect(backup.photos.keys, ['p1.jpg']);
+            expect(backup.notes.first.audioPath, 'v1.m4a');
+            expect(backup.notes.first.audioMs, 4200);
+          }
 
-        ImageService.docsDirForTest = to.path;
-        await BackupService().restorePhotos(streamed);
-        expect(File('${to.path}/note_audio/v1.m4a').readAsBytesSync(), [
-          7,
-          8,
-          9,
-        ]);
-        expect(File('${to.path}/note_images/p1.jpg').existsSync(), true);
-      });
+          ImageService.docsDirForTest = to.path;
+          await BackupService().restorePhotos(streamed);
+          expect(File('${to.path}/note_audio/v1.m4a').readAsBytesSync(), [
+            7,
+            8,
+            9,
+          ]);
+          expect(File('${to.path}/note_images/p1.jpg').existsSync(), true);
+        },
+      );
     });
   });
 
@@ -1078,69 +1101,81 @@ void main() {
     test('is due with none yet, after a week, or with a future stamp', () {
       final now = DateTime(2026, 10, 31, 9);
       expect(AutoBackup.isDue(null, now), true);
-      expect(AutoBackup.isDue(now.subtract(const Duration(days: 6)), now), false);
-      expect(AutoBackup.isDue(now.subtract(const Duration(days: 7)), now), true);
+      expect(
+        AutoBackup.isDue(now.subtract(const Duration(days: 6)), now),
+        false,
+      );
+      expect(
+        AutoBackup.isDue(now.subtract(const Duration(days: 7)), now),
+        true,
+      );
       expect(AutoBackup.isDue(now.add(const Duration(days: 3)), now), true);
       expect(AutoBackup.fileName(now), 'sticky-wall-2026-10-31.json');
     });
 
-    test('writes when due, then waits a week, and keeps the newest 4', () async {
-      ImageService.docsDirForTest = docs.path;
-      final c = await _controller(notes: [_note('1', 'kept')]);
-      // Same storage as the controller (the mock prefs are shared).
-      final settings = SettingsController(await NoteStorage.create());
-      expect(settings.autoBackup, true, reason: 'on by default');
+    test(
+      'writes when due, then waits a week, and keeps the newest 4',
+      () async {
+        ImageService.docsDirForTest = docs.path;
+        final c = await _controller(notes: [_note('1', 'kept')]);
+        // Same storage as the controller (the mock prefs are shared).
+        final settings = SettingsController(await NoteStorage.create());
+        expect(settings.autoBackup, true, reason: 'on by default');
 
-      var day = DateTime(2026, 9, 1, 10);
-      final first = await AutoBackup.runIfDue(settings, c, now: day);
-      expect(first, isNotNull);
-      expect(settings.lastAutoBackup, day);
-      expect(
-        BackupService().decode(first!.readAsStringSync()).notes.single.guid,
-        '1',
-      );
-      // Two days on: not due, nothing written.
-      expect(
-        await AutoBackup.runIfDue(
-          settings,
-          c,
-          now: day.add(const Duration(days: 2)),
-        ),
-        isNull,
-      );
+        var day = DateTime(2026, 9, 1, 10);
+        final first = await AutoBackup.runIfDue(settings, c, now: day);
+        expect(first, isNotNull);
+        expect(settings.lastAutoBackup, day);
+        expect(
+          BackupService().decode(first!.readAsStringSync()).notes.single.guid,
+          '1',
+        );
+        // Two days on: not due, nothing written.
+        expect(
+          await AutoBackup.runIfDue(
+            settings,
+            c,
+            now: day.add(const Duration(days: 2)),
+          ),
+          isNull,
+        );
 
-      for (var week = 1; week <= 5; week++) {
-        day = day.add(const Duration(days: 7));
-        expect(await AutoBackup.runIfDue(settings, c, now: day), isNotNull);
-      }
-      final kept = await AutoBackup.list();
-      expect(kept.map((f) => f.uri.pathSegments.last), [
-        'sticky-wall-2026-10-06.json',
-        'sticky-wall-2026-09-29.json',
-        'sticky-wall-2026-09-22.json',
-        'sticky-wall-2026-09-15.json',
-      ]);
-      expect((await AutoBackup.latest())!.path, kept.first.path);
-      expect(AutoBackup.dateOf(kept.first), DateTime(2026, 10, 6));
-      expect(
-        Directory('${docs.path}/backups').listSync().length,
-        4,
-        reason: 'no half-written side files left behind',
-      );
-      // The time survives a restart.
-      expect(SettingsController(await NoteStorage.create()).lastAutoBackup, day);
+        for (var week = 1; week <= 5; week++) {
+          day = day.add(const Duration(days: 7));
+          expect(await AutoBackup.runIfDue(settings, c, now: day), isNotNull);
+        }
+        final kept = await AutoBackup.list();
+        expect(kept.map((f) => f.uri.pathSegments.last), [
+          'sticky-wall-2026-10-06.json',
+          'sticky-wall-2026-09-29.json',
+          'sticky-wall-2026-09-22.json',
+          'sticky-wall-2026-09-15.json',
+        ]);
+        expect((await AutoBackup.latest())!.path, kept.first.path);
+        expect(AutoBackup.dateOf(kept.first), DateTime(2026, 10, 6));
+        expect(
+          Directory('${docs.path}/backups').listSync().length,
+          4,
+          reason: 'no half-written side files left behind',
+        );
+        // The time survives a restart.
+        expect(
+          SettingsController(await NoteStorage.create()).lastAutoBackup,
+          day,
+        );
 
-      settings.setAutoBackup(false);
-      expect(
-        await AutoBackup.runIfDue(
-          settings,
-          c,
-          now: day.add(const Duration(days: 30)),
-        ),
-        isNull,
-        reason: 'switched off',
-      );
-    });
+        settings.setAutoBackup(false);
+        expect(
+          await AutoBackup.runIfDue(
+            settings,
+            c,
+            now: day.add(const Duration(days: 30)),
+          ),
+          isNull,
+          reason: 'switched off',
+        );
+      },
+    );
   });
 
   group('first run', () {
@@ -1267,18 +1302,22 @@ void main() {
       s.dispose();
     });
 
-    test('deleteBoard removes its notes and keeps one board', () async {
-      final c = await _controller(notes: [_note('1', 'x')]);
-      final work = c.addBoard('Work');
-      c.add(c.draft()..content = 'on work');
-      expect(c.boardNotes.length, 1);
-      c.deleteBoard(work.id);
-      expect(c.boards.length, 1);
-      expect(c.currentBoardId, 'default');
-      expect(c.allNotes.length, 1);
-      c.deleteBoard('default');
-      expect(c.boards.length, 1);
-    });
+    test(
+      'deleteBoard moves the board to the Trash and keeps one in use',
+      () async {
+        final c = await _controller(notes: [_note('1', 'x')]);
+        final work = c.addBoard('Work');
+        c.add(c.draft()..content = 'on work');
+        expect(c.boardNotes.length, 1);
+        c.deleteBoard(work.id);
+        expect(c.boards.length, 1);
+        expect(c.currentBoardId, 'default');
+        expect(c.allNotes.length, 2, reason: 'its note waits in the Trash');
+        expect(c.deletedBoards.single.id, work.id);
+        c.deleteBoard('default');
+        expect(c.boards.length, 1);
+      },
+    );
   });
 
   group('NoteStorage', () {

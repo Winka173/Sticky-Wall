@@ -23,7 +23,17 @@ class Backup {
     this.version,
     this.exportedAt,
     this.sizeBytes = 0,
+    this.deletedBoards = const [],
+    this.omittedFiles = 0,
   });
+
+  /// Boards that were in the Trash when the backup was made; their notes
+  /// are in [notes]. Empty for backups from before 1.5.
+  final List<Board> deletedBoards;
+
+  /// Photo or recording entries that could not be read (damaged, or over
+  /// [BackupService.maxFileBytes]). The restore preview says how many.
+  final int omittedFiles;
 
   /// The format version written in the file, if any.
   final int? version;
@@ -49,7 +59,7 @@ class Backup {
 
 /// Why a document could not be read as a backup, so the import dialog can
 /// say which.
-enum BackupProblem { notJson, notBackup, newerVersion }
+enum BackupProblem { notJson, notBackup, newerVersion, tooLarge }
 
 /// A [FormatException] that knows its [problem].
 class BackupFormatException extends FormatException {
@@ -68,6 +78,19 @@ class BackupFormatException extends FormatException {
 class BackupService {
   static const _version = 2;
 
+  /// The biggest backup document that is read (characters, about bytes):
+  /// room for a few hundred photos, small enough to read on a phone.
+  static const maxDocumentChars = 300 * 1024 * 1024;
+
+  /// The biggest single photo or recording taken from a backup.
+  static const maxFileBytes = 64 * 1024 * 1024;
+
+  /// More records than any real wall holds: a document beyond these is not
+  /// read at all.
+  static const maxNotes = 100000;
+  static const maxBoards = 5000;
+  static const maxFiles = 20000;
+
   String encode(
     List<Board> boards,
     List<Note> notes, [
@@ -75,11 +98,14 @@ class BackupService {
     Map<String, Uint8List> photos = const {},
     Map<String, Uint8List> wallPhotos = const {},
     Map<String, Uint8List> audios = const {},
+    List<Board> deletedBoards = const [],
   ]) {
     return const JsonEncoder.withIndent('  ').convert({
       'version': _version,
       'exportedAt': DateTime.now().toIso8601String(),
       'boards': boards.map((b) => b.toJson()).toList(),
+      if (deletedBoards.isNotEmpty)
+        'deletedBoards': deletedBoards.map((b) => b.toJson()).toList(),
       'notes': notes.map((n) => n.toJson()).toList(),
       'links': links.map((l) => l.toJson()).toList(),
       if (photos.isNotEmpty)
@@ -122,10 +148,17 @@ class BackupService {
   /// Parses a backup document. Throws [BackupFormatException] (a
   /// [FormatException]) on anything that is not a backup this app can read.
   Backup decode(String source) {
+    if (source.length > maxDocumentChars) {
+      throw const BackupFormatException(
+        BackupProblem.tooLarge,
+        'Backup too large',
+      );
+    }
     final Object? data;
     try {
       data = jsonDecode(source);
-    } on FormatException {
+    } catch (_) {
+      // Malformed text, or nesting deep enough to exhaust the stack.
       throw const BackupFormatException(BackupProblem.notJson, 'Not JSON');
     }
     if (data is! Map<String, dynamic>) {
@@ -142,8 +175,20 @@ class BackupService {
         'Backup made by a newer version',
       );
     }
+    final rawBoards = data['boards'];
+    final rawNotes = data['notes'];
+    if ((rawBoards is List && rawBoards.length > maxBoards) ||
+        (rawNotes is List && rawNotes.length > maxNotes)) {
+      throw const BackupFormatException(
+        BackupProblem.tooLarge,
+        'Too many records',
+      );
+    }
     try {
       final boards = (data['boards'] as List<dynamic>? ?? [])
+          .map((e) => Board.fromJson(e as Map<String, dynamic>))
+          .toList();
+      final deleted = (data['deletedBoards'] as List<dynamic>? ?? [])
           .map((e) => Board.fromJson(e as Map<String, dynamic>))
           .toList();
       final notes = (data['notes'] as List<dynamic>? ?? [])
@@ -154,16 +199,35 @@ class BackupService {
           ?.map((e) => NoteLink.fromJson(e as Map<String, dynamic>))
           .toList();
       if (boards.isEmpty) throw const FormatException('No boards');
+      var omitted = 0;
+      var count = 0;
+      Map<String, Uint8List> files(Object? raw) {
+        if (raw is! Map<String, dynamic>) return const {};
+        final out = <String, Uint8List>{};
+        for (final e in raw.entries) {
+          if (++count > maxFiles) throw const FormatException('Too many');
+          final bytes = _decodeFile(e.value);
+          if (bytes == null) {
+            omitted++;
+          } else {
+            out[e.key] = bytes;
+          }
+        }
+        return out;
+      }
+
       return Backup(
         boards: boards,
+        deletedBoards: deleted,
         notes: notes,
         links: links,
-        photos: _files(data['photos']),
-        wallPhotos: _files(data['wallPhotos']),
-        audios: _files(data['audios']),
+        photos: files(data['photos']),
+        wallPhotos: files(data['wallPhotos']),
+        audios: files(data['audios']),
         version: version is int ? version : null,
         exportedAt: DateTime.tryParse(data['exportedAt'] as String? ?? ''),
         sizeBytes: source.length,
+        omittedFiles: omitted,
       );
     } catch (_) {
       // Valid JSON in some other shape (or a backup with no boards).
@@ -174,12 +238,17 @@ class BackupService {
     }
   }
 
-  static Map<String, Uint8List> _files(Object? raw) {
-    if (raw is! Map<String, dynamic>) return const {};
-    return {
-      for (final e in raw.entries)
-        if (e.value is String) e.key: base64Decode(e.value as String),
-    };
+  /// One base64 file entry, or null when it is damaged or too big (it is
+  /// counted, never quietly dropped: see [Backup.omittedFiles]).
+  static Uint8List? _decodeFile(Object? value) {
+    if (value is! String) return null;
+    // base64 grows 4:3; anything longer is over the per-file cap.
+    if (value.length > maxFileBytes ~/ 3 * 4 + 4) return null;
+    try {
+      return base64Decode(value);
+    } on FormatException {
+      return null;
+    }
   }
 
   /// Puts the backup's photo and recording files back in the app's folders,
@@ -203,8 +272,9 @@ class BackupService {
     File file,
     List<Board> boards,
     List<Note> notes,
-    List<NoteLink> links,
-  ) async {
+    List<NoteLink> links, {
+    List<Board> deletedBoards = const [],
+  }) async {
     final sink = file.openWrite();
     try {
       String key(String k) => jsonEncode(k);
@@ -213,6 +283,12 @@ class BackupService {
         ..write('"exportedAt":${jsonEncode(DateTime.now().toIso8601String())},')
         ..write(
           '"boards":${jsonEncode(boards.map((b) => b.toJson()).toList())},',
+        )
+        ..write(
+          deletedBoards.isEmpty
+              ? ''
+              : '"deletedBoards":'
+                    '${jsonEncode(deletedBoards.map((b) => b.toJson()).toList())},',
         )
         ..write('"notes":${jsonEncode(notes.map((n) => n.toJson()).toList())},')
         ..write('"links":${jsonEncode(links.map((l) => l.toJson()).toList())}');
@@ -240,7 +316,7 @@ class BackupService {
           if (n.imagePath.isNotEmpty) n.imagePath,
       }, ImageService.readStored);
       await section('wallPhotos', {
-        for (final b in boards)
+        for (final b in [...boards, ...deletedBoards])
           for (final w in [b.wallImage, b.savedWallImage])
             if (w.isNotEmpty) w,
       }, (stored) => ImageService.readStored(stored, wall: true));
@@ -261,10 +337,11 @@ class BackupService {
     List<Note> notes,
     List<NoteLink> links, {
     required String subject,
+    List<Board> deletedBoards = const [],
   }) async {
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/sticky-wall-backup.json');
-    await writeTo(file, boards, notes, links);
+    await writeTo(file, boards, notes, links, deletedBoards: deletedBoards);
     await SharePlus.instance.share(
       ShareParams(
         files: [XFile(file.path, mimeType: 'application/json')],

@@ -561,40 +561,6 @@ class _SettingsSheet extends StatelessWidget {
             );
           },
         ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(
-            l10n.autoTrashDone,
-            style: const TextStyle(fontSize: 16, color: AppColors.ink),
-          ),
-          subtitle: Text(
-            l10n.autoTrashDoneHint,
-            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
-          ),
-          secondary: const Icon(Icons.task_alt_outlined, color: AppColors.ink),
-          value: settings.autoTrashDone,
-          onChanged: (on) {
-            settings.setAutoTrashDone(on);
-            if (on) notes.sweepCompleted();
-          },
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(
-            l10n.dragToDelete,
-            style: const TextStyle(fontSize: 16, color: AppColors.ink),
-          ),
-          subtitle: Text(
-            l10n.dragToDeleteHint,
-            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
-          ),
-          secondary: const Icon(
-            Icons.delete_sweep_outlined,
-            color: AppColors.ink,
-          ),
-          value: settings.dragToDelete,
-          onChanged: settings.setDragToDelete,
-        ),
         _autoBackupTile(context, l10n),
         if (settings.lastAutoBackup != null)
           Padding(
@@ -723,6 +689,7 @@ class _SettingsSheet extends StatelessWidget {
         notes.allNotes,
         notes.links,
         subject: l10n.backupShareSubject,
+        deletedBoards: notes.deletedBoards,
       );
     } catch (_) {
       // The snackbar lives under this sheet: close it so the message shows.
@@ -844,6 +811,7 @@ class _SettingsSheet extends StatelessWidget {
     final oldBoards = List.of(notes.boards);
     final oldNotes = List.of(notes.allNotes);
     final oldLinks = List.of(notes.links);
+    final oldDeleted = List.of(notes.deletedBoards);
     try {
       await BackupService().restorePhotos(backup);
     } catch (_) {
@@ -853,9 +821,19 @@ class _SettingsSheet extends StatelessWidget {
     }
     switch (mode) {
       case RestoreMode.replace:
-        notes.replaceAll(backup.boards, backup.notes, links: backup.links);
+        notes.replaceAll(
+          backup.boards,
+          backup.notes,
+          links: backup.links,
+          deletedBoards: backup.deletedBoards,
+        );
       case RestoreMode.merge:
-        notes.mergeAll(backup.boards, backup.notes, links: backup.links);
+        notes.mergeAll(
+          backup.boards,
+          backup.notes,
+          links: backup.links,
+          deletedBoards: backup.deletedBoards,
+        );
     }
     messenger
       ..hideCurrentSnackBar()
@@ -866,8 +844,12 @@ class _SettingsSheet extends StatelessWidget {
           ),
           action: SnackBarAction(
             label: l10n.undo,
-            onPressed: () =>
-                notes.replaceAll(oldBoards, oldNotes, links: oldLinks),
+            onPressed: () => notes.replaceAll(
+              oldBoards,
+              oldNotes,
+              links: oldLinks,
+              deletedBoards: oldDeleted,
+            ),
           ),
         ),
       );
@@ -1396,6 +1378,7 @@ class _ImportDialogState extends State<_ImportDialog> {
       BackupProblem.notJson => l10n.importNotJson,
       BackupProblem.notBackup => l10n.importNotBackup,
       BackupProblem.newerVersion => l10n.importNewerVersion,
+      BackupProblem.tooLarge => l10n.importTooLarge,
     };
   }
 
@@ -1415,6 +1398,11 @@ class _ImportDialogState extends State<_ImportDialog> {
       // octet-stream), and a filter would grey out the very file wanted.
       final file = await FilePicker.pickFile();
       if (file == null || !mounted) return;
+      // Too big to read safely on a phone: say so before reading it.
+      if ((await file.length() ?? 0) > BackupService.maxDocumentChars) {
+        if (mounted) _error = _reason(BackupProblem.tooLarge);
+        return;
+      }
       final String text;
       try {
         text = utf8.decode(await file.readAsBytes());

@@ -120,6 +120,9 @@ class NotesController extends ChangeNotifier {
     _links
       ..clear()
       ..addAll(_storage.loadLinks());
+    _deletedBoards
+      ..clear()
+      ..addAll(_storage.loadDeletedBoards());
 
     // First run (or upgrade from the single-list version): create a default
     // board and adopt any existing notes into it.
@@ -157,10 +160,23 @@ class NotesController extends ChangeNotifier {
       _purge(note);
       changed = true;
     }
-    if (_storage.autoTrashDone) {
-      changed |= _sweepCompleted(const Duration(days: 1), now);
+    // Boards whose 30 days are up. A clock set back never shortens the wait:
+    // a deletion "in the future" simply waits longer.
+    for (final board in _deletedBoards.toList()) {
+      final at = board.deletedAt;
+      if (at != null && now.difference(at) > trashRetention) {
+        _purgeBoard(board);
+        changed = true;
+      }
     }
-    if (changed) _persistNotes();
+    // Finished checklists are never removed on their own any more (1.4.2
+    // and earlier could do it after a day, behind an opt-in switch). An old
+    // switch left on is ignored, and its stored value is removed (see
+    // NoteStorage.create).
+    if (changed) {
+      _storage.saveDeletedBoards(_deletedBoards);
+      _persistNotes();
+    }
   }
 
   // --- Boards --------------------------------------------------------------
@@ -211,7 +227,10 @@ class NotesController extends ChangeNotifier {
   /// The open board is private and still shut.
   bool get currentBoardShut => !isOpen(currentBoard);
 
+  /// Notes on [boardId] must stay out of sight: a private board not opened,
+  /// or a board in the Trash.
   bool _shut(String boardId) {
+    if (_isDeletedBoard(boardId)) return true;
     final board = _boards.where((b) => b.id == boardId).firstOrNull;
     return board != null && !isOpen(board);
   }
@@ -269,26 +288,124 @@ class NotesController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Removes a board and all its notes (trashed ones included) for good.
-  /// Keeps at least one board.
-  void deleteBoard(String id) {
-    if (_boards.length <= 1) return;
-    final board = _boards.firstWhere((b) => b.id == id);
-    _boards.remove(board);
-    for (final note in _notes.where((n) => n.boardId == id).toList()) {
-      _purge(note);
+  // --- Boards in the Trash -------------------------------------------------
+
+  final _deletedBoards = <Board>[];
+
+  /// Boards in the Trash, most recently deleted first.
+  List<Board> get deletedBoards {
+    final list = [..._deletedBoards];
+    list.sort(
+      (a, b) =>
+          (b.deletedAt ?? DateTime(0)).compareTo(a.deletedAt ?? DateTime(0)),
+    );
+    return List.unmodifiable(list);
+  }
+
+  bool _isDeletedBoard(String id) => _deletedBoards.any((b) => b.id == id);
+
+  /// How many notes (trashed ones included) a board holds.
+  int noteCountOn(String boardId) =>
+      _notes.where((n) => n.boardId == boardId).length;
+
+  /// Moves a board to the Trash with everything on it: notes (their own
+  /// trashed ones too), threads, drawing, theme and files stay exactly as
+  /// they are, hidden, for [trashRetention]. Keeps at least one board in
+  /// use. Returns an undo, or null when nothing was deleted.
+  VoidCallback? deleteBoard(String id) {
+    if (_boards.length <= 1) return null;
+    final index = _boards.indexWhere((b) => b.id == id);
+    if (index < 0) return null;
+    final board = _boards.removeAt(index)
+      ..deletedAt = clock()
+      ..deletedIndex = index;
+    _deletedBoards.add(board);
+    _openPrivate.remove(id);
+    for (final note in _notes.where((n) => n.boardId == id)) {
+      _reminders.cancel(note);
     }
-    for (final photo in {board.wallImage, board.savedWallImage}) {
-      if (photo.isNotEmpty) _deleteWallImage(photo);
-    }
-    // Undo would resurrect a note onto a board that no longer exists.
+    // Undo of a note deleted just before would put it on a hidden board.
     _lastDeleted = _lastDeleted.where((n) => n.boardId != id).toList();
-    if (_currentBoardId == id) _currentBoardId = _boards.first.id;
+    if (_currentBoardId == id) {
+      _currentBoardId = _boards[(index - 1).clamp(0, _boards.length - 1)].id;
+    }
     _storage
       ..saveBoards(_boards)
+      ..saveDeletedBoards(_deletedBoards)
+      ..setCurrentBoardId(_currentBoardId);
+    notifyListeners();
+    return () => restoreBoard(id);
+  }
+
+  /// Puts a board from the Trash back where its tab was, with everything it
+  /// held, and switches to it. A board in use with the same id (from an
+  /// import since) is left alone: the restored one gets a new id and takes
+  /// its own notes and threads with it.
+  void restoreBoard(String id) {
+    final board = _deletedBoards.where((b) => b.id == id).firstOrNull;
+    if (board == null) return;
+    _deletedBoards.remove(board);
+    final index = board.deletedIndex.clamp(0, _boards.length);
+    // Imports never bring a board in over one in the Trash (see
+    // [_rekeyDeleted]); should one still share the id, both are kept.
+    final restored = _boards.any((b) => b.id == id)
+        ? Board.fromJson({...board.toJson(), 'id': _uuid.v4()})
+        : board;
+    restored
+      ..deletedAt = null
+      ..deletedIndex = 0;
+    _boards.insert(index, restored);
+    for (final note in _notes.where(
+      (n) => n.boardId == restored.id && !n.isTrashed,
+    )) {
+      _syncReminder(note);
+    }
+    _currentBoardId = restored.id;
+    _storage
+      ..saveBoards(_boards)
+      ..saveDeletedBoards(_deletedBoards)
       ..setCurrentBoardId(_currentBoardId);
     _persistNotes();
     notifyListeners();
+  }
+
+  /// Gives the board in the Trash with [id] a fresh id, its notes with it,
+  /// so a board arriving with that id (an import) cannot take them over.
+  void _rekeyDeleted(String id) {
+    final board = _deletedBoards.where((b) => b.id == id).firstOrNull;
+    if (board == null) return;
+    final fresh = Board.fromJson({...board.toJson(), 'id': _uuid.v4()});
+    _deletedBoards[_deletedBoards.indexOf(board)] = fresh;
+    for (final note in _notes.where((n) => n.boardId == id)) {
+      note.boardId = fresh.id;
+    }
+  }
+
+  /// Deletes a board in the Trash for good: its notes, their threads and
+  /// the files nothing else still uses.
+  void deleteBoardForever(String id) {
+    final board = _deletedBoards.where((b) => b.id == id).firstOrNull;
+    if (board == null) return;
+    _purgeBoard(board);
+    _storage.saveDeletedBoards(_deletedBoards);
+    _persistNotes();
+    notifyListeners();
+  }
+
+  void _purgeBoard(Board board) {
+    _deletedBoards.remove(board);
+    for (final note in _notes.where((n) => n.boardId == board.id).toList()) {
+      _purge(note);
+    }
+    final inUse = {
+      for (final b in [..._boards, ..._deletedBoards]) ...[
+        b.wallImage,
+        b.savedWallImage,
+      ],
+    };
+    for (final photo in {board.wallImage, board.savedWallImage}) {
+      if (photo.isNotEmpty && !inUse.contains(photo)) _deleteWallImage(photo);
+    }
   }
 
   /// A copy of board [id] named [name], right after it, with copies of its
@@ -945,6 +1062,15 @@ class NotesController extends ChangeNotifier {
 
   /// Days before [note] is purged from the trash, rounded up so a note binned
   /// a minute ago still reads "30 days"; 0 means it goes on the next launch.
+  /// Whole days before [board], in the Trash, is deleted for good.
+  int boardDaysLeft(Board board, [DateTime? now]) {
+    final at = board.deletedAt;
+    if (at == null) return trashRetention.inDays;
+    final left = trashRetention - (now ?? DateTime.now()).difference(at);
+    if (left.isNegative) return 0;
+    return (left.inMinutes / Duration.minutesPerDay).ceil();
+  }
+
   int daysLeft(Note note, [DateTime? now]) {
     final at = note.deletedAt;
     if (at == null) return trashRetention.inDays;
@@ -961,10 +1087,15 @@ class NotesController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Deletes every note and board in the Trash for good.
   void emptyTrash() {
     for (final note in trashed) {
       _purge(note);
     }
+    for (final board in _deletedBoards.toList()) {
+      _purgeBoard(board);
+    }
+    _storage.saveDeletedBoards(_deletedBoards);
     _persistNotes();
     notifyListeners();
   }
@@ -977,8 +1108,12 @@ class NotesController extends ChangeNotifier {
       _links.removeWhere((l) => l.connects(note.guid));
       _storage.saveLinks(_links);
     }
-    if (!photoInUse(note.imagePath)) _deletePhoto(note.imagePath);
-    if (!audioInUse(note.audioPath)) _deleteAudio(note.audioPath);
+    if (note.imagePath.isNotEmpty && !photoInUse(note.imagePath)) {
+      _deletePhoto(note.imagePath);
+    }
+    if (note.audioPath.isNotEmpty && !audioInUse(note.audioPath)) {
+      _deleteAudio(note.audioPath);
+    }
   }
 
   /// Whether some note (live or trashed) still shows the photo at [path].
@@ -1163,32 +1298,6 @@ class NotesController extends ChangeNotifier {
       note.completedAt ??= DateTime.now();
     } else {
       note.completedAt = null;
-    }
-  }
-
-  /// Trashes checklists that have been fully ticked for longer than [after].
-  /// Returns whether anything moved.
-  bool _sweepCompleted(Duration after, DateTime now) {
-    final done = _notes
-        .where(
-          (n) =>
-              !n.isTrashed &&
-              n.completedAt != null &&
-              now.difference(n.completedAt!) > after,
-        )
-        .toList();
-    for (final note in done) {
-      note.deletedAt = now;
-      _reminders.cancel(note);
-    }
-    return done.isNotEmpty;
-  }
-
-  /// Public entry for the settings toggle / app resume.
-  void sweepCompleted({Duration after = const Duration(days: 1)}) {
-    if (_sweepCompleted(after, DateTime.now())) {
-      _persistNotes();
-      notifyListeners();
     }
   }
 
@@ -1518,10 +1627,24 @@ class NotesController extends ChangeNotifier {
   /// a note already here (same id) is left as it is here, so loading the
   /// same backup twice adds nothing the second time. Threads come along
   /// where both their ends exist. Nothing is renamed or recoloured.
-  void mergeAll(List<Board> boards, List<Note> notes, {List<NoteLink>? links}) {
+  void mergeAll(
+    List<Board> boards,
+    List<Note> notes, {
+    List<NoteLink>? links,
+    List<Board> deletedBoards = const [],
+  }) {
+    for (final b in boards) {
+      _rekeyDeleted(b.id);
+    }
     final boardIds = {for (final b in _boards) b.id};
     for (final b in boards) {
       if (boardIds.add(b.id)) _boards.add(b);
+    }
+    // Boards that were in the backup's Trash join this Trash, unless a board
+    // with that id is already here (in use or in the Trash).
+    for (final b in deletedBoards) {
+      if (_isDeletedBoard(b.id) || !boardIds.add(b.id)) continue;
+      _deletedBoards.add(b..deletedAt ??= clock());
     }
     final guids = {for (final n in _notes) n.guid};
     final added = <Note>[];
@@ -1539,10 +1662,13 @@ class NotesController extends ChangeNotifier {
     }
     _storage
       ..saveBoards(_boards)
+      ..saveDeletedBoards(_deletedBoards)
       ..saveNotes(_notes)
       ..saveLinks(_links);
     for (final note in added) {
-      if (!note.isTrashed) _syncReminder(note);
+      if (!note.isTrashed && !_isDeletedBoard(note.boardId)) {
+        _syncReminder(note);
+      }
     }
     notifyListeners();
   }
@@ -1553,6 +1679,7 @@ class NotesController extends ChangeNotifier {
     List<Board> boards,
     List<Note> notes, {
     List<NoteLink>? links,
+    List<Board> deletedBoards = const [],
   }) {
     if (boards.isEmpty) return;
     // Old reminders would otherwise keep firing for notes that no longer exist.
@@ -1563,6 +1690,14 @@ class NotesController extends ChangeNotifier {
     _boards
       ..clear()
       ..addAll(boards);
+    // The Trash's boards are replaced too: their notes were in the old list.
+    final ids = {for (final b in boards) b.id};
+    _deletedBoards
+      ..clear()
+      ..addAll(deletedBoards.where((b) => ids.add(b.id)));
+    for (final b in _deletedBoards) {
+      b.deletedAt ??= clock();
+    }
     _notes
       ..clear()
       ..addAll(notes);
@@ -1577,11 +1712,14 @@ class NotesController extends ChangeNotifier {
     _currentBoardId = _boards.first.id;
     _storage
       ..saveBoards(_boards)
+      ..saveDeletedBoards(_deletedBoards)
       ..saveNotes(_notes)
       ..saveLinks(_links)
       ..setCurrentBoardId(_currentBoardId);
     for (final note in _notes) {
-      if (!note.isTrashed) _syncReminder(note);
+      if (!note.isTrashed && !_isDeletedBoard(note.boardId)) {
+        _syncReminder(note);
+      }
     }
     notifyListeners();
   }

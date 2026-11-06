@@ -203,7 +203,11 @@ class _BoardCard extends StatelessWidget {
                             content: Text(l10n.boardDuplicated),
                             action: SnackBarAction(
                               label: l10n.undo,
-                              onPressed: () => notes.deleteBoard(copy.id),
+                              // Takes the copy back out entirely: it was
+                              // never meant to wait in the Trash.
+                              onPressed: () => notes
+                                ..deleteBoard(copy.id)
+                                ..deleteBoardForever(copy.id),
                             ),
                           ),
                         );

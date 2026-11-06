@@ -260,12 +260,6 @@ abstract class AppLocalizations {
   /// **'Undo'**
   String get undo;
 
-  /// No description provided for @dropToDelete.
-  ///
-  /// In en, this message translates to:
-  /// **'Drop here to delete'**
-  String get dropToDelete;
-
   /// No description provided for @trash.
   ///
   /// In en, this message translates to:
@@ -311,7 +305,7 @@ abstract class AppLocalizations {
   /// No description provided for @emptyTrashConfirm.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Delete the 1 note in the trash for good?} other{Delete all {count} notes in the trash for good?}}'**
+  /// **'{count, plural, =1{Delete the 1 item in the Trash for good? It can\'t be brought back.} other{Delete all {count} items in the Trash for good? They can\'t be brought back.}}'**
   String emptyTrashConfirm(int count);
 
   /// No description provided for @daysLeft.
@@ -481,30 +475,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove photo'**
   String get removePhoto;
-
-  /// No description provided for @autoTrashDone.
-  ///
-  /// In en, this message translates to:
-  /// **'Tidy finished to-do lists'**
-  String get autoTrashDone;
-
-  /// No description provided for @autoTrashDoneHint.
-  ///
-  /// In en, this message translates to:
-  /// **'A list with every item ticked moves to the trash after a day.'**
-  String get autoTrashDoneHint;
-
-  /// No description provided for @dragToDelete.
-  ///
-  /// In en, this message translates to:
-  /// **'Drag to the foot to delete'**
-  String get dragToDelete;
-
-  /// No description provided for @dragToDeleteHint.
-  ///
-  /// In en, this message translates to:
-  /// **'A tray comes up at the foot of the wall; drop a note on it to delete it (Undo is offered).'**
-  String get dragToDeleteHint;
 
   /// No description provided for @resultCount.
   ///
@@ -1214,6 +1184,42 @@ abstract class AppLocalizations {
   /// **'Delete “{name}”?'**
   String deleteBoardConfirm(String name);
 
+  /// No description provided for @boardTrashed.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” moved to the Trash'**
+  String boardTrashed(String name);
+
+  /// No description provided for @trashNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get trashNotes;
+
+  /// No description provided for @trashBoards.
+  ///
+  /// In en, this message translates to:
+  /// **'Boards'**
+  String get trashBoards;
+
+  /// No description provided for @boardInTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Empty board} =1{1 note} other{{count} notes}}'**
+  String boardInTrash(int count);
+
+  /// No description provided for @boardRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” is back'**
+  String boardRestored(String name);
+
+  /// No description provided for @deleteBoardForeverConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{name}” and everything on it for good? It can\'t be brought back.'**
+  String deleteBoardForeverConfirm(String name);
+
   /// No description provided for @moveToBoard.
   ///
   /// In en, this message translates to:
@@ -1307,7 +1313,7 @@ abstract class AppLocalizations {
   /// No description provided for @tipDropBody.
   ///
   /// In en, this message translates to:
-  /// **'Drop a dragged note on a board tab to move it to that board. Deleting by dragging it to a tray at the foot of the wall can be switched on in Customize.'**
+  /// **'Drop a dragged note on a board tab to move it to that board. To delete a note, long-press it and choose Delete; it waits in the Trash for 30 days.'**
   String get tipDropBody;
 
   /// No description provided for @tipSelectTitle.
@@ -1532,6 +1538,12 @@ abstract class AppLocalizations {
   /// **'This backup was made by a newer version of Sticky Wall. Update the app, then try again.'**
   String get importNewerVersion;
 
+  /// No description provided for @importTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is too big to open on this phone (over 300 MB). Make a smaller backup on the other device, or move fewer photos at a time.'**
+  String get importTooLarge;
+
   /// No description provided for @backupFailed.
   ///
   /// In en, this message translates to:
@@ -1709,7 +1721,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteBoardWithNotes.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Its note is deleted for good — it doesn\'t go to the trash.} other{Its {count} notes are deleted for good — they don\'t go to the trash.}}'**
+  /// **'{count, plural, =1{Its note goes to the Trash with it. You can restore the board within 30 days.} other{Its {count} notes go to the Trash with it. You can restore the board within 30 days.}}'**
   String deleteBoardWithNotes(int count);
 
   /// No description provided for @reminderInPast.
@@ -3385,6 +3397,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Locked boards'**
   String get restoreLocked;
+
+  /// No description provided for @restoreBoardsInTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Boards in the Trash'**
+  String get restoreBoardsInTrash;
+
+  /// No description provided for @restoreOmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Files that can\'t be read (left out)'**
+  String get restoreOmitted;
 
   /// No description provided for @restoreConflicts.
   ///

@@ -78,6 +78,7 @@ class AutoBackup {
       notes.boards,
       notes.allNotes,
       notes.links,
+      deletedBoards: notes.deletedBoards,
     );
     if (target.existsSync()) target.deleteSync();
     final done = await part.rename(target.path);

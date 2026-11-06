@@ -289,7 +289,7 @@ class _BoardBarState extends State<BoardBar> {
     AppLocalizations l10n,
     Board board,
   ) async {
-    // Trashed notes go too: deleting a board skips the trash entirely.
+    // The board goes to the Trash with every note on it, trashed ones too.
     final count = widget.notes.allNotes
         .where((n) => n.boardId == board.id)
         .length;
@@ -311,7 +311,11 @@ class _BoardBarState extends State<BoardBar> {
         ],
       ),
     );
-    if (ok == true) widget.notes.deleteBoard(board.id);
+    if (ok != true || !context.mounted) return;
+    final undo = widget.notes.deleteBoard(board.id);
+    if (undo != null) {
+      _undoSnack(context, l10n.boardTrashed(_displayName(l10n, board)), undo);
+    }
   }
 
   void _undoSnack(BuildContext context, String message, VoidCallback undo) {

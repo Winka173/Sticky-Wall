@@ -28,6 +28,7 @@ class NoteStorage {
 
   static const _notesKey = 'notes';
   static const _boardsKey = 'boards';
+  static const _deletedBoardsKey = 'deletedBoards';
   static const _linksKey = 'links';
   static const _currentBoardKey = 'currentBoard';
   static const _sortAscKey = 'sort';
@@ -40,8 +41,6 @@ class NoteStorage {
   static const _nightKey = 'night';
   static const _nightStartKey = 'nightStart';
   static const _nightEndKey = 'nightEnd';
-  static const _autoTrashDoneKey = 'autoTrashDone';
-  static const _dragToDeleteKey = 'dragToDelete';
   static const _readableEditorKey = 'readableEditor';
   static const _wallSoftenKey = 'wallSoften';
   static const _tipsPendingKey = 'tipsPending';
@@ -63,8 +62,17 @@ class NoteStorage {
   final SharedPreferences _prefs;
 
   static Future<NoteStorage> create() async {
-    return NoteStorage(await SharedPreferences.getInstance());
+    final prefs = await SharedPreferences.getInstance();
+    // Two switches retired in 1.5: "delete finished checklists after a day"
+    // and the drag-to-delete tray. Their stored values (and the same keys in
+    // an old settings file) are dropped and never read again.
+    for (final key in _retiredKeys) {
+      if (prefs.containsKey(key)) await prefs.remove(key);
+    }
+    return NoteStorage(prefs);
   }
+
+  static const _retiredKeys = ['autoTrashDone', 'dragToDelete'];
 
   /// True until anything has ever been saved — used to stick the sample notes
   /// on a brand-new install (and never again, even once they're deleted).
@@ -113,6 +121,18 @@ class NoteStorage {
   Future<void> saveBoards(List<Board> boards) {
     return _prefs.setString(
       _boardsKey,
+      jsonEncode(boards.map((b) => b.toJson()).toList()),
+    );
+  }
+
+  /// Boards in the Trash (see [Board.deletedAt]); their notes stay in the
+  /// notes list, still pointing at them.
+  List<Board> loadDeletedBoards() =>
+      _loadList(_deletedBoardsKey, Board.fromJson);
+
+  Future<void> saveDeletedBoards(List<Board> boards) {
+    return _prefs.setString(
+      _deletedBoardsKey,
       jsonEncode(boards.map((b) => b.toJson()).toList()),
     );
   }
@@ -195,14 +215,6 @@ class NoteStorage {
 
   // --- Housekeeping --------------------------------------------------------
 
-  bool get autoTrashDone => _prefs.getBool(_autoTrashDoneKey) ?? false;
-  Future<void> setAutoTrashDone(bool value) =>
-      _prefs.setBool(_autoTrashDoneKey, value);
-
-  /// Whether dragging a note to the foot of the wall offers a delete tray.
-  /// Off unless switched on: a slip of the finger should never bin a note.
-  bool get dragToDelete => _prefs.getBool(_dragToDeleteKey) ?? false;
-
   /// Whether the editor writes in a plain readable face rather than the
   /// handwriting (the cards keep the handwriting either way).
   bool get readableEditor => _prefs.getBool(_readableEditorKey) ?? false;
@@ -213,8 +225,6 @@ class NoteStorage {
       _prefs.setDouble(_wallSoftenKey, value);
   Future<void> setReadableEditor(bool value) =>
       _prefs.setBool(_readableEditorKey, value);
-  Future<void> setDragToDelete(bool value) =>
-      _prefs.setBool(_dragToDeleteKey, value);
 
   /// Whether the gesture tips are still owed: set on a fresh install, cleared
   /// once the sheet has been shown.

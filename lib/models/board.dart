@@ -16,6 +16,8 @@ class Board {
     this.pinStyle = '',
     this.favorite = false,
     this.isPrivate = false,
+    this.deletedAt,
+    this.deletedIndex = 0,
     List<DrawStroke>? strokes,
   }) : strokes = strokes ?? [],
        savedWallImage = savedWallImage ?? wallImage,
@@ -65,6 +67,14 @@ class Board {
   /// points as fractions of the wall's size so they scale like the notes do.
   final List<DrawStroke> strokes;
 
+  /// When the board went to the Trash, with everything on it; null for a
+  /// board in use. A board in the Trash keeps its notes, threads, drawing
+  /// and files untouched until it is restored or its 30 days run out.
+  DateTime? deletedAt;
+
+  /// Where its tab stood when it was deleted, so Restore puts it back there.
+  int deletedIndex;
+
   bool get hasWallImage => wallImage.isNotEmpty;
 
   bool get hasSavedWallImage => savedWallImage.isNotEmpty;
@@ -87,6 +97,8 @@ class Board {
     pinStyle: json['pin'] as String? ?? '',
     favorite: json['favorite'] as bool? ?? false,
     isPrivate: json['private'] as bool? ?? false,
+    deletedAt: DateTime.tryParse(json['deletedAt'] as String? ?? ''),
+    deletedIndex: json['deletedIndex'] as int? ?? 0,
     strokes: (json['strokes'] as List<dynamic>? ?? [])
         .map((e) => DrawStroke.fromJson(e as Map<String, dynamic>))
         .toList(),
@@ -106,6 +118,8 @@ class Board {
     if (pinStyle.isNotEmpty) 'pin': pinStyle,
     if (favorite) 'favorite': true,
     if (isPrivate) 'private': true,
+    if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
+    if (deletedAt != null) 'deletedIndex': deletedIndex,
     if (strokes.isNotEmpty) 'strokes': strokes.map((s) => s.toJson()).toList(),
   };
 }

@@ -98,9 +98,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get undo => 'Undo';
 
   @override
-  String get dropToDelete => 'Drop here to delete';
-
-  @override
   String get trash => 'Trash';
 
   @override
@@ -126,8 +123,10 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Delete all $count notes in the trash for good?',
-      one: 'Delete the 1 note in the trash for good?',
+      other:
+          'Delete all $count items in the Trash for good? They can\'t be brought back.',
+      one:
+          'Delete the 1 item in the Trash for good? It can\'t be brought back.',
     );
     return '$_temp0';
   }
@@ -228,20 +227,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get removePhoto => 'Remove photo';
-
-  @override
-  String get autoTrashDone => 'Tidy finished to-do lists';
-
-  @override
-  String get autoTrashDoneHint =>
-      'A list with every item ticked moves to the trash after a day.';
-
-  @override
-  String get dragToDelete => 'Drag to the foot to delete';
-
-  @override
-  String get dragToDeleteHint =>
-      'A tray comes up at the foot of the wall; drop a note on it to delete it (Undo is offered).';
 
   @override
   String resultCount(int count) {
@@ -634,6 +619,39 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String boardTrashed(String name) {
+    return '“$name” moved to the Trash';
+  }
+
+  @override
+  String get trashNotes => 'Notes';
+
+  @override
+  String get trashBoards => 'Boards';
+
+  @override
+  String boardInTrash(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes',
+      one: '1 note',
+      zero: 'Empty board',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String boardRestored(String name) {
+    return '“$name” is back';
+  }
+
+  @override
+  String deleteBoardForeverConfirm(String name) {
+    return 'Delete “$name” and everything on it for good? It can\'t be brought back.';
+  }
+
+  @override
   String get moveToBoard => 'Move to another board';
 
   @override
@@ -691,7 +709,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipDropBody =>
-      'Drop a dragged note on a board tab to move it to that board. Deleting by dragging it to a tray at the foot of the wall can be switched on in Customize.';
+      'Drop a dragged note on a board tab to move it to that board. To delete a note, long-press it and choose Delete; it waits in the Trash for 30 days.';
 
   @override
   String get tipSelectTitle => 'Select several';
@@ -816,6 +834,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This backup was made by a newer version of Sticky Wall. Update the app, then try again.';
 
   @override
+  String get importTooLarge =>
+      'This backup is too big to open on this phone (over 300 MB). Make a smaller backup on the other device, or move fewer photos at a time.';
+
+  @override
   String get backupFailed => 'Could not make the backup';
 
   @override
@@ -911,8 +933,9 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'Its $count notes are deleted for good — they don\'t go to the trash.',
-      one: 'Its note is deleted for good — it doesn\'t go to the trash.',
+          'Its $count notes go to the Trash with it. You can restore the board within 30 days.',
+      one:
+          'Its note goes to the Trash with it. You can restore the board within 30 days.',
     );
     return '$_temp0';
   }
@@ -1852,6 +1875,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restoreLocked => 'Locked boards';
+
+  @override
+  String get restoreBoardsInTrash => 'Boards in the Trash';
+
+  @override
+  String get restoreOmitted => 'Files that can\'t be read (left out)';
 
   @override
   String restoreConflicts(int boards, int notes) {

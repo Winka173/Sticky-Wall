@@ -97,9 +97,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get undo => 'Hoàn tác';
 
   @override
-  String get dropToDelete => 'Thả vào đây để xóa';
-
-  @override
   String get trash => 'Thùng rác';
 
   @override
@@ -125,7 +122,7 @@ class AppLocalizationsVi extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Xóa hẳn $count ghi chú trong thùng rác?',
+      other: 'Xóa vĩnh viễn $count mục trong Thùng rác? Không thể lấy lại.',
     );
     return '$_temp0';
   }
@@ -225,20 +222,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get removePhoto => 'Bỏ ảnh';
-
-  @override
-  String get autoTrashDone => 'Tự dọn danh sách đã xong';
-
-  @override
-  String get autoTrashDoneHint =>
-      'Danh sách đã tích hết sẽ vào thùng rác sau 1 ngày.';
-
-  @override
-  String get dragToDelete => 'Kéo xuống chân tường để xóa';
-
-  @override
-  String get dragToDeleteHint =>
-      'Một khay hiện ra ở chân tường; thả ghi chú vào đó để xóa (có Hoàn tác).';
 
   @override
   String resultCount(int count) {
@@ -627,6 +610,38 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String boardTrashed(String name) {
+    return 'Đã chuyển “$name” vào Thùng rác';
+  }
+
+  @override
+  String get trashNotes => 'Ghi chú';
+
+  @override
+  String get trashBoards => 'Bảng';
+
+  @override
+  String boardInTrash(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ghi chú',
+      zero: 'Bảng trống',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String boardRestored(String name) {
+    return 'Đã khôi phục “$name”';
+  }
+
+  @override
+  String deleteBoardForeverConfirm(String name) {
+    return 'Xóa vĩnh viễn “$name” và mọi thứ trên đó? Không thể lấy lại.';
+  }
+
+  @override
   String get moveToBoard => 'Chuyển sang bảng khác';
 
   @override
@@ -683,7 +698,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get tipDropBody =>
-      'Thả ghi chú đang kéo lên thẻ tên của một bảng để chuyển sang bảng đó. Muốn kéo xuống khay ở chân tường để xóa thì bật trong Tùy chỉnh.';
+      'Thả ghi chú đang kéo lên thẻ tên của một bảng để chuyển sang bảng đó. Muốn xóa ghi chú, hãy nhấn giữ rồi chọn Xóa; ghi chú nằm trong Thùng rác 30 ngày.';
 
   @override
   String get tipSelectTitle => 'Chọn nhiều';
@@ -809,6 +824,10 @@ class AppLocalizationsVi extends AppLocalizations {
       'Bản sao lưu này được tạo bởi phiên bản Sticky Wall mới hơn. Hãy cập nhật ứng dụng rồi thử lại.';
 
   @override
+  String get importTooLarge =>
+      'Bản sao lưu quá lớn để mở trên điện thoại này (trên 300 MB). Hãy sao lưu nhỏ hơn trên máy kia, hoặc chuyển ít ảnh hơn mỗi lần.';
+
+  @override
   String get backupFailed => 'Không tạo được bản sao lưu';
 
   @override
@@ -903,7 +922,8 @@ class AppLocalizationsVi extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count ghi chú trên đó sẽ bị xóa hẳn, không vào thùng rác.',
+      other:
+          '$count ghi chú trên bảng sẽ vào Thùng rác cùng bảng. Bạn có thể khôi phục bảng trong 30 ngày.',
     );
     return '$_temp0';
   }
@@ -1828,6 +1848,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get restoreLocked => 'Bảng có khóa';
+
+  @override
+  String get restoreBoardsInTrash => 'Bảng trong Thùng rác';
+
+  @override
+  String get restoreOmitted => 'Tệp không đọc được (bị bỏ qua)';
 
   @override
   String restoreConflicts(int boards, int notes) {

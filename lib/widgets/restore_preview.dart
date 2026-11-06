@@ -64,6 +64,18 @@ class _RestorePreview extends StatelessWidget {
         l10n.restoreLocked,
         '${backup.boards.where((b) => b.isPrivate).length}',
       ),
+      if (backup.deletedBoards.isNotEmpty)
+        (
+          Icons.delete_outline,
+          l10n.restoreBoardsInTrash,
+          '${backup.deletedBoards.length}',
+        ),
+      if (backup.omittedFiles > 0)
+        (
+          Icons.broken_image_outlined,
+          l10n.restoreOmitted,
+          '${backup.omittedFiles}',
+        ),
     ];
     return SafeArea(
       child: SingleChildScrollView(

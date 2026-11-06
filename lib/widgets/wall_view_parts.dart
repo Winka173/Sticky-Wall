@@ -1,7 +1,7 @@
 part of 'wall_view.dart';
 
 // The wall's pieces that hold no state of the wall itself: the lasso,
-// the drop tray, threads and their painter, the gesture recognizers and
+// threads and their painter, the gesture recognizers and
 // the resize / rotate grips.
 
 /// The loop drawn round notes in select mode.
@@ -39,79 +39,6 @@ class _LassoPainter extends CustomPainter {
   bool shouldRepaint(_LassoPainter old) =>
       old.points.length != points.length ||
       (points.isNotEmpty && old.points.last != points.last);
-}
-
-/// The tray a dragged note can be dropped into to delete it. Slides in from
-/// below the wall while a drag is under way and turns red under the finger.
-class _DropTray extends StatelessWidget {
-  const _DropTray({
-    super.key,
-    required this.shown,
-    required this.armed,
-    required this.label,
-  });
-
-  final bool shown;
-  final bool armed;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: AnimatedSlide(
-        offset: shown ? Offset.zero : const Offset(0, 1.4),
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-        child: AnimatedOpacity(
-          opacity: shown ? 1 : 0,
-          duration: const Duration(milliseconds: 160),
-          child: AnimatedScale(
-            scale: armed ? 1.04 : 1,
-            duration: const Duration(milliseconds: 120),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: armed ? AppColors.deleteIcon : AppColors.overlayDark,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.chalk.withValues(alpha: armed ? 0.9 : 0.4),
-                  width: 1.5,
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black38,
-                    blurRadius: 8,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    armed ? Icons.delete : Icons.delete_outline,
-                    color: Colors.white,
-                    size: 19,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// One piece of yarn between two points on the wall.

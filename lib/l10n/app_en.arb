@@ -30,7 +30,6 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "undo": "Undo",
-  "dropToDelete": "Drop here to delete",
   "trash": "Trash",
   "trashEmpty": "The trash is empty",
   "trashHint": "Notes here are deleted for good after 30 days.",
@@ -38,7 +37,7 @@
   "restored": "Note restored",
   "deleteForever": "Delete forever",
   "emptyTrash": "Empty trash",
-  "emptyTrashConfirm": "{count, plural, =1{Delete the 1 note in the trash for good?} other{Delete all {count} notes in the trash for good?}}",
+  "emptyTrashConfirm": "{count, plural, =1{Delete the 1 item in the Trash for good? It can't be brought back.} other{Delete all {count} items in the Trash for good? They can't be brought back.}}",
   "@emptyTrashConfirm": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -79,10 +78,6 @@
   "customWall": "Your photo",
   "changePhoto": "Change photo",
   "removePhoto": "Remove photo",
-  "autoTrashDone": "Tidy finished to-do lists",
-  "autoTrashDoneHint": "A list with every item ticked moves to the trash after a day.",
-  "dragToDelete": "Drag to the foot to delete",
-  "dragToDeleteHint": "A tray comes up at the foot of the wall; drop a note on it to delete it (Undo is offered).",
   "resultCount": "{count, plural, =0{No matches} =1{1 note} other{{count} notes}}",
   "@resultCount": {
     "placeholders": { "count": { "type": "int" } }
@@ -213,6 +208,16 @@
   "defaultBoardName": "My Wall",
   "deleteBoard": "Delete board",
   "deleteBoardConfirm": "Delete “{name}”?",
+  "boardTrashed": "“{name}” moved to the Trash",
+  "@boardTrashed": {"placeholders": {"name": {"type": "String"}}},
+  "trashNotes": "Notes",
+  "trashBoards": "Boards",
+  "boardInTrash": "{count, plural, =0{Empty board} =1{1 note} other{{count} notes}}",
+  "@boardInTrash": {"placeholders": {"count": {"type": "int"}}},
+  "boardRestored": "“{name}” is back",
+  "@boardRestored": {"placeholders": {"name": {"type": "String"}}},
+  "deleteBoardForeverConfirm": "Delete “{name}” and everything on it for good? It can't be brought back.",
+  "@deleteBoardForeverConfirm": {"placeholders": {"name": {"type": "String"}}},
   "@deleteBoardConfirm": {
     "placeholders": { "name": { "type": "String" } }
   },
@@ -234,7 +239,7 @@
   "tipWallTitle": "The wall",
   "tipWallBody": "Long-press an empty spot to stick a note or photos there. Pinch to zoom, pan out to the wall’s margins and park notes there. Double-tap a note to zoom in on it; the frame button shows everything.",
   "tipDropTitle": "Move to another board",
-  "tipDropBody": "Drop a dragged note on a board tab to move it to that board. Deleting by dragging it to a tray at the foot of the wall can be switched on in Customize.",
+  "tipDropBody": "Drop a dragged note on a board tab to move it to that board. To delete a note, long-press it and choose Delete; it waits in the Trash for 30 days.",
   "tipSelectTitle": "Select several",
   "tipSelectBody": "Long-press a note → Select. Starting on an empty spot, draw a loop around notes to add them; drag any selected note to move the whole group.",
   "tipDrawTitle": "Draw on the wall",
@@ -278,6 +283,7 @@
   "importNotJson": "This isn't a backup file, or part of it is missing. Paste the whole file, with nothing cut off.",
   "importNotBackup": "This isn't a Sticky Wall backup.",
   "importNewerVersion": "This backup was made by a newer version of Sticky Wall. Update the app, then try again.",
+  "importTooLarge": "This backup is too big to open on this phone (over 300 MB). Make a smaller backup on the other device, or move fewer photos at a time.",
   "backupFailed": "Could not make the backup",
   "backupShareSubject": "Sticky Wall backup",
   "restoredTo": "Restored to “{board}”",
@@ -310,7 +316,7 @@
   "keepEditing": "Keep editing",
   "discard": "Discard",
   "deleteForeverConfirm": "Delete this note for good? It can't be brought back.",
-  "deleteBoardWithNotes": "{count, plural, =1{Its note is deleted for good — it doesn't go to the trash.} other{Its {count} notes are deleted for good — they don't go to the trash.}}",
+  "deleteBoardWithNotes": "{count, plural, =1{Its note goes to the Trash with it. You can restore the board within 30 days.} other{Its {count} notes go to the Trash with it. You can restore the board within 30 days.}}",
   "@deleteBoardWithNotes": {
     "placeholders": { "count": { "type": "int" } }
   },
@@ -622,6 +628,8 @@
   "restoreThreads": "Threads",
   "restoreStickers": "Stickers",
   "restoreLocked": "Locked boards",
+  "restoreBoardsInTrash": "Boards in the Trash",
+  "restoreOmitted": "Files that can't be read (left out)",
   "restoreConflicts": "{boards, plural, =1{1 board} other{{boards} boards}} and {notes, plural, =1{1 note} other{{notes} notes}} in it are already on this phone.",
   "@restoreConflicts": {"placeholders": {"boards": {"type": "int"}, "notes": {"type": "int"}}},
   "restoreMerge": "Add to what is here",

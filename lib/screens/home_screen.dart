@@ -1325,20 +1325,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         onRotate: _notes.rotateNote,
         onBringToFront: _notes.bringToFront,
         onCreateAt: _createAt,
-        // The delete tray only when switched on in Customize; the note's
-        // sheet always has Delete.
-        onTrash: widget.settings.dragToDelete
-            ? (dropped) => dropped.length == 1
-                  ? _delete(dropped.single, peel: false)
-                  : _deleteMany(dropped, peel: false)
-            : null,
         onLasso: (caught) => setState(() {
           _selected.addAll(caught.map((n) => n.guid));
         }),
         onDragOver: _dragOver,
         onDrop: _dropOnTab,
         lasso: _selecting,
-        trashLabel: _l10n.dropToDelete,
         onThreadTap: _editThread,
         strokes: _notes.currentBoard.strokes,
         marking: _marking,

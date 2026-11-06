@@ -157,12 +157,10 @@ class WallView extends StatefulWidget {
     this.onRotate,
     required this.onBringToFront,
     required this.onCreateAt,
-    this.onTrash,
     this.onLasso,
     this.onDragOver,
     this.onDrop,
     this.lasso = false,
-    this.trashLabel = 'Delete',
     this.onThreadTap,
     this.strokes = const [],
     this.marking = false,
@@ -204,10 +202,6 @@ class WallView extends StatefulWidget {
   final void Function(Note note) onBringToFront;
   final void Function(double x, double y) onCreateAt;
 
-  /// Notes dropped on the trash tray at the bottom of the wall. When null
-  /// there is no tray.
-  final void Function(List<Note> notes)? onTrash;
-
   /// In select mode ([lasso]), the notes a loop drawn on empty wall enclosed.
   final void Function(List<Note> notes)? onLasso;
 
@@ -224,9 +218,6 @@ class WallView extends StatefulWidget {
   /// Select mode: a finger drawn round notes on empty wall selects them
   /// (see [onLasso]), and dragging a selected note takes the selection along.
   final bool lasso;
-
-  /// Label on the trash tray.
-  final String trashLabel;
 
   /// A thread was tapped. When null, a tap cuts the thread ([onCutLink]).
   final void Function(NoteLink link)? onThreadTap;
@@ -313,11 +304,6 @@ class _WallViewState extends State<WallView>
   /// floating action button.
   static const double _bottomInset = WallView.noteBottomInset;
 
-  /// How close to the foot of the wall a finger has to come before the drop
-  /// tray appears. Every drag used to raise it, which put a delete zone under
-  /// notes being merely moved.
-  static const double _trayReveal = 190;
-
   static const double _pad = WallView.pad;
 
   /// The camera at rest: the content shifted so the home area sits just
@@ -351,13 +337,8 @@ class _WallViewState extends State<WallView>
   // same distance).
   Offset _dragRaw = Offset.zero;
   Offset _dragStart = Offset.zero;
-  // Last finger position on screen, for the tray and the tabs above.
+  // Last finger position on screen, for the board tabs above.
   Offset? _dragGlobal;
-  bool _overTray = false;
-
-  /// Whether the finger is low enough that the tray is worth showing.
-  bool _nearTray = false;
-  final _trayKey = GlobalKey();
 
   // The rest of a dragged selection (guids), moving by _groupDelta.
   Set<String> _groupGuids = const {};
@@ -1255,26 +1236,6 @@ class _WallViewState extends State<WallView>
                   },
                 ),
               ),
-            // Drop a dragged note here to delete it. Slides up only once the
-            // finger comes near the foot of the wall, so moving a note around
-            // is not shadowed by a delete zone.
-            if (widget.onTrash != null && !widget.still)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 12 + widget.bottomInset,
-                child: Center(
-                  child: _DropTray(
-                    key: _trayKey,
-                    shown:
-                        _draggingGuid != null &&
-                        _pinchGuid == null &&
-                        _nearTray,
-                    armed: _overTray,
-                    label: widget.trashLabel,
-                  ),
-                ),
-              ),
             if (_probes.isNotEmpty) _tidyProbes(),
           ],
         );
@@ -1403,24 +1364,6 @@ class _WallViewState extends State<WallView>
     );
   }
 
-  bool _hitTray(Offset global) {
-    final ro = _trayKey.currentContext?.findRenderObject();
-    if (ro is! RenderBox || !ro.hasSize) return false;
-    // A generous margin around a small pill: a drop that lands just off it
-    // still means delete.
-    final box = Offset.zero & ro.size;
-    return box.inflate(28).contains(ro.globalToLocal(global));
-  }
-
-  /// Whether [global] is in the band at the foot of the wall the tray lives
-  /// in. Measured against the whole viewport, so it follows the insets.
-  bool _fingerNearTray(Offset global) {
-    final ro = context.findRenderObject();
-    if (ro is! RenderBox || !ro.hasSize) return false;
-    final y = ro.globalToLocal(global).dy;
-    return y > ro.size.height - widget.bottomInset - _trayReveal;
-  }
-
   // --- One or two fingers on a note ------------------------------------
 
   /// The finger(s) landed, or their number changed (the recognizer ends and
@@ -1445,8 +1388,6 @@ class _WallViewState extends State<WallView>
       _dragTopLeft = _dragRaw = _dragStart;
       _dragFinger = _toWall(d.focalPoint);
       _dragGlobal = d.focalPoint;
-      _overTray = false;
-      _nearTray = false;
       // In select mode a selected note takes the rest of the selection along.
       _groupGuids = widget.lasso && widget.selected.contains(note.guid)
           ? {
@@ -1482,21 +1423,14 @@ class _WallViewState extends State<WallView>
       _dragGlobal = d.focalPoint;
       if (d.pointerCount < 2 || _pinchGuid != note.guid) {
         // One finger: the card follows, the selection comes along, and the
-        // tray / tabs learn where the finger is.
+        // board tabs learn where the finger is.
         _dragTopLeft = _groupGuids.isEmpty
             ? _snapToNeighbours(note, _dragRaw)
             : _dragRaw;
         _groupDelta = _dragTopLeft - _dragStart;
-        _nearTray = _fingerNearTray(d.focalPoint);
-        final over =
-            widget.onTrash != null && _nearTray && _hitTray(d.focalPoint);
-        if (over != _overTray) HapticFeedback.selectionClick();
-        _overTray = over;
         widget.onDragOver?.call(note, d.focalPoint);
         return;
       }
-      _overTray = false;
-      _nearTray = false;
       _guides = const [];
 
       if (_rotatingGuid == note.guid) {
@@ -1536,7 +1470,7 @@ class _WallViewState extends State<WallView>
   /// added or lifted mid-gesture ([d] still counts pointers then); the
   /// restart that follows picks the note up again from these committed
   /// values, so nothing jumps. Only a real release can drop the note on the
-  /// tray or a tab.
+  /// board tab.
   void _noteEnd(Note note, ScaleEndDetails d) {
     if (_draggingGuid != note.guid) return;
     final pinching = _pinchGuid == note.guid;
@@ -1554,11 +1488,7 @@ class _WallViewState extends State<WallView>
 
     var taken = false;
     if (released && !pinching && global != null) {
-      if (_overTray && widget.onTrash != null) {
-        HapticFeedback.mediumImpact();
-        widget.onTrash!(group);
-        taken = true;
-      } else if (widget.onDrop?.call(group, global) ?? false) {
+      if (widget.onDrop?.call(group, global) ?? false) {
         taken = true;
       }
     }
@@ -1597,8 +1527,6 @@ class _WallViewState extends State<WallView>
       _guides = const [];
       _groupGuids = const {};
       _groupDelta = Offset.zero;
-      _overTray = false;
-      _nearTray = false;
       _dragGlobal = null;
       if (pinching) {
         _pinchGuid = null;
