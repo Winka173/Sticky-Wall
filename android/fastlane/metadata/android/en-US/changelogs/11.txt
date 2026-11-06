@@ -1,0 +1,7 @@
+• A new first-run guide with a practice wall, and How to use in Settings: every step shown on a little phone
+• Settings: backup, Trash, app lock, feedback and Pro in one place
+• Optional sync across your phones through your own Google Drive
+• Deleted boards wait in the Trash
+• Share or save a board from the button at the top
+• Arrows point to notes off screen; new notes land where you are looking
+• Draw with an eraser; Pro picks any ink colour
