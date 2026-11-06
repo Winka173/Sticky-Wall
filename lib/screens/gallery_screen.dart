@@ -160,11 +160,13 @@ class _Chips<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Air above the row, so a chosen chip's outline never touches the
+    // search box over it.
     return SizedBox(
-      height: 56,
+      height: 68,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 2),
         children: [
           for (final v in values)
             Padding(

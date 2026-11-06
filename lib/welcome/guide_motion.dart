@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../models/note.dart';
 import '../theme.dart';
@@ -223,6 +224,15 @@ class _LitWindowState extends State<LitWindow> with TickerProviderStateMixin {
     duration: const Duration(milliseconds: 1400),
   );
 
+  /// Follows the targets frame by frame while they move (a note sliding
+  /// into place, popping in, being dragged), and rests once they hold still,
+  /// so the window never lags behind and then jumps.
+  late final Ticker _follow = createTicker((_) {
+    _quiet = _track() ? 0 : _quiet + 1;
+    if (_quiet > 4) _follow.stop();
+  });
+  int _quiet = 0;
+
   Rect? _from;
   Rect? _at;
   bool _fadeIn = true;
@@ -270,14 +280,21 @@ class _LitWindowState extends State<LitWindow> with TickerProviderStateMixin {
         ..stop()
         ..value = 0;
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) => _track());
+    _followTargets();
   }
 
-  /// Where the targets are now, in this widget's own coordinates.
-  void _track() {
-    if (!mounted || widget.targets.isEmpty) return;
+  /// Watches the targets until they settle.
+  void _followTargets() {
+    _quiet = 0;
+    if (!_follow.isActive && widget.targets.isNotEmpty) _follow.start();
+  }
+
+  /// Where the targets are now, in this widget's own coordinates; true when
+  /// they moved.
+  bool _track() {
+    if (!mounted || widget.targets.isEmpty) return false;
     final me = context.findRenderObject();
-    if (me is! RenderBox || !me.hasSize) return;
+    if (me is! RenderBox || !me.hasSize) return false;
     Rect? span;
     for (final key in widget.targets) {
       final box = key.currentContext?.findRenderObject();
@@ -285,7 +302,9 @@ class _LitWindowState extends State<LitWindow> with TickerProviderStateMixin {
       final r = box.localToGlobal(Offset.zero, ancestor: me) & box.size;
       span = span == null ? r : span.expandToInclude(r);
     }
-    if (span != null && span != _at) setState(() => _at = span);
+    if (span == null || span == _at) return false;
+    setState(() => _at = span);
+    return true;
   }
 
   double get _t => Curves.easeInOutCubic.transform(_move.value);
@@ -300,6 +319,7 @@ class _LitWindowState extends State<LitWindow> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    _follow.dispose();
     _move.dispose();
     _glow.dispose();
     super.dispose();
@@ -307,7 +327,9 @@ class _LitWindowState extends State<LitWindow> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) => _track());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _followTargets();
+    });
     final still = !guideMoves(context);
     return LayoutBuilder(
       builder: (context, box) => Stack(

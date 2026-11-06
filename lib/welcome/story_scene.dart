@@ -100,6 +100,18 @@ class StoryScene extends StatelessWidget {
                             duration: moves
                                 ? const Duration(milliseconds: 420)
                                 : Duration.zero,
+                            // The paper fading out does not size the box:
+                            // the note's own size (and so the point it turns
+                            // about) holds from the first frame to the last,
+                            // so nothing jumps when the fade ends.
+                            layoutBuilder: (current, previous) => Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                for (final old in previous)
+                                  Positioned(left: 0, top: 0, child: old),
+                                ?current,
+                              ],
+                            ),
                             child: gathered
                                 ? SizedBox(
                                     key: const ValueKey('note'),
