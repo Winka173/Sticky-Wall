@@ -690,9 +690,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gestureTips => 'Gesture tips';
 
   @override
-  String get tourReplay => 'Interactive guide';
-
-  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -706,10 +703,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAbout => 'About';
-
-  @override
-  String get tourReplayHint =>
-      'Practise tapping, dragging and threads on your wall';
 
   @override
   String get backupRestore => 'Backup & restore';
@@ -762,46 +755,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Wall. Long-press an empty spot to stick a note there.';
 
   @override
-  String get tourTapTitle => 'Tap a note to write on it';
-
-  @override
-  String get tourTapBody =>
-      'Tap any note on the wall. It opens on its paper; close it again when you are done.';
-
-  @override
-  String get tourDragTitle => 'Drag a note to move it';
-
-  @override
-  String get tourDragBody =>
-      'Put a finger on a note and slide it somewhere else on the wall.';
-
-  @override
-  String get tourThreadTitle => 'Tie two notes together';
-
-  @override
-  String get tourThreadBody =>
-      'Drag from a note\'s red pin onto another note. Or long-press a note and choose \"Tie a thread to…\".';
-
-  @override
-  String get tourDoneTitle => 'That\'s the wall';
-
-  @override
-  String get tourDoneBody =>
-      'Your notes stay where you put them. The example notes can go any time: long-press one, or clear them from the board\'s menu.';
-
-  @override
-  String get tourNext => 'Next';
-
-  @override
-  String get tourSkip => 'Skip';
-
-  @override
-  String get tourClose => 'Close';
-
-  @override
-  String get tourFirstNote => 'Write my first note';
-
-  @override
   String get gotIt => 'Got it';
 
   @override
@@ -844,7 +797,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipDrawBody =>
-      'The pen in the toolbar starts marker mode: one finger draws behind the notes, two still zoom. Undo, clear and done sit in the bar below.';
+      'The pen in the toolbar starts marker mode: one finger draws behind the notes, two still zoom. The eraser rubs out one line at a time; Undo and Done sit in the bar below.';
 
   @override
   String get tipUndoTitle => 'Undo';
@@ -1928,13 +1881,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changeTheme => 'Change the theme';
 
   @override
-  String get welcomeTitle => 'Welcome to Sticky Wall';
-
-  @override
-  String get welcomeBody =>
-      'Sticky notes on a wall: write them, move them, tie them together. How would you like to start?';
-
-  @override
   String get welcomeTemplate => 'Pick a template';
 
   @override
@@ -2006,6 +1952,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String memoryAddPhotosHint(int max) {
     return 'Select several photos, then confirm. Add up to $max photos here.';
+  }
+
+  @override
+  String memoryDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos were already chosen, so they were left out.',
+      one: '1 photo was already chosen, so it was left out.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String memoryRemovePhoto(int n) {
+    return 'Remove photo $n';
   }
 
   @override
@@ -2366,4 +2328,292 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get memoryPreviewPro =>
       'Previewing Pro. Unlock to create with this look.';
+
+  @override
+  String get guideReplay => 'Replay the guide';
+
+  @override
+  String get guideReplayHint =>
+      'The wall in a minute, with a practice wall. Nothing on your boards changes.';
+
+  @override
+  String guideStepOf(int step, int total) {
+    return 'Step $step of $total';
+  }
+
+  @override
+  String get guideBack => 'Back';
+
+  @override
+  String get guideSkip => 'Skip';
+
+  @override
+  String get guideNext => 'Next';
+
+  @override
+  String get guideScatterTop => 'Notes everywhere.';
+
+  @override
+  String get guideScatterKey => 'Found nowhere.';
+
+  @override
+  String get guideScatterBody =>
+      'On a receipt, a torn sticky, your phone, a napkin…';
+
+  @override
+  String get guideScatterAction => 'Put them on a wall';
+
+  @override
+  String get guideWallBefore => 'One wall for ';
+
+  @override
+  String get guideWallKey => 'all of it';
+
+  @override
+  String get guideWallBody => 'On your phone. No account, no ads.';
+
+  @override
+  String get guideWallAction => 'Show me how';
+
+  @override
+  String get guidePracticeBefore => 'Try it on a ';
+
+  @override
+  String get guidePracticeKey => 'practice wall';
+
+  @override
+  String get guidePracticeBody =>
+      'Do what is lit. It is only practice: nothing here is saved.';
+
+  @override
+  String get guidePracticeDoneBefore => 'That’s ';
+
+  @override
+  String get guidePracticeDoneKey => 'the wall';
+
+  @override
+  String get guidePracticeDoneBody =>
+      'The yellow paper adds a note, a finger moves it, and a red pin ties a thread. It was only practice: nothing was saved.';
+
+  @override
+  String get guideTaskAdd => 'A practice wall. Nothing here is saved.';
+
+  @override
+  String get guideTaskMove => 'Your note is on the wall.';
+
+  @override
+  String get guideTaskTie => 'Tie it to the day it belongs to.';
+
+  @override
+  String get guideLitAdd => 'Tap the yellow paper';
+
+  @override
+  String get guideLitMove => 'Drag the note onto the dashed spot';
+
+  @override
+  String get guideLitTie => 'Pull its red pin onto “Saturday”';
+
+  @override
+  String get guideNoteWater => 'Water the plants';
+
+  @override
+  String get guideNoteSaturday => 'Saturday';
+
+  @override
+  String get guideNoteMum => 'Call Mum';
+
+  @override
+  String get guideSpot => 'Here';
+
+  @override
+  String get guideNothingSaved => 'Done. Nothing was saved.';
+
+  @override
+  String get guideScrapPlumber => 'Call the plumber';
+
+  @override
+  String get guideScrapBirthday => 'Mum’s birthday, Sat';
+
+  @override
+  String get guideScrapWifi => 'Wi-Fi: garden2026';
+
+  @override
+  String get guideScrapFlowers => 'Buy flowers';
+
+  @override
+  String get guideChooseBefore => 'Make it ';
+
+  @override
+  String get guideChooseKey => 'yours';
+
+  @override
+  String get guideChooseBody =>
+      'How would you like to start? Templates and new boards stay in the menu.';
+
+  @override
+  String get guideChooseReplayBody =>
+      'Templates & themes wait in the More menu, and the + tab starts a new board, whenever you like.';
+
+  @override
+  String get guideStart => 'Start';
+
+  @override
+  String get guideDone => 'Done';
+
+  @override
+  String get howToUse => 'How to use';
+
+  @override
+  String get howToUseHint => 'Replay the guide, or read it topic by topic';
+
+  @override
+  String get howToUseTopics => 'Topics';
+
+  @override
+  String howToUseTopicOf(int n, int total) {
+    return 'Topic $n of $total';
+  }
+
+  @override
+  String get howToUsePrevious => 'Previous';
+
+  @override
+  String get manualFirstTitle => 'Your first note';
+
+  @override
+  String get manualFirstSummary => 'Add a note, write on it, change it later.';
+
+  @override
+  String get manualFirstStep1 =>
+      'Tap the yellow paper at the bottom right of the wall.';
+
+  @override
+  String get manualFirstStep2 =>
+      'Choose what to add: a note, a list, a photo, a link, a voice note or a drawing.';
+
+  @override
+  String get manualFirstStep3 =>
+      'Write, then tick to stick it up. Tap a note to change it; long-press it for its menu.';
+
+  @override
+  String get manualMoveTitle => 'Moving and arranging';
+
+  @override
+  String get manualMoveSummary => 'Drag, turn, resize and tidy up.';
+
+  @override
+  String get manualMoveStep1 => 'Drag a note with one finger to move it.';
+
+  @override
+  String get manualMoveStep2 =>
+      'The grips at its bottom corners resize (right) and rotate (left; tap it to square the note up). Two fingers twist and pinch too.';
+
+  @override
+  String get manualMoveStep3 =>
+      'Pinch the wall to zoom. Arrange… in the More menu tidies the notes into rows.';
+
+  @override
+  String get manualMoveStep4 =>
+      'Undo shows for a few seconds after every change.';
+
+  @override
+  String get manualThreadTitle => 'Threads between notes';
+
+  @override
+  String get manualThreadSummary => 'Tie notes that belong together.';
+
+  @override
+  String get manualThreadStep1 =>
+      'Pull a note’s red pin onto another note: a thread ties the two.';
+
+  @override
+  String get manualThreadStep2 =>
+      'Tap a thread to colour it, write on it, add an arrowhead or cut it.';
+
+  @override
+  String get manualThreadStep3 => 'Tap a pin to keep its note on top.';
+
+  @override
+  String get manualDrawTitle => 'Drawing on the wall';
+
+  @override
+  String get manualDrawSummary => 'A pen, a highlighter and an eraser.';
+
+  @override
+  String get manualDrawStep1 => 'Tap the pen in the toolbar to start drawing.';
+
+  @override
+  String get manualDrawStep2 =>
+      'One finger draws behind the notes; two fingers still move and zoom the wall.';
+
+  @override
+  String get manualDrawStep3 =>
+      'The eraser rubs out one line at a time. Undo puts it back; Done stops drawing.';
+
+  @override
+  String get manualBoardsTitle => 'Boards and the Trash';
+
+  @override
+  String get manualBoardsSummary => 'Several walls, and a safe bin.';
+
+  @override
+  String get manualBoardsStep1 =>
+      'The tabs at the top are your boards. The + tab starts a new one, blank or from a template.';
+
+  @override
+  String get manualBoardsStep2 =>
+      'Drag a note onto a tab to move it to that board.';
+
+  @override
+  String get manualBoardsStep3 =>
+      'Deleted notes wait in the Trash, in the More menu, for 30 days.';
+
+  @override
+  String get manualPhotosTitle => 'Photos and memory walls';
+
+  @override
+  String get manualPhotosSummary => 'Pin photos; make a wall of memories.';
+
+  @override
+  String get manualPhotosStep1 =>
+      'Long-press an empty spot on the wall to stick a note or photos right there.';
+
+  @override
+  String get manualPhotosStep2 =>
+      'Pin photos on the wall, in the More menu, adds several at once.';
+
+  @override
+  String get manualPhotosStep3 =>
+      'A memory wall lays many photos out for you: tap the yellow paper and choose Memory wall.';
+
+  @override
+  String get manualFindTitle => 'Search and views';
+
+  @override
+  String get manualFindSummary =>
+      'Find any note; see them as a wall, grid or list.';
+
+  @override
+  String get manualFindStep1 =>
+      'Search does not need accents: “tuoi” finds “Tưới cây”.';
+
+  @override
+  String get manualFindStep2 =>
+      'Switch between Wall, Grid and List in the bar at the top.';
+
+  @override
+  String get manualFindStep3 =>
+      'To act on several notes, long-press one and pick Select notes, or draw a loop round them from an empty spot.';
+
+  @override
+  String get manualTabHome => 'Home';
+
+  @override
+  String get manualTabWork => 'Work';
+
+  @override
+  String get manualSearchQuery => 'tuoi';
+
+  @override
+  String get manualPhotoCaption => 'Summer 2026';
 }

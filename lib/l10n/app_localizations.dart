@@ -1280,12 +1280,6 @@ abstract class AppLocalizations {
   /// **'Gesture tips'**
   String get gestureTips;
 
-  /// No description provided for @tourReplay.
-  ///
-  /// In en, this message translates to:
-  /// **'Interactive guide'**
-  String get tourReplay;
-
   /// No description provided for @settingsTitle.
   ///
   /// In en, this message translates to:
@@ -1315,12 +1309,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'About'**
   String get settingsAbout;
-
-  /// No description provided for @tourReplayHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Practise tapping, dragging and threads on your wall'**
-  String get tourReplayHint;
 
   /// No description provided for @backupRestore.
   ///
@@ -1412,78 +1400,6 @@ abstract class AppLocalizations {
   /// **'Wall. Long-press an empty spot to stick a note there.'**
   String get wallSemantics;
 
-  /// No description provided for @tourTapTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap a note to write on it'**
-  String get tourTapTitle;
-
-  /// No description provided for @tourTapBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap any note on the wall. It opens on its paper; close it again when you are done.'**
-  String get tourTapBody;
-
-  /// No description provided for @tourDragTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Drag a note to move it'**
-  String get tourDragTitle;
-
-  /// No description provided for @tourDragBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Put a finger on a note and slide it somewhere else on the wall.'**
-  String get tourDragBody;
-
-  /// No description provided for @tourThreadTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Tie two notes together'**
-  String get tourThreadTitle;
-
-  /// No description provided for @tourThreadBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Drag from a note\'s red pin onto another note. Or long-press a note and choose \"Tie a thread to…\".'**
-  String get tourThreadBody;
-
-  /// No description provided for @tourDoneTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'That\'s the wall'**
-  String get tourDoneTitle;
-
-  /// No description provided for @tourDoneBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Your notes stay where you put them. The example notes can go any time: long-press one, or clear them from the board\'s menu.'**
-  String get tourDoneBody;
-
-  /// No description provided for @tourNext.
-  ///
-  /// In en, this message translates to:
-  /// **'Next'**
-  String get tourNext;
-
-  /// No description provided for @tourSkip.
-  ///
-  /// In en, this message translates to:
-  /// **'Skip'**
-  String get tourSkip;
-
-  /// No description provided for @tourClose.
-  ///
-  /// In en, this message translates to:
-  /// **'Close'**
-  String get tourClose;
-
-  /// No description provided for @tourFirstNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Write my first note'**
-  String get tourFirstNote;
-
   /// No description provided for @gotIt.
   ///
   /// In en, this message translates to:
@@ -1559,7 +1475,7 @@ abstract class AppLocalizations {
   /// No description provided for @tipDrawBody.
   ///
   /// In en, this message translates to:
-  /// **'The pen in the toolbar starts marker mode: one finger draws behind the notes, two still zoom. Undo, clear and done sit in the bar below.'**
+  /// **'The pen in the toolbar starts marker mode: one finger draws behind the notes, two still zoom. The eraser rubs out one line at a time; Undo and Done sit in the bar below.'**
   String get tipDrawBody;
 
   /// No description provided for @tipUndoTitle.
@@ -3506,18 +3422,6 @@ abstract class AppLocalizations {
   /// **'Change the theme'**
   String get changeTheme;
 
-  /// No description provided for @welcomeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Welcome to Sticky Wall'**
-  String get welcomeTitle;
-
-  /// No description provided for @welcomeBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Sticky notes on a wall: write them, move them, tie them together. How would you like to start?'**
-  String get welcomeBody;
-
   /// No description provided for @welcomeTemplate.
   ///
   /// In en, this message translates to:
@@ -3637,6 +3541,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select several photos, then confirm. Add up to {max} photos here.'**
   String memoryAddPhotosHint(int max);
+
+  /// No description provided for @memoryDuplicates.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo was already chosen, so it was left out.} other{{count} photos were already chosen, so they were left out.}}'**
+  String memoryDuplicates(int count);
+
+  /// No description provided for @memoryRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo {n}'**
+  String memoryRemovePhoto(int n);
 
   /// No description provided for @memoryTitle.
   ///
@@ -4225,6 +4141,522 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Previewing Pro. Unlock to create with this look.'**
   String get memoryPreviewPro;
+
+  /// No description provided for @guideReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay the guide'**
+  String get guideReplay;
+
+  /// No description provided for @guideReplayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The wall in a minute, with a practice wall. Nothing on your boards changes.'**
+  String get guideReplayHint;
+
+  /// No description provided for @guideStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {step} of {total}'**
+  String guideStepOf(int step, int total);
+
+  /// No description provided for @guideBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get guideBack;
+
+  /// No description provided for @guideSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get guideSkip;
+
+  /// No description provided for @guideNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get guideNext;
+
+  /// No description provided for @guideScatterTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes everywhere.'**
+  String get guideScatterTop;
+
+  /// No description provided for @guideScatterKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Found nowhere.'**
+  String get guideScatterKey;
+
+  /// No description provided for @guideScatterBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On a receipt, a torn sticky, your phone, a napkin…'**
+  String get guideScatterBody;
+
+  /// No description provided for @guideScatterAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Put them on a wall'**
+  String get guideScatterAction;
+
+  /// No description provided for @guideWallBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'One wall for '**
+  String get guideWallBefore;
+
+  /// No description provided for @guideWallKey.
+  ///
+  /// In en, this message translates to:
+  /// **'all of it'**
+  String get guideWallKey;
+
+  /// No description provided for @guideWallBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On your phone. No account, no ads.'**
+  String get guideWallBody;
+
+  /// No description provided for @guideWallAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show me how'**
+  String get guideWallAction;
+
+  /// No description provided for @guidePracticeBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Try it on a '**
+  String get guidePracticeBefore;
+
+  /// No description provided for @guidePracticeKey.
+  ///
+  /// In en, this message translates to:
+  /// **'practice wall'**
+  String get guidePracticeKey;
+
+  /// No description provided for @guidePracticeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do what is lit. It is only practice: nothing here is saved.'**
+  String get guidePracticeBody;
+
+  /// No description provided for @guidePracticeDoneBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'That’s '**
+  String get guidePracticeDoneBefore;
+
+  /// No description provided for @guidePracticeDoneKey.
+  ///
+  /// In en, this message translates to:
+  /// **'the wall'**
+  String get guidePracticeDoneKey;
+
+  /// No description provided for @guidePracticeDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The yellow paper adds a note, a finger moves it, and a red pin ties a thread. It was only practice: nothing was saved.'**
+  String get guidePracticeDoneBody;
+
+  /// No description provided for @guideTaskAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'A practice wall. Nothing here is saved.'**
+  String get guideTaskAdd;
+
+  /// No description provided for @guideTaskMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Your note is on the wall.'**
+  String get guideTaskMove;
+
+  /// No description provided for @guideTaskTie.
+  ///
+  /// In en, this message translates to:
+  /// **'Tie it to the day it belongs to.'**
+  String get guideTaskTie;
+
+  /// No description provided for @guideLitAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the yellow paper'**
+  String get guideLitAdd;
+
+  /// No description provided for @guideLitMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the note onto the dashed spot'**
+  String get guideLitMove;
+
+  /// No description provided for @guideLitTie.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull its red pin onto “Saturday”'**
+  String get guideLitTie;
+
+  /// No description provided for @guideNoteWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Water the plants'**
+  String get guideNoteWater;
+
+  /// No description provided for @guideNoteSaturday.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturday'**
+  String get guideNoteSaturday;
+
+  /// No description provided for @guideNoteMum.
+  ///
+  /// In en, this message translates to:
+  /// **'Call Mum'**
+  String get guideNoteMum;
+
+  /// No description provided for @guideSpot.
+  ///
+  /// In en, this message translates to:
+  /// **'Here'**
+  String get guideSpot;
+
+  /// No description provided for @guideNothingSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Done. Nothing was saved.'**
+  String get guideNothingSaved;
+
+  /// No description provided for @guideScrapPlumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Call the plumber'**
+  String get guideScrapPlumber;
+
+  /// No description provided for @guideScrapBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Mum’s birthday, Sat'**
+  String get guideScrapBirthday;
+
+  /// No description provided for @guideScrapWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi: garden2026'**
+  String get guideScrapWifi;
+
+  /// No description provided for @guideScrapFlowers.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy flowers'**
+  String get guideScrapFlowers;
+
+  /// No description provided for @guideChooseBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it '**
+  String get guideChooseBefore;
+
+  /// No description provided for @guideChooseKey.
+  ///
+  /// In en, this message translates to:
+  /// **'yours'**
+  String get guideChooseKey;
+
+  /// No description provided for @guideChooseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'How would you like to start? Templates and new boards stay in the menu.'**
+  String get guideChooseBody;
+
+  /// No description provided for @guideChooseReplayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates & themes wait in the More menu, and the + tab starts a new board, whenever you like.'**
+  String get guideChooseReplayBody;
+
+  /// No description provided for @guideStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get guideStart;
+
+  /// No description provided for @guideDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get guideDone;
+
+  /// No description provided for @howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'How to use'**
+  String get howToUse;
+
+  /// No description provided for @howToUseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay the guide, or read it topic by topic'**
+  String get howToUseHint;
+
+  /// No description provided for @howToUseTopics.
+  ///
+  /// In en, this message translates to:
+  /// **'Topics'**
+  String get howToUseTopics;
+
+  /// No description provided for @howToUseTopicOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Topic {n} of {total}'**
+  String howToUseTopicOf(int n, int total);
+
+  /// No description provided for @howToUsePrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get howToUsePrevious;
+
+  /// No description provided for @manualFirstTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first note'**
+  String get manualFirstTitle;
+
+  /// No description provided for @manualFirstSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note, write on it, change it later.'**
+  String get manualFirstSummary;
+
+  /// No description provided for @manualFirstStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the yellow paper at the bottom right of the wall.'**
+  String get manualFirstStep1;
+
+  /// No description provided for @manualFirstStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what to add: a note, a list, a photo, a link, a voice note or a drawing.'**
+  String get manualFirstStep2;
+
+  /// No description provided for @manualFirstStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Write, then tick to stick it up. Tap a note to change it; long-press it for its menu.'**
+  String get manualFirstStep3;
+
+  /// No description provided for @manualMoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Moving and arranging'**
+  String get manualMoveTitle;
+
+  /// No description provided for @manualMoveSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag, turn, resize and tidy up.'**
+  String get manualMoveSummary;
+
+  /// No description provided for @manualMoveStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a note with one finger to move it.'**
+  String get manualMoveStep1;
+
+  /// No description provided for @manualMoveStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'The grips at its bottom corners resize (right) and rotate (left; tap it to square the note up). Two fingers twist and pinch too.'**
+  String get manualMoveStep2;
+
+  /// No description provided for @manualMoveStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinch the wall to zoom. Arrange… in the More menu tidies the notes into rows.'**
+  String get manualMoveStep3;
+
+  /// No description provided for @manualMoveStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo shows for a few seconds after every change.'**
+  String get manualMoveStep4;
+
+  /// No description provided for @manualThreadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Threads between notes'**
+  String get manualThreadTitle;
+
+  /// No description provided for @manualThreadSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Tie notes that belong together.'**
+  String get manualThreadSummary;
+
+  /// No description provided for @manualThreadStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull a note’s red pin onto another note: a thread ties the two.'**
+  String get manualThreadStep1;
+
+  /// No description provided for @manualThreadStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a thread to colour it, write on it, add an arrowhead or cut it.'**
+  String get manualThreadStep2;
+
+  /// No description provided for @manualThreadStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a pin to keep its note on top.'**
+  String get manualThreadStep3;
+
+  /// No description provided for @manualDrawTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drawing on the wall'**
+  String get manualDrawTitle;
+
+  /// No description provided for @manualDrawSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'A pen, a highlighter and an eraser.'**
+  String get manualDrawSummary;
+
+  /// No description provided for @manualDrawStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the pen in the toolbar to start drawing.'**
+  String get manualDrawStep1;
+
+  /// No description provided for @manualDrawStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'One finger draws behind the notes; two fingers still move and zoom the wall.'**
+  String get manualDrawStep2;
+
+  /// No description provided for @manualDrawStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'The eraser rubs out one line at a time. Undo puts it back; Done stops drawing.'**
+  String get manualDrawStep3;
+
+  /// No description provided for @manualBoardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Boards and the Trash'**
+  String get manualBoardsTitle;
+
+  /// No description provided for @manualBoardsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Several walls, and a safe bin.'**
+  String get manualBoardsSummary;
+
+  /// No description provided for @manualBoardsStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'The tabs at the top are your boards. The + tab starts a new one, blank or from a template.'**
+  String get manualBoardsStep1;
+
+  /// No description provided for @manualBoardsStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a note onto a tab to move it to that board.'**
+  String get manualBoardsStep2;
+
+  /// No description provided for @manualBoardsStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted notes wait in the Trash, in the More menu, for 30 days.'**
+  String get manualBoardsStep3;
+
+  /// No description provided for @manualPhotosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos and memory walls'**
+  String get manualPhotosTitle;
+
+  /// No description provided for @manualPhotosSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin photos; make a wall of memories.'**
+  String get manualPhotosSummary;
+
+  /// No description provided for @manualPhotosStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press an empty spot on the wall to stick a note or photos right there.'**
+  String get manualPhotosStep1;
+
+  /// No description provided for @manualPhotosStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin photos on the wall, in the More menu, adds several at once.'**
+  String get manualPhotosStep2;
+
+  /// No description provided for @manualPhotosStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'A memory wall lays many photos out for you: tap the yellow paper and choose Memory wall.'**
+  String get manualPhotosStep3;
+
+  /// No description provided for @manualFindTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search and views'**
+  String get manualFindTitle;
+
+  /// No description provided for @manualFindSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Find any note; see them as a wall, grid or list.'**
+  String get manualFindSummary;
+
+  /// No description provided for @manualFindStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Search does not need accents: “tuoi” finds “Tưới cây”.'**
+  String get manualFindStep1;
+
+  /// No description provided for @manualFindStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch between Wall, Grid and List in the bar at the top.'**
+  String get manualFindStep2;
+
+  /// No description provided for @manualFindStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'To act on several notes, long-press one and pick Select notes, or draw a loop round them from an empty spot.'**
+  String get manualFindStep3;
+
+  /// No description provided for @manualTabHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get manualTabHome;
+
+  /// No description provided for @manualTabWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get manualTabWork;
+
+  /// No description provided for @manualSearchQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'tuoi'**
+  String get manualSearchQuery;
+
+  /// No description provided for @manualPhotoCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Summer 2026'**
+  String get manualPhotoCaption;
 }
 
 class _AppLocalizationsDelegate

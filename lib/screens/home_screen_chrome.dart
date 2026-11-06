@@ -732,14 +732,7 @@ extension _Chrome on _HomeScreenState {
           case 'fit':
             _wallHandle.fitAll();
           case 'settings':
-            showAppSettings(
-              context,
-              settings: widget.settings,
-              notes: _notes,
-              onGuide: _startTour,
-            );
-          case 'guide':
-            _startTour();
+            showAppSettings(context, settings: widget.settings, notes: _notes);
           case 'tips':
             _showTips();
           case 'gallery':

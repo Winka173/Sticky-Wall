@@ -37,8 +37,8 @@ then taken well beyond it.
 ## Features
 
 **New in 1.4.1**
-- **Illustrated stickers and washi tapes**, drawn for the app with Codex
-  image generation and bundled offline (`assets/stickers/`, about 10 KB
+- **Illustrated stickers and washi tapes**, original artwork made for the
+  app and bundled offline (`assets/stickers/`, about 10 KB
   each); shelves by subject in the sticker picker, a good part free. The
   importer, manifest (sizes, SHA-256, provenance) and contact sheets:
   `tool/import_art.py`, `docs/design/`
@@ -210,8 +210,10 @@ then taken well beyond it.
 - **Home-screen widget** (Android, and iOS with the extension below): *Show
   on the home-screen widget* in the export puts that picture of the board on
   the widget; until then it lists the current board's pinned notes
-- **Gesture tips** (⋮ → *Gesture tips*): a short tour of what fingers can do
-  on the wall, offered once on a fresh install
+- **How to use** (Settings → Help): replay the first-run guide, or read the
+  manual as seven short topics (first note, moving, threads, drawing, boards
+  and the Trash, photos and memory walls, search and views), each with a
+  picture and Previous / Next
 - **Stacks** — long-press a note → *Stack with…* (or select several →
   *Stack*) piles them in one place: the top card shows with the sheets
   under it peeking out and a count on the corner that lists them; the pile
@@ -314,9 +316,10 @@ then taken well beyond it.
 
 **First launch**
 - A fresh install seeds five sample notes (with one thread tied between two
-  of them) that teach the gestures, under a welcome that offers a template,
-  a blank wall (the samples go) or exploring them. Gesture tips stay in the
-  ⋮ menu
+  of them) and opens the first-run guide: a short story, a practice wall
+  that saves nothing (add a note, move it, tie a thread), then a blank wall
+  (the samples go), a template or the sample wall. See
+  `docs/sticky-final/FIRST_RUN_GUIDE.md`
 
 **Privacy**
 - **App lock** (off by default, *Customize → Privacy*): asks for the phone's
@@ -462,6 +465,7 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/widgets/thread_style.dart` | Painting a thread as yarn, twine, ribbon, dashes or beads (`paintThreadLine`), and the samples in the thread sheet |
 | `lib/widgets/widget_settings_sheet.dart` | Home-screen widget settings with a live preview (part of `settings_sheet.dart`) |
 | `lib/screens/home_screen.dart` | Header, board bar, toolbar, the three views, multi-select |
+| `lib/welcome/` | The first-run guide (`welcome_guide.dart`), its story scene, practice wall and motion pieces (lit window, staged entrance), and *How to use* with the manual's topics (`how_to_use.dart`) |
 | `lib/screens/trash_screen.dart` | Trash: restore / delete forever / empty |
 | `lib/widgets/wall_view.dart` | Free drag-and-drop canvas, resize / rotate grips, two-finger twist / pinch, lasso, drop tray, marker mode, threads, measured tidy animation |
 | `lib/widgets/wall_background.dart` | Wall texture or custom photo + scrim, stains, vignette |

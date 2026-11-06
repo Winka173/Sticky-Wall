@@ -13,6 +13,7 @@ import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
 import 'package:sticky_wall/services/share_service.dart';
 import 'package:sticky_wall/services/template_library.dart';
+import 'package:sticky_wall/welcome/welcome_guide.dart';
 import 'package:sticky_wall/widgets/board_bar.dart';
 
 /// Hands shares to the test instead of the platform.
@@ -69,6 +70,26 @@ Future<NotesController> _pumpApp(
   );
   await tester.pumpAndSettle();
   return notes;
+}
+
+/// Walks the first-run guide to its last stage, picks [choice], starts.
+Future<void> _guideToStart(WidgetTester tester, String choice) async {
+  Future<void> tap(Finder f) async {
+    await tester.ensureVisible(f);
+    await tester.pumpAndSettle();
+    await tester.tap(f);
+    await tester.pumpAndSettle();
+  }
+
+  final primary = find.byKey(const Key('guide-primary'));
+  await tap(primary);
+  await tap(primary);
+  for (var i = 0; i < 3; i++) {
+    await tap(find.byKey(const Key('guide-practice-next')));
+  }
+  await tap(primary);
+  await tap(find.text(choice));
+  await tap(primary);
 }
 
 void main() {
@@ -169,17 +190,15 @@ void main() {
 
   testWidgets('a fresh install can start blank', (tester) async {
     final notes = await _pumpApp(tester, welcome: true);
-    expect(find.text('Welcome to Sticky Wall'), findsOneWidget);
-    await tester.tap(find.text('Start with a blank wall'));
-    await tester.pumpAndSettle();
+    expect(find.byType(WelcomeGuide), findsOneWidget);
+    await _guideToStart(tester, 'Start with a blank wall');
     expect(notes.boardNotes, isEmpty);
     expect(notes.trashed, isEmpty, reason: 'examples never were theirs');
   });
 
   testWidgets('a fresh install can start from a template', (tester) async {
     final notes = await _pumpApp(tester, welcome: true);
-    await tester.tap(find.text('Pick a template'));
-    await tester.pumpAndSettle();
+    await _guideToStart(tester, 'Pick a template');
     await tester.tap(find.text('Daily Notes'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Use this template'));
@@ -192,8 +211,7 @@ void main() {
 
   testWidgets('the sample wall stays when explored', (tester) async {
     final notes = await _pumpApp(tester, welcome: true);
-    await tester.tap(find.text('Explore the sample wall'));
-    await tester.pumpAndSettle();
+    await _guideToStart(tester, 'Explore the sample wall');
     expect(notes.boardNotes.single.content, 'My own words');
   });
 

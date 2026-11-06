@@ -21,8 +21,8 @@ import '../services/settings_controller.dart';
 import '../services/sync/sync_service.dart';
 import '../services/widget_service.dart';
 import '../theme.dart';
+import '../welcome/how_to_use.dart';
 import 'action_sheet.dart';
-import 'gesture_tips.dart';
 import 'keyboard_tappable.dart';
 import 'note_views.dart';
 import 'paper_choice_chip.dart';
@@ -145,7 +145,6 @@ Future<void> showAppSettings(
   BuildContext context, {
   required SettingsController settings,
   required NotesController notes,
-  VoidCallback? onGuide,
 }) {
   return Navigator.of(context).push(
     MaterialPageRoute<void>(
@@ -165,7 +164,6 @@ Future<void> showAppSettings(
               child: _SettingsSheet(
                 settings: settings,
                 notes: notes,
-                onGuide: onGuide,
               )._appList(context, l10n),
             ),
           );
@@ -194,17 +192,10 @@ void _endTryOn(
 
 /// Body of [showSettingsSheet]; rebuilds as the settings change.
 class _SettingsSheet extends StatelessWidget {
-  const _SettingsSheet({
-    required this.settings,
-    required this.notes,
-    this.onGuide,
-  });
+  const _SettingsSheet({required this.settings, required this.notes});
 
   final SettingsController settings;
   final NotesController notes;
-
-  /// Starts the interactive guide on the wall (Settings → Help).
-  final VoidCallback? onGuide;
 
   @override
   Widget build(BuildContext context) {
@@ -703,23 +694,14 @@ class _SettingsSheet extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _SectionTitle(l10n.settingsHelp),
+        // The guide again, and every gesture topic by topic (the gesture
+        // tips are all in there too).
         _row(
           icon: Icons.school_outlined,
-          title: l10n.tourReplay,
-          subtitle: l10n.tourReplayHint,
+          title: l10n.howToUse,
+          subtitle: l10n.howToUseHint,
           trailing: const Icon(Icons.chevron_right, color: AppColors.inkSoft),
-          onTap: onGuide == null
-              ? null
-              : () {
-                  Navigator.of(context).pop();
-                  onGuide!();
-                },
-        ),
-        _row(
-          icon: Icons.lightbulb_outline,
-          title: l10n.gestureTips,
-          trailing: const Icon(Icons.chevron_right, color: AppColors.inkSoft),
-          onTap: () => showGestureTips(context),
+          onTap: () => HowToUsePage.open(context),
         ),
         const SizedBox(height: 8),
         _SectionTitle(l10n.settingsAbout),

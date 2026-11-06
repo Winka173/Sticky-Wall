@@ -26,6 +26,7 @@ import '../services/share_service.dart';
 import '../services/widget_service.dart';
 import '../theme.dart';
 import '../util/rich_note.dart';
+import '../welcome/welcome_guide.dart';
 import '../widgets/action_sheet.dart';
 import '../widgets/add_note_button.dart';
 import '../widgets/add_to_wall_sheet.dart';
@@ -33,7 +34,6 @@ import '../widgets/board_bar.dart';
 import '../widgets/board_poster.dart';
 import '../widgets/eraser_icon.dart';
 import '../widgets/gesture_tips.dart';
-import '../widgets/guided_tour.dart';
 import '../widgets/keyboard_tappable.dart';
 import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
@@ -407,53 +407,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// A fresh install opens on the sample wall with three ways to start: keep
-  /// exploring it, clear it, or pick a template. One sheet, never again.
+  /// A fresh install opens the first-run guide over the sample wall. Its
+  /// last stage picks how to start: keep exploring the samples (also what
+  /// Skip does), clear them, or pick a template. Shown once: skipped or
+  /// finished, it is remembered, and so are the gesture tips it covers.
   Future<void> _welcome() async {
-    final l10n = _l10n;
+    final start = await WelcomeGuide.open(context);
     widget.settings.markWelcomeSeen();
-    ListTile choice(String value, IconData icon, String title, String hint) =>
-        ListTile(
-          leading: Icon(icon, size: 28),
-          title: Text(title, style: const TextStyle(fontSize: 18)),
-          subtitle: Text(hint),
-          onTap: () => Navigator.pop(context, value),
-        );
-    final picked = await showActionSheet<String>(
-      context,
-      title: l10n.welcomeTitle,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-          child: Text(l10n.welcomeBody, style: const TextStyle(fontSize: 15)),
-        ),
-        choice(
-          'template',
-          Icons.dashboard_customize_outlined,
-          l10n.welcomeTemplate,
-          l10n.welcomeTemplateHint,
-        ),
-        choice(
-          'blank',
-          Icons.crop_square,
-          l10n.welcomeBlank,
-          l10n.welcomeBlankHint,
-        ),
-        choice(
-          'explore',
-          Icons.travel_explore_outlined,
-          l10n.welcomeExplore,
-          l10n.welcomeExploreHint,
-        ),
-      ],
-    );
+    widget.settings.markTipsSeen();
     if (!mounted) return;
-    switch (picked) {
-      case 'explore':
-        _startTour();
-      case 'blank':
+    switch (start) {
+      case null:
+      case GuideStart.explore:
+        break;
+      case GuideStart.blank:
         _notes.discardSamples(_notes.currentBoardId);
-      case 'template':
+      case GuideStart.template:
         final board = _notes.currentBoardId;
         final firstRun = {for (final n in _notes.sampleNotes(board)) n.guid};
         final result = await GalleryScreen.open(
@@ -473,51 +442,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _showTips() async {
     await showGestureTips(context);
     widget.settings.markTipsSeen();
-  }
-
-  // --- Interactive guide ---------------------------------------------------
-
-  /// The guide's current step, or null when it is not running.
-  TourStep? _tour;
-  int _tourEdits = 0;
-  int _tourLinks = 0;
-
-  /// Starts the guide on the wall as it is. Replaying it never adds or
-  /// removes anything: it only watches for the gestures.
-  void _startTour() {
-    if (_notes.viewMode != ViewMode.wall) _notes.viewMode = ViewMode.wall;
-    setState(() {
-      _tour = TourStep.tap;
-      _tourEdits = _notes.wallEdits;
-      _tourLinks = _notes.links.length;
-    });
-    widget.settings.markTipsSeen();
-  }
-
-  void _tourAdvance([TourStep? from]) {
-    final step = _tour;
-    if (step == null || (from != null && step != from)) return;
-    setState(() {
-      _tour = TourStep.values[step.index + 1];
-      _tourEdits = _notes.wallEdits;
-      _tourLinks = _notes.links.length;
-    });
-  }
-
-  void _endTour() => setState(() => _tour = null);
-
-  /// Moves the guide on when the user did what the step asks.
-  void _watchTour() {
-    final step = _tour;
-    if (step == TourStep.drag && _notes.wallEdits > _tourEdits) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _tourAdvance(TourStep.drag),
-      );
-    } else if (step == TourStep.thread && _notes.links.length > _tourLinks) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _tourAdvance(TourStep.thread),
-      );
-    }
   }
 
   /// Every kind of note, from the "Other kinds" pill or a long press on the
@@ -878,8 +802,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _openEditor(Note note, {required bool isNew}) async {
-    // Opening a note is what the guide's first step asks for.
-    if (!isNew) _tourAdvance(TourStep.tap);
     // A sticker has nothing to write on: "editing" it picks another one.
     if (note.type == NoteType.sticker && !isNew) {
       await _changeSticker(note);
@@ -1181,8 +1103,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           }
           // Marker mode belongs to the wall; leaving it ends the session.
           if (_notes.viewMode != ViewMode.wall) _marking = false;
-          _watchTour();
-          if (onWall && !_tipsOffered && widget.settings.welcomePending) {
+          if (!_tipsOffered && widget.settings.welcomePending) {
             _tipsOffered = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) _welcome();
@@ -1321,29 +1242,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           ],
                         ),
                       ),
-                      if (_tour != null && onWall)
-                        Positioned(
-                          left: 12,
-                          right: 12,
-                          bottom:
-                              HomeScreen.wallFooterHeight +
-                              MediaQuery.viewPaddingOf(context).bottom +
-                              24,
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 420),
-                              child: GuidedTourCard(
-                                step: _tour!,
-                                onNext: _tourAdvance,
-                                onSkip: _endTour,
-                                onFirstNote: () {
-                                  _endTour();
-                                  _openEditor(_notes.draft(), isNew: true);
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
                       // The same breath of shade along the bottom, behind the
                       // tool pill and the add button.
                       if (onWall)

@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
@@ -79,6 +82,34 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
   bool _picking = false;
   bool _pickFailed = false;
 
+  /// Photos picked again that were already on the list (the system picker
+  /// cannot show what was chosen before), left out and counted.
+  int _duplicates = 0;
+
+  /// Content hashes of the photos on the list, by stored name.
+  final _hashes = <String, String>{};
+
+  /// What [name] holds, as a short fingerprint (its size and a hash of its
+  /// first 64 KB): the same picture picked twice is copied in under two
+  /// names. Read synchronously, a few KB per photo. Null when unreadable.
+  Future<String?> _hashOf(String name) async {
+    final known = _hashes[name];
+    if (known != null) return known;
+    try {
+      final file = File(ImageService.resolve(name));
+      if (!file.existsSync()) return null;
+      final raf = file.openSync();
+      try {
+        final head = raf.readSync(64 * 1024);
+        return _hashes[name] = '${raf.lengthSync()}:${sha1.convert(head)}';
+      } finally {
+        raf.closeSync();
+      }
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _addPhotos() async {
     setState(() {
       _picking = true;
@@ -92,9 +123,25 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
         }
         return;
       }
-      setState(
-        () => _photos.addAll(added.take(memoryWallMax - _photos.length)),
-      );
+      // Leave out what is already on the list (or twice in this batch).
+      final seen = <String>{
+        for (final p in _photos) (await _hashOf(p)) ?? 'name:$p',
+      };
+      final fresh = <String>[];
+      var repeats = 0;
+      for (final photo in added) {
+        final key = (await _hashOf(photo)) ?? 'name:$photo';
+        if (seen.add(key)) {
+          fresh.add(photo);
+        } else {
+          repeats++;
+        }
+      }
+      if (!mounted) return;
+      setState(() {
+        _duplicates = repeats;
+        _photos.addAll(fresh.take(memoryWallMax - _photos.length));
+      });
     } catch (_) {
       if (mounted) setState(() => _pickFailed = true);
     } finally {
@@ -192,6 +239,25 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
                         style: const TextStyle(
                           fontSize: 13,
                           color: AppColors.warnText,
+                        ),
+                      ),
+                    if (_photos.length > 1 || widget.onAddPhotos != null)
+                      _ChosenStrip(
+                        photos: _photos,
+                        onRemove: _photos.length <= 1
+                            ? null
+                            : (photo) => setState(() {
+                                _photos.remove(photo);
+                                _duplicates = 0;
+                              }),
+                      ),
+                    if (_duplicates > 0)
+                      Text(
+                        l10n.memoryDuplicates(_duplicates),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.inkSoft,
                         ),
                       ),
                     if (_pickFailed)
@@ -519,6 +585,90 @@ class _MemoryPreview extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The chosen photos as small thumbnails, in order, each with a button to
+/// take it off the list (at least one stays).
+class _ChosenStrip extends StatelessWidget {
+  const _ChosenStrip({required this.photos, required this.onRemove});
+
+  final List<String> photos;
+  final void Function(String photo)? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SizedBox(
+      height: 72,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        itemCount: photos.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
+        itemBuilder: (context, i) {
+          final photo = photos[i];
+          // The remove badge sits on the thumbnail's corner, inside the
+          // strip so it is never clipped.
+          return SizedBox(
+            width: 66,
+            height: 66,
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  bottom: 0,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadii.paper * 2),
+                    child: Image.file(
+                      File(ImageService.resolve(photo)),
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      cacheWidth: 120,
+                      errorBuilder: (_, _, _) => const SizedBox(
+                        width: 56,
+                        height: 56,
+                        child: ColoredBox(color: AppColors.inkHint),
+                      ),
+                    ),
+                  ),
+                ),
+                if (onRemove != null)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Semantics(
+                      button: true,
+                      label: l10n.memoryRemovePhoto(i + 1),
+                      excludeSemantics: true,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => onRemove!(photo),
+                        // A small badge with a bigger target around it.
+                        child: const SizedBox.square(
+                          dimension: 28,
+                          child: Center(
+                            child: CircleAvatar(
+                              radius: 10,
+                              backgroundColor: AppColors.ink,
+                              child: Icon(
+                                Icons.close,
+                                size: 13,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

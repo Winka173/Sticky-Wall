@@ -58,8 +58,13 @@ List<({double x, double y, double scale, double? rotation})> memoryPositions(
       _ => 0.52,
     },
   };
-  double rowY(int r) =>
-      rows <= 1 ? (top + 0.3) : top + (0.98 - top) * r / (rows - 1);
+  // Rows sit a print's height apart (not spread over the whole wall, which
+  // left a few photos stranded at the top and the foot), and the block sits
+  // a little above the middle. Many rows still fit, closer together.
+  final span = 0.98 - top;
+  final rowStep = rows <= 1 ? 0.0 : math.min(span / (rows - 1), 0.46 * scale);
+  final rowStart = top + (span - rowStep * (rows - 1)) * 0.3;
+  double rowY(int r) => rows <= 1 ? (top + span * 0.3) : rowStart + rowStep * r;
 
   final out = <({double x, double y, double scale, double? rotation})>[];
   for (var i = 0; i < n; i++) {
@@ -93,11 +98,14 @@ List<({double x, double y, double scale, double? rotation})> memoryPositions(
           rotation: 0,
         ));
       case MemoryLayout.timeline:
-        // Down the wall, swinging left and right.
+        // Down the wall, swinging left and right, each step a bit less
+        // than a print's height (they alternate sides).
         final steps = math.max(n - 1, 1);
+        final step = math.min(span / steps, 0.3 * scale);
+        final start = top + (span - step * steps) * 0.3;
         out.add((
           x: i.isEven ? 0.0 : 1.0,
-          y: n == 1 ? top + 0.3 : top + (0.98 - top) * i / steps,
+          y: n == 1 ? top + span * 0.3 : start + step * i,
           scale: scale,
           rotation: (i.isEven ? -1 : 1) * 0.04,
         ));

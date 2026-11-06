@@ -679,9 +679,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get gestureTips => 'Mẹo cử chỉ';
 
   @override
-  String get tourReplay => 'Hướng dẫn tương tác';
-
-  @override
   String get settingsTitle => 'Cài đặt';
 
   @override
@@ -695,10 +692,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get settingsAbout => 'Giới thiệu';
-
-  @override
-  String get tourReplayHint =>
-      'Tập chạm, kéo và nối dây ngay trên tường của bạn';
 
   @override
   String get backupRestore => 'Sao lưu & khôi phục';
@@ -751,46 +744,6 @@ class AppLocalizationsVi extends AppLocalizations {
       'Tường. Nhấn giữ chỗ trống để dán ghi chú vào đó.';
 
   @override
-  String get tourTapTitle => 'Chạm vào ghi chú để viết';
-
-  @override
-  String get tourTapBody =>
-      'Chạm vào một ghi chú bất kỳ trên tường. Ghi chú mở ra trên tờ giấy của nó; viết xong thì đóng lại.';
-
-  @override
-  String get tourDragTitle => 'Kéo ghi chú để di chuyển';
-
-  @override
-  String get tourDragBody =>
-      'Đặt một ngón lên ghi chú rồi trượt sang chỗ khác trên tường.';
-
-  @override
-  String get tourThreadTitle => 'Nối hai ghi chú';
-
-  @override
-  String get tourThreadBody =>
-      'Kéo từ ghim đỏ của một ghi chú sang ghi chú khác. Hoặc nhấn giữ ghi chú rồi chọn \"Nối dây tới…\".';
-
-  @override
-  String get tourDoneTitle => 'Vậy là xong';
-
-  @override
-  String get tourDoneBody =>
-      'Ghi chú nằm yên ở chỗ bạn đặt. Các ghi chú mẫu xóa lúc nào cũng được: nhấn giữ một tờ, hoặc xóa hết trong menu của bảng.';
-
-  @override
-  String get tourNext => 'Tiếp';
-
-  @override
-  String get tourSkip => 'Bỏ qua';
-
-  @override
-  String get tourClose => 'Đóng';
-
-  @override
-  String get tourFirstNote => 'Viết ghi chú đầu tiên';
-
-  @override
   String get gotIt => 'Đã hiểu';
 
   @override
@@ -833,7 +786,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get tipDrawBody =>
-      'Nút bút trên thanh công cụ mở chế độ vẽ: một ngón vẽ phía sau các ghi chú, hai ngón vẫn phóng to, thu nhỏ. Nút Hoàn tác, Xóa hết và Xong nằm ở thanh dưới.';
+      'Nút bút trên thanh công cụ mở chế độ vẽ: một ngón vẽ phía sau các ghi chú, hai ngón vẫn phóng to, thu nhỏ. Cục tẩy xóa từng nét một; nút Hoàn tác và Xong nằm ở thanh dưới.';
 
   @override
   String get tipUndoTitle => 'Hoàn tác';
@@ -1911,13 +1864,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get changeTheme => 'Đổi chủ đề';
 
   @override
-  String get welcomeTitle => 'Chào mừng bạn đến với Sticky Wall';
-
-  @override
-  String get welcomeBody =>
-      'Ghi chú dán trên tường: viết, kéo đi, nối dây với nhau. Bạn muốn bắt đầu thế nào?';
-
-  @override
   String get welcomeTemplate => 'Chọn một mẫu';
 
   @override
@@ -1984,6 +1930,21 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String memoryAddPhotosHint(int max) {
     return 'Chọn nhiều ảnh rồi xác nhận. Bạn có thể thêm tối đa $max ảnh tại đây.';
+  }
+
+  @override
+  String memoryDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ảnh đã được chọn rồi nên được bỏ qua.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String memoryRemovePhoto(int n) {
+    return 'Bỏ ảnh $n';
   }
 
   @override
@@ -2322,4 +2283,296 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get memoryPreviewPro =>
       'Đang xem thử Pro. Mở khóa để tạo với giao diện này.';
+
+  @override
+  String get guideReplay => 'Xem lại hướng dẫn';
+
+  @override
+  String get guideReplayHint =>
+      'Bức tường trong một phút, có tường tập. Bảng của bạn không đổi gì.';
+
+  @override
+  String guideStepOf(int step, int total) {
+    return 'Bước $step trên $total';
+  }
+
+  @override
+  String get guideBack => 'Quay lại';
+
+  @override
+  String get guideSkip => 'Bỏ qua';
+
+  @override
+  String get guideNext => 'Tiếp';
+
+  @override
+  String get guideScatterTop => 'Ghi chú khắp nơi.';
+
+  @override
+  String get guideScatterKey => 'Tìm chẳng thấy.';
+
+  @override
+  String get guideScatterBody =>
+      'Trên hóa đơn, mẩu giấy nhớ, điện thoại, cả tờ khăn giấy…';
+
+  @override
+  String get guideScatterAction => 'Dán hết lên tường';
+
+  @override
+  String get guideWallBefore => 'Một bức tường cho ';
+
+  @override
+  String get guideWallKey => 'tất cả';
+
+  @override
+  String get guideWallBody =>
+      'Ngay trên điện thoại. Không tài khoản, không quảng cáo.';
+
+  @override
+  String get guideWallAction => 'Chỉ tôi cách dùng';
+
+  @override
+  String get guidePracticeBefore => 'Thử trên ';
+
+  @override
+  String get guidePracticeKey => 'bức tường tập';
+
+  @override
+  String get guidePracticeBody =>
+      'Làm theo chỗ đang sáng. Đây chỉ là bản tập, không lưu gì cả.';
+
+  @override
+  String get guidePracticeDoneBefore => 'Vậy là ';
+
+  @override
+  String get guidePracticeDoneKey => 'xong rồi';
+
+  @override
+  String get guidePracticeDoneBody =>
+      'Tờ giấy vàng để thêm ghi chú, kéo bằng một ngón để di chuyển, kéo ghim đỏ để nối dây. Chỉ là bản tập: chưa có gì được lưu.';
+
+  @override
+  String get guideTaskAdd => 'Bức tường tập. Ở đây không lưu gì.';
+
+  @override
+  String get guideTaskMove => 'Ghi chú đã lên tường.';
+
+  @override
+  String get guideTaskTie => 'Nối nó với ngày cần làm.';
+
+  @override
+  String get guideLitAdd => 'Chạm vào tờ giấy vàng';
+
+  @override
+  String get guideLitMove => 'Kéo ghi chú vào ô nét đứt';
+
+  @override
+  String get guideLitTie => 'Kéo ghim đỏ sang tờ “Thứ Bảy”';
+
+  @override
+  String get guideNoteWater => 'Tưới cây';
+
+  @override
+  String get guideNoteSaturday => 'Thứ Bảy';
+
+  @override
+  String get guideNoteMum => 'Gọi cho mẹ';
+
+  @override
+  String get guideSpot => 'Đặt ở đây';
+
+  @override
+  String get guideNothingSaved => 'Xong. Không có gì được lưu.';
+
+  @override
+  String get guideScrapPlumber => 'Gọi thợ sửa ống nước';
+
+  @override
+  String get guideScrapBirthday => 'Sinh nhật mẹ, thứ Bảy';
+
+  @override
+  String get guideScrapWifi => 'Wi-Fi: vuon2026';
+
+  @override
+  String get guideScrapFlowers => 'Mua hoa';
+
+  @override
+  String get guideChooseBefore => 'Làm theo ';
+
+  @override
+  String get guideChooseKey => 'cách của bạn';
+
+  @override
+  String get guideChooseBody =>
+      'Bạn muốn bắt đầu thế nào? Mẫu và bảng mới luôn có trong menu.';
+
+  @override
+  String get guideChooseReplayBody =>
+      'Mẫu & chủ đề nằm trong menu Khác, còn thẻ + mở một bảng mới, lúc nào cũng được.';
+
+  @override
+  String get guideStart => 'Bắt đầu';
+
+  @override
+  String get guideDone => 'Xong';
+
+  @override
+  String get howToUse => 'Cách dùng';
+
+  @override
+  String get howToUseHint => 'Xem lại hướng dẫn, hoặc đọc theo từng chủ đề';
+
+  @override
+  String get howToUseTopics => 'Chủ đề';
+
+  @override
+  String howToUseTopicOf(int n, int total) {
+    return 'Chủ đề $n trên $total';
+  }
+
+  @override
+  String get howToUsePrevious => 'Trước';
+
+  @override
+  String get manualFirstTitle => 'Ghi chú đầu tiên';
+
+  @override
+  String get manualFirstSummary =>
+      'Thêm ghi chú, viết lên, sửa lúc nào cũng được.';
+
+  @override
+  String get manualFirstStep1 =>
+      'Chạm vào tờ giấy vàng ở góc dưới bên phải bức tường.';
+
+  @override
+  String get manualFirstStep2 =>
+      'Chọn thứ cần thêm: ghi chú, danh sách, ảnh, liên kết, ghi âm hay hình vẽ.';
+
+  @override
+  String get manualFirstStep3 =>
+      'Viết xong, bấm dấu tích để dán lên. Chạm vào ghi chú để sửa; nhấn giữ để mở menu của nó.';
+
+  @override
+  String get manualMoveTitle => 'Di chuyển và sắp xếp';
+
+  @override
+  String get manualMoveSummary => 'Kéo, xoay, đổi cỡ và dọn gọn.';
+
+  @override
+  String get manualMoveStep1 => 'Kéo ghi chú bằng một ngón để di chuyển.';
+
+  @override
+  String get manualMoveStep2 =>
+      'Tay nắm ở hai góc dưới để đổi cỡ (bên phải) và xoay (bên trái; chạm để dựng thẳng lại). Hai ngón cũng xoay và phóng to, thu nhỏ được.';
+
+  @override
+  String get manualMoveStep3 =>
+      'Chụm hai ngón trên tường để phóng to, thu nhỏ. Mục Sắp xếp… trong menu Khác xếp ghi chú thành hàng gọn gàng.';
+
+  @override
+  String get manualMoveStep4 =>
+      'Sau mỗi thay đổi, nút Hoàn tác hiện ra vài giây.';
+
+  @override
+  String get manualThreadTitle => 'Nối dây giữa các ghi chú';
+
+  @override
+  String get manualThreadSummary => 'Nối những ghi chú liên quan với nhau.';
+
+  @override
+  String get manualThreadStep1 =>
+      'Kéo ghim đỏ của một ghi chú sang ghi chú khác: một sợi dây nối hai tờ lại.';
+
+  @override
+  String get manualThreadStep2 =>
+      'Chạm vào sợi dây để đổi màu, ghi chữ, thêm mũi tên hoặc cắt dây.';
+
+  @override
+  String get manualThreadStep3 => 'Chạm vào ghim để giữ ghi chú ở trên cùng.';
+
+  @override
+  String get manualDrawTitle => 'Vẽ lên tường';
+
+  @override
+  String get manualDrawSummary => 'Bút, bút dạ quang và cục tẩy.';
+
+  @override
+  String get manualDrawStep1 =>
+      'Chạm vào cây bút trên thanh công cụ để bắt đầu vẽ.';
+
+  @override
+  String get manualDrawStep2 =>
+      'Một ngón để vẽ phía sau ghi chú; hai ngón vẫn kéo và phóng to tường.';
+
+  @override
+  String get manualDrawStep3 =>
+      'Cục tẩy xóa từng nét một. Hoàn tác để lấy lại; Xong để thôi vẽ.';
+
+  @override
+  String get manualBoardsTitle => 'Bảng và Thùng rác';
+
+  @override
+  String get manualBoardsSummary =>
+      'Nhiều bức tường, và một thùng rác an toàn.';
+
+  @override
+  String get manualBoardsStep1 =>
+      'Các thẻ ở trên cùng là các bảng của bạn. Thẻ + tạo bảng mới, để trống hoặc từ mẫu.';
+
+  @override
+  String get manualBoardsStep2 =>
+      'Kéo ghi chú thả vào một thẻ để chuyển sang bảng đó.';
+
+  @override
+  String get manualBoardsStep3 =>
+      'Ghi chú đã xóa nằm trong Thùng rác (ở menu Khác) 30 ngày.';
+
+  @override
+  String get manualPhotosTitle => 'Ảnh và tường kỷ niệm';
+
+  @override
+  String get manualPhotosSummary => 'Ghim ảnh; làm một bức tường kỷ niệm.';
+
+  @override
+  String get manualPhotosStep1 =>
+      'Nhấn giữ một chỗ trống trên tường để dán ghi chú hoặc ảnh ngay chỗ đó.';
+
+  @override
+  String get manualPhotosStep2 =>
+      'Mục Ghim ảnh lên tường trong menu Khác thêm nhiều ảnh một lúc.';
+
+  @override
+  String get manualPhotosStep3 =>
+      'Tường kỷ niệm tự bày nhiều ảnh giúp bạn: chạm tờ giấy vàng rồi chọn Tường kỷ niệm.';
+
+  @override
+  String get manualFindTitle => 'Tìm kiếm và chế độ xem';
+
+  @override
+  String get manualFindSummary =>
+      'Tìm mọi ghi chú; xem dạng tường, lưới hoặc danh sách.';
+
+  @override
+  String get manualFindStep1 =>
+      'Tìm kiếm không cần dấu: gõ “tuoi” vẫn ra “Tưới cây”.';
+
+  @override
+  String get manualFindStep2 =>
+      'Chuyển giữa Tường, Lưới và Danh sách ở thanh trên cùng.';
+
+  @override
+  String get manualFindStep3 =>
+      'Để làm việc với nhiều ghi chú, nhấn giữ một tờ rồi chọn Chọn ghi chú, hoặc khoanh một vòng quanh chúng từ chỗ trống.';
+
+  @override
+  String get manualTabHome => 'Nhà';
+
+  @override
+  String get manualTabWork => 'Việc';
+
+  @override
+  String get manualSearchQuery => 'tuoi';
+
+  @override
+  String get manualPhotoCaption => 'Hè 2026';
 }

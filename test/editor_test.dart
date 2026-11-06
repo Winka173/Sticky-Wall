@@ -1660,15 +1660,15 @@ void main() {
     expect(find.text('Pins and threads'), findsNothing);
     expect(storage.tipsPending, false);
 
-    // Kept in Settings → Help.
+    // Kept in Settings → Help → How to use, topic by topic.
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Gesture tips'), 200);
-    await tester.tap(find.text('Gesture tips'));
+    await tester.scrollUntilVisible(find.text('How to use'), 200);
+    await tester.tap(find.text('How to use'));
     await tester.pumpAndSettle();
-    expect(find.text('Pins and threads'), findsOneWidget);
+    expect(find.text('Topics'), findsOneWidget);
   });
 
   testWidgets('long-pressing empty wall offers a note or photos there', (

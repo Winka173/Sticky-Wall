@@ -2,30 +2,9 @@
 
 ## First run
 
-A fresh install shows the sample wall and a welcome sheet with three choices:
-
-1. **Pick a template**
-2. **Start with a blank wall**: removes the examples.
-3. **Explore the sample wall**: starts the **interactive guide**.
-
-### The interactive guide
-
-- **Steps** (a card above the tool pill):
-  1. Tap a note.
-  2. Drag a note.
-  3. Tie two notes with a thread.
-  4. Write your first note.
-- **Moving on:** each step moves on when the gesture is done.
-- **Without the gesture:**
-  - **Next** is always there.
-  - The thread step also names the menu route, "Tie a thread to…".
-  - **Skip** ends the guide.
-- **Accessibility:**
-  - The card is a live region for screen readers.
-  - Buttons are at least 44 dp tall.
-  - The buttons wrap at large text.
-- **No side effects:** the guide never creates or deletes anything, and needs no permissions, billing or sign-in.
-- **Replay:** More menu → **Interactive guide**, on the current wall, without touching its data.
+The welcome sheet and the overlay "interactive guide" described here before
+were replaced by a full-page first-run guide and a *How to use* page in
+Settings → Help. See `FIRST_RUN_GUIDE.md`.
 
 ## Layout of the sample notes
 
