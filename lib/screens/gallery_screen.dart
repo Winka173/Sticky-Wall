@@ -1,7 +1,13 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/draw_stroke.dart';
 import '../models/note.dart';
+import '../services/image_service.dart';
 import '../services/notes_controller.dart';
 import '../services/pro_controller.dart';
 import '../services/template_library.dart';
@@ -238,15 +244,13 @@ class _TemplatesTabState extends State<_TemplatesTab>
             Expanded(
               child: shown.isEmpty
                   ? Center(child: Text(l10n.galleryNothing))
-                  : GridView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                      gridDelegate:
-                          const SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: 220,
-                            mainAxisSpacing: 16,
-                            crossAxisSpacing: 14,
-                            childAspectRatio: 0.56,
-                          ),
+                  : _CatalogGrid(
+                      featured: _category == null && _search.text.trim().isEmpty
+                          ? [
+                              for (final c in TemplateCategory.values)
+                                shown.indexWhere((t) => t.category == c),
+                            ]
+                          : const [],
                       itemCount: shown.length,
                       itemBuilder: (context, i) {
                         final t = shown[i];
@@ -415,19 +419,18 @@ class _ThemesTabState extends State<_ThemesTab>
           onSelected: (f) => setState(() => _filter = f),
         ),
         Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 220,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 14,
-              childAspectRatio: 0.6,
-            ),
+          child: _CatalogGrid(
+            featured: _filter == null
+                ? [
+                    for (final c in ThemeCategory.values)
+                      shown.indexWhere((t) => t.category == c),
+                  ]
+                : const [],
             itemCount: shown.length,
             itemBuilder: (context, i) {
               final t = shown[i];
               return _Card(
-                preview: ThemePreview(pack: t),
+                preview: ThemeCatalogPreview(pack: t),
                 title: t.name(lang),
                 pro: t.pro && !pro,
                 onTap: () => _open(context, t),
@@ -449,9 +452,20 @@ class _ThemesTabState extends State<_ThemesTab>
       context: context,
       isScrollControlled: true,
       builder: (context) => _DetailSheet(
-        preview: ThemePreview(pack: t),
+        preview: widget.notes.currentBoardShut
+            ? Center(child: Text(l10n.boardPrivate))
+            : ThemeBoardPreview(
+                notes: widget.notes.boardNotes,
+                links: widget.notes.linksOn(board.id),
+                strokes: board.strokes,
+                pack: t,
+              ),
         title: t.name(lang),
         body: [
+          Text(l10n.previewOnYourWall, style: AppType.control(context)),
+          const SizedBox(height: 8),
+          Text(l10n.previewOnlyHint, style: AppType.caption(context)),
+          const SizedBox(height: 8),
           Text(l10n.themeKeepsContent, style: const TextStyle(fontSize: 15)),
         ],
         action: locked ? l10n.proUnlock : l10n.applyTheme(boardName),
@@ -459,14 +473,96 @@ class _ThemesTabState extends State<_ThemesTab>
       ),
     );
     if (apply != true || !context.mounted) return;
-    if (locked) {
+    if (t.pro && !ProScope.unlockedOf(context)) {
       await showProSheet(context);
+      if (!context.mounted || !ProScope.unlockedOf(context)) return;
+    }
+    // Recheck the board and entitlement after the asynchronous purchase sheet.
+    if (widget.notes.currentBoardShut ||
+        widget.notes.currentBoardId != board.id) {
       return;
     }
-    // A shut private board is not dressed behind its lock.
-    if (widget.notes.currentBoardShut) return;
     final undo = widget.notes.applyTheme(board.id, t);
     Navigator.of(context).pop(ThemeApplied(t.name(lang), undo));
+  }
+}
+
+/// Curated examples use the existing categories. Each item appears once:
+/// featured cards lead, and the full library continues below, lazily built.
+class _CatalogGrid extends StatelessWidget {
+  const _CatalogGrid({
+    required this.itemCount,
+    required this.itemBuilder,
+    this.featured = const [],
+  });
+
+  final int itemCount;
+  final IndexedWidgetBuilder itemBuilder;
+  final List<int> featured;
+
+  @override
+  Widget build(BuildContext context) {
+    final picks = featured.where((i) => i >= 0).toSet().toList();
+    final rest = [
+      for (var i = 0; i < itemCount; i++)
+        if (!picks.contains(i)) i,
+    ];
+    final scale = MediaQuery.textScalerOf(context).scale(16) / 16;
+    final extra = (scale - 1).clamp(0.0, 2.0).toDouble() * 80;
+    return CustomScrollView(
+      slivers: [
+        if (picks.isNotEmpty)
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                  child: Text(
+                    AppLocalizations.of(context)!.galleryFeatured,
+                    style: AppType.control(context),
+                  ),
+                ),
+                SizedBox(
+                  height: 296 + extra,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: picks.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 14),
+                    itemBuilder: (context, i) => SizedBox(
+                      width: 164,
+                      child: itemBuilder(context, picks[i]),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+                  child: Text(
+                    AppLocalizations.of(context)!.galleryAll,
+                    style: AppType.control(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 240,
+              mainAxisExtent: 310 + extra,
+              mainAxisSpacing: 20,
+              crossAxisSpacing: 14,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, i) => itemBuilder(context, rest[i]),
+              childCount: rest.length,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -490,7 +586,7 @@ class _Card extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: title,
+      label: pro ? AppLocalizations.of(context)!.proLocked(title) : title,
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
@@ -559,49 +655,57 @@ class _DetailSheet extends StatelessWidget {
     final height = MediaQuery.sizeOf(context).height;
     return SafeArea(
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: height * 0.9),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                height: height * 0.42,
-                child: Center(
-                  child: AspectRatio(
-                    aspectRatio: previewSize.aspectRatio,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(AppRadii.control),
-                      child: preview,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Flexible(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        color: AppColors.ink,
+        constraints: BoxConstraints(maxHeight: height * .9),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      height: height * .40,
+                      child: Center(
+                        child: AspectRatio(
+                          aspectRatio: previewSize.aspectRatio,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              AppRadii.control,
+                            ),
+                            child: preview,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  if (pro) ...[const SizedBox(width: 8), const ProMark()],
-                ],
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(title, style: AppType.heading(context)),
+                        ),
+                        if (pro) ...[const SizedBox(width: 8), const ProMark()],
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    ...body,
+                  ],
+                ),
               ),
-              const SizedBox(height: 6),
-              ...body,
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(action),
+            ),
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(action),
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -629,12 +733,16 @@ class BoardPreview extends StatelessWidget {
     required this.notes,
     this.links = const [],
     this.pack,
+    this.strokes = const [],
+    this.fitContent = false,
   });
 
   final WallStyle wall;
   final List<Note> notes;
   final List<NoteLink> links;
+  final List<DrawStroke> strokes;
   final ThemePack? pack;
+  final bool fitContent;
 
   @override
   Widget build(BuildContext context) {
@@ -667,15 +775,11 @@ class BoardPreview extends StatelessWidget {
                       Positioned.fill(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(4, 24, 4, 8),
-                          child: WallView(
+                          child: _PreviewWall(
                             notes: notes,
                             links: links,
-                            callbacksFor: (_) => _still,
-                            onMove: (_, _, _) {},
-                            onResize: (_, _) {},
-                            onBringToFront: (_) {},
-                            onCreateAt: (_, _) {},
-                            still: true,
+                            strokes: strokes,
+                            fitContent: fitContent,
                           ),
                         ),
                       ),
@@ -687,6 +791,141 @@ class BoardPreview extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Fits the measured paper bounds into a compact preview. The fixed inner
+/// scene retains the exact fractional geometry; this is a camera treatment,
+/// never a rewrite of notes. Measurements include rotations and actual media.
+class _PreviewWall extends StatefulWidget {
+  const _PreviewWall({
+    required this.notes,
+    required this.links,
+    required this.strokes,
+    required this.fitContent,
+  });
+  final List<Note> notes;
+  final List<NoteLink> links;
+  final List<DrawStroke> strokes;
+  final bool fitContent;
+
+  @override
+  State<_PreviewWall> createState() => _PreviewWallState();
+}
+
+class _PreviewWallState extends State<_PreviewWall> {
+  final _scene = GlobalKey();
+  final _keys = <String, GlobalKey>{};
+  Rect? _bounds;
+  String _photos = '';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _decodePhotos();
+  }
+
+  @override
+  void didUpdateWidget(_PreviewWall old) {
+    super.didUpdateWidget(old);
+    final ids = widget.notes.map((n) => n.guid).toSet();
+    _keys.removeWhere((id, _) => !ids.contains(id));
+    _decodePhotos();
+  }
+
+  void _decodePhotos() {
+    if (!widget.fitContent) return;
+    final paths = widget.notes
+        .where((n) => n.hasPhoto)
+        .map((n) => n.imagePath)
+        .toSet();
+    final signature = paths.join('|');
+    if (signature == _photos) return;
+    _photos = signature;
+    unawaited(
+      Future.wait([
+        for (final path in paths)
+          precacheImage(
+            FileImage(File(ImageService.resolve(path))),
+            context,
+            onError: (_, _) {},
+          ),
+      ]).then((_) {
+        if (mounted) setState(() {});
+      }),
+    );
+  }
+
+  void _measure() {
+    if (!mounted) return;
+    final root = _scene.currentContext?.findRenderObject();
+    if (root is! RenderBox || !root.hasSize) return;
+    var bounds = Offset.zero & root.size;
+    for (final key in _keys.values) {
+      final box = key.currentContext?.findRenderObject();
+      if (box is! RenderBox || !box.hasSize) continue;
+      for (final point in [
+        Offset.zero,
+        Offset(box.size.width, 0),
+        Offset(0, box.size.height),
+        Offset(box.size.width, box.size.height),
+      ]) {
+        final p = box.localToGlobal(point, ancestor: root);
+        bounds = bounds.expandToInclude(Rect.fromCircle(center: p, radius: 14));
+      }
+    }
+    final old = _bounds;
+    if (old == null ||
+        (old.topLeft - bounds.topLeft).distance > .5 ||
+        (old.bottomRight - bounds.bottomRight).distance > .5) {
+      setState(() => _bounds = bounds);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.fitContent) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+    }
+    final wall = SizedBox.expand(
+      key: _scene,
+      child: WallView(
+        notes: widget.notes,
+        links: widget.links,
+        strokes: widget.strokes,
+        captureKeys: widget.fitContent
+            ? {
+                for (final n in widget.notes)
+                  n.guid: _keys.putIfAbsent(n.guid, GlobalKey.new),
+              }
+            : null,
+        callbacksFor: (_) => _still,
+        onMove: (_, _, _) {},
+        onResize: (_, _) {},
+        onBringToFront: (_) {},
+        onCreateAt: (_, _) {},
+        still: true,
+      ),
+    );
+    return LayoutBuilder(
+      builder: (context, box) {
+        final bounds = _bounds;
+        if (!widget.fitContent || bounds == null) return wall;
+        final scale = math.min(
+          box.maxWidth / bounds.width,
+          box.maxHeight / bounds.height,
+        );
+        final matrix = Matrix4.identity()
+          ..translateByDouble(
+            (box.maxWidth - bounds.width * scale) / 2 - bounds.left * scale,
+            (box.maxHeight - bounds.height * scale) / 2 - bounds.top * scale,
+            0,
+            1,
+          )
+          ..scaleByDouble(scale, scale, 1, 1);
+        return Transform(transform: matrix, child: wall);
+      },
     );
   }
 }
@@ -720,6 +959,63 @@ class TemplatePreview extends StatelessWidget {
 }
 
 /// A theme pack on a small sample board.
+/// Detached copies make this a true, non-persisting preview of the user's board.
+/// Theme application stays in NotesController; billing is never bypassed here.
+class ThemeBoardPreview extends StatelessWidget {
+  const ThemeBoardPreview({
+    super.key,
+    required this.notes,
+    required this.links,
+    required this.pack,
+    this.strokes = const [],
+  });
+
+  final List<Note> notes;
+  final List<NoteLink> links;
+  final List<DrawStroke> strokes;
+  final ThemePack pack;
+
+  @override
+  Widget build(BuildContext context) {
+    final copies = [for (final n in notes) n.clone()]
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    var i = 0;
+    for (final n in copies) {
+      if (n.type == NoteType.photo || n.type == NoteType.sticker) continue;
+      n.colorIndex = pack.paperAt(i++);
+      if (pack.paper.suits(n.type)) n.paper = pack.paper;
+    }
+    return BoardPreview(
+      wall: pack.wallStyle,
+      notes: copies,
+      pack: pack,
+      fitContent: true,
+      strokes: strokes,
+      links: [
+        for (final l in links) l.copyWith(style: pack.thread, color: pack.yarn),
+      ],
+    );
+  }
+}
+
+/// A real template layout chosen from the pack's existing metadata. Catalog
+/// thumbnails vary by purpose, while a detail trial always uses the actual board.
+class ThemeCatalogPreview extends StatelessWidget {
+  const ThemeCatalogPreview({super.key, required this.pack});
+  final ThemePack pack;
+
+  @override
+  Widget build(BuildContext context) {
+    final all = TemplateLibrary.loaded;
+    if (all == null || all.isEmpty) return ThemePreview(pack: pack);
+    final matching =
+        all.where((t) => t.theme == pack.id).firstOrNull ??
+        all.where((t) => t.category.name == pack.category.name).firstOrNull ??
+        all.first;
+    return TemplatePreview(template: matching, look: pack);
+  }
+}
+
 class ThemePreview extends StatelessWidget {
   const ThemePreview({super.key, required this.pack});
 

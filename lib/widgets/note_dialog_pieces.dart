@@ -10,7 +10,7 @@ extension _EditorPieces on _NoteDialogState {
   /// always one tap away and never hidden under the keyboard.
   Widget _topStrip(AppLocalizations l10n) {
     return Container(
-      height: 48,
+      constraints: const BoxConstraints(minHeight: 56),
       padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: const BoxDecoration(
         color: Color(0x2EFFFFFF),
@@ -26,17 +26,6 @@ extension _EditorPieces on _NoteDialogState {
             icon: const Icon(Icons.close),
             onPressed: _close,
           ),
-          // Kept by the ✕, away from the tick; the wall offers Undo.
-          if (widget.onDelete case final onDelete?)
-            IconButton(
-              tooltip: l10n.delete,
-              color: _NoteDialogState._ink,
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () {
-                Navigator.of(context).pop();
-                onDelete();
-              },
-            ),
           // Handwriting or a plain face for writing a long note.
           IconButton(
             tooltip: _readable ? l10n.editorHandwriting : l10n.editorReadable,
@@ -51,20 +40,16 @@ extension _EditorPieces on _NoteDialogState {
           ),
           const Spacer(),
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: 4),
             child: Tooltip(
               message: widget.isNew ? l10n.add : l10n.save,
-              child: Material(
-                color: _NoteDialogState._ink,
-                shape: const CircleBorder(),
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: _save,
-                  child: const SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: Icon(Icons.check, size: 22, color: AppColors.chalk),
-                  ),
+              child: FilledButton.icon(
+                onPressed: _save,
+                icon: const Icon(Icons.check, size: 20),
+                label: Text(widget.isNew ? l10n.add : l10n.save),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(48, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
               ),
             ),
@@ -612,13 +597,13 @@ extension _EditorPieces on _NoteDialogState {
   /// out of sight past the paper's edge.
   Widget _toolRow(AppLocalizations l10n) {
     final types = [
-      (NoteType.normal, Icons.notes, l10n.typeNormal),
-      (NoteType.link, Icons.link, l10n.typeLink),
-      (NoteType.checklist, Icons.checklist, l10n.typeChecklist),
+      (NoteType.normal, AppIcons.note, l10n.typeNormal),
+      (NoteType.link, AppIcons.link, l10n.typeLink),
+      (NoteType.checklist, AppIcons.checklist, l10n.typeChecklist),
       (NoteType.drawing, Icons.brush_outlined, l10n.typeDrawing),
       (NoteType.photo, Icons.photo_outlined, l10n.typePhoto),
       (NoteType.label, Icons.label_outline, l10n.typeLabel),
-      (NoteType.audio, Icons.voicemail, l10n.typeAudio),
+      (NoteType.audio, AppIcons.voice, l10n.typeAudio),
     ];
     final isPhoto = _n.type == NoteType.photo;
     final isAudio = _n.type == NoteType.audio;
@@ -627,53 +612,49 @@ extension _EditorPieces on _NoteDialogState {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            color: _NoteDialogState._ink.withValues(alpha: 0.07),
-            borderRadius: BorderRadius.circular(22),
-          ),
-          child: Row(
-            children: [
-              for (final (t, icon, label) in types)
-                Expanded(
-                  child: Semantics(
-                    button: true,
-                    selected: _n.type == t,
-                    child: Tooltip(
-                      message: label,
-                      child: InkWell(
-                        customBorder: const StadiumBorder(),
-                        onTap: () => _setType(t),
-                        child: SizedBox(
-                          height: 40,
-                          child: Center(
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 150),
-                              width: 40,
-                              height: 34,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(17),
-                                color: _n.type == t
-                                    ? _NoteDialogState._ink
-                                    : Colors.transparent,
-                              ),
-                              child: Icon(
-                                icon,
-                                size: 19,
-                                color: _n.type == t
-                                    ? AppColors.chalk
-                                    : _NoteDialogState._ink,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+        // Conversion stays available, without asking users to interpret seven
+        // tiny unlabelled controls before they can write.
+        PopupMenuButton<NoteType>(
+          key: const ValueKey('editor-type'),
+          tooltip: l10n.changeNoteType,
+          initialValue: _n.type,
+          onSelected: _setType,
+          itemBuilder: (_) => [
+            for (final (type, icon, label) in types)
+              PopupMenuItem(
+                value: type,
+                child: Row(
+                  children: [
+                    Icon(icon, size: AppMetrics.icon),
+                    const SizedBox(width: 12),
+                    Flexible(child: Text(label)),
+                    if (_n.type == type) ...[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.check, size: 18),
+                    ],
+                  ],
                 ),
-            ],
+              ),
+          ],
+          child: Container(
+            constraints: const BoxConstraints(minHeight: AppMetrics.target),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.ink.withValues(alpha: .055),
+              borderRadius: BorderRadius.circular(AppRadii.control),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(types.firstWhere((t) => t.$1 == _n.type).$2, size: 20),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(_NoteDialogState._typeName(l10n, _n.type)),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.expand_more_rounded, size: 18),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 4),
@@ -710,18 +691,6 @@ extension _EditorPieces on _NoteDialogState {
                     size: 22,
                   ),
                 ),
-              IconButton(
-                tooltip: l10n.emote,
-                isSelected: _showEmoji,
-                onPressed: () => _update(() {
-                  _showEmoji = !_showEmoji;
-                  _showColors = false;
-                }),
-                color: _NoteDialogState._ink,
-                icon: _n.emoji.isEmpty
-                    ? const Icon(Icons.add_reaction_outlined, size: 22)
-                    : Text(_n.emoji, style: const TextStyle(fontSize: 20)),
-              ),
               // Prints are always white — no paper colour to choose.
               if (!isPhoto)
                 IconButton(
@@ -736,6 +705,55 @@ extension _EditorPieces on _NoteDialogState {
                   icon: const Icon(Icons.palette_outlined, size: 22),
                   selectedIcon: const Icon(Icons.palette, size: 22),
                 ),
+              PopupMenuButton<String>(
+                tooltip: l10n.editorOptions,
+                icon: const Icon(AppIcons.more),
+                onSelected: (value) {
+                  if (value == 'emote') {
+                    _update(() {
+                      _showEmoji = !_showEmoji;
+                      _showColors = false;
+                    });
+                  } else if (value == 'pin') {
+                    _update(() => _n.pinned = !_n.pinned);
+                  } else if (value == 'delete') {
+                    Navigator.of(context).pop();
+                    widget.onDelete?.call();
+                  }
+                },
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: 'emote',
+                    child: ListTile(
+                      leading: const Icon(AppIcons.sticker),
+                      title: Text(l10n.emote),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'pin',
+                    child: ListTile(
+                      leading: const Icon(AppIcons.pin),
+                      title: Text(_n.pinned ? l10n.unpin : l10n.pin),
+                    ),
+                  ),
+                  if (widget.onDelete != null) ...[
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: ListTile(
+                        leading: const Icon(
+                          AppIcons.delete,
+                          color: AppColors.deleteIcon,
+                        ),
+                        title: Text(
+                          l10n.delete,
+                          style: const TextStyle(color: AppColors.deleteIcon),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
         ),

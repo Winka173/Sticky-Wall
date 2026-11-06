@@ -195,7 +195,13 @@ class SyncService extends ChangeNotifier {
     for (final id in versions.keys) {
       final doc = await backend.readDevice(id);
       if (doc == null) continue;
-      remote.add(_parse(doc));
+      final records = _parse(doc);
+      // Another device's first-run examples stay on that device (1.5.0
+      // test builds still sent them).
+      records.forEach((key, r) {
+        if (r.data?['sample'] == true) excluded.add(key);
+      });
+      remote.add(records);
     }
 
     final result = const SyncEngine().merge(
@@ -298,7 +304,10 @@ class SyncService extends ChangeNotifier {
     }
     final hiddenNotes = <String>{};
     for (final n in _notes.allNotes) {
-      if (hidden.contains(n.boardId)) {
+      // First-run examples belong to this device: every install has its own,
+      // and sending them would double them up on the others. Once edited, a
+      // note is no longer an example and syncs like any other.
+      if (hidden.contains(n.boardId) || n.sample) {
         hiddenNotes.add(n.guid);
         excluded.add('n:${n.guid}');
         continue;
@@ -384,9 +393,14 @@ class SyncService extends ChangeNotifier {
       for (final b in _notes.deletedBoards)
         if (excluded.contains('b:${b.id}')) b,
     ];
+    // Examples doubled up by an earlier sync are folded back to one each.
+    final seenSamples = <String>{};
     final keptNotes = [
       for (final n in _notes.allNotes)
-        if (excluded.contains('n:${n.guid}')) n,
+        if (excluded.contains('n:${n.guid}') &&
+            (!n.sample ||
+                seenSamples.add('${n.boardId}|${n.type.name}|${n.content}')))
+          n,
     ];
     final keptLinks = [
       for (final l in _notes.links)

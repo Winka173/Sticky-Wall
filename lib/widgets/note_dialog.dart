@@ -616,131 +616,142 @@ class _NoteDialogState extends State<_NoteDialog>
             horizontal: 16,
             vertical: 24,
           ),
-          child: SingleChildScrollView(
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.topCenter,
-              children: [
-                AnimatedBuilder(
-                  animation: _shake,
-                  builder: (context, child) {
-                    final t = _shake.value;
-                    final dx = math.sin(t * math.pi * 4) * 6 * (1 - t);
-                    return Transform.translate(
-                      offset: Offset(dx, 0),
-                      child: child,
-                    );
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: _paperWidth,
-                    margin: const EdgeInsets.only(top: 9),
-                    decoration: BoxDecoration(
-                      color: paper,
-                      borderRadius: BorderRadius.circular(AppRadii.paper),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black45,
-                          blurRadius: 20,
-                          offset: Offset(3, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _topStrip(l10n),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (_n.hasPhoto || isPhoto) _photoTile(l10n),
-                              _writingArea(l10n),
-                              if (_n.type == NoteType.link) _urlField(l10n),
-                              if (_n.type == NoteType.checklist)
-                                _checklistEditor(l10n),
-                              if (_n.type == NoteType.audio)
-                                VoiceRecorderPanel(
-                                  key: _voice,
-                                  stored: _n.audioPath,
-                                  length: Duration(milliseconds: _n.audioMs),
-                                  onRecorded: _setRecording,
-                                  onDelete: _deleteRecording,
-                                  onProblem: (p) => _fail(
-                                    p == RecordProblem.denied
-                                        ? l10n.micDenied
-                                        : l10n.recordFailed,
-                                  ),
-                                  onRecordingChanged: (_) => _clearError(),
-                                ),
-                              if (_n.type == NoteType.drawing) ...[
-                                const SizedBox(height: 8),
-                                DrawingEditor(
-                                  strokes: _n.strokes,
-                                  canvas: _n.canvas,
-                                  onChanged: () =>
-                                      setState(() => _error = null),
-                                  onCanvasChanged: (c) =>
-                                      setState(() => _n.canvas = c),
-                                ),
-                              ],
-                              _errorLine(),
-                              if (_n.reminderAt != null) _reminderLine(l10n),
-                              if (_n.reminderAt != null && _notificationsOff)
-                                _notificationsOffLine(l10n),
-                              const SizedBox(height: 10),
-                              _toolRow(l10n),
-                              AnimatedSize(
-                                duration: const Duration(milliseconds: 180),
-                                curve: Curves.easeOut,
-                                alignment: Alignment.topCenter,
-                                child: _showEmoji
-                                    ? _emojiStrip()
-                                    : _showColors
-                                    ? _colorRow(l10n)
-                                    : const SizedBox(width: double.infinity),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
+            children: [
+              AnimatedBuilder(
+                animation: _shake,
+                builder: (context, child) {
+                  final t = _shake.value;
+                  final dx = math.sin(t * math.pi * 4) * 6 * (1 - t);
+                  return Transform.translate(
+                    offset: Offset(dx, 0),
+                    child: child,
+                  );
+                },
+                child: AnimatedContainer(
+                  duration: AppMetrics.motion(context, milliseconds: 200),
+                  width: _paperWidth,
+                  constraints: BoxConstraints(
+                    maxHeight: math.max(
+                      96,
+                      MediaQuery.sizeOf(context).height -
+                          MediaQuery.viewInsetsOf(context).bottom -
+                          MediaQuery.paddingOf(context).vertical -
+                          66,
                     ),
                   ),
-                ),
-                // The pin doubles as the pin-to-top toggle.
-                Positioned(
-                  top: 0,
-                  child: Tooltip(
-                    message: _n.pinned ? l10n.unpin : l10n.pin,
-                    child: KeyboardTappable(
-                      circle: true,
-                      onActivate: () => setState(() => _n.pinned = !_n.pinned),
-                      child: Semantics(
-                        button: true,
-                        toggled: _n.pinned,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            setState(() => _n.pinned = !_n.pinned);
-                          },
+                  margin: const EdgeInsets.only(top: 9),
+                  decoration: BoxDecoration(
+                    color: paper,
+                    borderRadius: BorderRadius.circular(AppRadii.paper),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black45,
+                        blurRadius: 20,
+                        offset: Offset(3, 10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _topStrip(l10n),
+                      Flexible(
+                        child: SingleChildScrollView(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 6,
+                            padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (_n.hasPhoto || isPhoto) _photoTile(l10n),
+                                _writingArea(l10n),
+                                if (_n.type == NoteType.link) _urlField(l10n),
+                                if (_n.type == NoteType.checklist)
+                                  _checklistEditor(l10n),
+                                if (_n.type == NoteType.audio)
+                                  VoiceRecorderPanel(
+                                    key: _voice,
+                                    stored: _n.audioPath,
+                                    length: Duration(milliseconds: _n.audioMs),
+                                    onRecorded: _setRecording,
+                                    onDelete: _deleteRecording,
+                                    onProblem: (p) => _fail(
+                                      p == RecordProblem.denied
+                                          ? l10n.micDenied
+                                          : l10n.recordFailed,
+                                    ),
+                                    onRecordingChanged: (_) => _clearError(),
+                                  ),
+                                if (_n.type == NoteType.drawing) ...[
+                                  const SizedBox(height: 8),
+                                  DrawingEditor(
+                                    strokes: _n.strokes,
+                                    canvas: _n.canvas,
+                                    onChanged: () =>
+                                        setState(() => _error = null),
+                                    onCanvasChanged: (c) =>
+                                        setState(() => _n.canvas = c),
+                                  ),
+                                ],
+                                _errorLine(),
+                                if (_n.reminderAt != null) _reminderLine(l10n),
+                                if (_n.reminderAt != null && _notificationsOff)
+                                  _notificationsOffLine(l10n),
+                                const SizedBox(height: 10),
+                                _toolRow(l10n),
+                                AnimatedSize(
+                                  duration: AppMetrics.motion(context),
+                                  curve: Curves.easeOut,
+                                  alignment: Alignment.topCenter,
+                                  child: _showEmoji
+                                      ? _emojiStrip()
+                                      : _showColors
+                                      ? _colorRow(l10n)
+                                      : const SizedBox(width: double.infinity),
+                                ),
+                              ],
                             ),
-                            child: NotePin(pinned: _n.pinned, seed: _n.guid),
                           ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // The pin doubles as the pin-to-top toggle.
+              Positioned(
+                top: 0,
+                child: Tooltip(
+                  message: _n.pinned ? l10n.unpin : l10n.pin,
+                  child: KeyboardTappable(
+                    circle: true,
+                    onActivate: () => setState(() => _n.pinned = !_n.pinned),
+                    child: Semantics(
+                      button: true,
+                      toggled: _n.pinned,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          setState(() => _n.pinned = !_n.pinned);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                          child: NotePin(pinned: _n.pinned, seed: _n.guid),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

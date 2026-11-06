@@ -33,13 +33,7 @@ class FramedPrint extends StatelessWidget {
   final bool selected;
   final bool raised;
 
-  List<BoxShadow> get _shadow => [
-    BoxShadow(
-      color: Colors.black.withValues(alpha: raised ? 0.38 : 0.28),
-      blurRadius: raised ? 16 : 7,
-      offset: Offset(raised ? 4 : 2, raised ? 10 : 4),
-    ),
-  ];
+  List<BoxShadow> get _shadow => AppElevation.paper(raised: raised);
 
   Border? get _outline =>
       selected ? Border.all(color: AppColors.ink, width: 2.5) : null;

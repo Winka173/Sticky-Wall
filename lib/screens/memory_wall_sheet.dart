@@ -1,17 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
-import '../services/image_service.dart';
 import '../services/memory_wall.dart';
 import '../services/pro_controller.dart';
 import '../services/theme_packs.dart';
 import '../theme.dart';
 import '../widgets/photo_frames.dart';
 import '../widgets/pro_sheet.dart';
-import '../widgets/wall_background.dart';
 import 'gallery_screen.dart';
 
 /// The looks offered for a memory wall: papers and frames that suit
@@ -123,12 +119,14 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
               // layout, frame and look change it live, before anything is
               // created.
               Semantics(
+                key: const ValueKey('memory-live-preview'),
                 label: l10n.memoryPreview,
                 child: _MemoryPreview(
                   photos: widget.photos.take(memoryWallMax).toList(),
                   layout: _layout,
                   frame: _frame,
                   look: _look,
+                  caption: _caption,
                 ),
               ),
             ],
@@ -157,14 +155,30 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
               children: [
                 for (final f in PhotoFrame.values)
                   ChoiceChip(
-                    avatar: f.pro && !pro
-                        ? const Icon(Icons.lock_outline, size: 16)
-                        : null,
-                    label: Text(photoFrameName(l10n, f)),
+                    avatar: SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: FittedBox(
+                        child: SizedBox(
+                          width: 64,
+                          child: FramedPrint(
+                            frame: f,
+                            seed: 'frame-choice',
+                            paper: AppColors.paper,
+                            photo: const SizedBox(
+                              width: 40,
+                              height: 30,
+                              child: Icon(AppIcons.photo, size: 24),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    label: Text(
+                      '${photoFrameName(l10n, f)}${f.pro && !pro ? ' · Pro' : ''}',
+                    ),
                     selected: _frame == f,
-                    onSelected: (_) => f.pro && !pro
-                        ? showProSheet(context)
-                        : setState(() => _frame = f),
+                    onSelected: (_) => setState(() => _frame = f),
                   ),
               ],
             ),
@@ -204,24 +218,42 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
                           name: pack.name(lang),
                           selected: _look.id == pack.id,
                           locked: pack.pro && !pro,
-                          onTap: pack.pro && !pro
-                              ? () => showProSheet(context)
-                              : () => setState(() => _look = pack),
+                          onTap: () => setState(() => _look = pack),
                         ),
                       ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
+            if (!pro && (_look.pro || _frame.pro))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  l10n.memoryPreviewPro,
+                  style: AppType.caption(context),
+                ),
+              ),
             FilledButton.icon(
               icon: const Icon(Icons.photo_library_outlined),
-              label: Text(l10n.memoryCreate),
-              onPressed: () => Navigator.pop(context, (
-                layout: _layout,
-                look: _look,
-                frame: _frame,
-                caption: _caption,
-              )),
+              label: Text(
+                !pro && (_look.pro || _frame.pro)
+                    ? l10n.proUnlock
+                    : l10n.memoryCreate,
+              ),
+              onPressed: () async {
+                if ((_look.pro || _frame.pro) &&
+                    !ProScope.unlockedOf(context)) {
+                  await showProSheet(context);
+                  if (!context.mounted || !ProScope.unlockedOf(context)) return;
+                }
+                if (!context.mounted) return;
+                Navigator.pop(context, (
+                  layout: _layout,
+                  look: _look,
+                  frame: _frame,
+                  caption: _caption,
+                ));
+              },
             ),
           ],
         ),
@@ -305,65 +337,42 @@ class _MemoryPreview extends StatelessWidget {
     required this.layout,
     required this.frame,
     required this.look,
+    required this.caption,
   });
 
   final List<String> photos;
   final MemoryLayout layout;
   final PhotoFrame frame;
   final ThemePack look;
+  final CaptionPreset caption;
 
   @override
   Widget build(BuildContext context) {
-    final spots = memoryPositions(photos.length, layout, seed: 'preview');
-    // Small enough that the choices below stay in view.
+    final made = memoryWallNotes(
+      photos,
+      'memory-preview',
+      layout,
+      pack: look,
+      frame: frame,
+      caption: caption,
+      date: MaterialLocalizations.of(context).formatMediumDate(DateTime.now()),
+      now: DateTime(2026),
+    );
+    // The actual renderer preserves image aspect ratios, frame geometry,
+    // captions and timeline threads, rather than forcing photos into squares.
     return SizedBox(
-      height: 240,
+      height: 260,
       child: Center(
         child: AspectRatio(
-          aspectRatio: 3 / 4,
+          aspectRatio: previewSize.aspectRatio,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppRadii.control),
-            child: LayoutBuilder(
-              builder: (context, box) {
-                // A phone wall is about 360 dp wide: the preview is that wall,
-                // shrunk to fit.
-                final k = box.maxWidth / 360;
-                final card = 168 * k;
-                return Stack(
-                  children: [
-                    Positioned.fill(
-                      child: WallBackground(wall: look.wallStyle, decor: false),
-                    ),
-                    for (var i = 0; i < photos.length && i < spots.length; i++)
-                      Positioned(
-                        left:
-                            spots[i].x * (box.maxWidth - card * spots[i].scale),
-                        top:
-                            spots[i].y *
-                            (box.maxHeight - card * spots[i].scale),
-                        width: card * spots[i].scale,
-                        child: Transform.rotate(
-                          angle: spots[i].rotation ?? 0,
-                          child: FramedPrint(
-                            frame: frame,
-                            seed: photos[i],
-                            paper: Colors.white,
-                            photo: AspectRatio(
-                              aspectRatio: 1,
-                              child: Image.file(
-                                File(ImageService.resolve(photos[i])),
-                                fit: BoxFit.cover,
-                                cacheWidth: 240,
-                                errorBuilder: (_, _, _) =>
-                                    const ColoredBox(color: AppColors.inkHint),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              },
+            child: BoardPreview(
+              fitContent: true,
+              wall: look.wallStyle,
+              notes: made.notes,
+              links: made.links,
+              pack: look,
             ),
           ),
         ),

@@ -3997,6 +3997,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Christmas & Halloween'**
   String get packHolidays;
+
+  /// No description provided for @addToWall.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to your wall'**
+  String get addToWall;
+
+  /// No description provided for @addToWallHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A thought, a plan, a little memory.'**
+  String get addToWallHint;
+
+  /// No description provided for @addTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Catch a thought'**
+  String get addTextHint;
+
+  /// No description provided for @addChecklistHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One small step at a time'**
+  String get addChecklistHint;
+
+  /// No description provided for @addPhotoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin a favorite moment'**
+  String get addPhotoHint;
+
+  /// No description provided for @addLinkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep something worth a look'**
+  String get addLinkHint;
+
+  /// No description provided for @addVoiceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Say it before it slips away'**
+  String get addVoiceHint;
+
+  /// No description provided for @addDrawingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Let your pen wander'**
+  String get addDrawingHint;
+
+  /// No description provided for @editorOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Note options'**
+  String get editorOptions;
+
+  /// No description provided for @changeNoteType.
+  ///
+  /// In en, this message translates to:
+  /// **'Change note type'**
+  String get changeNoteType;
+
+  /// No description provided for @galleryFeatured.
+  ///
+  /// In en, this message translates to:
+  /// **'A few favorites to start'**
+  String get galleryFeatured;
+
+  /// No description provided for @previewOnYourWall.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview on your wall'**
+  String get previewOnYourWall;
+
+  /// No description provided for @previewOnlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Just a preview. Your wall stays as it was until you apply.'**
+  String get previewOnlyHint;
+
+  /// No description provided for @memoryPreviewPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Previewing Pro. Unlock to create with this look.'**
+  String get memoryPreviewPro;
 }
 
 class _AppLocalizationsDelegate

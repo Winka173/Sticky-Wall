@@ -56,7 +56,7 @@ class AddNoteButton extends StatelessWidget {
                 highlightColor: AppColors.ink.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(AppRadii.paper),
                 child: AnimatedSize(
-                  duration: const Duration(milliseconds: 220),
+                  duration: AppMetrics.motion(context, milliseconds: 220),
                   curve: Curves.easeOutCubic,
                   alignment: Alignment.centerLeft,
                   child: Padding(
@@ -70,7 +70,7 @@ class AddNoteButton extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
-                          Icons.edit_outlined,
+                          Icons.add_rounded,
                           size: 26,
                           color: AppColors.ink,
                         ),
@@ -102,7 +102,12 @@ class AddNoteButton extends StatelessWidget {
     );
     // The visible label already names the button when extended; collapsed,
     // the tooltip supplies it (and a long-press reveals it).
-    return extended ? note : Tooltip(message: label, child: note);
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Tooltip(message: label, child: note),
+    );
   }
 }
 

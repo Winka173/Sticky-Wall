@@ -622,37 +622,40 @@ class _StickerTile extends StatelessWidget {
         sticker.kind == StickerKind.stamp ||
         (sticker.kind == StickerKind.image && sticker.aspect < 0.6);
     final label = stickerLabel(l10n, sticker);
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: locked ? l10n.proLocked(label) : label,
-      excludeSemantics: true,
-      child: KeyboardTappable(
-        onActivate: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.control),
-        child: InkWell(
-          onTap: onTap,
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: locked ? l10n.proLocked(label) : label,
+        excludeSemantics: true,
+        child: KeyboardTappable(
+          onActivate: onTap,
           borderRadius: BorderRadius.circular(AppRadii.control),
-          child: Container(
-            width: stamp ? 152 : 72,
-            height: 72,
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.ink.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(AppRadii.control),
-              border: Border.all(
-                color: selected ? AppColors.ink : Colors.transparent,
-                width: 2,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppRadii.control),
+            child: Container(
+              width: stamp ? 152 : 72,
+              height: 72,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.ink.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(AppRadii.control),
+                border: Border.all(
+                  color: selected ? AppColors.ink : Colors.transparent,
+                  width: 2,
+                ),
               ),
-            ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: [
-                StickerArt(sticker: sticker, width: stamp ? 132 : 52),
-                if (locked)
-                  const Positioned(right: -4, top: -4, child: ProMark()),
-              ],
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  StickerArt(sticker: sticker, width: stamp ? 132 : 52),
+                  if (locked)
+                    const Positioned(right: -4, top: -4, child: ProMark()),
+                ],
+              ),
             ),
           ),
         ),

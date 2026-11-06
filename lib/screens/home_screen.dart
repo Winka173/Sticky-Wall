@@ -28,6 +28,7 @@ import '../theme.dart';
 import '../util/rich_note.dart';
 import '../widgets/action_sheet.dart';
 import '../widgets/add_note_button.dart';
+import '../widgets/add_to_wall_sheet.dart';
 import '../widgets/board_bar.dart';
 import '../widgets/board_poster.dart';
 import '../widgets/gesture_tips.dart';
@@ -521,43 +522,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// add button. The everyday kinds come first; the voice note, which needs
   /// the microphone, sits last under its own line.
   Future<void> _quickAdd() async {
-    final l10n = _l10n;
     unawaited(HapticFeedback.mediumImpact());
-    ListTile tile(NoteType t, IconData icon, String label) => ListTile(
-      leading: Icon(icon),
-      title: Text(label),
-      onTap: () => Navigator.pop(context, t),
-    );
-    var memory = false;
-    final type = await showActionSheet<NoteType>(
-      context,
-      title: l10n.addNote,
-      children: [
-        tile(NoteType.normal, Icons.notes, l10n.typeNormal),
-        tile(NoteType.checklist, Icons.checklist, l10n.typeChecklist),
-        tile(NoteType.photo, Icons.photo_outlined, l10n.typePhoto),
-        tile(NoteType.link, Icons.link, l10n.typeLink),
-        tile(NoteType.drawing, Icons.brush_outlined, l10n.typeDrawing),
-        tile(NoteType.label, Icons.label_outline, l10n.typeLabel),
-        tile(NoteType.sticker, Icons.emoji_emotions_outlined, l10n.typeSticker),
-        ListTile(
-          leading: const Icon(Icons.photo_album_outlined),
-          title: Text(l10n.memoryWall),
-          subtitle: Text(l10n.memoryWallHint),
-          onTap: () {
-            memory = true;
-            Navigator.pop(context);
-          },
-        ),
-        const Divider(height: 1),
-        tile(NoteType.audio, Icons.voicemail, l10n.typeAudio),
-      ],
-    );
-    if (memory && mounted) {
+    final choice = await showAddToWallSheet(context);
+    if (!mounted) return;
+    if (choice == 'memory') {
       await _newMemoryWall();
       return;
     }
-    if (type == null || !mounted) return;
+    if (choice is! NoteType) return;
+    final type = choice;
     if (type == NoteType.sticker) {
       await _addSticker();
       return;
@@ -1232,22 +1205,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 floatingActionButton:
                     _selecting || _marking || _notes.currentBoardShut
                     ? null
-                    : Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          _moreKindsButton(wall),
-                          const SizedBox(height: 12),
-                          AddNoteButton(
-                            label: _l10n.addNote,
-                            onPressed: () =>
-                                _openEditor(_notes.draft(), isNew: true),
-                            onLongPress: _quickAdd,
-                            // Shrinks to just the pencil once a free wall has
-                            // notes on it, so it covers less of them.
-                            extended: showFabLabel,
-                          ),
-                        ],
+                    : AddNoteButton(
+                        label: _l10n.addToWall,
+                        onPressed: _quickAdd,
+                        onLongPress: _quickAdd,
+                        extended: showFabLabel,
                       ),
                 body: SafeArea(
                   // On the wall the body runs under the system bar too (the

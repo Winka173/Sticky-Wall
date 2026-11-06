@@ -124,12 +124,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('first 20'), findsOneWidget);
     // A live preview of the wall with the picked photos, at most 20.
-    expect(find.byType(FramedPrint), findsNWidgets(20));
-    final before = tester.getTopLeft(find.byType(FramedPrint).at(5));
+    final prints = find.descendant(
+      of: find.byKey(const ValueKey('memory-live-preview')),
+      matching: find.byType(FramedPrint),
+    );
+    expect(prints, findsNWidgets(20));
+    final before = tester.getTopLeft(prints.at(5));
     await tester.tap(find.text('Timeline'));
     await tester.pump();
     expect(
-      tester.getTopLeft(find.byType(FramedPrint).at(5)),
+      tester.getTopLeft(prints.at(5)),
       isNot(before),
       reason: 'the layout changes the preview at once',
     );

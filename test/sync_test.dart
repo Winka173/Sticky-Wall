@@ -343,4 +343,40 @@ void main() {
     expect(x.records['n:1']!.data, {'c': 2});
     expect(y.records['n:1']!.data, {'c': 2});
   });
+
+  test('first-run examples stay on their own device; doubled ones fold '
+      'back to one', () async {
+    Note sample(String guid, String text) => _n(guid, text)..sample = true;
+    final a = _Device(
+      cloud,
+      notes: [sample('a1', 'Drag me'), _n('1', 'real A')],
+    );
+    final b = _Device(
+      cloud,
+      notes: [sample('b1', 'Drag me'), _n('2', 'real B')],
+    );
+    await a.syncNow();
+    await b.syncNow();
+    await a.syncNow();
+    expect(a.notes.allNotes.map((n) => n.content).toList()..sort(), [
+      'Drag me',
+      'real A',
+      'real B',
+    ]);
+    expect(b.notes.allNotes.where((n) => n.sample).single.guid, 'b1');
+
+    // A device that already got a second copy from an older build folds it.
+    final c = _Device(
+      cloud,
+      notes: [sample('c1', 'Drag me'), sample('c2', 'Drag me')],
+    );
+    await c.syncNow();
+    expect(c.notes.allNotes.where((n) => n.sample), hasLength(1));
+
+    // Edited, an example becomes a real note and travels.
+    a.notes.update(a.note('a1').clone()..content = 'mine now');
+    await a.syncNow();
+    await b.syncNow();
+    expect(b.notes.allNotes.map((n) => n.content), contains('mine now'));
+  });
 }

@@ -272,13 +272,7 @@ BoxDecoration paperDecoration(
         : paperColorOf(context, note.colorIndex, note.guid),
     borderRadius: BorderRadius.circular(AppRadii.paper),
     border: selected ? Border.all(color: AppColors.ink, width: 2.5) : null,
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: raised ? 0.38 : 0.28),
-        blurRadius: raised ? 16 : 7,
-        offset: Offset(raised ? 4 : 2, raised ? 10 : 4),
-      ),
-    ],
+    boxShadow: AppElevation.paper(raised: raised),
   );
 }
 

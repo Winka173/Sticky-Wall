@@ -93,6 +93,11 @@ class WallBackground extends StatelessWidget {
             children: [
               IgnorePointer(child: surface),
               ColoredBox(color: wall.overlay),
+              // Cork keeps its texture, with a softer daylight contrast. This
+              // presentation lives in the shared renderer, so export matches.
+              // Custom photos and the other materials are left to their owner.
+              if (wall.id == 'cork' && !night)
+                const ColoredBox(color: Color(0x19FFF9E6)),
               if (soften > 0)
                 ColoredBox(
                   color: wall.dark
@@ -100,13 +105,18 @@ class WallBackground extends StatelessWidget {
                       : AppColors.paper.withValues(alpha: 0.6 * soften),
                 ),
               // Soft vignette adds depth so the wall recedes at the edges.
-              const IgnorePointer(
+              IgnorePointer(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: RadialGradient(
                       radius: 1.15,
-                      colors: [Colors.transparent, Color(0x33000000)],
-                      stops: [0.62, 1.0],
+                      colors: [
+                        Colors.transparent,
+                        wall.id == 'cork'
+                            ? const Color(0x1F000000)
+                            : const Color(0x33000000),
+                      ],
+                      stops: const [0.62, 1.0],
                     ),
                   ),
                 ),

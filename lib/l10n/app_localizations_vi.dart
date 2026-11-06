@@ -2199,4 +2199,48 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get packHolidays => 'Giáng Sinh & Halloween';
+
+  @override
+  String get addToWall => 'Thêm lên tường';
+
+  @override
+  String get addToWallHint => 'Một ý tưởng, kế hoạch hay kỷ niệm nhỏ.';
+
+  @override
+  String get addTextHint => 'Ghi lại một ý tưởng';
+
+  @override
+  String get addChecklistHint => 'Từng việc nhỏ một';
+
+  @override
+  String get addPhotoHint => 'Ghim khoảnh khắc yêu thích';
+
+  @override
+  String get addLinkHint => 'Giữ lại điều đáng xem';
+
+  @override
+  String get addVoiceHint => 'Nói ngay điều cần nhớ';
+
+  @override
+  String get addDrawingHint => 'Phác vài nét theo ý bạn';
+
+  @override
+  String get editorOptions => 'Tùy chọn ghi chú';
+
+  @override
+  String get changeNoteType => 'Đổi loại ghi chú';
+
+  @override
+  String get galleryFeatured => 'Vài gợi ý để bắt đầu';
+
+  @override
+  String get previewOnYourWall => 'Xem thử trên bảng của bạn';
+
+  @override
+  String get previewOnlyHint =>
+      'Chỉ là xem thử. Bảng chỉ thay đổi khi bạn áp dụng.';
+
+  @override
+  String get memoryPreviewPro =>
+      'Đang xem thử Pro. Mở khóa để tạo với giao diện này.';
 }

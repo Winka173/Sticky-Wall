@@ -649,5 +649,19 @@
   "packOffice": "Văn phòng",
   "packLove": "Tình yêu & tiệc",
   "packFestiveVn": "Tết & Trung Thu",
-  "packHolidays": "Giáng Sinh & Halloween"
+  "packHolidays": "Giáng Sinh & Halloween",
+  "addToWall": "Thêm lên tường",
+  "addToWallHint": "Một ý tưởng, kế hoạch hay kỷ niệm nhỏ.",
+  "addTextHint": "Ghi lại một ý tưởng",
+  "addChecklistHint": "Từng việc nhỏ một",
+  "addPhotoHint": "Ghim khoảnh khắc yêu thích",
+  "addLinkHint": "Giữ lại điều đáng xem",
+  "addVoiceHint": "Nói ngay điều cần nhớ",
+  "addDrawingHint": "Phác vài nét theo ý bạn",
+  "editorOptions": "Tùy chọn ghi chú",
+  "changeNoteType": "Đổi loại ghi chú",
+  "galleryFeatured": "Vài gợi ý để bắt đầu",
+  "previewOnYourWall": "Xem thử trên bảng của bạn",
+  "previewOnlyHint": "Chỉ là xem thử. Bảng chỉ thay đổi khi bạn áp dụng.",
+  "memoryPreviewPro": "Đang xem thử Pro. Mở khóa để tạo với giao diện này."
 }

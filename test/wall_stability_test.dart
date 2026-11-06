@@ -86,6 +86,8 @@ void main() {
 
     await tester.tap(find.byType(AddNoteButton));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('add-normal')));
+    await tester.pumpAndSettle();
     await _showKeyboard(tester);
 
     expect(tester.getRect(find.byType(WallView)), wall0);

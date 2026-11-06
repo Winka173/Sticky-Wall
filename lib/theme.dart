@@ -38,6 +38,9 @@ abstract class AppColors {
 
   /// Translucent dark chrome floated over the wall (zoom reset, handles).
   static const overlayDark = Color(0xCC33322C);
+  static const outline = Color(0x333B372F);
+  static const disabledInk = Color(0x803B372F);
+  static const shadow = Color(0xFF302318);
 
   /// Laid over artwork (a sketch, a photo) with the lights off: the same
   /// warm shadow [nightPaper] blends in, at the same strength (0.30 → 0x4D),
@@ -137,6 +140,76 @@ abstract class AppRadii {
   static const paper = 3.0;
   static const control = 8.0;
   static const sheet = 20.0;
+}
+
+/// Presentation tokens only: never used as persisted theme or palette IDs.
+abstract class AppSpace {
+  static const small = 8.0;
+  static const medium = 16.0;
+  static const large = 24.0;
+}
+
+abstract class AppMetrics {
+  static const target = 48.0;
+  static const icon = 22.0;
+
+  static Duration motion(BuildContext context, {int milliseconds = 180}) =>
+      MediaQuery.disableAnimationsOf(context)
+      ? Duration.zero
+      : Duration(milliseconds: milliseconds);
+}
+
+abstract class AppElevation {
+  static List<BoxShadow> paper({bool raised = false}) => [
+    BoxShadow(
+      color: AppColors.shadow.withValues(alpha: raised ? .34 : .23),
+      blurRadius: raised ? 16 : 8,
+      offset: Offset(raised ? 4 : 2, raised ? 10 : 4),
+    ),
+  ];
+}
+
+/// Outlined Material glyphs share one optical size. Filled variants are reserved
+/// for active states; decorative emoji remain content rather than app controls.
+abstract class AppIcons {
+  static const note = Icons.sticky_note_2_outlined;
+  static const checklist = Icons.checklist_rounded;
+  static const photo = Icons.photo_outlined;
+  static const link = Icons.link_rounded;
+  static const voice = Icons.mic_none_rounded;
+  static const drawing = Icons.brush_outlined;
+  static const label = Icons.label_outline_rounded;
+  static const sticker = Icons.emoji_emotions_outlined;
+  static const memory = Icons.photo_library_outlined;
+  static const pin = Icons.push_pin_outlined;
+  static const positionLock = Icons.lock_outline_rounded;
+  static const archive = Icons.inventory_2_outlined;
+  static const delete = Icons.delete_outline_rounded;
+  static const more = Icons.more_horiz_rounded;
+}
+
+abstract class AppType {
+  static TextStyle heading(BuildContext context) => TextStyle(
+    fontSize: 24 * noteFontScale(context),
+    height: 1.25,
+    color: AppColors.ink,
+    fontWeight: FontWeight.w600,
+  );
+
+  static TextStyle control(BuildContext context) => const TextStyle(
+    fontFamily: 'BeVietnamPro',
+    fontSize: 15,
+    height: 1.4,
+    color: AppColors.ink,
+    fontWeight: FontWeight.w500,
+  );
+
+  static TextStyle caption(BuildContext context) => const TextStyle(
+    fontFamily: 'BeVietnamPro',
+    fontSize: 12,
+    height: 1.5,
+    color: AppColors.inkSoft,
+  );
 }
 
 /// A paper colour mixed by the user (Sticky Wall Pro) is stored in the same
@@ -714,7 +787,7 @@ ThemeData buildAppTheme(
   return base.copyWith(
     extensions: [NoteTextScale(font.scale), NightMood(night), PinLook(pin)],
     splashFactory: InkSparkle.splashFactory,
-    iconTheme: const IconThemeData(color: AppColors.ink),
+    iconTheme: const IconThemeData(color: AppColors.ink, size: AppMetrics.icon),
     dividerTheme: const DividerThemeData(color: AppColors.inkHint, space: 1),
     // Dialogs look like a sheet of note paper.
     dialogTheme: base.dialogTheme.copyWith(
@@ -833,18 +906,24 @@ ThemeData buildAppTheme(
       thumbColor: AppColors.ink,
       overlayColor: Color(0x1F3B372F),
     ),
-    // Buttons: ink text; the one filled button is solid ink with chalk text.
+    // The primary action is sunny paper. Destructive buttons still explicitly
+    // request their warning foreground in the owning confirmation dialog.
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: AppColors.ink,
         shape: controlShape,
+        minimumSize: const Size(48, AppMetrics.target),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.ink,
-        foregroundColor: AppColors.chalk,
+        backgroundColor: night
+            ? nightPaper(AppColors.accent)
+            : AppColors.accent,
+        foregroundColor: AppColors.ink,
         shape: controlShape,
+        minimumSize: const Size(48, AppMetrics.target),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -852,6 +931,7 @@ ThemeData buildAppTheme(
         foregroundColor: AppColors.ink,
         side: const BorderSide(color: AppColors.inkSoft),
         shape: controlShape,
+        minimumSize: const Size(48, AppMetrics.target),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -862,7 +942,11 @@ ThemeData buildAppTheme(
       ),
     ),
     iconButtonTheme: IconButtonThemeData(
-      style: IconButton.styleFrom(foregroundColor: AppColors.ink),
+      style: IconButton.styleFrom(
+        foregroundColor: AppColors.ink,
+        minimumSize: const Size.square(AppMetrics.target),
+        iconSize: AppMetrics.icon,
+      ),
     ),
     segmentedButtonTheme: SegmentedButtonThemeData(
       style: SegmentedButton.styleFrom(

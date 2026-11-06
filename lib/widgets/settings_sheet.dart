@@ -1556,15 +1556,18 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 8),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 16,
-          color: AppColors.ink,
-          fontWeight: FontWeight.bold,
+    return Semantics(
+      header: true,
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(top: 20, bottom: 10),
+        padding: const EdgeInsets.only(top: 14),
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: AppColors.ink.withValues(alpha: .12)),
+          ),
         ),
+        child: Text(text, style: AppType.control(context)),
       ),
     );
   }

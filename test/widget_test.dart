@@ -62,7 +62,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Thêm ghi chú'), findsOneWidget);
+    expect(find.text('Thêm lên tường'), findsOneWidget);
     expect(find.textContaining('Chưa có ghi chú nào'), findsOneWidget);
   });
 

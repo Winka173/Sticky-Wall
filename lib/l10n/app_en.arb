@@ -734,5 +734,19 @@
   "packOffice": "Desk & office",
   "packLove": "Love & celebration",
   "packFestiveVn": "Tết & Mid-Autumn",
-  "packHolidays": "Christmas & Halloween"
+  "packHolidays": "Christmas & Halloween",
+  "addToWall": "Add to your wall",
+  "addToWallHint": "A thought, a plan, a little memory.",
+  "addTextHint": "Catch a thought",
+  "addChecklistHint": "One small step at a time",
+  "addPhotoHint": "Pin a favorite moment",
+  "addLinkHint": "Keep something worth a look",
+  "addVoiceHint": "Say it before it slips away",
+  "addDrawingHint": "Let your pen wander",
+  "editorOptions": "Note options",
+  "changeNoteType": "Change note type",
+  "galleryFeatured": "A few favorites to start",
+  "previewOnYourWall": "Preview on your wall",
+  "previewOnlyHint": "Just a preview. Your wall stays as it was until you apply.",
+  "memoryPreviewPro": "Previewing Pro. Unlock to create with this look."
 }

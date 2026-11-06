@@ -40,6 +40,8 @@ Future<NotesController> _pumpApp(
 Future<void> _openEditor(WidgetTester tester) async {
   await tester.tap(find.byType(AddNoteButton));
   await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const ValueKey('add-normal')));
+  await tester.pumpAndSettle();
 }
 
 Finder get _saveButton => find.byIcon(Icons.check);
@@ -124,7 +126,9 @@ void main() {
 
     // Save with nothing that can be kept: the editor stays, saying why.
     await _openEditor(tester);
-    await tester.tap(find.byTooltip('To-do list'));
+    await tester.tap(find.byKey(const ValueKey('editor-type')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('To-do list').last);
     await tester.pumpAndSettle();
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
@@ -233,7 +237,9 @@ void main() {
     );
     await _openEditor(tester);
 
-    await tester.tap(find.byTooltip('Link'));
+    await tester.tap(find.byKey(const ValueKey('editor-type')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Link').last);
     await tester.pumpAndSettle();
     final fields = find.byType(TextField);
     await tester.enterText(fields.at(1), 'docs.flutter.dev');
@@ -257,7 +263,9 @@ void main() {
     final notes = await _pumpApp(tester);
     await _openEditor(tester);
 
-    await tester.tap(find.byTooltip('To-do list'));
+    await tester.tap(find.byKey(const ValueKey('editor-type')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('To-do list').last);
     await tester.pumpAndSettle();
 
     // Title field, then the "add item" field.
@@ -280,7 +288,9 @@ void main() {
     final notes = await _pumpApp(tester);
     await _openEditor(tester);
 
-    await tester.tap(find.byTooltip('Photo'));
+    await tester.tap(find.byKey(const ValueKey('editor-type')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Photo').last);
     await tester.pumpAndSettle();
     // The invitation tile shows, the caption hint replaces the title.
     expect(find.text('Add photo'), findsOneWidget);
@@ -1744,7 +1754,9 @@ void _quickFlows() {
     );
     await tester.tap(find.text('Old idea'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Delete'));
+    await tester.tap(find.byTooltip('Note options'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete').last);
     await tester.pumpAndSettle();
     expect(notes.boardNotes, isEmpty);
     expect(find.text('Undo'), findsWidgets);

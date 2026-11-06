@@ -2243,4 +2243,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get packHolidays => 'Christmas & Halloween';
+
+  @override
+  String get addToWall => 'Add to your wall';
+
+  @override
+  String get addToWallHint => 'A thought, a plan, a little memory.';
+
+  @override
+  String get addTextHint => 'Catch a thought';
+
+  @override
+  String get addChecklistHint => 'One small step at a time';
+
+  @override
+  String get addPhotoHint => 'Pin a favorite moment';
+
+  @override
+  String get addLinkHint => 'Keep something worth a look';
+
+  @override
+  String get addVoiceHint => 'Say it before it slips away';
+
+  @override
+  String get addDrawingHint => 'Let your pen wander';
+
+  @override
+  String get editorOptions => 'Note options';
+
+  @override
+  String get changeNoteType => 'Change note type';
+
+  @override
+  String get galleryFeatured => 'A few favorites to start';
+
+  @override
+  String get previewOnYourWall => 'Preview on your wall';
+
+  @override
+  String get previewOnlyHint =>
+      'Just a preview. Your wall stays as it was until you apply.';
+
+  @override
+  String get memoryPreviewPro =>
+      'Previewing Pro. Unlock to create with this look.';
 }
