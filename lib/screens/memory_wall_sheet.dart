@@ -6,6 +6,7 @@ import '../services/memory_wall.dart';
 import '../services/pro_controller.dart';
 import '../services/theme_packs.dart';
 import '../theme.dart';
+import '../widgets/paper_choice_chip.dart';
 import '../widgets/photo_frames.dart';
 import '../widgets/pro_sheet.dart';
 import 'gallery_screen.dart';
@@ -138,11 +139,11 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
               runSpacing: 6,
               children: [
                 for (final (layout, icon, label) in layouts)
-                  ChoiceChip(
-                    avatar: Icon(icon, size: 18),
-                    label: Text(label),
+                  PaperChoiceChip(
+                    icon: icon,
+                    label: label,
                     selected: _layout == layout,
-                    onSelected: (_) => setState(() => _layout = layout),
+                    onSelected: () => setState(() => _layout = layout),
                   ),
               ],
             ),
@@ -154,31 +155,20 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
               runSpacing: 6,
               children: [
                 for (final f in PhotoFrame.values)
-                  ChoiceChip(
-                    avatar: SizedBox(
-                      width: 28,
-                      height: 28,
-                      child: FittedBox(
-                        child: SizedBox(
-                          width: 64,
-                          child: FramedPrint(
-                            frame: f,
-                            seed: 'frame-choice',
-                            paper: AppColors.paper,
-                            photo: const SizedBox(
-                              width: 40,
-                              height: 30,
-                              child: Icon(AppIcons.photo, size: 24),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    label: Text(
-                      '${photoFrameName(l10n, f)}${f.pro && !pro ? ' · Pro' : ''}',
-                    ),
+                  PaperChoiceChip(
+                    icon: switch (f) {
+                      PhotoFrame.print => Icons.crop_original_rounded,
+                      PhotoFrame.polaroid => Icons.photo_outlined,
+                      PhotoFrame.film => Icons.local_movies_outlined,
+                      PhotoFrame.vintage => Icons.filter_vintage_outlined,
+                      PhotoFrame.torn => Icons.receipt_long_outlined,
+                      PhotoFrame.rounded => Icons.rounded_corner_rounded,
+                      PhotoFrame.scrapbook => Icons.auto_stories_outlined,
+                    },
+                    label:
+                        '${photoFrameName(l10n, f)}${f.pro && !pro ? ' · Pro' : ''}',
                     selected: _frame == f,
-                    onSelected: (_) => setState(() => _frame = f),
+                    onSelected: () => setState(() => _frame = f),
                   ),
               ],
             ),
@@ -189,15 +179,24 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
               spacing: 8,
               runSpacing: 6,
               children: [
-                for (final (c, label) in [
-                  (CaptionPreset.none, l10n.captionNone),
-                  (CaptionPreset.numbers, l10n.captionNumbers),
-                  (CaptionPreset.date, l10n.captionDate),
+                for (final (c, label, icon) in [
+                  (CaptionPreset.none, l10n.captionNone, Icons.notes_rounded),
+                  (
+                    CaptionPreset.numbers,
+                    l10n.captionNumbers,
+                    Icons.format_list_numbered_rounded,
+                  ),
+                  (
+                    CaptionPreset.date,
+                    l10n.captionDate,
+                    Icons.calendar_today_outlined,
+                  ),
                 ])
-                  ChoiceChip(
-                    label: Text(label),
+                  PaperChoiceChip(
+                    icon: icon,
+                    label: label,
                     selected: _caption == c,
-                    onSelected: (_) => setState(() => _caption = c),
+                    onSelected: () => setState(() => _caption = c),
                   ),
               ],
             ),
@@ -297,10 +296,13 @@ class _LookChoice extends StatelessWidget {
                   children: [
                     Container(
                       decoration: BoxDecoration(
+                        color: null,
                         borderRadius: BorderRadius.circular(AppRadii.control),
                         border: Border.all(
-                          color: selected ? AppColors.ink : Colors.transparent,
-                          width: 3,
+                          color: selected
+                              ? AppColors.ink.withValues(alpha: .7)
+                              : Colors.transparent,
+                          width: 2,
                         ),
                       ),
                       padding: const EdgeInsets.all(3),
@@ -315,11 +317,34 @@ class _LookChoice extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12.5),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+                decoration: BoxDecoration(
+                  color: null,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (selected) ...[
+                      const Icon(Icons.check_circle_rounded, size: 14),
+                      const SizedBox(width: 4),
+                    ],
+                    Flexible(
+                      child: Text(
+                        name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: selected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

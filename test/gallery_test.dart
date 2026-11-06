@@ -112,7 +112,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Themes'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Free'));
+    await tester.tap(find.byTooltip('Free'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Dark Chalk'));
     await tester.pumpAndSettle();
@@ -144,17 +144,20 @@ void main() {
     // The shelf chips scroll sideways; Seasonal is past the edge.
     final strip = find.byWidget(
       tester.widget<ListView>(
-        find.ancestor(of: find.text('Free'), matching: find.byType(ListView)),
+        find.ancestor(
+          of: find.byTooltip('Free'),
+          matching: find.byType(ListView),
+        ),
       ),
     );
     await tester.dragUntilVisible(
-      find.text('Seasonal'),
+      find.byTooltip('Seasonal'),
       strip,
       const Offset(-120, 0),
     );
-    await tester.ensureVisible(find.text('Seasonal'));
+    await tester.ensureVisible(find.byTooltip('Seasonal'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Seasonal'));
+    await tester.tap(find.byTooltip('Seasonal'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Lunar New Year'));
     await tester.pumpAndSettle();

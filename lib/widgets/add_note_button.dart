@@ -70,7 +70,7 @@ class AddNoteButton extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
-                          Icons.add_rounded,
+                          Icons.edit_outlined,
                           size: 26,
                           color: AppColors.ink,
                         ),

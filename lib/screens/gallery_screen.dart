@@ -15,6 +15,7 @@ import '../services/theme_packs.dart';
 import '../theme.dart';
 import '../util/text_fold.dart';
 import '../widgets/note_views.dart';
+import '../widgets/paper_choice_chip.dart';
 import '../widgets/pro_sheet.dart';
 import '../widgets/wall_background.dart';
 import '../widgets/wall_view.dart';
@@ -127,6 +128,22 @@ String _categoryLabel(AppLocalizations l10n, Object c) => switch (c) {
   _ => '',
 };
 
+IconData _categoryIcon(Object? category) => switch (category) {
+  null => Icons.apps_rounded,
+  _FreeOnly() => Icons.verified_outlined,
+  _Shelf(:final category) => _categoryIcon(category),
+  TemplateCategory.productivity => Icons.view_week_outlined,
+  ThemeCategory.classic => Icons.palette_outlined,
+  TemplateCategory.study || ThemeCategory.study => Icons.menu_book_outlined,
+  TemplateCategory.creative || ThemeCategory.creative => Icons.brush_outlined,
+  TemplateCategory.personal ||
+  ThemeCategory.personal => Icons.favorite_border_rounded,
+  TemplateCategory.family || ThemeCategory.family => Icons.home_outlined,
+  TemplateCategory.seasonal ||
+  ThemeCategory.seasonal => Icons.wb_sunny_outlined,
+  _ => Icons.label_outline_rounded,
+};
+
 /// A row of filter chips that scrolls sideways inside itself.
 class _Chips<T> extends StatelessWidget {
   const _Chips({
@@ -144,7 +161,7 @@ class _Chips<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 48,
+      height: 56,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -152,10 +169,11 @@ class _Chips<T> extends StatelessWidget {
           for (final v in values)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: ChoiceChip(
-                label: Text(label(v)),
+              child: PaperChoiceChip(
+                icon: _categoryIcon(v),
+                label: label(v),
                 selected: v == selected,
-                onSelected: (_) => onSelected(v),
+                onSelected: () => onSelected(v),
               ),
             ),
         ],

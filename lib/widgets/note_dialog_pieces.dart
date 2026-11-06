@@ -41,16 +41,15 @@ extension _EditorPieces on _NoteDialogState {
           const Spacer(),
           Padding(
             padding: const EdgeInsets.only(right: 4),
-            child: Tooltip(
-              message: widget.isNew ? l10n.add : l10n.save,
-              child: FilledButton.icon(
-                onPressed: _save,
-                icon: const Icon(Icons.check, size: 20),
-                label: Text(widget.isNew ? l10n.add : l10n.save),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(48, 44),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                ),
+            child: IconButton.filled(
+              tooltip: widget.isNew ? l10n.add : l10n.save,
+              onPressed: _save,
+              icon: const Icon(Icons.check, size: 22),
+              style: IconButton.styleFrom(
+                backgroundColor: _NoteDialogState._ink,
+                foregroundColor: AppColors.chalk,
+                shape: const CircleBorder(),
+                minimumSize: const Size.square(48),
               ),
             ),
           ),
@@ -612,47 +611,57 @@ extension _EditorPieces on _NoteDialogState {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Conversion stays available, without asking users to interpret seven
-        // tiny unlabelled controls before they can write.
-        PopupMenuButton<NoteType>(
+        Container(
           key: const ValueKey('editor-type'),
-          tooltip: l10n.changeNoteType,
-          initialValue: _n.type,
-          onSelected: _setType,
-          itemBuilder: (_) => [
-            for (final (type, icon, label) in types)
-              PopupMenuItem(
-                value: type,
-                child: Row(
-                  children: [
-                    Icon(icon, size: AppMetrics.icon),
-                    const SizedBox(width: 12),
-                    Flexible(child: Text(label)),
-                    if (_n.type == type) ...[
-                      const SizedBox(width: 8),
-                      const Icon(Icons.check, size: 18),
-                    ],
-                  ],
-                ),
-              ),
-          ],
-          child: Container(
-            constraints: const BoxConstraints(minHeight: AppMetrics.target),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.ink.withValues(alpha: .055),
-              borderRadius: BorderRadius.circular(AppRadii.control),
-            ),
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: _NoteDialogState._ink.withValues(alpha: .07),
+            borderRadius: BorderRadius.circular(26),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(types.firstWhere((t) => t.$1 == _n.type).$2, size: 20),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(_NoteDialogState._typeName(l10n, _n.type)),
-                ),
-                const SizedBox(width: 8),
-                const Icon(Icons.expand_more_rounded, size: 18),
+                for (final (type, icon, label) in types)
+                  Semantics(
+                    button: true,
+                    selected: _n.type == type,
+                    child: Tooltip(
+                      message: label,
+                      child: InkWell(
+                        customBorder: const StadiumBorder(),
+                        onTap: () => _setType(type),
+                        child: SizedBox(
+                          width: AppMetrics.target,
+                          height: 48,
+                          child: Center(
+                            child: AnimatedContainer(
+                              duration: AppMetrics.motion(
+                                context,
+                                milliseconds: 150,
+                              ),
+                              width: 38,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: _n.type == type
+                                    ? _NoteDialogState._ink
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Icon(
+                                icon,
+                                size: 20,
+                                color: _n.type == type
+                                    ? AppColors.chalk
+                                    : _NoteDialogState._ink,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

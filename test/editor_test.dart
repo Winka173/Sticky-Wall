@@ -126,9 +126,9 @@ void main() {
 
     // Save with nothing that can be kept: the editor stays, saying why.
     await _openEditor(tester);
-    await tester.tap(find.byKey(const ValueKey('editor-type')));
+    await tester.ensureVisible(find.byTooltip('To-do list'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('To-do list').last);
+    await tester.tap(find.byTooltip('To-do list'));
     await tester.pumpAndSettle();
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
@@ -237,9 +237,9 @@ void main() {
     );
     await _openEditor(tester);
 
-    await tester.tap(find.byKey(const ValueKey('editor-type')));
+    await tester.ensureVisible(find.byTooltip('Link'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Link').last);
+    await tester.tap(find.byTooltip('Link'));
     await tester.pumpAndSettle();
     final fields = find.byType(TextField);
     await tester.enterText(fields.at(1), 'docs.flutter.dev');
@@ -263,9 +263,9 @@ void main() {
     final notes = await _pumpApp(tester);
     await _openEditor(tester);
 
-    await tester.tap(find.byKey(const ValueKey('editor-type')));
+    await tester.ensureVisible(find.byTooltip('To-do list'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('To-do list').last);
+    await tester.tap(find.byTooltip('To-do list'));
     await tester.pumpAndSettle();
 
     // Title field, then the "add item" field.
@@ -288,9 +288,9 @@ void main() {
     final notes = await _pumpApp(tester);
     await _openEditor(tester);
 
-    await tester.tap(find.byKey(const ValueKey('editor-type')));
+    await tester.ensureVisible(find.byTooltip('Photo'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Photo').last);
+    await tester.tap(find.byTooltip('Photo'));
     await tester.pumpAndSettle();
     // The invitation tile shows, the caption hint replaces the title.
     expect(find.text('Add photo'), findsOneWidget);

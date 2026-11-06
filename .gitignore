@@ -55,3 +55,6 @@ test/failures/
 android/fastlane/metadata/android/*/images/
 android/fastlane/report.xml
 android/fastlane/README.md
+
+# Local review renders and logs (large; not part of the app)
+output/

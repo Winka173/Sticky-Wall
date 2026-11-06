@@ -177,14 +177,14 @@ void main() {
         final chipScroll = tester.state<ScrollableState>(
           find
               .ancestor(
-                of: find.text(words.galleryFree),
+                of: find.byTooltip(words.galleryFree),
                 matching: find.byType(Scrollable),
               )
               .first,
         );
         chipScroll.position.jumpTo(chipScroll.position.maxScrollExtent);
         await tester.pumpAndSettle();
-        await tester.tap(find.text(words.catSeasonal));
+        await tester.tap(find.byTooltip(words.catSeasonal));
         await tester.pumpAndSettle();
         final trial = tester.widget<ThemeCatalogPreview>(
           find.byType(ThemeCatalogPreview).first,
@@ -214,8 +214,8 @@ void main() {
           words.layoutTimeline,
           words.layoutHero,
         ]) {
-          await tester.ensureVisible(find.text(label));
-          await tester.tap(find.text(label));
+          await tester.ensureVisible(find.byTooltip(label));
+          await tester.tap(find.byTooltip(label));
           await shot('memory_${label.hashCode}');
         }
         close();

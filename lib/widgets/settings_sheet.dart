@@ -25,6 +25,7 @@ import 'action_sheet.dart';
 import 'gesture_tips.dart';
 import 'keyboard_tappable.dart';
 import 'note_views.dart';
+import 'paper_choice_chip.dart';
 import 'pro_sheet.dart';
 import 'restore_preview.dart';
 import 'sync_sheet.dart';
@@ -100,31 +101,18 @@ String hourLabel(BuildContext context, int hour) =>
       alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
     );
 
-/// A choice chip whose selected state reads without colour vision: a check
-/// replaces the icon, the fill is the strong accent and the outline is ink.
+/// Shared paper choices keep their icons visible when selected.
 Widget _choiceChip({
   required String label,
   required bool selected,
   required VoidCallback onSelected,
   IconData? icon,
-}) {
-  return ChoiceChip(
-    avatar: icon == null || selected ? null : Icon(icon, size: 18),
-    showCheckmark: true,
-    checkmarkColor: AppColors.ink,
-    selectedColor: AppColors.accent,
-    side: BorderSide(
-      color: selected ? AppColors.ink : AppColors.inkHint,
-      width: selected ? 1.5 : 1,
-    ),
-    label: Text(
-      label,
-      style: TextStyle(fontWeight: selected ? FontWeight.bold : null),
-    ),
-    selected: selected,
-    onSelected: (_) => onSelected(),
-  );
-}
+}) => PaperChoiceChip(
+  label: label,
+  selected: selected,
+  onSelected: onSelected,
+  icon: icon,
+);
 
 /// Opens the customization sheet: Pro, wall texture, lights, font and
 /// pins. Everything else about the app is in Settings ([showAppSettings]).

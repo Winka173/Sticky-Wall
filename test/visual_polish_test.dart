@@ -143,7 +143,7 @@ void main() {
         final context = tester.element(find.byType(Scaffold).first);
         unawaited(GalleryScreen.open(context, notes: notes, themes: true));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Free'));
+        await tester.tap(find.byTooltip('Free'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Dark Chalk'));
         await tester.pumpAndSettle();
@@ -183,7 +183,7 @@ void main() {
     final context = tester.element(find.byType(Scaffold).first);
     unawaited(showMemoryWallSheet(context, count: 3));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Film strip · Pro'));
+    await tester.tap(find.byTooltip('Film strip · Pro'));
     await tester.pumpAndSettle();
     expect(find.text('Sticky Wall Pro'), findsNothing);
     final unlock = find.text('Unlock with Pro');
@@ -202,7 +202,7 @@ void main() {
     final context = tester.element(find.byType(Scaffold).first);
     unawaited(GalleryScreen.open(context, notes: notes, themes: true));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Free'));
+    await tester.tap(find.byTooltip('Free'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Dark Chalk'));
     await tester.pumpAndSettle();
@@ -257,12 +257,15 @@ void main() {
     await tester.pumpAndSettle();
     final chipScroll = tester.state<ScrollableState>(
       find
-          .ancestor(of: find.text('Free'), matching: find.byType(Scrollable))
+          .ancestor(
+            of: find.byTooltip('Free'),
+            matching: find.byType(Scrollable),
+          )
           .first,
     );
     chipScroll.position.jumpTo(chipScroll.position.maxScrollExtent);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Seasonal'));
+    await tester.tap(find.byTooltip('Seasonal'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Lunar New Year'));
     await tester.pumpAndSettle();

@@ -130,7 +130,7 @@ void main() {
     );
     expect(prints, findsNWidgets(20));
     final before = tester.getTopLeft(prints.at(5));
-    await tester.tap(find.text('Timeline'));
+    await tester.tap(find.byTooltip('Timeline'));
     await tester.pump();
     expect(
       tester.getTopLeft(prints.at(5)),
