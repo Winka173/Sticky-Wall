@@ -33,6 +33,12 @@ class _AndroidPicker extends ImagePickerAndroid {
   }) async => files.firstOrNull;
 }
 
+/// The small "add photos" button (its icon turns into a spinner while
+/// the picker is open, so it is found by its tooltip).
+final _addButton = find.byWidgetPredicate(
+  (w) => w is IconButton && (w.tooltip?.contains('Add up to') ?? false),
+);
+
 void main() {
   group('Memory photo import', () {
     late Directory temp;
@@ -138,17 +144,11 @@ void main() {
       );
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Add photos'));
-      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.add_photo_alternate_outlined));
+      // A spinner turns while the picker is open: one frame, not settle.
+      await tester.pump();
       expect(remaining, 19);
-      expect(
-        tester
-            .widget<OutlinedButton>(
-              find.widgetWithText(OutlinedButton, 'Add photos'),
-            )
-            .onPressed,
-        isNull,
-      );
+      expect(tester.widget<IconButton>(_addButton).onPressed, isNull);
       expect(result, isNull);
       switch (scenario) {
         case 'append':
@@ -165,7 +165,7 @@ void main() {
         expect(
           find.text(
             AppLocalizations.of(
-              tester.element(find.text('Add photos')),
+              tester.element(find.text('Make the wall')),
             )!.photoPickFailed,
           ),
           findsOneWidget,
@@ -173,14 +173,7 @@ void main() {
       }
       if (scenario == 'cap') {
         expect(find.text('20 photos'), findsOneWidget);
-        expect(
-          tester
-              .widget<OutlinedButton>(
-                find.widgetWithText(OutlinedButton, 'Add photos'),
-              )
-              .onPressed,
-          isNull,
-        );
+        expect(tester.widget<IconButton>(_addButton).onPressed, isNull);
       }
       await tester.ensureVisible(find.text('Make the wall'));
       await tester.pumpAndSettle();

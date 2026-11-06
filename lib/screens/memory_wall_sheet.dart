@@ -130,198 +130,247 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
       (MemoryLayout.hero, Icons.center_focus_strong_outlined, l10n.layoutHero),
     ];
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              l10n.memoryWall,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 22, color: AppColors.ink),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.memoryPhotoCount(
-                _photos.isEmpty ? widget.count : _photos.length,
-              ),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.inkSoft),
-            ),
-            if (widget.count > memoryWallMax)
-              Text(
-                l10n.memoryTooMany(memoryWallMax),
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 13, color: AppColors.warnText),
-              ),
-            if (widget.onAddPhotos != null) ...[
-              const SizedBox(height: 8),
-              Center(
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.add_photo_alternate_outlined),
-                  label: Text(l10n.memoryAddPhotos),
-                  onPressed: _picking || _photos.length >= memoryWallMax
-                      ? null
-                      : _addPhotos,
-                ),
-              ),
-              Text(
-                l10n.memoryAddPhotosHint(memoryWallMax),
-                textAlign: TextAlign.center,
-                style: AppType.caption(context),
-              ),
-              if (_pickFailed)
-                Text(
-                  l10n.photoPickFailed,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.warnText),
-                ),
-            ],
-            if (_photos.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              // What the board will look like, with these very photos:
-              // layout, frame and look change it live, before anything is
-              // created.
-              Semantics(
-                key: const ValueKey('memory-live-preview'),
-                label: l10n.memoryPreview,
-                child: _MemoryPreview(
-                  photos: _photos.toList(),
-                  layout: _layout,
-                  frame: _frame,
-                  look: _look,
-                  caption: _caption,
-                ),
-              ),
-            ],
-            const SizedBox(height: 16),
-            Text(l10n.memoryLayout, style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                for (final (layout, icon, label) in layouts)
-                  PaperChoiceChip(
-                    icon: icon,
-                    label: label,
-                    selected: _layout == layout,
-                    onSelected: () => setState(() => _layout = layout),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(l10n.photoFrame, style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                for (final f in PhotoFrame.values)
-                  PaperChoiceChip(
-                    icon: switch (f) {
-                      PhotoFrame.print => Icons.crop_original_rounded,
-                      PhotoFrame.polaroid => Icons.photo_outlined,
-                      PhotoFrame.film => Icons.local_movies_outlined,
-                      PhotoFrame.vintage => Icons.filter_vintage_outlined,
-                      PhotoFrame.torn => Icons.receipt_long_outlined,
-                      PhotoFrame.rounded => Icons.rounded_corner_rounded,
-                      PhotoFrame.scrapbook => Icons.auto_stories_outlined,
-                    },
-                    label:
-                        '${photoFrameName(l10n, f)}${f.pro && !pro ? ' · Pro' : ''}',
-                    selected: _frame == f,
-                    onSelected: () => setState(() => _frame = f),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(l10n.memoryCaption, style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                for (final (c, label, icon) in [
-                  (CaptionPreset.none, l10n.captionNone, Icons.notes_rounded),
-                  (
-                    CaptionPreset.numbers,
-                    l10n.captionNumbers,
-                    Icons.format_list_numbered_rounded,
-                  ),
-                  (
-                    CaptionPreset.date,
-                    l10n.captionDate,
-                    Icons.calendar_today_outlined,
-                  ),
-                ])
-                  PaperChoiceChip(
-                    icon: icon,
-                    label: label,
-                    selected: _caption == c,
-                    onSelected: () => setState(() => _caption = c),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(l10n.memoryLook, style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 6),
-            SizedBox(
-              height: 190,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  for (final id in memoryWallLooks)
-                    if (themePackById(id) case final pack?)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: _LookChoice(
-                          pack: pack,
-                          name: pack.name(lang),
-                          selected: _look.id == pack.id,
-                          locked: pack.pro && !pro,
-                          onTap: () => setState(() => _look = pack),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      l10n.memoryWall,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    // How many photos, with a small "add more" beside it.
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          l10n.memoryPhotoCount(
+                            _photos.isEmpty ? widget.count : _photos.length,
+                          ),
+                          style: const TextStyle(color: AppColors.inkSoft),
+                        ),
+                        if (widget.onAddPhotos != null)
+                          IconButton(
+                            tooltip: l10n.memoryAddPhotosHint(memoryWallMax),
+                            icon: _picking
+                                ? const SizedBox.square(
+                                    dimension: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.add_photo_alternate_outlined,
+                                  ),
+                            color: AppColors.ink,
+                            onPressed:
+                                _picking || _photos.length >= memoryWallMax
+                                ? null
+                                : _addPhotos,
+                          ),
+                      ],
+                    ),
+                    if (widget.count > memoryWallMax)
+                      Text(
+                        l10n.memoryTooMany(memoryWallMax),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.warnText,
                         ),
                       ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (!pro && (_look.pro || _frame.pro))
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  l10n.memoryPreviewPro,
-                  style: AppType.caption(context),
+                    if (_pickFailed)
+                      Text(
+                        l10n.photoPickFailed,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: AppColors.warnText),
+                      ),
+                    if (_photos.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      // What the board will look like, with these very photos:
+                      // layout, frame and look change it live, before anything is
+                      // created.
+                      Semantics(
+                        key: const ValueKey('memory-live-preview'),
+                        label: l10n.memoryPreview,
+                        child: _MemoryPreview(
+                          photos: _photos.toList(),
+                          layout: _layout,
+                          frame: _frame,
+                          look: _look,
+                          caption: _caption,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.memoryLayout,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        for (final (layout, icon, label) in layouts)
+                          PaperChoiceChip(
+                            icon: icon,
+                            label: label,
+                            selected: _layout == layout,
+                            onSelected: () => setState(() => _layout = layout),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(l10n.photoFrame, style: const TextStyle(fontSize: 16)),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        for (final f in PhotoFrame.values)
+                          PaperChoiceChip(
+                            icon: switch (f) {
+                              PhotoFrame.print => Icons.crop_original_rounded,
+                              PhotoFrame.polaroid => Icons.photo_outlined,
+                              PhotoFrame.film => Icons.local_movies_outlined,
+                              PhotoFrame.vintage =>
+                                Icons.filter_vintage_outlined,
+                              PhotoFrame.torn => Icons.receipt_long_outlined,
+                              PhotoFrame.rounded =>
+                                Icons.rounded_corner_rounded,
+                              PhotoFrame.scrapbook =>
+                                Icons.auto_stories_outlined,
+                            },
+                            label:
+                                '${photoFrameName(l10n, f)}${f.pro && !pro ? ' · Pro' : ''}',
+                            selected: _frame == f,
+                            onSelected: () => setState(() => _frame = f),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.memoryCaption,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        for (final (c, label, icon) in [
+                          (
+                            CaptionPreset.none,
+                            l10n.captionNone,
+                            Icons.notes_rounded,
+                          ),
+                          (
+                            CaptionPreset.numbers,
+                            l10n.captionNumbers,
+                            Icons.format_list_numbered_rounded,
+                          ),
+                          (
+                            CaptionPreset.date,
+                            l10n.captionDate,
+                            Icons.calendar_today_outlined,
+                          ),
+                        ])
+                          PaperChoiceChip(
+                            icon: icon,
+                            label: label,
+                            selected: _caption == c,
+                            onSelected: () => setState(() => _caption = c),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(l10n.memoryLook, style: const TextStyle(fontSize: 16)),
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      height: 190,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          for (final id in memoryWallLooks)
+                            if (themePackById(id) case final pack?)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: _LookChoice(
+                                  pack: pack,
+                                  name: pack.name(lang),
+                                  selected: _look.id == pack.id,
+                                  locked: pack.pro && !pro,
+                                  onTap: () => setState(() => _look = pack),
+                                ),
+                              ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            FilledButton.icon(
-              icon: const Icon(Icons.photo_library_outlined),
-              label: Text(
-                !pro && (_look.pro || _frame.pro)
-                    ? l10n.proUnlock
-                    : l10n.memoryCreate,
+            ),
+            // Always in reach: the button never scrolls away.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (!pro && (_look.pro || _frame.pro))
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        l10n.memoryPreviewPro,
+                        style: AppType.caption(context),
+                      ),
+                    ),
+                  FilledButton.icon(
+                    icon: const Icon(Icons.photo_library_outlined),
+                    label: Text(
+                      !pro && (_look.pro || _frame.pro)
+                          ? l10n.proUnlock
+                          : l10n.memoryCreate,
+                    ),
+                    onPressed: _picking
+                        ? null
+                        : () async {
+                            if ((_look.pro || _frame.pro) &&
+                                !ProScope.unlockedOf(context)) {
+                              await showProSheet(context);
+                              if (!context.mounted ||
+                                  !ProScope.unlockedOf(context)) {
+                                return;
+                              }
+                            }
+                            if (!context.mounted) return;
+                            Navigator.pop(context, (
+                              layout: _layout,
+                              look: _look,
+                              frame: _frame,
+                              caption: _caption,
+                              photos: List<String>.unmodifiable(_photos),
+                            ));
+                          },
+                  ),
+                ],
               ),
-              onPressed: _picking
-                  ? null
-                  : () async {
-                      if ((_look.pro || _frame.pro) &&
-                          !ProScope.unlockedOf(context)) {
-                        await showProSheet(context);
-                        if (!context.mounted || !ProScope.unlockedOf(context)) {
-                          return;
-                        }
-                      }
-                      if (!context.mounted) return;
-                      Navigator.pop(context, (
-                        layout: _layout,
-                        look: _look,
-                        frame: _frame,
-                        caption: _caption,
-                        photos: List<String>.unmodifiable(_photos),
-                      ));
-                    },
             ),
           ],
         ),

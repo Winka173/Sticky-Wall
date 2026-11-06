@@ -69,6 +69,20 @@ class _Media implements SyncMediaStore {
       files['$kind/$name'] = bytes;
 }
 
+/// A backend that runs [during] the first time it is asked for the device
+/// list: the user doing something while a sync waits on the network.
+class _SlowBackend extends MemorySyncBackend {
+  void Function()? during;
+
+  @override
+  Future<Map<String, String>> listDevices() async {
+    final hook = during;
+    during = null;
+    hook?.call();
+    return super.listDevices();
+  }
+}
+
 class _Device {
   _Device(this.cloud, {List<Board>? boards, List<Note> notes = const []}) {
     storage = NoteStorage(prefs);
@@ -378,5 +392,20 @@ void main() {
     await a.syncNow();
     await b.syncNow();
     expect(b.notes.allNotes.map((n) => n.content), contains('mine now'));
+  });
+
+  test('a board made while a sync is on the network is never lost', () async {
+    final slow = _SlowBackend();
+    final a = _Device(slow, notes: [_n('1', 'old')]);
+    await a.syncNow();
+    // The next sync is half-way when the user makes a memory wall.
+    slow.during = () => a.notes.addBoard('Memories');
+    await a.syncNow();
+    expect(a.notes.boards.map((b) => b.name), contains('Memories'));
+    expect(a.sync.state, SyncState.idle);
+    // And it reached the other devices on the retried pass.
+    final b = _Device(slow);
+    await b.syncNow();
+    expect(b.notes.boards.map((x) => x.name), contains('Memories'));
   });
 }

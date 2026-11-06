@@ -800,6 +800,36 @@ class NotesController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Adds [stored] photos to the memory wall (or any board of prints)
+  /// [boardId], in the frame most of its prints wear, and opens that board.
+  /// Returns an undo that takes them off again.
+  VoidCallback addPrintsTo(String boardId, List<String> stored) {
+    final existing = printsOn(boardId);
+    final counts = <PhotoFrame, int>{};
+    for (final n in existing) {
+      counts[n.frame] = (counts[n.frame] ?? 0) + 1;
+    }
+    final frame = counts.isEmpty
+        ? PhotoFrame.polaroid
+        : (counts.entries.toList()..sort((a, b) => b.value - a.value))
+              .first
+              .key;
+    selectBoard(boardId);
+    final created = addPhotos(stored);
+    for (final n in created) {
+      n.frame = frame;
+    }
+    _persistNotes();
+    notifyListeners();
+    return () {
+      for (final n in created) {
+        _purge(n);
+      }
+      _persistNotes();
+      notifyListeners();
+    };
+  }
+
   /// The live photo prints on board [boardId], in the order they were added.
   List<Note> printsOn(String boardId) => [
     for (final n in _notes)

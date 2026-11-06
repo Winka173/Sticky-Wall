@@ -6,6 +6,8 @@ import '../l10n/app_localizations.dart';
 import '../models/board.dart';
 import '../screens/gallery_screen.dart';
 import '../services/app_lock.dart';
+import '../services/image_service.dart';
+import '../services/memory_wall.dart';
 import '../services/notes_controller.dart';
 import '../services/pro_controller.dart';
 import '../theme.dart';
@@ -413,6 +415,12 @@ class _BoardBarState extends State<BoardBar> {
           title: Text(l10n.changeTheme),
           onTap: () => Navigator.pop(context, 'theme'),
         ),
+        if (widget.notes.printsOn(board.id).isNotEmpty)
+          ListTile(
+            leading: const Icon(Icons.add_photo_alternate_outlined),
+            title: Text(l10n.memoryAddPhotos),
+            onTap: () => Navigator.pop(context, 'addPhotos'),
+          ),
         if (widget.notes.printsOn(board.id).length > 1) ...[
           ListTile(
             leading: const Icon(Icons.shuffle),
@@ -472,6 +480,25 @@ class _BoardBarState extends State<BoardBar> {
         themes: true,
       );
       if (context.mounted) showGalleryResult(context, result);
+      return;
+    }
+    if (action == 'addPhotos') {
+      // More photos for a memory wall made earlier, in its frame; Shuffle
+      // then lays them all out together, and any print can be deleted from
+      // its own menu.
+      final List<String> stored;
+      try {
+        stored = await ImageService().pickImages(limit: memoryWallMax);
+      } catch (_) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(l10n.photoPickFailed)));
+        return;
+      }
+      if (stored.isEmpty || !context.mounted) return;
+      final undo = widget.notes.addPrintsTo(board.id, stored);
+      _undoSnack(context, l10n.photosPinned(stored.length), undo);
       return;
     }
     if (action == 'shuffle') {

@@ -159,9 +159,13 @@ class SyncService extends ChangeNotifier {
     try {
       // Copies kept from a conflict are new notes: a second pass sends them
       // straight away instead of at the next sync.
-      final copies = await _syncWith(backend);
+      // A pass interrupted by an edit here is simply run again.
+      var copies = -1;
+      for (var tries = 0; copies < 0 && tries < 4; tries++) {
+        copies = await _syncWith(backend);
+      }
       if (copies > 0) await _syncWith(backend);
-      _lastConflicts = copies;
+      _lastConflicts = copies < 0 ? 0 : copies;
       _state = SyncState.idle;
       await _prefs.setString(_lastKey, _clock().toIso8601String());
     } on SyncException catch (e) {
@@ -182,9 +186,23 @@ class SyncService extends ChangeNotifier {
   // --- One sync ------------------------------------------------------------
 
   /// Returns how many conflict copies were made.
+  /// A cheap picture of everything the sync could change, taken without
+  /// waiting: if it differs at the end of a pass, the user changed something
+  /// while the pass was talking to the network.
+  String _fingerprint() => jsonEncode([
+    for (final b in _notes.boards) b.toJson(),
+    for (final b in _notes.deletedBoards) b.toJson(),
+    for (final n in _notes.allNotes) n.toJson(),
+    for (final l in _notes.links) l.toJson(),
+  ]);
+
+  /// One pass. Returns how many conflict copies were made, or -1 when the
+  /// data changed on this device meanwhile: then nothing was applied or
+  /// written, and the caller runs the pass again.
   Future<int> _syncWith(SyncBackend backend) async {
     final me = deviceId;
     final now = _clock();
+    final before = _fingerprint();
     final excluded = <String>{};
     final local = await _collect(excluded);
 
@@ -238,23 +256,6 @@ class SyncService extends ChangeNotifier {
             !blobs.contains(r.data!['sha']),
       );
 
-    await backend.writeDevice(
-      me,
-      jsonEncode({
-        'schema': schema,
-        'device': me,
-        'written': now.toIso8601String(),
-        'records': {for (final e in records.entries) e.key: e.value.toJson()},
-      }),
-    );
-    await _prefs.setString(
-      _metaKey,
-      jsonEncode({
-        for (final e in result.meta.entries) e.key: e.value.toJson(),
-      }),
-    );
-    await _prefs.setInt(_clockKey, result.clock);
-
     // Then the files this device lacks, each checked against its hash.
     var missing = 0;
     for (final e in records.entries) {
@@ -272,7 +273,29 @@ class SyncService extends ChangeNotifier {
     }
     _missingMedia = missing;
 
+    // Anything changed here while this pass was on the network (a board
+    // made, a note typed) would be overwritten by applying now: leave it
+    // all, and the caller starts over with the new state.
+    if (_fingerprint() != before) return -1;
     _apply(records, result.conflicts, excluded);
+
+    // Only now tell the other devices, and remember what was agreed.
+    await backend.writeDevice(
+      me,
+      jsonEncode({
+        'schema': schema,
+        'device': me,
+        'written': now.toIso8601String(),
+        'records': {for (final e in records.entries) e.key: e.value.toJson()},
+      }),
+    );
+    await _prefs.setString(
+      _metaKey,
+      jsonEncode({
+        for (final e in result.meta.entries) e.key: e.value.toJson(),
+      }),
+    );
+    await _prefs.setInt(_clockKey, result.clock);
     return result.conflicts.length;
   }
 

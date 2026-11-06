@@ -129,6 +129,8 @@ void main() {
       matching: find.byType(FramedPrint),
     );
     expect(prints, findsNWidgets(20));
+    await tester.ensureVisible(find.byTooltip('Timeline'));
+    await tester.pumpAndSettle();
     final before = tester.getTopLeft(prints.at(5));
     await tester.tap(find.byTooltip('Timeline'));
     await tester.pump();
@@ -205,5 +207,33 @@ void main() {
       Note.fromJson({...prints.first.toJson(), 'frame': 'hologram'}).frame,
       PhotoFrame.print,
     );
+  });
+
+  test('photos can be added to a memory wall later, in its frame, with '
+      'Undo', () async {
+    SharedPreferences.setMockInitialValues({});
+    final storage = await NoteStorage.create();
+    await storage.saveBoards([Board(id: 'default', name: '')]);
+    await storage.saveNotes([]);
+    final c = NotesController(storage, ReminderService());
+    final board = c.addMemoryWall(
+      'Trip',
+      ['a.jpg', 'b.jpg'],
+      MemoryLayout.prints,
+      frame: PhotoFrame.film,
+    );
+    c.selectBoard('default');
+    final undo = c.addPrintsTo(board.id, ['c.jpg', 'd.jpg']);
+    expect(c.currentBoardId, board.id, reason: 'opens the wall');
+    final prints = c.printsOn(board.id);
+    expect(prints.map((n) => n.imagePath), [
+      'a.jpg',
+      'b.jpg',
+      'c.jpg',
+      'd.jpg',
+    ]);
+    expect(prints.every((n) => n.frame == PhotoFrame.film), isTrue);
+    undo();
+    expect(c.printsOn(board.id).map((n) => n.imagePath), ['a.jpg', 'b.jpg']);
   });
 }
