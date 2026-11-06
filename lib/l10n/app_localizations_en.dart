@@ -687,6 +687,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fitAll => 'Show everything';
 
   @override
+  String notesThisWay(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes this way',
+      one: '1 note this way',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get gestureTips => 'Gesture tips';
 
   @override

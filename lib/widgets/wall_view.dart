@@ -34,6 +34,12 @@ class WallHandle {
 
   /// Glides the camera out (or in) until every note is in view.
   void fitAll() => _state?._fitAll();
+
+  /// Where a new note should go so it lands in the middle of what is on
+  /// screen (as fractions, like [Note.x]); null while the camera is at rest
+  /// or the wall is not showing, when the usual place near the middle of
+  /// the wall is in view anyway.
+  Offset? newNoteSpot() => _state?._viewSpot();
 }
 
 /// The wall's pan/zoom, shared between [WallView] (which drives it) and the
@@ -180,6 +186,7 @@ class WallView extends StatefulWidget {
     this.isDimmed,
     this.resetZoomTooltip = 'Reset zoom',
     this.fitAllTooltip = 'Show everything',
+    this.notesThisWay,
     this.rotateTooltip = 'Rotate',
     this.resizeTooltip = 'Resize',
     this.stackSizeOf,
@@ -274,6 +281,9 @@ class WallView extends StatefulWidget {
 
   final String resetZoomTooltip;
   final String fitAllTooltip;
+
+  /// The words on an edge arrow pointing at [count] notes out of view.
+  final String Function(int count)? notesThisWay;
   final String rotateTooltip;
   final String resizeTooltip;
 
@@ -602,6 +612,130 @@ class _WallViewState extends State<WallView>
       Offset(_pad + note.x * _rangeX(w, scale), _pad + note.y * _rangeY(h));
 
   /// The fraction of the home area a content top-left corresponds to.
+  /// The middle of what is on screen, as the fractions a new note gets so
+  /// it sits there (a little scattered, so several do not stack exactly);
+  /// null at rest.
+  Offset? _viewSpot() {
+    final w = _size.width;
+    final h = _size.height;
+    if (!mounted || w <= 0 || h <= 0 || _tc.value == _home) return null;
+    final inverse = Matrix4.tryInvert(_tc.value);
+    if (inverse == null) return null;
+    final rng = math.Random();
+    final middle = MatrixUtils.transformPoint(
+      inverse,
+      Offset(w / 2, widget.topInset + h * .42),
+    );
+    final topLeft = Offset(
+      (middle.dx - _cardWidth / 2 + (rng.nextDouble() - .5) * 48).clamp(
+        0.0,
+        w + 2 * _pad - _cardWidth,
+      ),
+      (middle.dy - 60 + (rng.nextDouble() - .5) * 40).clamp(
+        0.0,
+        h + 2 * _pad - _bottomInset,
+      ),
+    );
+    return _fractionOf(topLeft, 1, w, h);
+  }
+
+  /// Notes out of view under camera [m], gathered into the eight directions
+  /// seen from the middle of the screen: for each, where its arrow sits on
+  /// the edge, which way it points, and the notes' middle (in content
+  /// coordinates) to glide to.
+  List<({Offset at, double angle, int count, Offset target})> _offscreen(
+    Matrix4 m,
+  ) {
+    final w = _size.width;
+    final h = _size.height;
+    if (w <= 0 || h <= 0) return const [];
+    final view = Rect.fromLTWH(0, widget.topInset, w, h);
+    final centre = view.center;
+    final sums = <int, (Offset view, Offset content, int count)>{};
+    for (final note in widget.notes) {
+      final box = _boxOf(note, w, h);
+      final r = MatrixUtils.transformRect(m, box);
+      if (r.overlaps(view.deflate(24))) continue;
+      final d = r.center - centre;
+      final sector =
+          ((math.atan2(d.dy, d.dx) + math.pi / 8) / (math.pi / 4)).floor() % 8;
+      final s = sums[sector];
+      sums[sector] = s == null
+          ? (r.center, box.center, 1)
+          : (s.$1 + r.center, s.$2 + box.center, s.$3 + 1);
+    }
+    // Arrows stay clear of the camera button at the top and the edges.
+    final lane = Rect.fromLTRB(
+      view.left + 30,
+      view.top + 72,
+      view.right - 30,
+      view.bottom - 30,
+    );
+    return [
+      for (final MapEntry(value: (sumView, sumContent, count)) in sums.entries)
+        () {
+          final towards = sumView / count.toDouble() - centre;
+          final angle = math.atan2(towards.dy, towards.dx);
+          final dx = math.cos(angle);
+          final dy = math.sin(angle);
+          final halfW = lane.width / 2;
+          final halfH = lane.height / 2;
+          final t = math.min(
+            dx.abs() < 1e-6 ? double.infinity : halfW / dx.abs(),
+            dy.abs() < 1e-6 ? double.infinity : halfH / dy.abs(),
+          );
+          return (
+            at: lane.center + Offset(dx, dy) * t,
+            angle: angle,
+            count: count,
+            target: sumContent / count.toDouble(),
+          );
+        }(),
+    ];
+  }
+
+  /// Glides the camera, at the same zoom, until [target] (content
+  /// coordinates) is in the middle of the screen.
+  void _glideTo(Offset target) {
+    final w = _size.width;
+    final h = _size.height;
+    final zoom = _tc.value.getMaxScaleOnAxis();
+    final to = Matrix4.identity()
+      ..translateByDouble(
+        w / 2 - zoom * target.dx,
+        widget.topInset + h / 2 - zoom * target.dy,
+        0,
+        1,
+      )
+      ..scaleByDouble(zoom, zoom, 1, 1);
+    HapticFeedback.selectionClick();
+    _animateCamera(to);
+  }
+
+  /// Small arrows on the screen's edge, one for each direction where notes
+  /// are out of view, with how many; a tap glides there.
+  Widget _edgeArrows() => Positioned.fill(
+    child: ValueListenableBuilder<Matrix4>(
+      valueListenable: _tc,
+      builder: (context, m, _) => Stack(
+        children: [
+          for (final a in _offscreen(m))
+            Positioned(
+              left: a.at.dx - 22,
+              top: a.at.dy - 22,
+              child: _EdgeArrow(
+                key: ValueKey('edge-arrow-${a.angle.toStringAsFixed(1)}'),
+                angle: a.angle,
+                count: a.count,
+                label: widget.notesThisWay?.call(a.count),
+                onTap: () => _glideTo(a.target),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
+
   Offset _fractionOf(Offset topLeft, double scale, double w, double h) =>
       Offset(
         (topLeft.dx - _pad) / _rangeX(w, scale),
@@ -1249,6 +1383,7 @@ class _WallViewState extends State<WallView>
                   },
                 ),
               ),
+            if (!widget.still && !widget.marking) _edgeArrows(),
             if (_probes.isNotEmpty) _tidyProbes(),
           ],
         );

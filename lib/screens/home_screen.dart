@@ -461,7 +461,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       await _addSticker();
       return;
     }
-    await _openEditor(_notes.draft()..type = type, isNew: true);
+    await _openEditor(_draftHere()..type = type, isNew: true);
   }
 
   /// A memory wall: several photos from the gallery, then a layout and a
@@ -521,11 +521,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   /// Picks a sticker and sticks it on the wall, at [x],[y] when the user
   /// long-pressed a spot.
+  /// Where the camera is pointing on the wall, for something new; null in
+  /// the grid or list, or with the wall at rest.
+  Offset? get _hereOnWall =>
+      _notes.viewMode == ViewMode.wall ? _wallHandle.newNoteSpot() : null;
+
+  /// A blank note that lands in the middle of what is on screen.
+  Note _draftHere() {
+    final at = _hereOnWall;
+    return at == null ? _notes.draft() : _notes.draftAt(at.dx, at.dy);
+  }
+
   Future<void> _addSticker({double? x, double? y}) async {
     final id = await showStickerPicker(context);
     if (id == null || !mounted) return;
     if (_notes.viewMode != ViewMode.wall) _notes.viewMode = ViewMode.wall;
-    _notes.addSticker(id, x: x, y: y);
+    final here = x == null || y == null ? _hereOnWall : null;
+    _notes.addSticker(id, x: x ?? here?.dx, y: y ?? here?.dy);
     _maybeOfferPro();
   }
 
@@ -879,7 +891,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
     if (stored.isEmpty || !mounted) return;
-    final created = _notes.addPhotos(stored, x: x, y: y);
+    final here = x == null || y == null ? _hereOnWall : null;
+    final created = _notes.addPhotos(
+      stored,
+      x: x ?? here?.dx,
+      y: y ?? here?.dy,
+    );
     _toast(_l10n.photosPinned(created.length));
   }
 
@@ -1389,6 +1406,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         isDimmed: (n) => _notes.isFiltering && !_notes.matches(n),
         resetZoomTooltip: _l10n.resetZoom,
         fitAllTooltip: _l10n.fitAll,
+        notesThisWay: _l10n.notesThisWay,
         rotateTooltip: _l10n.rotate,
         resizeTooltip: _l10n.resize,
         stackSizeOf: (n) => _notes.stackOf(n).length,

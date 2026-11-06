@@ -1274,6 +1274,12 @@ abstract class AppLocalizations {
   /// **'Show everything'**
   String get fitAll;
 
+  /// No description provided for @notesThisWay.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 note this way} other{{count} notes this way}}'**
+  String notesThisWay(int count);
+
   /// No description provided for @gestureTips.
   ///
   /// In en, this message translates to:

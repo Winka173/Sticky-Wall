@@ -425,3 +425,79 @@ class _GuidePainter extends CustomPainter {
   @override
   bool shouldRepaint(_GuidePainter old) => old.lines != lines;
 }
+
+/// An arrow on the screen's edge pointing at notes out of view, with how
+/// many when more than one. A tap glides the camera to them.
+class _EdgeArrow extends StatelessWidget {
+  const _EdgeArrow({
+    super.key,
+    required this.angle,
+    required this.count,
+    required this.onTap,
+    this.label,
+  });
+
+  final double angle;
+  final int count;
+  final VoidCallback onTap;
+  final String? label;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    excludeSemantics: true,
+    child: Tooltip(
+      message: label ?? '',
+      child: Material(
+        color: AppColors.overlayDark,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: SizedBox.square(
+            dimension: 44,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                Transform.rotate(
+                  angle: angle,
+                  child: const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 22,
+                    color: Colors.white,
+                  ),
+                ),
+                if (count > 1)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      constraints: const BoxConstraints(minWidth: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      height: 20,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.accent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        count > 99 ? '99+' : '$count',
+                        style: const TextStyle(
+                          fontFamily: 'BeVietnamPro',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}

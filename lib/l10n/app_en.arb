@@ -233,6 +233,10 @@
     "placeholders": { "count": { "type": "int" }, "name": { "type": "String" } }
   },
   "fitAll": "Show everything",
+  "notesThisWay": "{count, plural, =1{1 note this way} other{{count} notes this way}}",
+  "@notesThisWay": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "gestureTips": "Gesture tips",
   "settingsTitle": "Settings",
   "settingsGeneral": "General",

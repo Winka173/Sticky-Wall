@@ -676,6 +676,11 @@ class AppLocalizationsVi extends AppLocalizations {
   String get fitAll => 'Xem toàn cảnh';
 
   @override
+  String notesThisWay(int count) {
+    return '$count ghi chú ở hướng này';
+  }
+
+  @override
   String get gestureTips => 'Mẹo cử chỉ';
 
   @override

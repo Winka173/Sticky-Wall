@@ -777,6 +777,64 @@ void main() {
     expect(find.byTooltip('Done'), findsOneWidget);
   });
 
+  testWidgets('panned away, a new note lands in view and an arrow points '
+      'back to the others', (tester) async {
+    final notes = await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Back home',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+          x: 0.3,
+          y: 0.3,
+        ),
+      ],
+    );
+    expect(
+      find.byTooltip('1 note this way'),
+      findsNothing,
+      reason: 'everything in view: no arrow',
+    );
+
+    // Pan the wall far to the left (so the note goes off to the right).
+    final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+    final start = Offset(screen.width * .8, screen.height * .7);
+    final pan = await tester.startGesture(start);
+    for (var i = 0; i < 12; i++) {
+      await pan.moveBy(const Offset(-60, 0));
+      await tester.pump();
+    }
+    await pan.up();
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('1 note this way'), findsOneWidget);
+
+    await _openEditor(tester);
+    await tester.enterText(find.byType(TextField).first, 'Over here');
+    await tester.tap(_saveButton);
+    await tester.pumpAndSettle();
+    final added = notes.boardNotes.firstWhere((n) => n.content == 'Over here');
+    expect(added.x, greaterThan(1), reason: 'past the right of the home area');
+    final box = tester.getRect(find.text('Over here'));
+    expect(
+      (Offset.zero & screen).contains(box.center),
+      isTrue,
+      reason: 'on screen',
+    );
+
+    // The arrow glides back to the first note.
+    await tester.tap(find.byTooltip('1 note this way'));
+    await tester.pumpAndSettle();
+    expect(
+      (Offset.zero & screen).contains(
+        tester.getRect(find.text('Back home')).center,
+      ),
+      isTrue,
+    );
+  });
+
   testWidgets('double-tapping a note zooms the wall onto it and back', (
     tester,
   ) async {

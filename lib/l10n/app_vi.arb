@@ -196,6 +196,7 @@
   "copyToBoard": "Sao chép sang bảng khác",
   "copiedToBoard": "{count, plural, other{Đã sao chép {count} ghi chú sang “{name}”}}",
   "fitAll": "Xem toàn cảnh",
+  "notesThisWay": "{count} ghi chú ở hướng này",
   "gestureTips": "Mẹo cử chỉ",
   "settingsTitle": "Cài đặt",
   "settingsGeneral": "Chung",
