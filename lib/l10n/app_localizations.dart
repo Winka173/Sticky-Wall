@@ -4178,6 +4178,12 @@ abstract class AppLocalizations {
   /// **'Next'**
   String get guideNext;
 
+  /// No description provided for @guideDoItForMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Do it for me'**
+  String get guideDoItForMe;
+
   /// No description provided for @guideScatterTop.
   ///
   /// In en, this message translates to:

@@ -6,9 +6,8 @@ part of 'note_dialog.dart';
 extension _EditorPieces on _NoteDialogState {
   // --- pieces ---------------------------------------------------------------
 
-  /// The adhesive strip along the top carries Cancel, Delete (an existing
-  /// note) and Save, so each is one tap away and never hidden under the
-  /// keyboard.
+  /// The adhesive strip along the top carries Cancel and Save, so saving is
+  /// always one tap away and never hidden under the keyboard.
   Widget _topStrip(AppLocalizations l10n) {
     return Container(
       constraints: const BoxConstraints(minHeight: 56),
@@ -40,18 +39,6 @@ extension _EditorPieces on _NoteDialogState {
             },
           ),
           const Spacer(),
-          // To the Trash, with Undo on the wall: no question asked.
-          if (widget.onDelete != null)
-            IconButton(
-              key: const Key('editor-delete'),
-              tooltip: l10n.delete,
-              color: AppColors.deleteIcon,
-              icon: const Icon(AppIcons.delete),
-              onPressed: () {
-                Navigator.of(context).pop();
-                widget.onDelete?.call();
-              },
-            ),
           Padding(
             padding: const EdgeInsets.only(right: 4),
             child: IconButton.filled(
@@ -749,6 +736,21 @@ extension _EditorPieces on _NoteDialogState {
                 icon: const Icon(AppIcons.pin, size: 22),
                 selectedIcon: const Icon(Icons.push_pin, size: 22),
               ),
+              // To the Trash, with Undo on the wall: at the far end of the
+              // tools, well away from Save.
+              if (widget.onDelete != null) ...[
+                const Spacer(),
+                IconButton(
+                  key: const Key('editor-delete'),
+                  tooltip: l10n.delete,
+                  color: AppColors.deleteIcon,
+                  icon: const Icon(AppIcons.delete, size: 22),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    widget.onDelete?.call();
+                  },
+                ),
+              ],
             ],
           ),
         ),

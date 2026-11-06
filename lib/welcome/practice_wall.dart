@@ -21,8 +21,12 @@ enum PracticeStep { add, move, tie, done }
 /// Everything is dark except the one thing to do, in a lit window with a
 /// label beside it: tap the yellow paper (a note appears), drag the note
 /// onto the dashed spot, pull its red pin onto another note. A line at the
-/// top says what is on screen; Next, at the bottom, does a step for anyone
-/// who cannot make the gesture.
+/// top says what is on screen. For the two gestures a hand shows the move
+/// a few times (a ghost of the note slides onto the spot; a thread is
+/// pulled from the pin onto Saturday), and stops as soon as a finger is
+/// down. Next, at the bottom, does a step for anyone who cannot make the
+/// gesture; after a miss, or once the hand has shown it twice, it turns
+/// into a bright "Do it for me".
 ///
 /// [top] and [bottom] leave room for the guide's own bar and the system's.
 /// With [still] it is a picture of that step for the manual: no top line,
@@ -47,8 +51,31 @@ class PracticeWall extends StatefulWidget {
   State<PracticeWall> createState() => PracticeWallState();
 }
 
-class PracticeWallState extends State<PracticeWall> {
+class PracticeWallState extends State<PracticeWall>
+    with SingleTickerProviderStateMixin {
   late PracticeStep step = widget.still ?? PracticeStep.add;
+
+  /// The hand showing the gesture: a pause, then press, move, let go. It
+  /// plays [_shows] times and rests; a miss plays it again.
+  late final AnimationController _demo =
+      AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 3400),
+      )..addStatusListener((status) {
+        if (status != AnimationStatus.completed || !mounted) return;
+        setState(() => _shown++);
+        if (_shown < _shows) _demo.forward(from: 0);
+      });
+  static const _shows = 3;
+  int _shown = 0;
+
+  /// Let go short of the target this step.
+  int _misses = 0;
+
+  /// Help is pressed on: after a miss, or the hand has shown it twice.
+  bool get _stuck => _misses > 0 || _shown >= 2;
+
+  bool get _gesture => step == PracticeStep.move || step == PracticeStep.tie;
 
   final _stage = GlobalKey();
   final _addKey = GlobalKey();
@@ -74,8 +101,56 @@ class PracticeWallState extends State<PracticeWall> {
           ? HapticFeedback.mediumImpact()
           : HapticFeedback.selectionClick();
     }
-    setState(() => step = next);
+    setState(() {
+      step = next;
+      _misses = 0;
+      _shown = 0;
+    });
     widget.onStep?.call(next);
+    _showHand();
+  }
+
+  /// Plays the hand from the start (only on the two gesture steps).
+  void _showHand() {
+    _demo.stop();
+    if (widget.still != null || !_gesture) {
+      _demo.value = 0;
+      return;
+    }
+    if (guideMoves(context)) {
+      _demo.forward(from: 0);
+    } else {
+      // Without motion: one still frame, mid-gesture.
+      _demo.value = .55;
+    }
+  }
+
+  /// A finger is down: the hand steps aside.
+  void _handAway() {
+    _demo.stop();
+    _demo.value = 0;
+  }
+
+  /// Let go short of the target: count it and show the move again.
+  void _missed() {
+    setState(() {
+      _misses++;
+      _shown = 0;
+    });
+    _showHand();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Made now, never first in dispose.
+    _demo.value = 0;
+  }
+
+  @override
+  void dispose() {
+    _demo.dispose();
+    super.dispose();
   }
 
   /// Does the current step, for those who cannot make the gesture.
@@ -176,11 +251,16 @@ class PracticeWallState extends State<PracticeWall> {
                         child: GestureDetector(
                           key: const Key('guide-practice-note'),
                           behavior: HitTestBehavior.opaque,
+                          // A tap is a try too: the hand shows the drag.
+                          onTap: _gesture ? _showHand : null,
                           onPanStart: step == PracticeStep.move
-                              ? (_) => setState(() {
-                                  _dragging = true;
-                                  _free = newAt;
-                                })
+                              ? (_) {
+                                  _handAway();
+                                  setState(() {
+                                    _dragging = true;
+                                    _free = newAt;
+                                  });
+                                }
                               : null,
                           onPanUpdate: step == PracticeStep.move
                               ? (d) => setState(
@@ -245,6 +325,16 @@ class PracticeWallState extends State<PracticeWall> {
                 ],
               ),
             ),
+            // The hand showing the gesture, above the dark.
+            if (_gesture && !still)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _demo,
+                    builder: (context, _) => _hand(layout, newAt, l10n),
+                  ),
+                ),
+              ),
             // What is on screen, lit above the dark.
             if (task != null && !still)
               Positioned(
@@ -262,35 +352,141 @@ class PracticeWallState extends State<PracticeWall> {
               Positioned(
                 left: 8,
                 bottom: widget.bottom + 20,
-                child: TextButton(
-                  key: const Key('guide-practice-next'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.chalk,
-                    minimumSize: const Size(64, AppMetrics.target),
-                    textStyle: const TextStyle(
-                      fontFamily: 'BeVietnamPro',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  onPressed: skipStep,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(l10n.guideNext),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.arrow_forward,
-                        size: 18,
-                        color: AppColors.chalk,
+                child: _stuck && _gesture
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: FilledButton.icon(
+                          key: const Key('guide-practice-next'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.chalk,
+                            foregroundColor: AppColors.ink,
+                            minimumSize: const Size(64, AppMetrics.target),
+                            textStyle: const TextStyle(
+                              fontFamily: 'BeVietnamPro',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            shape: const StadiumBorder(),
+                          ),
+                          onPressed: skipStep,
+                          icon: const Icon(Icons.auto_fix_high, size: 18),
+                          label: Text(l10n.guideDoItForMe),
+                        ),
+                      )
+                    : TextButton(
+                        key: const Key('guide-practice-next'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.chalk,
+                          minimumSize: const Size(64, AppMetrics.target),
+                          textStyle: const TextStyle(
+                            fontFamily: 'BeVietnamPro',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: skipStep,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(l10n.guideNext),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.arrow_forward,
+                              size: 18,
+                              color: AppColors.chalk,
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
               ),
           ],
         );
       },
+    );
+  }
+
+  /// The hand at this moment of its show: on the move step it slides a
+  /// ghost of the note onto the spot; on the tie step it pulls a thread from
+  /// the pin onto Saturday.
+  Widget _hand(_Layout layout, Offset newAt, AppLocalizations l10n) {
+    final t = _demo.value;
+    // 0–.22 rest, .22–.32 press, .32–.78 move, .78–.88 let go, then fade.
+    if (t < .22) return const SizedBox.shrink();
+    final appear = Curves.easeOut.transform(guideSlice(t, .22, .32));
+    final fade = 1 - Curves.easeIn.transform(guideSlice(t, .88, 1));
+    final along = Curves.easeInOutCubic.transform(guideSlice(t, .32, .78));
+    final pressed = t >= .26 && t < .84;
+    final card = layout.card;
+    final (from, to) = step == PracticeStep.move
+        ? (
+            newAt + Offset(card * .5, card * .4),
+            layout.spot + Offset(card * .5, 14 + card * .36),
+          )
+        : (
+            _pinOf(newAt, layout),
+            _pinOf(layout.day, layout) + const Offset(0, 34),
+          );
+    final at = Offset.lerp(from, to, along)!;
+    return Opacity(
+      opacity: (appear * fade).clamp(0.0, 1.0),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          if (pressed && step == PracticeStep.move)
+            Positioned(
+              left: at.dx - card * .5,
+              top: at.dy - card * .4,
+              width: card,
+              child: Opacity(
+                opacity: .55,
+                child: _card(
+                  id: 'ghost',
+                  words: l10n.guideNoteWater,
+                  paper: 0,
+                  cb: _still,
+                  raised: true,
+                ),
+              ),
+            ),
+          if (pressed && step == PracticeStep.tie)
+            Positioned.fill(
+              child: Opacity(
+                opacity: .8,
+                child: CustomPaint(
+                  painter: _ThreadsPainter(from: from, to: at, tied: false),
+                ),
+              ),
+            ),
+          // The fingertip's ring, then the hand pointing at it.
+          Positioned(
+            left: at.dx - 18,
+            top: at.dy - 18,
+            child: AnimatedScale(
+              scale: pressed ? 1 : .4,
+              duration: const Duration(milliseconds: 160),
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0x55FDFBF3),
+                  border: Border.all(color: AppColors.chalk, width: 2),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: at.dx - 19,
+            top: at.dy - 4,
+            child: const Icon(
+              Icons.touch_app,
+              size: 48,
+              color: AppColors.chalk,
+              shadows: [Shadow(color: Colors.black87, blurRadius: 8)],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -299,24 +495,30 @@ class PracticeWallState extends State<PracticeWall> {
     at.dy.clamp(widget.top, math.max(widget.top, layout.size.height - 120)),
   );
 
-  /// Let go: on (or near) the spot, the note settles there.
+  /// Let go: on (or near) the spot, the note settles there; short of it,
+  /// the hand shows the way again.
   void _drop(_Layout layout) {
     final at = _free;
     setState(() => _dragging = false);
     if (at == null) return;
-    if ((at - layout.spot).distance < layout.card * .6) {
+    if ((at - layout.spot).distance < layout.card * .8) {
       _free = null;
       _go(PracticeStep.tie);
+    } else {
+      _missed();
     }
   }
 
   /// The new note's pin, which a thread can be pulled out of.
   NoteCallbacks _pinPull(_Layout layout) => NoteCallbacks(
-    onEdit: () {},
-    onTogglePin: () {},
+    onEdit: _showHand,
+    onTogglePin: _showHand,
     onToggleItem: (_) {},
-    onLongPress: () {},
-    onPinDragStart: (g) => setState(() => _pull = _local(g)),
+    onLongPress: _showHand,
+    onPinDragStart: (g) {
+      _handAway();
+      setState(() => _pull = _local(g));
+    },
     onPinDragUpdate: (g) => setState(() => _pull = _local(g)),
     onPinDragEnd: (g) {
       final end = g == Offset.zero ? null : _local(g);
@@ -325,6 +527,8 @@ class PracticeWallState extends State<PracticeWall> {
       if (onto != null) {
         _tiedTo = onto;
         _go(PracticeStep.done);
+      } else {
+        _missed();
       }
     },
   );
@@ -341,7 +545,7 @@ class PracticeWallState extends State<PracticeWall> {
       final stage = _stage.currentContext?.findRenderObject();
       if (box is! RenderBox || stage is! RenderBox || !box.hasSize) continue;
       final r = box.localToGlobal(Offset.zero, ancestor: stage) & box.size;
-      if (r.inflate(16).contains(local)) return id;
+      if (r.inflate(28).contains(local)) return id;
     }
     return null;
   }

@@ -125,7 +125,7 @@ then taken well beyond it.
   never hidden by the keyboard; validation is inline (the paper shakes).
   Back or a tap beside the paper keeps the note, like the tick; only the ✕
   throws an edit away, and asks first (so does Back when what is on the
-  paper cannot be saved). An open note has a bin on its top strip, next to Save, and the emoji and pin are buttons of their own under the paper (no ⋯ menu); a reminder set in the past, or one that
+  paper cannot be saved). An open note has a bin at the far right of its tool row, away from Save, and the emoji and pin are buttons of their own there (no ⋯ menu); a reminder set in the past, or one that
   cannot ring because notifications are off, is said so on the paper
   Under a text note's field, **bold / italic / bullet** buttons put light
   markup into the text (`**bold**`, `*italic*`, `- item`) and the card

@@ -254,6 +254,41 @@ void main() {
     expect(app.storage.welcomePending, isFalse);
   });
 
+  testWidgets('a hand shows each gesture; a miss brings up Do it for me', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await _primary(tester);
+    await _primary(tester);
+    await tester.tap(find.byKey(const Key('guide-practice-add')));
+    await tester.pump();
+    // Past the pause the hand shows the drag, with a ghost of the note.
+    await tester.pump(const Duration(milliseconds: 1800));
+    expect(find.byIcon(Icons.touch_app), findsOneWidget);
+    expect(find.text('Water the plants'), findsNWidgets(2));
+    await tester.pumpAndSettle();
+    expect(find.text('Do it for me'), findsOneWidget, reason: 'shown twice');
+
+    // A fresh step starts calm again; letting go short of the spot is a
+    // miss, which brings the help straight back.
+    await tester.tap(find.byKey(const Key('guide-practice-next')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Do it for me'), findsNothing);
+    expect(find.text('Next'), findsOneWidget);
+    final note = find.byKey(const Key('guide-practice-note'));
+    final pin =
+        tester.getTopLeft(note) + Offset(tester.getSize(note).width / 2, 12);
+    final pull = await tester.startGesture(pin);
+    await pull.moveBy(const Offset(-40, 60));
+    await tester.pump();
+    await pull.up();
+    await tester.pump();
+    expect(find.text('Do it for me'), findsOneWidget);
+    await tester.tap(find.text('Do it for me'));
+    await tester.pumpAndSettle();
+    expect(find.byType(GuideCheck), findsOneWidget);
+  });
+
   testWidgets('Android back steps back, and leaves from the first beat', (
     tester,
   ) async {

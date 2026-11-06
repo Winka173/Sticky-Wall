@@ -2306,6 +2306,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get guideNext => 'Tiếp';
 
   @override
+  String get guideDoItForMe => 'Làm giúp tôi';
+
+  @override
   String get guideScatterTop => 'Ghi chú khắp nơi.';
 
   @override

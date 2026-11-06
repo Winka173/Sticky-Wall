@@ -2351,6 +2351,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guideNext => 'Next';
 
   @override
+  String get guideDoItForMe => 'Do it for me';
+
+  @override
   String get guideScatterTop => 'Notes everywhere.';
 
   @override
