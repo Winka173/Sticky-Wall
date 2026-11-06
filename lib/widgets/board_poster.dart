@@ -215,29 +215,14 @@ class _BoardPosterPageState extends State<BoardPosterPage> {
         title: Text(l10n.exportBoard),
         actions: [
           if (widget.onShowOnWidget != null)
-            PopupMenuButton<String>(
-              tooltip: l10n.moreActions,
-              enabled: !_busy,
+            // Its only extra, so a button of its own rather than a ⋮.
+            IconButton(
+              key: const Key('poster-widget'),
+              tooltip: l10n.putOnHomeScreen,
+              onPressed: _busy ? null : () => _toWidget(l10n),
               icon: _working == 'widget'
                   ? const _Spinner(color: AppColors.chalk)
-                  : null,
-              onSelected: (_) => _toWidget(l10n),
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'widget',
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.widgets_outlined,
-                        size: 18,
-                        color: AppColors.ink,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(l10n.putOnHomeScreen),
-                    ],
-                  ),
-                ),
-              ],
+                  : const Icon(Icons.widgets_outlined),
             ),
         ],
       ),

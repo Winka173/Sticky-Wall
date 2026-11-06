@@ -253,9 +253,8 @@ void main() {
 
     await tester.tap(find.byTooltip('All boards'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('More').last);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Duplicate board'));
+    // Duplicate sits under the card, not behind a ⋮.
+    await tester.tap(find.byKey(Key('board-duplicate-${work.id}')));
     await tester.pumpAndSettle();
     final copy = notes.currentBoard;
     expect(copy.name, 'Work (copy)');

@@ -6,8 +6,9 @@ part of 'note_dialog.dart';
 extension _EditorPieces on _NoteDialogState {
   // --- pieces ---------------------------------------------------------------
 
-  /// The adhesive strip along the top carries Cancel and Save, so saving is
-  /// always one tap away and never hidden under the keyboard.
+  /// The adhesive strip along the top carries Cancel, Delete (an existing
+  /// note) and Save, so each is one tap away and never hidden under the
+  /// keyboard.
   Widget _topStrip(AppLocalizations l10n) {
     return Container(
       constraints: const BoxConstraints(minHeight: 56),
@@ -39,6 +40,18 @@ extension _EditorPieces on _NoteDialogState {
             },
           ),
           const Spacer(),
+          // To the Trash, with Undo on the wall: no question asked.
+          if (widget.onDelete != null)
+            IconButton(
+              key: const Key('editor-delete'),
+              tooltip: l10n.delete,
+              color: AppColors.deleteIcon,
+              icon: const Icon(AppIcons.delete),
+              onPressed: () {
+                Navigator.of(context).pop();
+                widget.onDelete?.call();
+              },
+            ),
           Padding(
             padding: const EdgeInsets.only(right: 4),
             child: IconButton.filled(
@@ -714,54 +727,27 @@ extension _EditorPieces on _NoteDialogState {
                   icon: const Icon(Icons.palette_outlined, size: 22),
                   selectedIcon: const Icon(Icons.palette, size: 22),
                 ),
-              PopupMenuButton<String>(
-                tooltip: l10n.editorOptions,
-                icon: const Icon(AppIcons.more),
-                onSelected: (value) {
-                  if (value == 'emote') {
-                    _update(() {
-                      _showEmoji = !_showEmoji;
-                      _showColors = false;
-                    });
-                  } else if (value == 'pin') {
-                    _update(() => _n.pinned = !_n.pinned);
-                  } else if (value == 'delete') {
-                    Navigator.of(context).pop();
-                    widget.onDelete?.call();
-                  }
-                },
-                itemBuilder: (_) => [
-                  PopupMenuItem(
-                    value: 'emote',
-                    child: ListTile(
-                      leading: const Icon(AppIcons.sticker),
-                      title: Text(l10n.emote),
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'pin',
-                    child: ListTile(
-                      leading: const Icon(AppIcons.pin),
-                      title: Text(_n.pinned ? l10n.unpin : l10n.pin),
-                    ),
-                  ),
-                  if (widget.onDelete != null) ...[
-                    const PopupMenuDivider(),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: ListTile(
-                        leading: const Icon(
-                          AppIcons.delete,
-                          color: AppColors.deleteIcon,
-                        ),
-                        title: Text(
-                          l10n.delete,
-                          style: const TextStyle(color: AppColors.deleteIcon),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
+              // Emoji and pin in plain sight, not behind a ⋯.
+              IconButton(
+                key: const Key('editor-emote'),
+                tooltip: l10n.emote,
+                isSelected: _showEmoji || _n.emoji.isNotEmpty,
+                onPressed: () => _update(() {
+                  _showEmoji = !_showEmoji;
+                  _showColors = false;
+                }),
+                color: _NoteDialogState._ink,
+                icon: const Icon(AppIcons.sticker, size: 22),
+                selectedIcon: const Icon(Icons.emoji_emotions, size: 22),
+              ),
+              IconButton(
+                key: const Key('editor-pin'),
+                tooltip: _n.pinned ? l10n.unpin : l10n.pin,
+                isSelected: _n.pinned,
+                onPressed: () => _update(() => _n.pinned = !_n.pinned),
+                color: _NoteDialogState._ink,
+                icon: const Icon(AppIcons.pin, size: 22),
+                selectedIcon: const Icon(Icons.push_pin, size: 22),
               ),
             ],
           ),

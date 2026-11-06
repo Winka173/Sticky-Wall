@@ -1750,9 +1750,8 @@ void _quickFlows() {
     );
     await tester.tap(find.text('Old idea'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Note options'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Delete').last);
+    // The bin sits on the strip at the top, next to Save.
+    await tester.tap(find.byKey(const Key('editor-delete')));
     await tester.pumpAndSettle();
     expect(notes.boardNotes, isEmpty);
     expect(find.text('Undo'), findsWidgets);

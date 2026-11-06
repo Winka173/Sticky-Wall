@@ -73,8 +73,8 @@ then taken well beyond it.
 - **First run**: the sample wall under a choice of a template, a blank
   wall or exploring the samples
 - **All boards** (the grid button before the tabs): a picture of each
-  board drawn from its notes, its note count; open, duplicate (Undo) or
-  delete
+  board drawn from its notes, its note count; open it, and pin, duplicate (Undo) or delete it with the buttons
+  under its card
 - **Shares** from other apps go straight onto a board you pick, with Open
   and Undo, instead of opening the editor
 - Board names are plain text with an optional emoji; seasonal packs can be
@@ -125,7 +125,7 @@ then taken well beyond it.
   never hidden by the keyboard; validation is inline (the paper shakes).
   Back or a tap beside the paper keeps the note, like the tick; only the ✕
   throws an edit away, and asks first (so does Back when what is on the
-  paper cannot be saved). An open note has a bin beside the ✕; a reminder set in the past, or one that
+  paper cannot be saved). An open note has a bin on its top strip, next to Save, and the emoji and pin are buttons of their own under the paper (no ⋯ menu); a reminder set in the past, or one that
   cannot ring because notifications are off, is said so on the paper
   Under a text note's field, **bold / italic / bullet** buttons put light
   markup into the text (`**bold**`, `*italic*`, `- item`) and the card

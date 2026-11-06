@@ -9,8 +9,8 @@ import '../theme.dart';
 import 'wall_background.dart';
 
 /// Every board as a card: a picture of its wall drawn from its notes, its
-/// name and how many notes it holds. Tap to open one; its ⋮ duplicates or
-/// deletes it. A shut private board shows only its lock.
+/// name and how many notes it holds. Tap to open one; the buttons under it
+/// pin, duplicate or delete it. A shut private board shows only its lock.
 Future<void> showBoardPicker(
   BuildContext context, {
   required NotesController notes,
@@ -67,7 +67,7 @@ class _BoardPicker extends StatelessWidget {
                   maxCrossAxisExtent: 200,
                   mainAxisSpacing: 14,
                   crossAxisSpacing: 14,
-                  childAspectRatio: 0.62,
+                  childAspectRatio: 0.54,
                 ),
                 itemCount: ordered.length,
                 itemBuilder: (context, i) => _BoardCard(
@@ -106,7 +106,7 @@ class _BoardCard extends StatelessWidget {
     ];
     final name = board.name.isEmpty ? l10n.defaultBoardName : board.name;
     final wall = wallFor(board, night: isNight(context));
-    return Semantics(
+    final tappable = Semantics(
       button: true,
       selected: selected,
       label: '$name, ${l10n.boardNoteCount(shut ? 0 : onBoard.length)}',
@@ -182,65 +182,6 @@ class _BoardCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                PopupMenuButton<String>(
-                  tooltip: l10n.moreActions,
-                  padding: EdgeInsets.zero,
-                  icon: const Icon(Icons.more_vert, size: 20),
-                  onSelected: (v) async {
-                    if (v == 'duplicate') {
-                      final copy = notes.duplicateBoard(
-                        board.id,
-                        l10n.boardCopyName(name),
-                      );
-                      // The copy is open now; the sheet steps aside so its
-                      // Undo can be reached.
-                      final messenger = ScaffoldMessenger.of(context);
-                      Navigator.pop(context);
-                      messenger
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(
-                          SnackBar(
-                            // Closes by itself, Undo or not.
-                            persist: false,
-                            content: Text(l10n.boardDuplicated),
-                            action: SnackBarAction(
-                              label: l10n.undo,
-                              // Takes the copy back out entirely: it was
-                              // never meant to wait in the Trash.
-                              onPressed: () => notes
-                                ..deleteBoard(copy.id)
-                                ..deleteBoardForever(copy.id),
-                            ),
-                          ),
-                        );
-                    } else if (v == 'favorite') {
-                      notes.toggleFavorite(board.id);
-                    } else if (v == 'delete') {
-                      await onDelete(board);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'favorite',
-                      child: Text(
-                        board.favorite ? l10n.unpinBoard : l10n.pinBoard,
-                      ),
-                    ),
-                    if (!shut)
-                      PopupMenuItem(
-                        value: 'duplicate',
-                        child: Text(l10n.duplicateBoard),
-                      ),
-                    if (notes.boards.length > 1)
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Text(
-                          l10n.deleteBoard,
-                          style: const TextStyle(color: AppColors.deleteIcon),
-                        ),
-                      ),
-                  ],
-                ),
               ],
             ),
             Text(
@@ -257,6 +198,81 @@ class _BoardCard extends StatelessWidget {
         ),
       ),
     );
+    Widget action(
+      String key,
+      IconData icon,
+      String tooltip,
+      VoidCallback onPressed, {
+      Color color = AppColors.ink,
+    }) => IconButton(
+      key: Key('board-$key-${board.id}'),
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+      padding: EdgeInsets.zero,
+      iconSize: 20,
+      color: color,
+      icon: Icon(icon),
+      onPressed: onPressed,
+    );
+    // Pin, duplicate and delete, in plain sight rather than under a ⋮.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(child: tappable),
+        Row(
+          children: [
+            action(
+              'pin',
+              board.favorite ? Icons.push_pin : Icons.push_pin_outlined,
+              board.favorite ? l10n.unpinBoard : l10n.pinBoard,
+              () => notes.toggleFavorite(board.id),
+            ),
+            if (!shut)
+              action(
+                'duplicate',
+                Icons.copy_outlined,
+                l10n.duplicateBoard,
+                () => _duplicate(context, l10n, name),
+              ),
+            const Spacer(),
+            if (notes.boards.length > 1)
+              action(
+                'delete',
+                AppIcons.delete,
+                l10n.deleteBoard,
+                () => onDelete(board),
+                color: AppColors.deleteIcon,
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Duplicates the board and opens the copy; the sheet steps aside so the
+  /// copy's Undo can be reached.
+  void _duplicate(BuildContext context, AppLocalizations l10n, String name) {
+    final copy = notes.duplicateBoard(board.id, l10n.boardCopyName(name));
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.pop(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          // Closes by itself, Undo or not.
+          persist: false,
+          content: Text(l10n.boardDuplicated),
+          action: SnackBarAction(
+            label: l10n.undo,
+            // Takes the copy back out entirely: it was never meant to wait
+            // in the Trash.
+            onPressed: () => notes
+              ..deleteBoard(copy.id)
+              ..deleteBoardForever(copy.id),
+          ),
+        ),
+      );
   }
 }
 
