@@ -826,6 +826,9 @@ class _WallViewState extends State<WallView>
             color: widget.marker.strokeColor,
             width: widget.marker.strokeWidth,
             points: [_inkNorm(e.localPosition)],
+            // Remembered so the stroke keeps its shape on other screens.
+            refWidth: _size.width,
+            refHeight: _size.height,
           ),
         );
       });
@@ -837,7 +840,7 @@ class _WallViewState extends State<WallView>
     if (widget.marker.eraser) {
       _eraseAt(e.localPosition);
     } else if (widget.strokes.isNotEmpty) {
-      setState(() => widget.strokes.last.points.add(_inkNorm(e.localPosition)));
+      setState(() => widget.strokes.last.addPoint(_inkNorm(e.localPosition)));
     }
   }
 
@@ -858,8 +861,9 @@ class _WallViewState extends State<WallView>
     widget.strokes.removeWhere((s) {
       final reach = 14 + s.width / 2;
       for (final p in s.points) {
-        final dx = _pad + p.dx * w - local.dx;
-        final dy = _pad + p.dy * h - local.dy;
+        final at = s.place(p, Size(w, h));
+        final dx = _pad + at.dx - local.dx;
+        final dy = _pad + at.dy - local.dy;
         if (dx * dx + dy * dy <= reach * reach) return true;
       }
       return false;

@@ -31,19 +31,20 @@ class StrokePainter extends CustomPainter {
         ..style = PaintingStyle.stroke;
 
       final path = Path();
-      final first = stroke.points.first;
-      path.moveTo(first.dx * size.width, first.dy * size.height);
+      final first = stroke.place(stroke.points.first, size);
+      path.moveTo(first.dx, first.dy);
       if (stroke.points.length == 1) {
         // A dot.
         canvas.drawCircle(
-          Offset(first.dx * size.width, first.dy * size.height),
+          first,
           stroke.width / 2,
           paint..style = PaintingStyle.fill,
         );
         continue;
       }
       for (final p in stroke.points.skip(1)) {
-        path.lineTo(p.dx * size.width, p.dy * size.height);
+        final at = stroke.place(p, size);
+        path.lineTo(at.dx, at.dy);
       }
       canvas.drawPath(path, paint);
     }

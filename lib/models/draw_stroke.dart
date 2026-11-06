@@ -3,16 +3,70 @@ import 'dart:ui';
 /// One freehand stroke of a drawing note. Points are stored normalized to the
 /// 0..1 range of the drawing area, so a drawing scales to any card size.
 class DrawStroke {
-  DrawStroke({required this.color, required this.width, required this.points});
+  DrawStroke({
+    required this.color,
+    required this.width,
+    required this.points,
+    this.refWidth,
+    this.refHeight,
+  });
 
   /// ARGB value.
   final int color;
   final double width;
   final List<Offset> points;
 
+  /// For a stroke drawn on the wall: the wall's size, in logical pixels,
+  /// when it was drawn. With it the stroke keeps its shape and size on any
+  /// screen (a portrait phone and a landscape tablet see the same letter);
+  /// only where it sits follows the wall, as a note's place does. Null for
+  /// a drawing note (it scales with its card) and for older wall strokes.
+  final double? refWidth;
+  final double? refHeight;
+
+  Offset? _center;
+
+  /// The middle of the stroke's points (0..1 of the area): the part of a
+  /// wall stroke that moves with the wall.
+  Offset get _middle {
+    final cached = _center;
+    if (cached != null) return cached;
+    var minX = double.infinity, minY = double.infinity;
+    var maxX = -double.infinity, maxY = -double.infinity;
+    for (final p in points) {
+      if (p.dx < minX) minX = p.dx;
+      if (p.dx > maxX) maxX = p.dx;
+      if (p.dy < minY) minY = p.dy;
+      if (p.dy > maxY) maxY = p.dy;
+    }
+    return _center = Offset((minX + maxX) / 2, (minY + maxY) / 2);
+  }
+
+  /// Where point [p] of this stroke goes on an area of [size].
+  Offset place(Offset p, Size size) {
+    final rw = refWidth;
+    final rh = refHeight;
+    if (rw == null || rh == null || rw <= 0 || rh <= 0) {
+      return Offset(p.dx * size.width, p.dy * size.height);
+    }
+    final c = _middle;
+    return Offset(
+      c.dx * size.width + (p.dx - c.dx) * rw,
+      c.dy * size.height + (p.dy - c.dy) * rh,
+    );
+  }
+
+  /// Adds a point while the stroke is being drawn.
+  void addPoint(Offset p) {
+    points.add(p);
+    _center = null;
+  }
+
   factory DrawStroke.fromJson(Map<String, dynamic> json) => DrawStroke(
     color: json['color'] as int? ?? 0xFF000000,
     width: (json['width'] as num?)?.toDouble() ?? 3.0,
+    refWidth: (json['rw'] as num?)?.toDouble(),
+    refHeight: (json['rh'] as num?)?.toDouble(),
     points: [
       for (final p in (json['points'] as List<dynamic>? ?? const []))
         Offset(
@@ -25,13 +79,20 @@ class DrawStroke {
   Map<String, dynamic> toJson() => {
     'color': color,
     'width': width,
+    if (refWidth != null) 'rw': refWidth,
+    if (refHeight != null) 'rh': refHeight,
     'points': [
       for (final p in points) {'x': p.dx, 'y': p.dy},
     ],
   };
 
-  DrawStroke copy() =>
-      DrawStroke(color: color, width: width, points: List<Offset>.from(points));
+  DrawStroke copy() => DrawStroke(
+    color: color,
+    width: width,
+    points: List<Offset>.from(points),
+    refWidth: refWidth,
+    refHeight: refHeight,
+  );
 }
 
 /// The faint guide pattern printed on a drawing canvas.
