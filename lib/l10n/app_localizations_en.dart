@@ -184,6 +184,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tidyByColor => 'Arrange by color';
 
   @override
+  String get arrange => 'Arrange…';
+
+  @override
+  String get tidyHint => 'Neat rows, nothing overlapping';
+
+  @override
+  String get tidyByColorHint => 'Notes of the same paper colour together';
+
+  @override
   String get moreActions => 'More';
 
   @override
@@ -1894,6 +1903,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get memoryLayout => 'Layout';
+
+  @override
+  String get memoryPreview => 'Preview of the memory wall with your photos';
 
   @override
   String get layoutCollage => 'Collage';

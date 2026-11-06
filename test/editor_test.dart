@@ -1045,6 +1045,8 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Arrange…'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Tidy up'));
     await tester.pumpAndSettle();
     expect(head.x, 0.05, reason: 'tidy leaves it where it is');

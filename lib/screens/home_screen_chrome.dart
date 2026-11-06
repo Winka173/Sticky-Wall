@@ -4,6 +4,33 @@ part of 'home_screen.dart';
 /// title and bar, the tool pill with its menus, and drawing on the wall
 /// (marker mode and its bar).
 extension _Chrome on _HomeScreenState {
+  /// One menu entry, two ways to tidy: neat rows, or by paper colour. Both
+  /// algorithms are kept, each with Undo.
+  Future<void> _arrange() async {
+    final l10n = _l10n;
+    final how = await showActionSheet<String>(
+      context,
+      title: l10n.arrange,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.auto_awesome_mosaic_outlined),
+          title: Text(l10n.tidy),
+          subtitle: Text(l10n.tidyHint),
+          onTap: () => Navigator.pop(context, 'tidy'),
+        ),
+        ListTile(
+          leading: const Icon(Icons.palette_outlined),
+          title: Text(l10n.tidyByColor),
+          subtitle: Text(l10n.tidyByColorHint),
+          onTap: () => Navigator.pop(context, 'color'),
+        ),
+      ],
+    );
+    if (how == null || !mounted) return;
+    unawaited(HapticFeedback.lightImpact());
+    _wallHandle.tidy(byColor: how == 'color');
+  }
+
   // --- Marker mode ---------------------------------------------------------
 
   void _startMarking(WallStyle wall) {
@@ -736,12 +763,8 @@ extension _Chrome on _HomeScreenState {
                 _selected.clear();
               });
             }
-          case 'tidy':
-            HapticFeedback.lightImpact();
-            _wallHandle.tidy();
-          case 'tidyColor':
-            HapticFeedback.lightImpact();
-            _wallHandle.tidy(byColor: true);
+          case 'arrange':
+            _arrange();
           case 'export':
             _exportBoard();
           case 'draw':
@@ -784,18 +807,12 @@ extension _Chrome on _HomeScreenState {
         if (_notes.boardNotes.isNotEmpty) ...[
           const PopupMenuDivider(),
           _menuItem('select', l10n.select, icon: Icons.checklist_rtl),
-          if (canTidy) ...[
+          if (canTidy)
             _menuItem(
-              'tidy',
-              l10n.tidy,
+              'arrange',
+              l10n.arrange,
               icon: Icons.auto_awesome_mosaic_outlined,
             ),
-            _menuItem(
-              'tidyColor',
-              l10n.tidyByColor,
-              icon: Icons.palette_outlined,
-            ),
-          ],
           if (onWall)
             _menuItem('fit', l10n.fitAll, icon: Icons.fit_screen_outlined),
           _menuItem('export', l10n.exportBoard, icon: Icons.image_outlined),

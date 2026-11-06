@@ -581,7 +581,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
     }
     if (stored.isEmpty || !mounted) return;
-    final choice = await showMemoryWallSheet(context, count: stored.length);
+    final choice = await showMemoryWallSheet(
+      context,
+      count: stored.length,
+      photos: stored,
+    );
     if (!mounted) return;
     if (choice == null) {
       // Copied in for nothing: nothing refers to them.

@@ -179,6 +179,15 @@ class AppLocalizationsVi extends AppLocalizations {
   String get tidyByColor => 'Xếp theo màu';
 
   @override
+  String get arrange => 'Sắp xếp lại…';
+
+  @override
+  String get tidyHint => 'Thành hàng gọn, không chồng lên nhau';
+
+  @override
+  String get tidyByColorHint => 'Gom các ghi chú cùng màu giấy lại với nhau';
+
+  @override
   String get moreActions => 'Khác';
 
   @override
@@ -1872,6 +1881,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get memoryLayout => 'Bố cục';
+
+  @override
+  String get memoryPreview => 'Xem trước tường kỷ niệm với ảnh của bạn';
 
   @override
   String get layoutCollage => 'Cắt dán';

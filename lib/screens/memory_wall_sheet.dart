@@ -1,13 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
+import '../services/image_service.dart';
 import '../services/memory_wall.dart';
 import '../services/pro_controller.dart';
 import '../services/theme_packs.dart';
 import '../theme.dart';
 import '../widgets/photo_frames.dart';
 import '../widgets/pro_sheet.dart';
+import '../widgets/wall_background.dart';
 import 'gallery_screen.dart';
 
 /// The looks offered for a memory wall: papers and frames that suit
@@ -36,18 +40,22 @@ typedef MemoryWallChoice = ({
 Future<MemoryWallChoice?> showMemoryWallSheet(
   BuildContext context, {
   required int count,
+  List<String> photos = const [],
 }) {
   return showModalBottomSheet<MemoryWallChoice>(
     context: context,
     isScrollControlled: true,
-    builder: (context) => _MemoryWallSheet(count: count),
+    builder: (context) => _MemoryWallSheet(count: count, photos: photos),
   );
 }
 
 class _MemoryWallSheet extends StatefulWidget {
-  const _MemoryWallSheet({required this.count});
+  const _MemoryWallSheet({required this.count, this.photos = const []});
 
   final int count;
+
+  /// The picked photos (stored names), shown in the live preview.
+  final List<String> photos;
 
   @override
   State<_MemoryWallSheet> createState() => _MemoryWallSheetState();
@@ -109,6 +117,21 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 13, color: AppColors.warnText),
               ),
+            if (widget.photos.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              // What the board will look like, with these very photos:
+              // layout, frame and look change it live, before anything is
+              // created.
+              Semantics(
+                label: l10n.memoryPreview,
+                child: _MemoryPreview(
+                  photos: widget.photos.take(memoryWallMax).toList(),
+                  layout: _layout,
+                  frame: _frame,
+                  look: _look,
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             Text(l10n.memoryLayout, style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 6),
@@ -267,6 +290,81 @@ class _LookChoice extends StatelessWidget {
                 style: const TextStyle(fontSize: 12.5),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A small, live picture of the memory wall about to be made: the look's
+/// wall with the picked photos placed by the chosen layout and frame.
+class _MemoryPreview extends StatelessWidget {
+  const _MemoryPreview({
+    required this.photos,
+    required this.layout,
+    required this.frame,
+    required this.look,
+  });
+
+  final List<String> photos;
+  final MemoryLayout layout;
+  final PhotoFrame frame;
+  final ThemePack look;
+
+  @override
+  Widget build(BuildContext context) {
+    final spots = memoryPositions(photos.length, layout, seed: 'preview');
+    // Small enough that the choices below stay in view.
+    return SizedBox(
+      height: 240,
+      child: Center(
+        child: AspectRatio(
+          aspectRatio: 3 / 4,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadii.control),
+            child: LayoutBuilder(
+              builder: (context, box) {
+                // A phone wall is about 360 dp wide: the preview is that wall,
+                // shrunk to fit.
+                final k = box.maxWidth / 360;
+                final card = 168 * k;
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: WallBackground(wall: look.wallStyle, decor: false),
+                    ),
+                    for (var i = 0; i < photos.length && i < spots.length; i++)
+                      Positioned(
+                        left:
+                            spots[i].x * (box.maxWidth - card * spots[i].scale),
+                        top:
+                            spots[i].y *
+                            (box.maxHeight - card * spots[i].scale),
+                        width: card * spots[i].scale,
+                        child: Transform.rotate(
+                          angle: spots[i].rotation ?? 0,
+                          child: FramedPrint(
+                            frame: frame,
+                            seed: photos[i],
+                            paper: Colors.white,
+                            photo: AspectRatio(
+                              aspectRatio: 1,
+                              child: Image.file(
+                                File(ImageService.resolve(photos[i])),
+                                fit: BoxFit.cover,
+                                cacheWidth: 240,
+                                errorBuilder: (_, _, _) =>
+                                    const ColoredBox(color: AppColors.inkHint),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),

@@ -12,6 +12,7 @@ import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/theme_packs.dart';
 import 'package:sticky_wall/theme.dart';
+import 'package:sticky_wall/widgets/photo_frames.dart';
 
 List<String> _photos(int n) => [for (var i = 0; i < n; i++) 'p$i.jpg'];
 
@@ -107,8 +108,11 @@ void main() {
           builder: (context) => Scaffold(
             body: Center(
               child: TextButton(
-                onPressed: () async =>
-                    picked = await showMemoryWallSheet(context, count: 24),
+                onPressed: () async => picked = await showMemoryWallSheet(
+                  context,
+                  count: 24,
+                  photos: [for (var i = 0; i < 24; i++) 'p$i.jpg'],
+                ),
                 child: const Text('open'),
               ),
             ),
@@ -119,7 +123,16 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
     expect(find.textContaining('first 20'), findsOneWidget);
+    // A live preview of the wall with the picked photos, at most 20.
+    expect(find.byType(FramedPrint), findsNWidgets(20));
+    final before = tester.getTopLeft(find.byType(FramedPrint).at(5));
     await tester.tap(find.text('Timeline'));
+    await tester.pump();
+    expect(
+      tester.getTopLeft(find.byType(FramedPrint).at(5)),
+      isNot(before),
+      reason: 'the layout changes the preview at once',
+    );
     await tester.pump();
     await tester.ensureVisible(find.text('Make the wall'));
     await tester.pumpAndSettle();

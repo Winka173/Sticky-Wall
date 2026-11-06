@@ -386,6 +386,24 @@ abstract class AppLocalizations {
   /// **'Arrange by color'**
   String get tidyByColor;
 
+  /// No description provided for @arrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrange…'**
+  String get arrange;
+
+  /// No description provided for @tidyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Neat rows, nothing overlapping'**
+  String get tidyHint;
+
+  /// No description provided for @tidyByColorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes of the same paper colour together'**
+  String get tidyByColorHint;
+
   /// No description provided for @moreActions.
   ///
   /// In en, this message translates to:
@@ -3427,6 +3445,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Layout'**
   String get memoryLayout;
+
+  /// No description provided for @memoryPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview of the memory wall with your photos'**
+  String get memoryPreview;
 
   /// No description provided for @layoutCollage.
   ///

@@ -93,16 +93,11 @@ class _Device {
     await sync.syncNow();
   }
 
-  Note note(String guid) =>
-      notes.allNotes.firstWhere((n) => n.guid == guid);
+  Note note(String guid) => notes.allNotes.firstWhere((n) => n.guid == guid);
 }
 
-Note _n(String guid, String text, {String board = 'default'}) => Note(
-  guid: guid,
-  content: text,
-  createdAt: DateTime(2026),
-  boardId: board,
-);
+Note _n(String guid, String text, {String board = 'default'}) =>
+    Note(guid: guid, content: text, createdAt: DateTime(2026), boardId: board);
 
 void main() {
   late MemorySyncBackend cloud;
@@ -176,20 +171,22 @@ void main() {
     expect(a.notes.allNotes.map((n) => n.guid), ['2']);
   });
 
-  test('an edit made while the other device deleted the note is kept',
-      () async {
-    final a = _Device(cloud, notes: [_n('1', 'x')]);
-    final b = _Device(cloud);
-    await a.syncNow();
-    await b.syncNow();
-    a.notes.purge(a.note('1'));
-    b.notes.update(b.note('1').clone()..content = 'still needed');
-    await a.syncNow();
-    await b.syncNow();
-    await a.syncNow();
-    expect(a.note('1').content, 'still needed');
-    expect(b.note('1').content, 'still needed');
-  });
+  test(
+    'an edit made while the other device deleted the note is kept',
+    () async {
+      final a = _Device(cloud, notes: [_n('1', 'x')]);
+      final b = _Device(cloud);
+      await a.syncNow();
+      await b.syncNow();
+      a.notes.purge(a.note('1'));
+      b.notes.update(b.note('1').clone()..content = 'still needed');
+      await a.syncNow();
+      await b.syncNow();
+      await a.syncNow();
+      expect(a.note('1').content, 'still needed');
+      expect(b.note('1').content, 'still needed');
+    },
+  );
 
   test('a board deleted on one device goes to the Trash on the other, whole, '
       'and can come back on either', () async {
@@ -199,7 +196,10 @@ void main() {
         Board(id: 'default', name: ''),
         Board(id: 'trip', name: 'Trip'),
       ],
-      notes: [_n('1', 'home'), _n('2', 'beach', board: 'trip')],
+      notes: [
+        _n('1', 'home'),
+        _n('2', 'beach', board: 'trip'),
+      ],
     );
     final b = _Device(cloud);
     await a.syncNow();
@@ -264,7 +264,10 @@ void main() {
         Board(id: 'default', name: ''),
         Board(id: 'diary', name: 'Diary', isPrivate: true),
       ],
-      notes: [_n('1', 'public'), _n('2', 'secret', board: 'diary')],
+      notes: [
+        _n('1', 'public'),
+        _n('2', 'secret', board: 'diary'),
+      ],
     );
     await a.syncNow();
     expect(cloud.devices.values.single, isNot(contains('secret')));
@@ -302,7 +305,10 @@ void main() {
 
   test('a file from a newer schema stops the sync instead of being '
       'misread', () async {
-    cloud.devices['other'] = jsonEncode({'schema': 99, 'records': <String, Object>{}});
+    cloud.devices['other'] = jsonEncode({
+      'schema': 99,
+      'records': <String, Object>{},
+    });
     await cloud.writeDevice('other', cloud.devices['other']!);
     final a = _Device(cloud, notes: [_n('1', 'x')]);
     await a.syncNow();
@@ -312,8 +318,12 @@ void main() {
 
   test('the engine is deterministic: same inputs, same winner, on any '
       'device', () {
-    final r1 = {'n:1': const SyncRecord(rev: 5, by: 'a', data: {'c': 1})};
-    final r2 = {'n:1': const SyncRecord(rev: 5, by: 'b', data: {'c': 2})};
+    final r1 = {
+      'n:1': const SyncRecord(rev: 5, by: 'a', data: {'c': 1}),
+    };
+    final r2 = {
+      'n:1': const SyncRecord(rev: 5, by: 'b', data: {'c': 2}),
+    };
     final x = const SyncEngine().merge(
       device: 'z',
       local: const {},
