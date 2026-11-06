@@ -1884,6 +1884,13 @@ class AppLocalizationsVi extends AppLocalizations {
       'Vài ghi chú chỉ cách dùng; xóa lúc nào cũng được';
 
   @override
+  String get welcomeRestore => 'Khôi phục bản sao lưu';
+
+  @override
+  String get welcomeRestoreHint =>
+      'Chuyển từ máy khác? Mang các bảng trở lại từ tệp sao lưu';
+
+  @override
   String get memoryWall => 'Tường kỷ niệm';
 
   @override
@@ -2467,7 +2474,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get manualMoveStep3 =>
-      'Chụm hai ngón trên tường để phóng to, thu nhỏ. Mục Sắp xếp… trong menu Khác xếp ghi chú thành hàng gọn gàng.';
+      'Chụm hai ngón trên tường để phóng to, thu nhỏ. Mục Sắp xếp lại… trong menu Khác xếp ghi chú thành hàng gọn gàng.';
 
   @override
   String get manualMoveStep4 =>
@@ -2558,11 +2565,119 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get manualFindStep2 =>
-      'Chuyển giữa Tường, Lưới và Danh sách ở thanh trên cùng.';
+      'Chuyển giữa Tường, Lưới và Danh sách ở thanh công cụ góc dưới bên trái.';
 
   @override
   String get manualFindStep3 =>
-      'Để làm việc với nhiều ghi chú, nhấn giữ một tờ rồi chọn Chọn ghi chú, hoặc khoanh một vòng quanh chúng từ chỗ trống.';
+      'Để làm việc với nhiều ghi chú, nhấn giữ một tờ rồi chọn Chọn nhiều ghi chú, hoặc khoanh một vòng quanh chúng từ chỗ trống.';
+
+  @override
+  String get manualKindsTitle => 'Các loại ghi chú và lời nhắc';
+
+  @override
+  String get manualKindsSummary =>
+      'Danh sách, ghi âm, nhãn, sticker, và lời nhắc khi đến giờ.';
+
+  @override
+  String get manualKindsStep1 =>
+      'Tờ giấy vàng có ghi chú, việc cần làm, ảnh, liên kết, ghi âm và hình vẽ; kéo xuống còn có nhãn, sticker và tường kỷ niệm.';
+
+  @override
+  String get manualKindsStep2 =>
+      'Ghi âm: chạm vào micro để thu, hoặc giữ rồi thả. Bấm phát ngay trên tường.';
+
+  @override
+  String get manualKindsStep3 =>
+      'Lời nhắc, trong ghi chú: sau một giờ, tối nay, sáng mai hoặc ngày giờ bất kỳ, một lần hay lặp lại hằng ngày, hằng tuần, hằng tháng.';
+
+  @override
+  String get manualKindsStep4 =>
+      'Nhấn giữ ghi chú rồi chọn Khóa vị trí để không lỡ tay kéo đi.';
+
+  @override
+  String get manualLooksTitle => 'Mẫu và chủ đề';
+
+  @override
+  String get manualLooksSummary =>
+      'Một bảng dựng sẵn chỉ với một chạm, và một phong cách cho nó.';
+
+  @override
+  String get manualLooksStep1 =>
+      'Mục Mẫu & chủ đề trong menu Khác (hoặc thẻ +) có các mẫu bảng: kế hoạch, học tập, moodboard và nhiều nữa.';
+
+  @override
+  String get manualLooksStep2 =>
+      'Mẫu tạo một bảng mới với ghi chú thật để sửa. Xóa nội dung mẫu, trong menu của bảng, chỉ giữ lại tiêu đề và bức tường.';
+
+  @override
+  String get manualLooksStep3 =>
+      'Chủ đề thay áo cho bảng đang mở: tường, giấy, ghim và nét chữ. Nội dung ghi chú giữ nguyên, Hoàn tác trả lại kiểu cũ.';
+
+  @override
+  String get manualLooksStep4 =>
+      'Chạm lại vào thẻ của bảng đang mở để mở menu: sửa, đổi chủ đề, khóa hoặc xóa bảng. Bảng đã xóa cũng nằm trong Thùng rác.';
+
+  @override
+  String get manualShareTitle => 'Chia sẻ và xuất';
+
+  @override
+  String get manualShareSummary =>
+      'Gửi một ghi chú, cả bảng, hoặc nhận nội dung từ ứng dụng khác.';
+
+  @override
+  String get manualShareStep1 =>
+      'Nhấn giữ ghi chú: Chia sẻ gửi nó thành ảnh, Lưu ảnh cất vào thư viện ảnh.';
+
+  @override
+  String get manualShareStep2 =>
+      'Xuất bảng thành ảnh, trong menu Khác: cả tường hoặc phần đang xem, thành ảnh hoặc PDF.';
+
+  @override
+  String get manualShareStep3 =>
+      'Ở ứng dụng khác, chia sẻ chữ, liên kết hoặc ảnh sang Sticky Wall: chọn một bảng là nó nằm ngay đó.';
+
+  @override
+  String get manualSafeTitle => 'Giữ an toàn';
+
+  @override
+  String get manualSafeSummary => 'Sao lưu, đổi điện thoại, và khóa.';
+
+  @override
+  String get manualSafeStep1 =>
+      'Sao lưu & khôi phục, trong Cài đặt mục Dữ liệu, tạo một tệp chứa mọi bảng, ảnh và ghi âm. Khi khôi phục, bạn xem trước tệp có gì rồi mới thay đổi.';
+
+  @override
+  String get manualSafeStep2 =>
+      'Tự động sao lưu hằng tuần giữ 4 bản gần nhất ngay trên máy.';
+
+  @override
+  String get manualSafeSync =>
+      'Đồng bộ giữa các thiết bị, cũng ở mục Dữ liệu, giữ các máy giống nhau qua Google Drive của chính bạn. Mặc định tắt cho đến khi bạn bật.';
+
+  @override
+  String get manualSafeStep3 =>
+      'Khóa ứng dụng, trong Cài đặt mục Riêng tư, hỏi vân tay hoặc khóa màn hình khi mở app. Từng bảng cũng khóa được từ menu của bảng.';
+
+  @override
+  String get manualYoursTitle => 'Làm theo ý bạn';
+
+  @override
+  String get manualYoursSummary => 'Tường, nét chữ, Tắt đèn và widget.';
+
+  @override
+  String get manualYoursStep1 =>
+      'Tùy chỉnh (bảng màu ở trên cùng) đổi tường, nét chữ và kiểu ghim. Loại Pro được thử trước.';
+
+  @override
+  String get manualYoursStep2 =>
+      'Tắt đèn, trong menu Khác, làm dịu bức tường buổi tối; Tùy chỉnh có thể bật theo giờ.';
+
+  @override
+  String get manualYoursStep3 =>
+      'Widget màn hình chính, trong Cài đặt mục Chung: chọn bảng và nội dung hiển thị, rồi thêm widget từ màn hình chính.';
+
+  @override
+  String get manualYoursStep4 => 'Ngôn ngữ cũng nằm trong Cài đặt mục Chung.';
 
   @override
   String get manualTabHome => 'Nhà';

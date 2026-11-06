@@ -211,9 +211,10 @@ then taken well beyond it.
   on the home-screen widget* in the export puts that picture of the board on
   the widget; until then it lists the current board's pinned notes
 - **How to use** (Settings → Help): replay the first-run guide, or read the
-  manual as seven short topics (first note, moving, threads, drawing, boards
-  and the Trash, photos and memory walls, search and views), each with a
-  picture and Previous / Next
+  manual as twelve short topics (first note, moving, threads, kinds of notes
+  and reminders, drawing, boards and the Trash, templates and themes,
+  photos and memory walls, search and views, share and export, keeping it
+  safe, make it yours), each with a picture and Previous / Next
 - **Stacks** — long-press a note → *Stack with…* (or select several →
   *Stack*) piles them in one place: the top card shows with the sheets
   under it peeking out and a count on the corner that lists them; the pile
@@ -318,7 +319,8 @@ then taken well beyond it.
 - A fresh install seeds five sample notes (with one thread tied between two
   of them) and opens the first-run guide: a short story, a practice wall
   that saves nothing (add a note, move it, tie a thread), then a blank wall
-  (the samples go), a template or the sample wall. See
+  (the samples go), a template, the sample wall, or restoring a backup
+  from another phone. See
   `docs/sticky-final/FIRST_RUN_GUIDE.md`
 
 **Privacy**

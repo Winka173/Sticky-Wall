@@ -173,6 +173,26 @@ Future<void> showAppSettings(
   );
 }
 
+/// Restore a backup straight from the wall (the first-run guide's last
+/// stage): the same file dialog and preview as in Settings, no Settings
+/// page around them. True when something was restored.
+Future<bool> restoreBackup(
+  BuildContext context, {
+  required SettingsController settings,
+  required NotesController notes,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+  final backup = await showDialog<Backup>(
+    context: context,
+    builder: (context) => _ImportDialog(l10n: l10n),
+  );
+  if (backup == null || !context.mounted) return false;
+  return _SettingsSheet(
+    settings: settings,
+    notes: notes,
+  )._applyBackup(context, l10n, backup, close: false);
+}
+
 /// Ends trying on Pro things: bought meanwhile, they are kept (the wall on
 /// the open board); otherwise everything is put back as it was.
 void _endTryOn(
@@ -994,20 +1014,21 @@ class _SettingsSheet extends StatelessWidget {
 
   /// Shows what [backup] holds and how it would load; then adds it to the
   /// wall or replaces the wall with it (its files first), with Undo on the
-  /// snackbar either way, and closes the sheet so the snackbar shows.
-  /// Nothing changes before a choice is made, and a failure to write the
-  /// files changes nothing at all.
-  Future<void> _applyBackup(
+  /// snackbar either way, and closes the sheet so the snackbar shows (when
+  /// [close]). Nothing changes before a choice is made, and a failure to
+  /// write the files changes nothing at all. True when it was restored.
+  Future<bool> _applyBackup(
     BuildContext context,
     AppLocalizations l10n,
-    Backup backup,
-  ) async {
+    Backup backup, {
+    bool close = true,
+  }) async {
     final mode = await showRestorePreview(
       context,
       backup: backup,
       notes: notes,
     );
-    if (mode == null || !context.mounted) return;
+    if (mode == null || !context.mounted) return false;
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     // Kept for Undo. replaceAll never deletes photo files, so the photos
@@ -1019,9 +1040,9 @@ class _SettingsSheet extends StatelessWidget {
     try {
       await BackupService().restorePhotos(backup);
     } catch (_) {
-      navigator.pop();
+      if (close) navigator.pop();
       messenger.showSnackBar(SnackBar(content: Text(l10n.importFailed)));
-      return;
+      return false;
     }
     switch (mode) {
       case RestoreMode.replace:
@@ -1059,7 +1080,8 @@ class _SettingsSheet extends StatelessWidget {
           ),
         ),
       );
-    if (navigator.mounted) navigator.pop();
+    if (close && navigator.mounted) navigator.pop();
+    return true;
   }
 }
 

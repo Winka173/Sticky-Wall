@@ -1901,6 +1901,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A few notes that show what you can do; delete them any time';
 
   @override
+  String get welcomeRestore => 'Restore a backup';
+
+  @override
+  String get welcomeRestoreHint =>
+      'Moving from another phone? Bring your boards back from a backup file';
+
+  @override
   String get memoryWall => 'Memory wall';
 
   @override
@@ -2599,11 +2606,121 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manualFindStep2 =>
-      'Switch between Wall, Grid and List in the bar at the top.';
+      'Switch between Wall, Grid and List in the tool pill at the bottom left.';
 
   @override
   String get manualFindStep3 =>
       'To act on several notes, long-press one and pick Select notes, or draw a loop round them from an empty spot.';
+
+  @override
+  String get manualKindsTitle => 'Kinds of notes and reminders';
+
+  @override
+  String get manualKindsSummary =>
+      'Lists, voice notes, labels, stickers, and a nudge when it is time.';
+
+  @override
+  String get manualKindsStep1 =>
+      'The yellow paper offers a note, a to-do list, a photo, a link, a voice note or a drawing; further down, a label, a sticker or a memory wall.';
+
+  @override
+  String get manualKindsStep2 =>
+      'A voice note: tap the microphone to record, or hold it and let go. It plays right on the wall.';
+
+  @override
+  String get manualKindsStep3 =>
+      'Reminder, in the note: in an hour, this evening, tomorrow morning or any date, once or repeating daily, weekly or monthly.';
+
+  @override
+  String get manualKindsStep4 =>
+      'Long-press a note and choose Lock in place, so it cannot be moved by accident.';
+
+  @override
+  String get manualLooksTitle => 'Templates and themes';
+
+  @override
+  String get manualLooksSummary =>
+      'A ready board in one tap, and a look for it.';
+
+  @override
+  String get manualLooksStep1 =>
+      'Templates & themes, in the More menu (or the + tab), has board templates: planners, study boards, moodboards and more.';
+
+  @override
+  String get manualLooksStep2 =>
+      'A template makes a new board of real notes to edit. Clear the examples, in the board\'s menu, keeps only the headings and the wall.';
+
+  @override
+  String get manualLooksStep3 =>
+      'A theme dresses the open board: wall, papers, pin and handwriting. What the notes say stays as it is, and Undo puts the old look back.';
+
+  @override
+  String get manualLooksStep4 =>
+      'Tap the open board\'s tab again for its menu: edit, change the theme, lock or delete it. A deleted board waits in the Trash too.';
+
+  @override
+  String get manualShareTitle => 'Share and export';
+
+  @override
+  String get manualShareSummary =>
+      'Send a note, the whole board, or catch things from other apps.';
+
+  @override
+  String get manualShareStep1 =>
+      'Long-press a note: Share sends it as a picture, Save image puts it in your photos.';
+
+  @override
+  String get manualShareStep2 =>
+      'Export board as image, in the More menu: the whole wall or the part in view, as a picture or a PDF.';
+
+  @override
+  String get manualShareStep3 =>
+      'In another app, share text, a link or photos to Sticky Wall: pick a board and it lands there.';
+
+  @override
+  String get manualSafeTitle => 'Keeping it safe';
+
+  @override
+  String get manualSafeSummary => 'Backups, a new phone, and locks.';
+
+  @override
+  String get manualSafeStep1 =>
+      'Backup & restore, in Settings under Data, makes one file with every board, photo and voice note. Restoring shows what the file holds before anything changes.';
+
+  @override
+  String get manualSafeStep2 =>
+      'The automatic weekly backup keeps the last 4 copies on this phone.';
+
+  @override
+  String get manualSafeSync =>
+      'Sync across devices, also under Data, keeps your phones in step through your own Google Drive. It is off until you switch it on.';
+
+  @override
+  String get manualSafeStep3 =>
+      'App lock, in Settings under Privacy, asks for your fingerprint or screen lock when the app opens. A single board can be locked from its menu.';
+
+  @override
+  String get manualYoursTitle => 'Make it yours';
+
+  @override
+  String get manualYoursSummary =>
+      'Wall, handwriting, Lights off and the widget.';
+
+  @override
+  String get manualYoursStep1 =>
+      'Customize (the palette at the top) changes the wall, the handwriting and the pins. Pro ones can be tried on first.';
+
+  @override
+  String get manualYoursStep2 =>
+      'Lights off, in the More menu, dims the wall for the evening; Customize can switch it on a schedule.';
+
+  @override
+  String get manualYoursStep3 =>
+      'Home-screen widget, in Settings under General: choose the board and what it lists, then add the widget from your home screen.';
+
+  @override
+  String get manualYoursStep4 =>
+      'The language is in Settings under General too.';
 
   @override
   String get manualTabHome => 'Home';

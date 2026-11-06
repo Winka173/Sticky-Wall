@@ -3458,6 +3458,18 @@ abstract class AppLocalizations {
   /// **'A few notes that show what you can do; delete them any time'**
   String get welcomeExploreHint;
 
+  /// No description provided for @welcomeRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore a backup'**
+  String get welcomeRestore;
+
+  /// No description provided for @welcomeRestoreHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Moving from another phone? Bring your boards back from a backup file'**
+  String get welcomeRestoreHint;
+
   /// No description provided for @memoryWall.
   ///
   /// In en, this message translates to:
@@ -4625,7 +4637,7 @@ abstract class AppLocalizations {
   /// No description provided for @manualFindStep2.
   ///
   /// In en, this message translates to:
-  /// **'Switch between Wall, Grid and List in the bar at the top.'**
+  /// **'Switch between Wall, Grid and List in the tool pill at the bottom left.'**
   String get manualFindStep2;
 
   /// No description provided for @manualFindStep3.
@@ -4633,6 +4645,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'To act on several notes, long-press one and pick Select notes, or draw a loop round them from an empty spot.'**
   String get manualFindStep3;
+
+  /// No description provided for @manualKindsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Kinds of notes and reminders'**
+  String get manualKindsTitle;
+
+  /// No description provided for @manualKindsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists, voice notes, labels, stickers, and a nudge when it is time.'**
+  String get manualKindsSummary;
+
+  /// No description provided for @manualKindsStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'The yellow paper offers a note, a to-do list, a photo, a link, a voice note or a drawing; further down, a label, a sticker or a memory wall.'**
+  String get manualKindsStep1;
+
+  /// No description provided for @manualKindsStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'A voice note: tap the microphone to record, or hold it and let go. It plays right on the wall.'**
+  String get manualKindsStep2;
+
+  /// No description provided for @manualKindsStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder, in the note: in an hour, this evening, tomorrow morning or any date, once or repeating daily, weekly or monthly.'**
+  String get manualKindsStep3;
+
+  /// No description provided for @manualKindsStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press a note and choose Lock in place, so it cannot be moved by accident.'**
+  String get manualKindsStep4;
+
+  /// No description provided for @manualLooksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates and themes'**
+  String get manualLooksTitle;
+
+  /// No description provided for @manualLooksSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'A ready board in one tap, and a look for it.'**
+  String get manualLooksSummary;
+
+  /// No description provided for @manualLooksStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates & themes, in the More menu (or the + tab), has board templates: planners, study boards, moodboards and more.'**
+  String get manualLooksStep1;
+
+  /// No description provided for @manualLooksStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'A template makes a new board of real notes to edit. Clear the examples, in the board\'s menu, keeps only the headings and the wall.'**
+  String get manualLooksStep2;
+
+  /// No description provided for @manualLooksStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'A theme dresses the open board: wall, papers, pin and handwriting. What the notes say stays as it is, and Undo puts the old look back.'**
+  String get manualLooksStep3;
+
+  /// No description provided for @manualLooksStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the open board\'s tab again for its menu: edit, change the theme, lock or delete it. A deleted board waits in the Trash too.'**
+  String get manualLooksStep4;
+
+  /// No description provided for @manualShareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share and export'**
+  String get manualShareTitle;
+
+  /// No description provided for @manualShareSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a note, the whole board, or catch things from other apps.'**
+  String get manualShareSummary;
+
+  /// No description provided for @manualShareStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press a note: Share sends it as a picture, Save image puts it in your photos.'**
+  String get manualShareStep1;
+
+  /// No description provided for @manualShareStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Export board as image, in the More menu: the whole wall or the part in view, as a picture or a PDF.'**
+  String get manualShareStep2;
+
+  /// No description provided for @manualShareStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'In another app, share text, a link or photos to Sticky Wall: pick a board and it lands there.'**
+  String get manualShareStep3;
+
+  /// No description provided for @manualSafeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeping it safe'**
+  String get manualSafeTitle;
+
+  /// No description provided for @manualSafeSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups, a new phone, and locks.'**
+  String get manualSafeSummary;
+
+  /// No description provided for @manualSafeStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & restore, in Settings under Data, makes one file with every board, photo and voice note. Restoring shows what the file holds before anything changes.'**
+  String get manualSafeStep1;
+
+  /// No description provided for @manualSafeStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'The automatic weekly backup keeps the last 4 copies on this phone.'**
+  String get manualSafeStep2;
+
+  /// No description provided for @manualSafeSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync across devices, also under Data, keeps your phones in step through your own Google Drive. It is off until you switch it on.'**
+  String get manualSafeSync;
+
+  /// No description provided for @manualSafeStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'App lock, in Settings under Privacy, asks for your fingerprint or screen lock when the app opens. A single board can be locked from its menu.'**
+  String get manualSafeStep3;
+
+  /// No description provided for @manualYoursTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it yours'**
+  String get manualYoursTitle;
+
+  /// No description provided for @manualYoursSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall, handwriting, Lights off and the widget.'**
+  String get manualYoursSummary;
+
+  /// No description provided for @manualYoursStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize (the palette at the top) changes the wall, the handwriting and the pins. Pro ones can be tried on first.'**
+  String get manualYoursStep1;
+
+  /// No description provided for @manualYoursStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Lights off, in the More menu, dims the wall for the evening; Customize can switch it on a schedule.'**
+  String get manualYoursStep2;
+
+  /// No description provided for @manualYoursStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Home-screen widget, in Settings under General: choose the board and what it lists, then add the widget from your home screen.'**
+  String get manualYoursStep3;
+
+  /// No description provided for @manualYoursStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'The language is in Settings under General too.'**
+  String get manualYoursStep4;
 
   /// No description provided for @manualTabHome.
   ///

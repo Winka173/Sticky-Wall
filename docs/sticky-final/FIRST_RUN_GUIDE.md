@@ -49,11 +49,15 @@ the focus.
    - When done, the dark lifts, a check pops, and a panel rises: "That's the
      wall." The words say nothing was saved. Button: **Next**.
    - Back into the practice starts it afresh.
-3. **Make it yours.** Three large choices, Explore chosen to begin with:
+3. **Make it yours.** Four large choices, Explore chosen to begin with:
    - **Start with a blank wall**: `NotesController.discardSamples`.
    - **Pick a template**: `GalleryScreen.open` into the current board. A
      template used replaces the samples; backing out keeps them.
    - **Explore the sample wall**: keeps the samples (as Skip does).
+   - **Restore a backup** (someone moving from another phone): the backup
+     file dialog and its preview, as in Settings (`restoreBackup` in
+     `settings_sheet.dart`), with no Settings page around them. Once a
+     backup is in, the samples go; cancelling keeps them.
 
    Button: **Start**.
 
@@ -69,19 +73,29 @@ removed: everything it said is in the manual's topics.
   its button is **Done**. Replay changes nothing (tested).
 - **Topics**, each with a one-line summary, open one short page each: a
   title, one still picture, and two to four numbered steps. Previous and
-  Next walk through all seven in order; Next on the last one is Done.
+  Next walk through all twelve in order; Next on the last one is Done.
   1. Your first note: a still of the practice's add step.
   2. Moving and arranging: the move step; the grips, two-finger twist and
      pinch, Arrange…, Undo.
   3. Threads between notes: the tie step, with a thread half pulled.
-  4. Drawing on the wall: pen, highlighter, eraser (one line at a time),
+  4. Kinds of notes and reminders: what the yellow paper offers, voice
+     notes, reminders (once or repeating), Lock in place.
+  5. Drawing on the wall: pen, highlighter, eraser (one line at a time),
      Undo, Done.
-  5. Boards and the Trash: tabs, the + tab, dropping a note on a tab, the
+  6. Boards and the Trash: tabs, the + tab, dropping a note on a tab, the
      Trash for 30 days.
-  6. Photos and memory walls: long-press an empty spot, Pin photos, Memory
+  7. Templates and themes: the gallery, Clear the examples, what a theme
+     changes, the open tab's menu (edit, theme, lock, delete).
+  8. Photos and memory walls: long-press an empty spot, Pin photos, Memory
      wall.
-  7. Search and views: accent-free search, Wall / Grid / List, Select notes
-     and the loop.
+  9. Search and views: accent-free search, Wall / Grid / List (in the tool
+     pill), Select notes and the loop.
+  10. Share and export: Share / Save image on a note, Export board as image
+      or PDF, sharing into Sticky Wall from other apps.
+  11. Keeping it safe: Backup & restore, the weekly automatic backup, Sync
+      (only in builds with `STICKY_SYNC`), App lock and locked boards.
+  12. Make it yours: Customize (walls, handwriting, pins, try-on), Lights
+      off and its schedule, the home-screen widget, the language.
 
   The pictures are inert: no pointer, no focus, hidden from screen readers,
   drawn at rest.
@@ -149,7 +163,9 @@ button.
   - Explore keeps them;
   - Template opens the gallery, and backing out keeps the samples;
   - How to use: replay changes nothing and its last stage only closes;
-    topics open, and Previous and Next walk all seven;
+    topics open, and Previous and Next walk all twelve;
+  - Restore a backup opens the backup dialog, and cancelling keeps the
+    samples;
   - no overflow for every guide stage at 320×640 @ 200 %, 390×844 and
     1280×800, and for every topic at 320×640 @ 200 % and 390×844, in EN and
     VI.

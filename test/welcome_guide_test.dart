@@ -295,6 +295,26 @@ void main() {
     expect(_snapshot(app.notes), before);
   });
 
+  testWidgets('Restore a backup opens the backup dialog; cancelling keeps '
+      'the samples', (tester) async {
+    final app = await _pump(tester);
+    final before = _snapshot(app.notes);
+    await _toChoices(tester);
+    final restore = find.byKey(const Key('guide-choice-restore'));
+    await tester.ensureVisible(restore);
+    await tester.pumpAndSettle();
+    await tester.tap(restore);
+    await tester.pumpAndSettle();
+    await _primary(tester);
+    expect(find.byType(WelcomeGuide), findsNothing);
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.text('Restore backup'), findsWidgets);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(_snapshot(app.notes), before);
+  });
+
   testWidgets('How to use: replay changes nothing, and its last stage '
       'just closes', (tester) async {
     final app = await _pump(tester, firstRun: false);
@@ -332,20 +352,20 @@ void main() {
     await tester.tap(find.byKey(const Key('manual-topic-1')));
     await tester.pumpAndSettle();
     expect(find.byType(ManualTopicPage), findsOneWidget);
-    expect(find.text('Topic 2 of 7'), findsOneWidget);
+    expect(find.text('Topic 2 of 12'), findsOneWidget);
     expect(find.text('Moving and arranging'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('manual-previous')));
     await tester.pumpAndSettle();
-    expect(find.text('Topic 1 of 7'), findsOneWidget);
+    expect(find.text('Topic 1 of 12'), findsOneWidget);
     expect(find.byKey(const Key('manual-previous')), findsNothing);
 
-    for (var i = 2; i <= 7; i++) {
+    for (var i = 2; i <= 12; i++) {
       await tester.tap(find.byKey(const Key('manual-next')));
       await tester.pumpAndSettle();
-      expect(find.text('Topic $i of 7'), findsOneWidget);
+      expect(find.text('Topic $i of 12'), findsOneWidget);
     }
-    expect(find.text('Search and views'), findsOneWidget);
+    expect(find.text('Make it yours'), findsOneWidget);
     await tester.tap(find.byKey(const Key('manual-next')));
     await tester.pumpAndSettle();
     expect(find.byType(ManualTopicPage), findsNothing);
@@ -400,7 +420,7 @@ void main() {
           await _reveal(tester, find.byKey(const Key('manual-topic-0')));
           await tester.tap(find.byKey(const Key('manual-topic-0')));
           await tester.pumpAndSettle();
-          for (var i = 1; i < 7; i++) {
+          for (var i = 1; i < 12; i++) {
             await tester.tap(find.byKey(const Key('manual-next')));
             await tester.pumpAndSettle();
           }

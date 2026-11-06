@@ -28,6 +28,9 @@ class ManualTopic {
   final Widget Function() picture;
 }
 
+/// Built with Google Drive sync (`--dart-define=STICKY_SYNC=true`).
+const _syncBuild = bool.fromEnvironment('STICKY_SYNC');
+
 /// The manual's topics, in reading order.
 List<ManualTopic> manualTopics(AppLocalizations l10n) => [
   ManualTopic(
@@ -65,6 +68,18 @@ List<ManualTopic> manualTopics(AppLocalizations l10n) => [
     picture: () => const _PracticePicture(PracticeStep.tie),
   ),
   ManualTopic(
+    icon: Icons.checklist,
+    title: l10n.manualKindsTitle,
+    summary: l10n.manualKindsSummary,
+    steps: [
+      l10n.manualKindsStep1,
+      l10n.manualKindsStep2,
+      l10n.manualKindsStep3,
+      l10n.manualKindsStep4,
+    ],
+    picture: () => const _KindsPicture(),
+  ),
+  ManualTopic(
     icon: Icons.gesture,
     title: l10n.manualDrawTitle,
     summary: l10n.manualDrawSummary,
@@ -83,6 +98,18 @@ List<ManualTopic> manualTopics(AppLocalizations l10n) => [
     picture: () => const _BoardsPicture(),
   ),
   ManualTopic(
+    icon: Icons.dashboard_customize_outlined,
+    title: l10n.manualLooksTitle,
+    summary: l10n.manualLooksSummary,
+    steps: [
+      l10n.manualLooksStep1,
+      l10n.manualLooksStep2,
+      l10n.manualLooksStep3,
+      l10n.manualLooksStep4,
+    ],
+    picture: () => const _LooksPicture(),
+  ),
+  ManualTopic(
     icon: Icons.photo_library_outlined,
     title: l10n.manualPhotosTitle,
     summary: l10n.manualPhotosSummary,
@@ -99,6 +126,41 @@ List<ManualTopic> manualTopics(AppLocalizations l10n) => [
     summary: l10n.manualFindSummary,
     steps: [l10n.manualFindStep1, l10n.manualFindStep2, l10n.manualFindStep3],
     picture: () => const _FindPicture(),
+  ),
+  ManualTopic(
+    icon: Icons.ios_share,
+    title: l10n.manualShareTitle,
+    summary: l10n.manualShareSummary,
+    steps: [
+      l10n.manualShareStep1,
+      l10n.manualShareStep2,
+      l10n.manualShareStep3,
+    ],
+    picture: () => const _SharePicture(),
+  ),
+  ManualTopic(
+    icon: Icons.shield_outlined,
+    title: l10n.manualSafeTitle,
+    summary: l10n.manualSafeSummary,
+    steps: [
+      l10n.manualSafeStep1,
+      l10n.manualSafeStep2,
+      if (_syncBuild) l10n.manualSafeSync,
+      l10n.manualSafeStep3,
+    ],
+    picture: () => const _SafePicture(),
+  ),
+  ManualTopic(
+    icon: Icons.palette_outlined,
+    title: l10n.manualYoursTitle,
+    summary: l10n.manualYoursSummary,
+    steps: [
+      l10n.manualYoursStep1,
+      l10n.manualYoursStep2,
+      l10n.manualYoursStep3,
+      l10n.manualYoursStep4,
+    ],
+    picture: () => const _YoursPicture(),
   ),
 ];
 
@@ -967,6 +1029,387 @@ class _FindPicture extends StatelessWidget {
               Icon(Icons.view_agenda_outlined, size: 20, color: AppColors.ink),
             ]),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A round chalk badge with [icon] in it, as the app's buttons look.
+Widget _badge(IconData icon, {double size = 52}) => Container(
+  width: size,
+  height: size,
+  decoration: const BoxDecoration(
+    color: AppColors.chalk,
+    shape: BoxShape.circle,
+    boxShadow: [
+      BoxShadow(color: Color(0x40302318), blurRadius: 8, offset: Offset(0, 3)),
+    ],
+  ),
+  child: Icon(icon, size: size * .48, color: AppColors.ink),
+);
+
+/// Words under a badge, at the pictures' drawn size.
+Widget _caption(String words, {double width = 112}) => SizedBox(
+  width: width,
+  child: Text(
+    words,
+    textAlign: TextAlign.center,
+    maxLines: 2,
+    overflow: TextOverflow.ellipsis,
+    style: const TextStyle(
+      fontFamily: 'BeVietnamPro',
+      fontSize: 14,
+      height: 1.3,
+      fontWeight: FontWeight.w600,
+      color: AppColors.chalk,
+      shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+    ),
+  ),
+);
+
+/// A wall as it looks right now (dimmed when the lights are off).
+WallStyle _wall(BuildContext context, String id) {
+  final w = walls.firstWhere((w) => w.id == id);
+  return isNight(context) ? w.atNight : w;
+}
+
+/// A to-do list, a note with a weekly reminder, and a voice note's
+/// microphone.
+class _KindsPicture extends StatelessWidget {
+  const _KindsPicture();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return _Cork(
+      children: [
+        Positioned(
+          left: 26,
+          top: 22,
+          child: SizedBox(
+            width: 160,
+            child: StickyNoteCard(
+              note: Note(
+                guid: 'manual-kinds-list',
+                content: l10n.typeChecklist,
+                createdAt: DateTime(2026),
+                boardId: '',
+                type: NoteType.checklist,
+                colorIndex: 2,
+                checklist: [
+                  ChecklistItem(text: l10n.guideNoteWater, done: true),
+                  ChecklistItem(text: l10n.guideScrapFlowers),
+                  ChecklistItem(text: l10n.guideScrapPlumber),
+                ],
+              ),
+              cb: _still,
+              maxContentLines: 4,
+            ),
+          ),
+        ),
+        Positioned(
+          right: 30,
+          top: 40,
+          child: SizedBox(
+            width: 150,
+            child: StickyNoteCard(
+              note: Note(
+                guid: 'manual-kinds-remind',
+                content: l10n.guideNoteMum,
+                createdAt: DateTime(2026),
+                boardId: '',
+                colorIndex: 1,
+                reminderAt: DateTime(2026, 11, 14, 18),
+                repeat: ReminderRepeat.weekly,
+              ),
+              cb: _still,
+              maxContentLines: 2,
+            ),
+          ),
+        ),
+        Positioned(right: 78, bottom: 22, child: _badge(Icons.mic_none)),
+      ],
+    );
+  }
+}
+
+/// Three small boards, each dressed by a different theme.
+class _LooksPicture extends StatelessWidget {
+  const _LooksPicture();
+
+  @override
+  Widget build(BuildContext context) {
+    final night = isNight(context);
+    Color paper(int i) {
+      final c = AppColors.notePapers[i];
+      return night ? nightPaper(c) : c;
+    }
+
+    Widget board(String wallId, List<int> papers, double angle) =>
+        Transform.rotate(
+          angle: angle,
+          child: Container(
+            width: 112,
+            height: 150,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.chalk, width: 3),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x59302318),
+                  blurRadius: 12,
+                  offset: Offset(0, 5),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(11),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: WallBackground(
+                      wall: _wall(context, wallId),
+                      decor: false,
+                    ),
+                  ),
+                  for (final (i, at) in const [
+                    Offset(12, 16),
+                    Offset(58, 30),
+                    Offset(18, 80),
+                    Offset(62, 92),
+                  ].indexed)
+                    Positioned(
+                      left: at.dx,
+                      top: at.dy,
+                      child: Transform.rotate(
+                        angle: (i.isEven ? -1 : 1) * .05,
+                        child: Container(
+                          width: 34,
+                          height: 32,
+                          color: paper(papers[i % papers.length]),
+                          alignment: Alignment.topCenter,
+                          padding: const EdgeInsets.only(top: 3),
+                          child: Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFD84343),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+    return _Cork(
+      children: [
+        Positioned.fill(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              board('chalk_green', const [0, 3], -.05),
+              board('plaster', const [1, 5, 2], .03),
+              board('kraft', const [4, 0], -.02),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A note, and where it can go: shared, saved, or the board as a PDF.
+class _SharePicture extends StatelessWidget {
+  const _SharePicture();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    Widget row(IconData icon, String words) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 22, color: AppColors.ink),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 128,
+            child: Text(
+              words,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: 'BeVietnamPro',
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    return _Cork(
+      children: [
+        Positioned(
+          left: 28,
+          top: 60,
+          child: Transform.rotate(
+            angle: -.04,
+            child: _card('share', l10n.guideNoteWater, 0, raised: true),
+          ),
+        ),
+        Positioned(
+          right: 24,
+          top: 70,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.chalk,
+              borderRadius: BorderRadius.circular(AppRadii.control * 2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x40302318),
+                  blurRadius: 10,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                row(Icons.ios_share, l10n.share),
+                row(Icons.download_outlined, l10n.saveImage),
+                row(Icons.picture_as_pdf_outlined, l10n.exportPdf),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A backup, the weekly copy (or sync), and the lock.
+class _SafePicture extends StatelessWidget {
+  const _SafePicture();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final items = [
+      (Icons.save_alt, l10n.backupRestore),
+      _syncBuild
+          ? (Icons.cloud_sync_outlined, l10n.syncTitle)
+          : (Icons.history, l10n.autoBackup),
+      (Icons.lock_outline, l10n.appLock),
+    ];
+    return _Cork(
+      children: [
+        Positioned.fill(
+          child: Center(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                for (final (icon, words) in items)
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _badge(icon, size: 72),
+                      const SizedBox(height: 12),
+                      _caption(words),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Walls to choose from, handwriting to choose from, the widget and
+/// Lights off.
+class _YoursPicture extends StatelessWidget {
+  const _YoursPicture();
+
+  @override
+  Widget build(BuildContext context) {
+    const swatches = ['cork', 'chalk_green', 'brick', 'denim'];
+    final fonts = fontChoices.where((f) => !f.pro).take(3).toList();
+    return _Cork(
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          top: 34,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (final (i, id) in swatches.indexed)
+                Container(
+                  width: 62,
+                  height: 62,
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: i == 0 ? AppColors.accent : AppColors.chalk,
+                      width: i == 0 ? 4 : 3,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: WallBackground(
+                      wall: _wall(context, id),
+                      decor: false,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          top: 128,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (final f in fonts)
+                Container(
+                  width: 74,
+                  height: 64,
+                  margin: const EdgeInsets.symmetric(horizontal: 7),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.chalk,
+                    borderRadius: BorderRadius.circular(AppRadii.control),
+                  ),
+                  child: Text(
+                    'Aa',
+                    style: TextStyle(
+                      fontFamily: f.family,
+                      fontSize: 30 * f.scale,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Positioned(left: 26, bottom: 18, child: _badge(Icons.widgets_outlined)),
+        Positioned(
+          right: 26,
+          bottom: 18,
+          child: _badge(Icons.dark_mode_outlined),
         ),
       ],
     );

@@ -142,7 +142,7 @@ void main() {
       await tap(primary);
       await shot('4_replay_last');
       await tap(primary);
-      for (var i = 0; i < 7; i++) {
+      for (var i = 0; i < 12; i++) {
         if (i == 0) {
           await tester.scrollUntilVisible(
             find.byKey(const Key('manual-topic-0')),
