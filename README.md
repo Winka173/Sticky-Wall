@@ -214,7 +214,7 @@ then taken well beyond it.
   manual as twelve short topics (first note, moving, threads, kinds of notes
   and reminders, drawing, boards and the Trash, templates and themes,
   photos and memory walls, search and views, share and export, keeping it
-  safe, make it yours), each with a picture and Previous / Next
+  safe, make it yours), each step played on a little phone (where to tap, what opens), with Previous / Next
 - **Stacks** — long-press a note → *Stack with…* (or select several →
   *Stack*) piles them in one place: the top card shows with the sheets
   under it peeking out and a count on the corner that lists them; the pile

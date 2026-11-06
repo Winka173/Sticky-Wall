@@ -2640,7 +2640,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get manualShareStep2 =>
-      'Xuất bảng thành ảnh, trong menu Khác: cả tường hoặc phần đang xem, thành ảnh hoặc PDF.';
+      'Nút chia sẻ ở trên cùng (hoặc Xuất bảng thành ảnh trong menu Khác): cả tường hoặc phần đang xem, thành ảnh hoặc PDF.';
 
   @override
   String get manualShareStep3 =>

@@ -13,6 +13,7 @@ import 'package:sticky_wall/services/settings_controller.dart';
 import 'package:sticky_wall/services/template_library.dart';
 import 'package:sticky_wall/welcome/guide_motion.dart';
 import 'package:sticky_wall/welcome/how_to_use.dart';
+import 'package:sticky_wall/welcome/manual_screens.dart';
 import 'package:sticky_wall/welcome/welcome_guide.dart';
 
 /// The first-run guide: shown once on a fresh install (never to someone
@@ -382,6 +383,14 @@ void main() {
     expect(find.byType(ManualTopicPage), findsOneWidget);
     expect(find.text('Topic 2 of 12'), findsOneWidget);
     expect(find.text('Moving and arranging'), findsOneWidget);
+    // Each step plays on the little phone; a tap picks another.
+    expect(find.byType(ManualPlayer), findsOneWidget);
+    expect(find.byKey(const ValueKey('show-1-0')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('manual-step-2')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('manual-step-2')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('show-1-2')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('manual-previous')));
     await tester.pumpAndSettle();

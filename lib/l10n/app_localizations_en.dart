@@ -2687,7 +2687,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manualShareStep2 =>
-      'Export board as image, in the More menu: the whole wall or the part in view, as a picture or a PDF.';
+      'The share button at the top (or Export board as image in the More menu): the whole wall or the part in view, as a picture or a PDF.';
 
   @override
   String get manualShareStep3 =>

@@ -4757,7 +4757,7 @@ abstract class AppLocalizations {
   /// No description provided for @manualShareStep2.
   ///
   /// In en, this message translates to:
-  /// **'Export board as image, in the More menu: the whole wall or the part in view, as a picture or a PDF.'**
+  /// **'The share button at the top (or Export board as image in the More menu): the whole wall or the part in view, as a picture or a PDF.'**
   String get manualShareStep2;
 
   /// No description provided for @manualShareStep3.

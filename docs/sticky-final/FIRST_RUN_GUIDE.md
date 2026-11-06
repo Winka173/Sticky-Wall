@@ -72,9 +72,10 @@ removed: everything it said is in the manual's topics.
   stage shows no choices: it says where templates and new boards are, and
   its button is **Done**. Replay changes nothing (tested).
 - **Topics**, each with a one-line summary, open one short page each: a
-  title, one still picture, and two to four numbered steps. Previous and
+  title, a little phone, and two to four numbered steps. Each step plays on the phone (`lib/welcome/manual_screens.dart`): a hand taps, holds and drags, and the menus, sheets and pages open with the app's own words, so the way to each thing is seen, not just read. A step plays twice, then rests on its last screen with the place to tap ringed; tapping another step plays it. Previous and
   Next walk through all twelve in order; Next on the last one is Done.
-  1. Your first note: a still of the practice's add step.
+  1. Your first note: the yellow paper, what it offers, opening and
+     long-pressing a note.
   2. Moving and arranging: the move step; the grips, two-finger twist and
      pinch, Arrange…, Undo.
   3. Threads between notes: the tie step, with a thread half pulled.
@@ -99,8 +100,8 @@ removed: everything it said is in the manual's topics.
   12. Make it yours: Customize (walls, handwriting, pins, try-on), Lights
       off and its schedule, the home-screen widget, the language.
 
-  The pictures are inert: no pointer, no focus, hidden from screen readers,
-  drawn at rest.
+  The phone is inert: no pointer, no focus, hidden from screen readers,
+  and still (its last screen) when motion is reduced.
 
 The drawing tip in the gesture-tips sheet (still offered once to anyone
 whose tips were pending) now names the eraser instead of the removed "clear"

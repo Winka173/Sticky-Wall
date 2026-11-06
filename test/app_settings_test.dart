@@ -71,6 +71,12 @@ void main() {
     double? last;
     for (final row in rows) {
       final f = find.text(row);
+      // From the top each time: a row is looked for below, never above.
+      tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position
+          .jumpTo(0);
+      await tester.pump();
       await tester.scrollUntilVisible(f, 150);
       final y = tester.getTopLeft(f.first).dy;
       // Each row comes after the previous one (scrolled into view in turn).
