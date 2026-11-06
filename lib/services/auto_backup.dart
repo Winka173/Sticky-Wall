@@ -40,6 +40,12 @@ class AutoBackup {
     return Directory('$docs/$_folder');
   }
 
+  /// Deletes every automatic backup (Settings → Delete all data).
+  static Future<void> deleteAll() async {
+    final dir = await _dir();
+    if (dir.existsSync()) await dir.delete(recursive: true);
+  }
+
   /// The day an automatic backup was made, read from its name.
   static DateTime? dateOf(File file) {
     final m = _name.firstMatch(file.uri.pathSegments.last);

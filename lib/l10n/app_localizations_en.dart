@@ -693,6 +693,71 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tourReplay => 'Interactive guide';
 
   @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsGeneral => 'General';
+
+  @override
+  String get settingsData => 'Data';
+
+  @override
+  String get settingsHelp => 'Help';
+
+  @override
+  String get settingsAbout => 'About';
+
+  @override
+  String get tourReplayHint =>
+      'Practise tapping, dragging and threads on your wall';
+
+  @override
+  String get backupRestore => 'Backup & restore';
+
+  @override
+  String get comingSoon => 'Coming soon';
+
+  @override
+  String get sendFeedback => 'Send feedback';
+
+  @override
+  String get feedbackSubject => 'Sticky Wall feedback';
+
+  @override
+  String feedbackNoMail(String email) {
+    return 'No email app found. Write to $email';
+  }
+
+  @override
+  String get termsOfService => 'Terms of service';
+
+  @override
+  String get deleteAllData => 'Delete all data';
+
+  @override
+  String get deleteAllDataHint =>
+      'Every board, note, photo and recording on this phone';
+
+  @override
+  String get deleteAllTitle => 'Delete all data?';
+
+  @override
+  String get deleteAllBody =>
+      'This deletes every board and note on this phone, the Trash, the photos and recordings, and the automatic backups. Your settings and Sticky Wall Pro stay. If sync is on, it is switched off first, so your other devices keep their copy. Make a backup first if you might want anything back.';
+
+  @override
+  String get deleteAllContinue => 'Continue';
+
+  @override
+  String get deleteAllSureTitle => 'Are you sure?';
+
+  @override
+  String get deleteAllSureBody => 'This cannot be undone.';
+
+  @override
+  String get deleteAllDone => 'All data deleted';
+
+  @override
   String get wallSemantics =>
       'Wall. Long-press an empty spot to stick a note there.';
 

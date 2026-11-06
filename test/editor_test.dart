@@ -1668,8 +1668,12 @@ void main() {
     expect(find.text('Pins and threads'), findsNothing);
     expect(storage.tipsPending, false);
 
+    // Kept in Settings → Help.
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Gesture tips'), 200);
     await tester.tap(find.text('Gesture tips'));
     await tester.pumpAndSettle();
     expect(find.text('Pins and threads'), findsOneWidget);

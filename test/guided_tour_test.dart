@@ -12,6 +12,17 @@ import 'package:sticky_wall/widgets/guided_tour.dart';
 
 /// The interactive guide runs on the real wall, moves on when the gesture
 /// is done (or with Next), and never changes anything by itself.
+/// More → Settings → Help → Interactive guide.
+Future<void> openGuide(WidgetTester tester) async {
+  await tester.tap(find.byTooltip('More'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Settings'));
+  await tester.pumpAndSettle();
+  await tester.scrollUntilVisible(find.text('Interactive guide'), 200);
+  await tester.tap(find.text('Interactive guide'));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   Future<NotesController> pump(WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
@@ -48,10 +59,7 @@ void main() {
     final notes = await pump(tester);
     final before = notes.allNotes.map((n) => n.toJson().toString()).toList();
 
-    await tester.tap(find.byTooltip('More'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Interactive guide'));
-    await tester.pumpAndSettle();
+    await openGuide(tester);
     expect(find.byType(GuidedTourCard), findsOneWidget);
     expect(find.text('Tap a note to write on it'), findsOneWidget);
     expect(
@@ -91,10 +99,7 @@ void main() {
 
   testWidgets('Skip ends the guide at once', (tester) async {
     await pump(tester);
-    await tester.tap(find.byTooltip('More'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Interactive guide'));
-    await tester.pumpAndSettle();
+    await openGuide(tester);
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
     expect(find.byType(GuidedTourCard), findsNothing);

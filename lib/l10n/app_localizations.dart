@@ -1286,6 +1286,126 @@ abstract class AppLocalizations {
   /// **'Interactive guide'**
   String get tourReplay;
 
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get settingsGeneral;
+
+  /// No description provided for @settingsData.
+  ///
+  /// In en, this message translates to:
+  /// **'Data'**
+  String get settingsData;
+
+  /// No description provided for @settingsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get settingsHelp;
+
+  /// No description provided for @settingsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAbout;
+
+  /// No description provided for @tourReplayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Practise tapping, dragging and threads on your wall'**
+  String get tourReplayHint;
+
+  /// No description provided for @backupRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & restore'**
+  String get backupRestore;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get comingSoon;
+
+  /// No description provided for @sendFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get sendFeedback;
+
+  /// No description provided for @feedbackSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticky Wall feedback'**
+  String get feedbackSubject;
+
+  /// No description provided for @feedbackNoMail.
+  ///
+  /// In en, this message translates to:
+  /// **'No email app found. Write to {email}'**
+  String feedbackNoMail(String email);
+
+  /// No description provided for @termsOfService.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of service'**
+  String get termsOfService;
+
+  /// No description provided for @deleteAllData.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all data'**
+  String get deleteAllData;
+
+  /// No description provided for @deleteAllDataHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Every board, note, photo and recording on this phone'**
+  String get deleteAllDataHint;
+
+  /// No description provided for @deleteAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all data?'**
+  String get deleteAllTitle;
+
+  /// No description provided for @deleteAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes every board and note on this phone, the Trash, the photos and recordings, and the automatic backups. Your settings and Sticky Wall Pro stay. If sync is on, it is switched off first, so your other devices keep their copy. Make a backup first if you might want anything back.'**
+  String get deleteAllBody;
+
+  /// No description provided for @deleteAllContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get deleteAllContinue;
+
+  /// No description provided for @deleteAllSureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure?'**
+  String get deleteAllSureTitle;
+
+  /// No description provided for @deleteAllSureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This cannot be undone.'**
+  String get deleteAllSureBody;
+
+  /// No description provided for @deleteAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All data deleted'**
+  String get deleteAllDone;
+
   /// No description provided for @wallSemantics.
   ///
   /// In en, this message translates to:

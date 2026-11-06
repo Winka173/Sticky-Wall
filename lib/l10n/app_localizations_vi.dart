@@ -682,6 +682,71 @@ class AppLocalizationsVi extends AppLocalizations {
   String get tourReplay => 'Hướng dẫn tương tác';
 
   @override
+  String get settingsTitle => 'Cài đặt';
+
+  @override
+  String get settingsGeneral => 'Chung';
+
+  @override
+  String get settingsData => 'Dữ liệu';
+
+  @override
+  String get settingsHelp => 'Trợ giúp';
+
+  @override
+  String get settingsAbout => 'Giới thiệu';
+
+  @override
+  String get tourReplayHint =>
+      'Tập chạm, kéo và nối dây ngay trên tường của bạn';
+
+  @override
+  String get backupRestore => 'Sao lưu & khôi phục';
+
+  @override
+  String get comingSoon => 'Sắp có';
+
+  @override
+  String get sendFeedback => 'Gửi góp ý';
+
+  @override
+  String get feedbackSubject => 'Góp ý cho Sticky Wall';
+
+  @override
+  String feedbackNoMail(String email) {
+    return 'Không tìm thấy ứng dụng email. Hãy viết tới $email';
+  }
+
+  @override
+  String get termsOfService => 'Điều khoản dịch vụ';
+
+  @override
+  String get deleteAllData => 'Xóa toàn bộ dữ liệu';
+
+  @override
+  String get deleteAllDataHint =>
+      'Mọi bảng, ghi chú, ảnh và ghi âm trên điện thoại này';
+
+  @override
+  String get deleteAllTitle => 'Xóa toàn bộ dữ liệu?';
+
+  @override
+  String get deleteAllBody =>
+      'Thao tác này xóa mọi bảng và ghi chú trên điện thoại này, Thùng rác, ảnh, ghi âm và các bản sao lưu tự động. Cài đặt và Sticky Wall Pro vẫn giữ nguyên. Nếu đang bật đồng bộ, đồng bộ sẽ được tắt trước để các máy khác vẫn giữ bản của chúng. Hãy sao lưu trước nếu bạn có thể cần lấy lại.';
+
+  @override
+  String get deleteAllContinue => 'Tiếp tục';
+
+  @override
+  String get deleteAllSureTitle => 'Bạn chắc chứ?';
+
+  @override
+  String get deleteAllSureBody => 'Không thể hoàn tác.';
+
+  @override
+  String get deleteAllDone => 'Đã xóa toàn bộ dữ liệu';
+
+  @override
   String get wallSemantics =>
       'Tường. Nhấn giữ chỗ trống để dán ghi chú vào đó.';
 

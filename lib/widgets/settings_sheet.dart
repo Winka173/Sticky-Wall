@@ -22,6 +22,7 @@ import '../services/sync/sync_service.dart';
 import '../services/widget_service.dart';
 import '../theme.dart';
 import 'action_sheet.dart';
+import 'gesture_tips.dart';
 import 'keyboard_tappable.dart';
 import 'note_views.dart';
 import 'pro_sheet.dart';
@@ -125,8 +126,8 @@ Widget _choiceChip({
   );
 }
 
-/// Opens the customization sheet: Pro, wall texture, lights, font, pins,
-/// language, privacy, the home-screen widget, auto-tidy and backup.
+/// Opens the customization sheet: Pro, wall texture, lights, font and
+/// pins. Everything else about the app is in Settings ([showAppSettings]).
 Future<void> showSettingsSheet(
   BuildContext context, {
   required SettingsController settings,
@@ -144,6 +145,45 @@ Future<void> showSettingsSheet(
     ),
   ).whenComplete(
     () => _endTryOn(settings, notes, keep: pro?.unlocked ?? false),
+  );
+}
+
+/// The address "Send feedback" writes to.
+const feedbackEmail = 'apps.winka.studio@gmail.com';
+
+/// Opens Settings, a page of its own: language, widget, app lock, sync,
+/// backup and restore, Trash, delete all data, help, feedback and legal.
+Future<void> showAppSettings(
+  BuildContext context, {
+  required SettingsController settings,
+  required NotesController notes,
+  VoidCallback? onGuide,
+}) {
+  return Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (context) => ListenableBuilder(
+        listenable: Listenable.merge([settings, notes]),
+        builder: (context, _) {
+          final l10n = AppLocalizations.of(context)!;
+          return Scaffold(
+            backgroundColor: AppColors.paper,
+            appBar: AppBar(
+              backgroundColor: AppColors.paper,
+              foregroundColor: AppColors.ink,
+              title: Text(l10n.settingsTitle),
+            ),
+            body: SafeArea(
+              top: false,
+              child: _SettingsSheet(
+                settings: settings,
+                notes: notes,
+                onGuide: onGuide,
+              )._appList(context, l10n),
+            ),
+          );
+        },
+      ),
+    ),
   );
 }
 
@@ -166,10 +206,17 @@ void _endTryOn(
 
 /// Body of [showSettingsSheet]; rebuilds as the settings change.
 class _SettingsSheet extends StatelessWidget {
-  const _SettingsSheet({required this.settings, required this.notes});
+  const _SettingsSheet({
+    required this.settings,
+    required this.notes,
+    this.onGuide,
+  });
 
   final SettingsController settings;
   final NotesController notes;
+
+  /// Starts the interactive guide on the wall (Settings → Help).
+  final VoidCallback? onGuide;
 
   @override
   Widget build(BuildContext context) {
@@ -450,8 +497,47 @@ class _SettingsSheet extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(height: 8),
-        _SectionTitle(l10n.languageSection),
+      ],
+    );
+  }
+
+  ListTile _row({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+    VoidCallback? onTap,
+    Color color = AppColors.ink,
+  }) => ListTile(
+    contentPadding: EdgeInsets.zero,
+    enabled: onTap != null,
+    leading: Icon(icon, color: onTap == null ? AppColors.inkHint : color),
+    title: Text(
+      title,
+      style: TextStyle(
+        fontSize: 16,
+        color: onTap == null ? AppColors.inkSoft : color,
+      ),
+    ),
+    subtitle: subtitle == null
+        ? null
+        : Text(
+            subtitle,
+            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+          ),
+    trailing: trailing,
+    onTap: onTap,
+  );
+
+  /// The Settings page (from the More menu): everything about the app
+  /// rather than the look of the wall, in sections.
+  Widget _appList(BuildContext context, AppLocalizations l10n) {
+    final sync = SyncService.instance;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+      children: [
+        _SectionTitle(l10n.settingsGeneral),
+        _SectionTitle(l10n.languageSection, small: true),
         Wrap(
           spacing: 8,
           children: [
@@ -468,23 +554,7 @@ class _SettingsSheet extends StatelessWidget {
               ),
           ],
         ),
-        const SizedBox(height: 16),
-        _SectionTitle(l10n.privacySection),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          secondary: const Icon(Icons.lock_outline, color: AppColors.ink),
-          title: Text(
-            l10n.appLock,
-            style: const TextStyle(fontSize: 16, color: AppColors.ink),
-          ),
-          subtitle: Text(
-            l10n.appLockHint,
-            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
-          ),
-          isThreeLine: true,
-          value: settings.appLock,
-          onChanged: (on) => _setAppLock(context, l10n, on),
-        ),
+        const SizedBox(height: 8),
         if (_hasHomeWidget)
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -504,65 +574,25 @@ class _SettingsSheet extends StatelessWidget {
               notes: notes,
             ),
           ),
-        ListTile(
+        const SizedBox(height: 8),
+        _SectionTitle(l10n.privacySection),
+        SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.policy_outlined, color: AppColors.ink),
+          secondary: const Icon(Icons.lock_outline, color: AppColors.ink),
           title: Text(
-            l10n.privacyPolicy,
+            l10n.appLock,
             style: const TextStyle(fontSize: 16, color: AppColors.ink),
           ),
           subtitle: Text(
-            l10n.privacyPolicyHint,
+            l10n.appLockHint,
             style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
           ),
-          trailing: const Icon(Icons.open_in_new, color: AppColors.inkSoft),
-          onTap: () => unawaited(
-            launchUrl(
-              Uri.parse(privacyPolicyUrl),
-              mode: LaunchMode.externalApplication,
-            ),
-          ),
+          isThreeLine: true,
+          value: settings.appLock,
+          onChanged: (on) => _setAppLock(context, l10n, on),
         ),
         const SizedBox(height: 8),
-        _SectionTitle(l10n.dataSection),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.delete_outline, color: AppColors.ink),
-          title: Text(
-            l10n.trash,
-            style: const TextStyle(fontSize: 16, color: AppColors.ink),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (notes.trashCount > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.ink.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${notes.trashCount}',
-                    style: const TextStyle(fontSize: 13, color: AppColors.ink),
-                  ),
-                ),
-              const Icon(Icons.chevron_right, color: AppColors.inkSoft),
-            ],
-          ),
-          onTap: () {
-            final nav = Navigator.of(context);
-            nav.pop();
-            nav.push(
-              MaterialPageRoute<void>(
-                builder: (_) => TrashScreen(notes: notes),
-              ),
-            );
-          },
-        ),
+        _SectionTitle(l10n.settingsData),
         if (SyncService.instance case final sync?)
           ListenableBuilder(
             listenable: sync,
@@ -584,6 +614,13 @@ class _SettingsSheet extends StatelessWidget {
               onTap: () => showSyncSheet(context, sync),
             ),
           ),
+        if (sync == null)
+          _row(
+            icon: Icons.sync,
+            title: l10n.syncTitle,
+            subtitle: l10n.comingSoon,
+          ),
+        _SectionTitle(l10n.backupRestore, small: true),
         _autoBackupTile(context, l10n),
         if (settings.lastAutoBackup != null)
           Padding(
@@ -633,8 +670,182 @@ class _SettingsSheet extends StatelessWidget {
             ),
           ],
         ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.delete_outline, color: AppColors.ink),
+          title: Text(
+            l10n.trash,
+            style: const TextStyle(fontSize: 16, color: AppColors.ink),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (notes.trashCount > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.ink.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${notes.trashCount}',
+                    style: const TextStyle(fontSize: 13, color: AppColors.ink),
+                  ),
+                ),
+              const Icon(Icons.chevron_right, color: AppColors.inkSoft),
+            ],
+          ),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => TrashScreen(notes: notes),
+              ),
+            );
+          },
+        ),
+        _row(
+          icon: Icons.delete_forever_outlined,
+          title: l10n.deleteAllData,
+          subtitle: l10n.deleteAllDataHint,
+          color: AppColors.deleteIcon,
+          onTap: () => _deleteEverything(context, l10n),
+        ),
+        const SizedBox(height: 8),
+        _SectionTitle(l10n.settingsHelp),
+        _row(
+          icon: Icons.school_outlined,
+          title: l10n.tourReplay,
+          subtitle: l10n.tourReplayHint,
+          trailing: const Icon(Icons.chevron_right, color: AppColors.inkSoft),
+          onTap: onGuide == null
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                  onGuide!();
+                },
+        ),
+        _row(
+          icon: Icons.lightbulb_outline,
+          title: l10n.gestureTips,
+          trailing: const Icon(Icons.chevron_right, color: AppColors.inkSoft),
+          onTap: () => showGestureTips(context),
+        ),
+        const SizedBox(height: 8),
+        _SectionTitle(l10n.settingsAbout),
+        _row(
+          icon: Icons.mail_outline,
+          title: l10n.sendFeedback,
+          subtitle: feedbackEmail,
+          onTap: () => _sendFeedback(context, l10n),
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.policy_outlined, color: AppColors.ink),
+          title: Text(
+            l10n.privacyPolicy,
+            style: const TextStyle(fontSize: 16, color: AppColors.ink),
+          ),
+          subtitle: Text(
+            l10n.privacyPolicyHint,
+            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+          ),
+          trailing: const Icon(Icons.open_in_new, color: AppColors.inkSoft),
+          onTap: () => unawaited(
+            launchUrl(
+              Uri.parse(privacyPolicyUrl),
+              mode: LaunchMode.externalApplication,
+            ),
+          ),
+        ),
+        _row(
+          icon: Icons.gavel_outlined,
+          title: l10n.termsOfService,
+          subtitle: l10n.comingSoon,
+        ),
       ],
     );
+  }
+
+  Future<void> _sendFeedback(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final uri = Uri(
+      scheme: 'mailto',
+      path: feedbackEmail,
+      query: 'subject=${Uri.encodeComponent(l10n.feedbackSubject)}',
+    );
+    var opened = false;
+    try {
+      opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {}
+    if (!opened) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(l10n.feedbackNoMail(feedbackEmail))),
+        );
+    }
+  }
+
+  /// Deletes every board, note, the Trash and the files they use, after
+  /// two questions. Settings and Pro stay. Sync is switched off first, so
+  /// the other devices keep their copy.
+  Future<void> _deleteEverything(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    Future<bool> ask(String title, String body, String action) async =>
+        await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(title),
+            content: Text(body),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(l10n.cancel),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.deleteIcon,
+                ),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(action),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!await ask(
+      l10n.deleteAllTitle,
+      l10n.deleteAllBody,
+      l10n.deleteAllContinue,
+    )) {
+      return;
+    }
+    if (!context.mounted) return;
+    if (!await ask(
+      l10n.deleteAllSureTitle,
+      l10n.deleteAllSureBody,
+      l10n.deleteAllData,
+    )) {
+      return;
+    }
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final sync = SyncService.instance;
+    if (sync != null && sync.enabled) await sync.disable();
+    notes.deleteEverything();
+    await AutoBackup.deleteAll();
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.deleteAllDone)));
   }
 
   /// Switching the lock on asks for the phone's lock first: that proves
@@ -1550,12 +1761,27 @@ class _BusyButtonState extends State<_BusyButton> {
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
+  const _SectionTitle(this.text, {this.small = false});
 
   final String text;
 
+  /// A heading inside a section: no rule above it, quieter.
+  final bool small;
+
   @override
   Widget build(BuildContext context) {
+    if (small) {
+      return Semantics(
+        header: true,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 6),
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 14, color: AppColors.inkSoft),
+          ),
+        ),
+      );
+    }
     return Semantics(
       header: true,
       child: Container(

@@ -1673,6 +1673,38 @@ class NotesController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Deletes every board, note, thread and the Trash, with the photo and
+  /// recording files they use, and leaves one empty board. Settings and Pro
+  /// are not touched. Cannot be undone.
+  void deleteEverything() {
+    for (final board in _deletedBoards.toList()) {
+      _purgeBoard(board);
+    }
+    for (final note in _notes.toList()) {
+      _purge(note);
+    }
+    for (final board in _boards) {
+      for (final photo in {board.wallImage, board.savedWallImage}) {
+        if (photo.isNotEmpty) _deleteWallImage(photo);
+      }
+    }
+    _lastDeleted = const [];
+    _wallUndo.clear();
+    _openPrivate.clear();
+    _links.clear();
+    _boards
+      ..clear()
+      ..add(Board(id: _uuid.v4(), name: ''));
+    _currentBoardId = _boards.first.id;
+    _storage
+      ..saveBoards(_boards)
+      ..saveDeletedBoards(_deletedBoards)
+      ..saveNotes(_notes)
+      ..saveLinks(_links)
+      ..setCurrentBoardId(_currentBoardId);
+    notifyListeners();
+  }
+
   /// Takes the state a sync merged (see `SyncService`): boards, the Trash's
   /// boards, every note and thread. Files are never deleted here; the board
   /// open stays open when it still exists. A note whose board is in neither
