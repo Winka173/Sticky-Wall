@@ -950,6 +950,18 @@ abstract class AppLocalizations {
   /// **'Save image'**
   String get saveImage;
 
+  /// No description provided for @saveShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveShort;
+
+  /// No description provided for @shareBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Share or save this board'**
+  String get shareBoard;
+
   /// No description provided for @exportBoard.
   ///
   /// In en, this message translates to:

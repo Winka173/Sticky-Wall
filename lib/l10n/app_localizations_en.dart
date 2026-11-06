@@ -490,6 +490,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveImage => 'Save image';
 
   @override
+  String get saveShort => 'Save';
+
+  @override
+  String get shareBoard => 'Share or save this board';
+
+  @override
   String get exportBoard => 'Export board as image';
 
   @override

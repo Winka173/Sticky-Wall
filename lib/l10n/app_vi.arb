@@ -142,6 +142,8 @@
   "rotate": "Xoay",
   "photosPinned": "{count, plural, other{Đã ghim {count} ảnh lên tường}}",
   "saveImage": "Lưu ảnh",
+  "saveShort": "Lưu",
+  "shareBoard": "Chia sẻ hoặc lưu bảng này",
   "exportBoard": "Xuất bảng thành ảnh",
   "exportWholeWall": "Cả tường",
   "exportVisible": "Phần đang xem",

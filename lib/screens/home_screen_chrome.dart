@@ -265,6 +265,15 @@ extension _Chrome on _HomeScreenState {
                       icon: Icon(Icons.search, color: text),
                       onPressed: () => _setSearching(true),
                     ),
+                    // Share or save the board as a picture or a PDF, one
+                    // tap from the top rather than deep in the menu.
+                    if (_notes.boardNotes.isNotEmpty)
+                      IconButton(
+                        key: const Key('header-share'),
+                        tooltip: _l10n.shareBoard,
+                        icon: Icon(Icons.ios_share, color: text),
+                        onPressed: _exportBoard,
+                      ),
                     IconButton(
                       tooltip: _l10n.customize,
                       icon: Icon(Icons.palette_outlined, color: text),

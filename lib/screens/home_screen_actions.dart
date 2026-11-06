@@ -180,6 +180,14 @@ extension _NoteActions on _HomeScreenState {
                 color: AppColors.ink,
                 onTap: () => Navigator.pop(context, 'share'),
               ),
+              // Saving a picture of the note sits next to sharing it, in
+              // plain sight.
+              _BarAction(
+                icon: Icons.download_outlined,
+                label: l10n.saveShort,
+                color: AppColors.ink,
+                onTap: () => Navigator.pop(context, 'save'),
+              ),
               _BarAction(
                 icon: Icons.delete_outline,
                 label: l10n.delete,

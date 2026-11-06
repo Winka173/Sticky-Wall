@@ -166,6 +166,8 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "saveImage": "Save image",
+  "saveShort": "Save",
+  "shareBoard": "Share or save this board",
   "exportBoard": "Export board as image",
   "exportWholeWall": "Whole wall",
   "exportVisible": "Part in view",

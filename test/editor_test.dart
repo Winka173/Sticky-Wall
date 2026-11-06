@@ -559,6 +559,33 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('the share button at the top opens the board export; a note '
+      'is saved or shared from the first row of its menu', (tester) async {
+    await _pumpApp(
+      tester,
+      viewMode: ViewMode.wall,
+      notes: [
+        Note(
+          guid: 'a',
+          content: 'Plan A',
+          createdAt: DateTime(2026),
+          boardId: 'default',
+        ),
+      ],
+    );
+    await tester.tap(find.byKey(const Key('header-share')));
+    await tester.pumpAndSettle();
+    expect(find.byType(BoardPosterPage), findsOneWidget);
+    Navigator.of(tester.element(find.byType(BoardPosterPage))).pop();
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('Plan A'));
+    await tester.pumpAndSettle();
+    expect(find.text('Share'), findsOneWidget);
+    expect(find.text('Save'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a note can be parked out in the margin, but not off the wall', (
     tester,
   ) async {

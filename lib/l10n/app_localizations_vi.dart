@@ -482,6 +482,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get saveImage => 'Lưu ảnh';
 
   @override
+  String get saveShort => 'Lưu';
+
+  @override
+  String get shareBoard => 'Chia sẻ hoặc lưu bảng này';
+
+  @override
   String get exportBoard => 'Xuất bảng thành ảnh';
 
   @override
