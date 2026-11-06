@@ -200,6 +200,8 @@ class _BoardCard extends StatelessWidget {
                         ..hideCurrentSnackBar()
                         ..showSnackBar(
                           SnackBar(
+                            // Closes by itself, Undo or not.
+                            persist: false,
                             content: Text(l10n.boardDuplicated),
                             action: SnackBarAction(
                               label: l10n.undo,

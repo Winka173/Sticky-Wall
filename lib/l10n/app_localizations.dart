@@ -3098,6 +3098,18 @@ abstract class AppLocalizations {
   /// **'Mix a paper color'**
   String get paperCustomTitle;
 
+  /// No description provided for @inkCustomTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mix a pen color'**
+  String get inkCustomTitle;
+
+  /// No description provided for @inkCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Any color'**
+  String get inkCustom;
+
   /// No description provided for @paperCustomHue.
   ///
   /// In en, this message translates to:

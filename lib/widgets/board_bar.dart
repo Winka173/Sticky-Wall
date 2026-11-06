@@ -324,6 +324,8 @@ class _BoardBarState extends State<BoardBar> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          // Closes by itself, Undo or not.
+          persist: false,
           content: Text(message),
           action: SnackBarAction(label: l10n.undo, onPressed: undo),
         ),
@@ -500,6 +502,8 @@ class _BoardBarState extends State<BoardBar> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
+            // Closes by itself, Undo or not.
+            persist: false,
             content: Text(l10n.samplesCleared),
             action: SnackBarAction(
               label: l10n.undo,

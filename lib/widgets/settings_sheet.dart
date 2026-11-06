@@ -1073,6 +1073,8 @@ class _SettingsSheet extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          // Closes by itself, Undo or not.
+          persist: false,
           content: Text(
             mode == RestoreMode.merge ? l10n.restoreMerged : l10n.importSuccess,
           ),

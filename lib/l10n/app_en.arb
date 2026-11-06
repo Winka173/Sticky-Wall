@@ -567,6 +567,8 @@
   "proTryHint": "Tap a Pro wall, font or pin in Customize to try it on your own wall first.",
   "paperCustom": "Your own color",
   "paperCustomTitle": "Mix a paper color",
+  "inkCustomTitle": "Mix a pen color",
+  "inkCustom": "Any color",
   "paperCustomHue": "Color",
   "paperCustomStrength": "Strength",
   "paperCustomLightness": "Lightness",

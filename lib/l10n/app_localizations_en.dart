@@ -1707,6 +1707,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paperCustomTitle => 'Mix a paper color';
 
   @override
+  String get inkCustomTitle => 'Mix a pen color';
+
+  @override
+  String get inkCustom => 'Any color';
+
+  @override
   String get paperCustomHue => 'Color';
 
   @override

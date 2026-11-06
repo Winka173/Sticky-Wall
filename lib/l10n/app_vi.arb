@@ -500,6 +500,8 @@
   "proTryHint": "Chạm vào tường, phông chữ hoặc kiểu ghim có nhãn PRO trong Tùy chỉnh để thử ngay trên tường của bạn.",
   "paperCustom": "Màu của bạn",
   "paperCustomTitle": "Pha màu giấy",
+  "inkCustomTitle": "Pha màu bút",
+  "inkCustom": "Màu tùy chọn",
   "paperCustomHue": "Màu",
   "paperCustomStrength": "Độ đậm",
   "paperCustomLightness": "Độ sáng",

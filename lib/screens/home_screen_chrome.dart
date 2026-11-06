@@ -159,6 +159,34 @@ extension _Chrome on _HomeScreenState {
                                   ),
                                 ),
                         ),
+                      // Any colour at all, mixed (Sticky Wall Pro).
+                      _InkDot(
+                        name: l10n.inkCustom,
+                        color: Color(_marker.color),
+                        mixed: true,
+                        selected:
+                            !_marker.eraser &&
+                            !AppColors.markers.contains(_marker.color),
+                        locked: !pro,
+                        onTap: !pro
+                            ? () => showProSheet(context)
+                            : () async {
+                                final c = await showInkColorDialog(
+                                  context,
+                                  wall: wall.dark
+                                      ? const Color(0xFF2A2520)
+                                      : const Color(0xFFB98B5E),
+                                  initial: Color(_marker.color),
+                                );
+                                if (c == null || !mounted) return;
+                                _update(
+                                  () => _marker = _marker.copyWith(
+                                    color: c,
+                                    eraser: false,
+                                  ),
+                                );
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -174,10 +202,9 @@ extension _Chrome on _HomeScreenState {
               ),
               tool(
                 tooltip: l10n.eraser,
-                icon: Icon(
-                  _marker.eraser
-                      ? Icons.auto_fix_normal
-                      : Icons.auto_fix_normal_outlined,
+                icon: EraserIcon(
+                  color: _marker.eraser ? AppColors.accent : text,
+                  filled: _marker.eraser,
                 ),
                 color: _marker.eraser ? AppColors.accent : text,
                 onTap: () => _update(

@@ -36,6 +36,7 @@ import '../widgets/guided_tour.dart';
 import '../widgets/keyboard_tappable.dart';
 import '../widgets/note_dialog.dart';
 import '../widgets/note_views.dart';
+import '../widgets/paper_color_dialog.dart';
 import '../widgets/peel_away.dart';
 import '../widgets/photo_frames.dart';
 import '../widgets/photo_viewer.dart';
@@ -616,6 +617,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          // Closes by itself, Undo or not.
+          persist: false,
           content: Text(_l10n.proNudge),
           duration: const Duration(seconds: 8),
           action: SnackBarAction(
@@ -637,6 +640,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          // Closes by itself, Undo or not.
+          persist: false,
           content: Text(message),
           duration: _kToast,
           action: SnackBarAction(label: _l10n.undo, onPressed: undo),
@@ -814,6 +819,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          // Closes by itself, Undo or not.
+          persist: false,
           content: Row(
             children: [
               Expanded(child: Text(l10n.sharedSaved(name))),

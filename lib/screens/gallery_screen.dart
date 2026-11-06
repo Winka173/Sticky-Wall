@@ -48,6 +48,8 @@ void showGalleryResult(BuildContext context, GalleryResult? result) {
     case ThemeApplied(:final name, :final undo):
       messenger.showSnackBar(
         SnackBar(
+          // Closes by itself, Undo or not.
+          persist: false,
           content: Text(l10n.themeApplied(name)),
           action: SnackBarAction(label: l10n.undo, onPressed: undo),
         ),

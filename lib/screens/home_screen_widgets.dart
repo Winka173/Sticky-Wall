@@ -379,12 +379,17 @@ class _InkDot extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.locked = false,
+    this.mixed = false,
   });
 
   final String name;
   final Color color;
   final bool selected;
   final VoidCallback onTap;
+
+  /// The "any colour" dot: a colour wheel, with the mixed colour in its
+  /// middle once one is in use.
+  final bool mixed;
 
   /// A Pro colour without Pro: marked, and tapping it offers Pro.
   final bool locked;
@@ -410,7 +415,19 @@ class _InkDot extends StatelessWidget {
               width: selected ? 28 : 22,
               height: selected ? 28 : 22,
               decoration: BoxDecoration(
-                color: color,
+                color: mixed ? null : color,
+                gradient: mixed
+                    ? const SweepGradient(
+                        colors: [
+                          Color(0xFFE53935),
+                          Color(0xFFFDD835),
+                          Color(0xFF43A047),
+                          Color(0xFF1E88E5),
+                          Color(0xFF8E24AA),
+                          Color(0xFFE53935),
+                        ],
+                      )
+                    : null,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: selected ? AppColors.accent : Colors.black26,
@@ -426,6 +443,18 @@ class _InkDot extends StatelessWidget {
               ),
               child: locked
                   ? const Icon(Icons.lock, size: 11, color: Colors.white70)
+                  : mixed && selected
+                  ? Center(
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                      ),
+                    )
                   : null,
             ),
           ),
@@ -554,4 +583,65 @@ class _PrivateBoardCover extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A pencil eraser, drawn: a tilted block with a band, so the tool reads as
+/// "rub out" at a glance (Material has no eraser icon).
+class EraserIcon extends StatelessWidget {
+  const EraserIcon({super.key, required this.color, this.filled = false});
+
+  final Color color;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) => SizedBox.square(
+    dimension: 22,
+    child: CustomPaint(painter: _EraserPainter(color, filled)),
+  );
+}
+
+class _EraserPainter extends CustomPainter {
+  _EraserPainter(this.color, this.filled);
+
+  final Color color;
+  final bool filled;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width;
+    canvas
+      ..save()
+      ..translate(s / 2, s / 2)
+      ..rotate(-0.7);
+    final body = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: Offset.zero, width: s * 0.9, height: s * 0.46),
+      Radius.circular(s * 0.1),
+    );
+    final line = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8;
+    if (filled) {
+      canvas.drawRRect(body, Paint()..color = color.withValues(alpha: 0.35));
+    }
+    canvas
+      ..drawRRect(body, line)
+      // The band between the rubber and the sleeve.
+      ..drawLine(
+        Offset(-s * 0.05, -s * 0.23),
+        Offset(-s * 0.05, s * 0.23),
+        line,
+      )
+      ..restore()
+      // The line it rubs out, under it.
+      ..drawLine(
+        Offset(s * 0.12, s * 0.95),
+        Offset(s * 0.88, s * 0.95),
+        line..strokeCap = StrokeCap.round,
+      );
+  }
+
+  @override
+  bool shouldRepaint(_EraserPainter old) =>
+      old.color != color || old.filled != filled;
 }

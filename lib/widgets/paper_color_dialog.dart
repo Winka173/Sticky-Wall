@@ -14,10 +14,27 @@ Future<int?> showPaperColorDialog(BuildContext context, {Color? initial}) {
   );
 }
 
+/// Mixes a pen colour for drawing on the wall (Sticky Wall Pro): any hue,
+/// strength and lightness, previewed as a line on [wall]. Returns the ARGB
+/// value, or null when cancelled.
+Future<int?> showInkColorDialog(
+  BuildContext context, {
+  required Color wall,
+  Color? initial,
+}) {
+  return showDialog<int>(
+    context: context,
+    builder: (context) => _PaperColorDialog(initial: initial, inkOn: wall),
+  );
+}
+
 class _PaperColorDialog extends StatefulWidget {
-  const _PaperColorDialog({this.initial});
+  const _PaperColorDialog({this.initial, this.inkOn});
 
   final Color? initial;
+
+  /// Mixing a pen colour, shown on this wall colour; null for paper.
+  final Color? inkOn;
 
   @override
   State<_PaperColorDialog> createState() => _PaperColorDialogState();
@@ -26,49 +43,67 @@ class _PaperColorDialog extends StatefulWidget {
 class _PaperColorDialogState extends State<_PaperColorDialog> {
   late HSLColor _hsl = _start();
 
+  bool get _ink => widget.inkOn != null;
+
+  // Paper stays light enough for ink to read on it; a pen may be anything.
+  double get _minSat => _ink ? 0 : 0.15;
+  double get _maxSat => _ink ? 1 : 0.9;
+  double get _minLight => _ink ? 0.05 : 0.72;
+  double get _maxLight => _ink ? 0.95 : 0.94;
+
   HSLColor _start() {
     final initial = widget.initial;
-    if (initial == null) return const HSLColor.fromAHSL(1, 160, 0.55, 0.84);
+    if (initial == null) {
+      return _ink
+          ? const HSLColor.fromAHSL(1, 200, 0.8, 0.45)
+          : const HSLColor.fromAHSL(1, 160, 0.55, 0.84);
+    }
     final hsl = HSLColor.fromColor(initial);
     return hsl
         .withSaturation(hsl.saturation.clamp(_minSat, _maxSat))
         .withLightness(hsl.lightness.clamp(_minLight, _maxLight));
   }
 
-  static const _minSat = 0.15;
-  static const _maxSat = 0.9;
-  static const _minLight = 0.72;
-  static const _maxLight = 0.94;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final color = _hsl.toColor();
     return AlertDialog(
-      title: Text(l10n.paperCustomTitle),
+      title: Text(_ink ? l10n.inkCustomTitle : l10n.paperCustomTitle),
       content: SizedBox(
         width: 320,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // A sheet in the colour, with a line of writing on it.
-            Container(
-              height: 96,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: isNight(context) ? nightPaper(color) : color,
-                borderRadius: BorderRadius.circular(AppRadii.paper),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 6,
-                    offset: Offset(1, 3),
-                  ),
-                ],
+            if (_ink)
+              // A line in the colour, on the wall it will be drawn on.
+              Container(
+                height: 72,
+                decoration: BoxDecoration(
+                  color: widget.inkOn,
+                  borderRadius: BorderRadius.circular(AppRadii.control),
+                ),
+                child: CustomPaint(painter: _InkSample(color)),
+              )
+            else
+              // A sheet in the colour, with a line of writing on it.
+              Container(
+                height: 96,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isNight(context) ? nightPaper(color) : color,
+                  borderRadius: BorderRadius.circular(AppRadii.paper),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 6,
+                      offset: Offset(1, 3),
+                    ),
+                  ],
+                ),
+                child: Text(l10n.fontPreview, style: noteBodyStyle(context)),
               ),
-              child: Text(l10n.fontPreview, style: noteBodyStyle(context)),
-            ),
             const SizedBox(height: 12),
             _slider(
               label: l10n.paperCustomHue,
@@ -103,7 +138,10 @@ class _PaperColorDialogState extends State<_PaperColorDialog> {
           child: Text(l10n.cancel),
         ),
         FilledButton(
-          onPressed: () => Navigator.pop(context, customPaper(color)),
+          onPressed: () => Navigator.pop(
+            context,
+            _ink ? color.toARGB32() : customPaper(color),
+          ),
           child: Text(l10n.save),
         ),
       ],
@@ -162,4 +200,35 @@ class _PaperColorDialogState extends State<_PaperColorDialog> {
       ],
     );
   }
+}
+
+/// A loose hand-drawn wave, to show a pen colour.
+class _InkSample extends CustomPainter {
+  _InkSample(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()..moveTo(size.width * 0.12, size.height * 0.6);
+    path.cubicTo(
+      size.width * 0.3,
+      size.height * 0.1,
+      size.width * 0.5,
+      size.height * 0.95,
+      size.width * 0.88,
+      size.height * 0.35,
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..strokeWidth = 7
+        ..strokeCap = StrokeCap.round
+        ..style = PaintingStyle.stroke,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_InkSample old) => old.color != color;
 }

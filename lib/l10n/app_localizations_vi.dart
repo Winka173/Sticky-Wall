@@ -1690,6 +1690,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get paperCustomTitle => 'Pha màu giấy';
 
   @override
+  String get inkCustomTitle => 'Pha màu bút';
+
+  @override
+  String get inkCustom => 'Màu tùy chọn';
+
+  @override
   String get paperCustomHue => 'Màu';
 
   @override
