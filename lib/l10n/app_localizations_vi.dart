@@ -1803,6 +1803,33 @@ class AppLocalizationsVi extends AppLocalizations {
   String get shareWhere => 'Lưu vào bảng nào?';
 
   @override
+  String sharedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Đã nhận $count ảnh',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharePinPhotos => 'Ghim lên một bảng';
+
+  @override
+  String get sharePinPhotosHint => 'Mỗi ảnh thành một tấm in riêng';
+
+  @override
+  String sharedSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ảnh không dùng được: quá lớn, không đọc được, hoặc vượt quá 20 ảnh mỗi lần chia sẻ.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String sharedSaved(String board) {
     return 'Đã lưu vào “$board”';
   }

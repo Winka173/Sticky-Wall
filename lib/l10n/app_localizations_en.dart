@@ -1830,6 +1830,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareWhere => 'Save to which board?';
 
   @override
+  String sharedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos shared',
+      one: '1 photo shared',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharePinPhotos => 'Pin them on a board';
+
+  @override
+  String get sharePinPhotosHint => 'Each photo as its own print';
+
+  @override
+  String sharedSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photos couldn\'t be used: too big, unreadable, or over the 20 a share can bring.',
+      one:
+          '1 photo couldn\'t be used: too big, unreadable, or over the 20 a share can bring.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String sharedSaved(String board) {
     return 'Saved to “$board”';
   }

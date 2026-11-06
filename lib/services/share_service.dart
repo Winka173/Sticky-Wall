@@ -6,7 +6,11 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 /// Something another app handed to us through the system share sheet, boiled
 /// down to what a note can hold.
 class SharedContent {
-  const SharedContent({this.text = '', this.url = '', this.imagePath = ''});
+  const SharedContent({
+    this.text = '',
+    this.url = '',
+    this.imagePaths = const [],
+  });
 
   /// Plain text (or the text that came along with a link).
   final String text;
@@ -14,10 +18,18 @@ class SharedContent {
   /// The first http(s) link found in the shared text, if any.
   final String url;
 
-  /// Absolute path of a shared image file, if any.
-  final String imagePath;
+  /// Absolute paths of every shared image file, in the order sent, without
+  /// repeats.
+  final List<String> imagePaths;
 
-  bool get isEmpty => text.isEmpty && url.isEmpty && imagePath.isEmpty;
+  /// The first shared image, or empty.
+  String get imagePath => imagePaths.isEmpty ? '' : imagePaths.first;
+
+  bool get isEmpty => text.isEmpty && url.isEmpty && imagePaths.isEmpty;
+
+  /// Identifies a payload, so the same share delivered twice (a resume, a
+  /// replayed intent) is only handled once.
+  String get signature => [text, url, ...imagePaths].join('\u0000');
 
   static final _urlPattern = RegExp(
     r'https?://[^\s<>"]+',
@@ -38,15 +50,15 @@ class SharedContent {
     );
   }
 
-  /// Builds one note's worth of content from a share payload. Images win
-  /// (only the first is used); text and links are merged.
+  /// Builds the content of a share payload: every image (in order, no
+  /// repeats), and the text and links merged.
   static SharedContent fromFiles(List<SharedMediaFile> files) {
-    String? image;
+    final images = <String>[];
     final texts = <String>[];
     for (final f in files) {
       switch (f.type) {
         case SharedMediaType.image:
-          image ??= f.path;
+          if (f.path.isNotEmpty && !images.contains(f.path)) images.add(f.path);
         case SharedMediaType.text:
         case SharedMediaType.url:
           texts.add(f.path);
@@ -61,7 +73,7 @@ class SharedContent {
     return SharedContent(
       text: fromText.text,
       url: fromText.url,
-      imagePath: image ?? '',
+      imagePaths: images,
     );
   }
 }

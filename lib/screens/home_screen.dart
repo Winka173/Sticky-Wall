@@ -519,14 +519,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   /// A memory wall: several photos from the gallery, then a layout and a
   /// look, and a new board of editable prints.
-  Future<void> _newMemoryWall() async {
+  Future<void> _newMemoryWall({List<String>? photos}) async {
     final l10n = _l10n;
     List<String> stored;
-    try {
-      stored = await _imageService.pickImages();
-    } catch (_) {
-      if (mounted) _toast(l10n.photoPickFailed);
-      return;
+    if (photos != null) {
+      stored = photos;
+    } else {
+      try {
+        stored = await _imageService.pickImages();
+      } catch (_) {
+        if (mounted) _toast(l10n.photoPickFailed);
+        return;
+      }
     }
     if (stored.isEmpty || !mounted) return;
     final choice = await showMemoryWallSheet(context, count: stored.length);
@@ -631,9 +635,75 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// goes on (when there is a choice), then straight onto that wall, with
   /// Open and Undo, rather than an editor to fill in first.
   Future<void> _onShared(SharedContent content) async {
+    // The same payload delivered twice (a resume, a replayed intent) is
+    // handled once.
+    if (!_handledShares.add(content.signature)) return;
     // Whatever was open gives way — an editor only once its user has saved
     // or let go of their edits.
     if (!await _makeWayForIncoming() || !mounted) return;
+    if (content.imagePaths.length > 1) {
+      await _onSharedPhotos(content.imagePaths);
+      return;
+    }
+    final board = await _pickShareBoard();
+    if (board == null || !mounted) return;
+    await _sharedNote(content, board);
+  }
+
+  final _handledShares = <String>{};
+
+  /// Several photos from another app: pinned as prints on a board, or made
+  /// into a memory wall. Every one is copied in first (the sender's access
+  /// can lapse); any that could not be used are counted aloud.
+  Future<void> _onSharedPhotos(List<String> paths) async {
+    final l10n = _l10n;
+    final (stored, skipped) = await _imageService.importSharedImages(paths);
+    if (!mounted) return;
+    if (skipped > 0) _toast(l10n.sharedSkipped(skipped));
+    if (stored.isEmpty) return;
+    final choice = stored.length < 2
+        ? 'pin'
+        : await showActionSheet<String>(
+            context,
+            title: l10n.sharedPhotos(stored.length),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.push_pin_outlined),
+                title: Text(l10n.sharePinPhotos),
+                subtitle: Text(l10n.sharePinPhotosHint),
+                onTap: () => Navigator.pop(context, 'pin'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_album_outlined),
+                title: Text(l10n.memoryWall),
+                subtitle: Text(l10n.memoryWallHint),
+                onTap: () => Navigator.pop(context, 'memory'),
+              ),
+            ],
+          );
+    if (!mounted) return;
+    void forget() {
+      // Copied in for nothing: nothing refers to them.
+      for (final f in stored) {
+        unawaited(ImageService.deleteFile(f));
+      }
+    }
+
+    if (choice == 'memory') {
+      await _newMemoryWall(photos: stored);
+      return;
+    }
+    if (choice != 'pin') return forget();
+    final board = await _pickShareBoard();
+    if (board == null || !mounted) return forget();
+    if (_notes.viewMode != ViewMode.wall) _notes.viewMode = ViewMode.wall;
+    final created = _notes.addPhotos(stored);
+    if (skipped == 0) _toast(l10n.photosPinned(created.length));
+  }
+
+  /// Which board something shared goes on (asked only when there is a
+  /// choice), opened and unlocked; null when the user backed out.
+  Future<Board?> _pickShareBoard() async {
     final l10n = _l10n;
     var board = _notes.currentBoard;
     if (_notes.boards.length > 1) {
@@ -658,17 +728,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
         ],
       );
-      if (picked == null || !mounted) return;
+      if (picked == null || !mounted) return null;
       board = picked;
     }
-    // A shut private board opens first, so the note never lands where it
-    // cannot be seen.
+    // A shut private board opens first, so nothing lands where it cannot be
+    // seen.
     if (!_notes.isOpen(board)) {
       final open = await unlockPrivateBoard(context, _notes, board);
-      if (!open || !mounted) return;
+      if (!open || !mounted) return null;
     }
     _notes.selectBoard(board.id);
+    return board;
+  }
 
+  /// One shared text, link or photo as a note on [board].
+  Future<void> _sharedNote(SharedContent content, Board board) async {
+    final l10n = _l10n;
     final note = _notes.draft();
     if (content.imagePath.isNotEmpty) {
       final stored = await _imageService.importSharedImage(content.imagePath);

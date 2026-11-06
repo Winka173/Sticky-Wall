@@ -101,6 +101,51 @@ class ImageService {
     return [for (final file in picked) await _import(file.path)];
   }
 
+  /// The most photos one share brings in (a memory wall holds as many).
+  static const maxSharedImages = 20;
+
+  /// The biggest single shared image that is copied in.
+  static const maxSharedImageBytes = 40 * 1024 * 1024;
+
+  /// Together, the most a single share copies in.
+  static const maxSharedTotalBytes = 300 * 1024 * 1024;
+
+  /// Copies the images another app shared into the app's own folder,
+  /// promptly (the sender's access can lapse), within the limits above.
+  /// Returns what was stored, in order, and how many were left out: over the
+  /// count, too big, unreadable or not an image.
+  Future<(List<String>, int)> importSharedImages(List<String> paths) async {
+    final stored = <String>[];
+    var skipped = 0;
+    var total = 0;
+    for (final path in paths) {
+      if (stored.length >= maxSharedImages) {
+        skipped++;
+        continue;
+      }
+      try {
+        final file = File(path);
+        if (!await file.exists()) {
+          skipped++;
+          continue;
+        }
+        final size = await file.length();
+        if (size == 0 ||
+            size > maxSharedImageBytes ||
+            total + size > maxSharedTotalBytes) {
+          skipped++;
+          continue;
+        }
+        stored.add(await _import(path));
+        total += size;
+      } catch (e) {
+        debugPrint('Could not import shared image: $e');
+        skipped++;
+      }
+    }
+    return (stored, skipped);
+  }
+
   /// Stores an image handed to us by another app (share sheet) as a note
   /// photo. Returns null if the file can't be read.
   Future<String?> importSharedImage(String path) async {

@@ -3320,6 +3320,30 @@ abstract class AppLocalizations {
   /// **'Save to which board?'**
   String get shareWhere;
 
+  /// No description provided for @sharedPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo shared} other{{count} photos shared}}'**
+  String sharedPhotos(int count);
+
+  /// No description provided for @sharePinPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin them on a board'**
+  String get sharePinPhotos;
+
+  /// No description provided for @sharePinPhotosHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Each photo as its own print'**
+  String get sharePinPhotosHint;
+
+  /// No description provided for @sharedSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo couldn\'t be used: too big, unreadable, or over the 20 a share can bring.} other{{count} photos couldn\'t be used: too big, unreadable, or over the 20 a share can bring.}}'**
+  String sharedSkipped(int count);
+
   /// No description provided for @sharedSaved.
   ///
   /// In en, this message translates to:
