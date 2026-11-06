@@ -1485,6 +1485,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         onDrop: _dropOnTab,
         lasso: _selecting,
         onThreadTap: _editThread,
+        wallLabel: _l10n.wallSemantics,
         strokes: _notes.currentBoard.strokes,
         marking: _marking,
         marker: _marker,

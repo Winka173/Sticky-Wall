@@ -168,6 +168,7 @@ class WallView extends StatefulWidget {
     this.onInkBegin,
     this.onInkChanged,
     this.links = const [],
+    this.wallLabel = '',
     this.onConnect,
     this.onCutLink,
     this.onArrange,
@@ -238,6 +239,10 @@ class WallView extends StatefulWidget {
 
   /// Threads to draw (both ends must be in [notes]; others are skipped).
   final List<NoteLink> links;
+
+  /// What a screen reader says for the bare wall, which takes a long press
+  /// to stick a note there.
+  final String wallLabel;
 
   /// A thread was dragged from note [a]'s pin onto note [b]. When null, pins
   /// can't be dragged at all.
@@ -1088,25 +1093,29 @@ class _WallViewState extends State<WallView>
                   clipBehavior: Clip.none,
                   children: [
                     Positioned.fill(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _setActive(null),
-                        onDoubleTap: _resetZoom,
-                        onLongPressStart: (d) =>
-                            _createAt(d.localPosition, w, h),
-                        // In select mode a finger on bare wall draws a lasso
-                        // (the wall itself pans with two fingers meanwhile).
-                        onPanStart: widget.lasso
-                            ? (d) => setState(() => _lasso = [d.localPosition])
-                            : null,
-                        onPanUpdate: widget.lasso
-                            ? (d) =>
-                                  setState(() => _lasso?.add(d.localPosition))
-                            : null,
-                        onPanEnd: widget.lasso ? (_) => _finishLasso() : null,
-                        onPanCancel: widget.lasso
-                            ? () => setState(() => _lasso = null)
-                            : null,
+                      child: Semantics(
+                        label: widget.wallLabel,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _setActive(null),
+                          onDoubleTap: _resetZoom,
+                          onLongPressStart: (d) =>
+                              _createAt(d.localPosition, w, h),
+                          // In select mode a finger on bare wall draws a lasso
+                          // (the wall itself pans with two fingers meanwhile).
+                          onPanStart: widget.lasso
+                              ? (d) =>
+                                    setState(() => _lasso = [d.localPosition])
+                              : null,
+                          onPanUpdate: widget.lasso
+                              ? (d) =>
+                                    setState(() => _lasso?.add(d.localPosition))
+                              : null,
+                          onPanEnd: widget.lasso ? (_) => _finishLasso() : null,
+                          onPanCancel: widget.lasso
+                              ? () => setState(() => _lasso = null)
+                              : null,
+                        ),
                       ),
                     ),
                     // Marker strokes lie on the wall itself, under the paper,

@@ -1286,6 +1286,12 @@ abstract class AppLocalizations {
   /// **'Interactive guide'**
   String get tourReplay;
 
+  /// No description provided for @wallSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall. Long-press an empty spot to stick a note there.'**
+  String get wallSemantics;
+
   /// No description provided for @tourTapTitle.
   ///
   /// In en, this message translates to:

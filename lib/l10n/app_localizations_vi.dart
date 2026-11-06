@@ -682,6 +682,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get tourReplay => 'Hướng dẫn tương tác';
 
   @override
+  String get wallSemantics =>
+      'Tường. Nhấn giữ chỗ trống để dán ghi chú vào đó.';
+
+  @override
   String get tourTapTitle => 'Chạm vào ghi chú để viết';
 
   @override

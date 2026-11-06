@@ -693,6 +693,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tourReplay => 'Interactive guide';
 
   @override
+  String get wallSemantics =>
+      'Wall. Long-press an empty spot to stick a note there.';
+
+  @override
   String get tourTapTitle => 'Tap a note to write on it';
 
   @override

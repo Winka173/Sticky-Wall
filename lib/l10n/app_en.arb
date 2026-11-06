@@ -235,6 +235,7 @@
   "fitAll": "Show everything",
   "gestureTips": "Gesture tips",
   "tourReplay": "Interactive guide",
+  "wallSemantics": "Wall. Long-press an empty spot to stick a note there.",
   "tourTapTitle": "Tap a note to write on it",
   "tourTapBody": "Tap any note on the wall. It opens on its paper; close it again when you are done.",
   "tourDragTitle": "Drag a note to move it",

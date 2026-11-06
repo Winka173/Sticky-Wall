@@ -24,9 +24,12 @@ Status words used throughout:
 | Interactive first-run guide | DONE & VERIFIED (widget tests) | Three gestures on the real wall: tap, drag, thread. Each advances when done or with Next. Skip ends it. Replay is under More → Interactive guide. It starts from "Explore the sample wall". It never creates, changes or deletes anything. |
 | Multi-device sync (Android, Google Drive app folder) | DONE, NOT NATIVE-VERIFIED / provider BLOCKED | The engine and service are tested with 2–3 simulated devices: distinct edits, concurrent edits with conflict copies, delete vs stale copy, edit vs delete, board Trash, threads, media hash checks, locked-board exclusion, offline, newer schema. The Drive adapter compiles into the release APK. It has **never run against Google Drive**: an OAuth client is needed (see `SYNC_DESIGN_AND_LIMITATIONS.md`). |
 | iOS sync (iCloud) | NOT IMPLEMENTED / BLOCKED | Needs macOS, Xcode and an iCloud entitlement. Sync is not offered on iOS. |
-| Templates / themes / Memory Wall polish | PARTIAL | Earlier in this pass: copy, alignment and first-run layout. The Memory Wall step order is unchanged. No full audit of the 45 templates and 37 themes was done in this run. |
-| Toolbar simplification (Arrange merge, Add picker) | NOT IMPLEMENTED in this run | The existing Add: a yellow paper button plus an "Other kinds" picker. |
-| iOS / widget / IAP / TalkBack device QA | BLOCKED | No Mac. No store purchase run. No screen-reader session. |
+| Templates / themes audit | DONE & VERIFIED (tests) | `catalog_audit_test`: every template (wall, grid, list) and every theme at 320 dp with 200 % text, EN and VI, with no overflow or exception. Every theme's papers pass 4.5:1 contrast with the ink. Two overflows were found and fixed: the empty wall and the "Other kinds" pill. |
+| Memory Wall preview | DONE & VERIFIED (widget test) | The sheet shows a live preview of the board with the picked photos. It changes with layout, frame and look before anything is created. |
+| Toolbar simplification | DONE & VERIFIED (tests) | Tidy and Arrange by colour are now one entry, "Arrange…", with both kept and Undo for each. Lock in place uses an anchor, never a padlock: the padlock means a locked board. Add is unchanged: the yellow paper plus "Other kinds". |
+| Accessibility guidelines | DONE & VERIFIED (tests) | `accessibility_test` checks labelled tap targets and 48 dp Android targets on the wall, grid, list and editor. Fixed: the wall surface has a label; the pin in a list row is 48×48; the board "+" is 48 wide. On cards, Pin is a screen-reader action of the card: the visible pin stays 44×28 so a tap on the top of the paper still opens the note. Not yet checked in a real TalkBack session. |
+| Sync in release builds | DONE | Offered only in builds made with `--dart-define=STICKY_SYNC=true` (`STICKY_SYNC=true fastlane android build`). Normal releases don't show the switch until the OAuth clients exist. |
+| iOS / widget / IAP / TalkBack device QA | BLOCKED | No Mac. No store purchase run. No screen-reader session on a device. |
 
 ## Files
 

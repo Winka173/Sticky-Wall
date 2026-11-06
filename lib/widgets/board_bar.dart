@@ -663,19 +663,27 @@ class _AddChip extends StatelessWidget {
       circle: true,
       child: Tooltip(
         message: tooltip,
+        // A 44 dp circle inside a 48 dp wide target.
         child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: onTap,
-          child: Container(
-            width: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: textColor.withValues(alpha: 0.6),
-                width: 1.5,
+          child: SizedBox(
+            width: 48,
+            child: Center(
+              child: Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: textColor.withValues(alpha: 0.6),
+                    width: 1.5,
+                  ),
+                ),
+                child: Icon(Icons.add, color: textColor, size: 20),
               ),
             ),
-            child: Icon(Icons.add, color: textColor, size: 20),
           ),
         ),
       ),

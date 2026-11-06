@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
@@ -576,12 +577,19 @@ class _PinTarget extends StatelessWidget {
     required this.cb,
     this.seed = '',
     this.reach = 0,
+    this.row = false,
   });
 
   final bool pinned;
   final NoteCallbacks cb;
   final String seed;
   final double reach;
+
+  /// In a list row there is room for a full 48 x 48 target. On a card the
+  /// target stays 44 x 28 so a tap on the top of the paper still opens the
+  /// note; screen readers get Pin as an action of the card instead (see
+  /// [NoteCard]), so this small button is left out of their tree.
+  final bool row;
 
   /// Width of the drag-only band around the tap target.
   static const _grabWidth = 64.0;
@@ -644,12 +652,13 @@ class _PinTarget extends StatelessWidget {
         button: true,
         toggled: pinned,
         label: pinned ? l10n.unpin : l10n.pin,
+        excludeSemantics: !row,
         child: _threadDrag(
           behavior: HitTestBehavior.opaque,
           onTap: cb.onTogglePin,
           child: SizedBox(
-            width: 44,
-            height: _pinInset * 2,
+            width: row ? 48 : 44,
+            height: row ? 48 : _pinInset * 2,
             child: Center(
               child: NotePin(pinned: pinned, seed: seed),
             ),
@@ -1090,9 +1099,19 @@ class StickyNoteCard extends StatelessWidget {
         ],
       ),
     );
-    // From a keyboard: Enter opens the note, Shift+F10 its menu.
+    // From a keyboard: Enter opens the note, Shift+F10 its menu. A screen
+    // reader also finds Pin / Unpin among the card's actions.
+    final l10n = AppLocalizations.of(context)!;
+    final pinnable =
+        note.type != NoteType.label && note.type != NoteType.sticker;
     final said = Semantics(
       selected: selected,
+      customSemanticsActions: pinnable
+          ? {
+              CustomSemanticsAction(label: note.pinned ? l10n.unpin : l10n.pin):
+                  cb.onTogglePin,
+            }
+          : null,
       child: KeyboardTappable(
         onActivate: cb.onEdit,
         onMenu: cb.onLongPress,
@@ -1830,7 +1849,7 @@ class NoteListTile extends StatelessWidget {
         else if (note.type == NoteType.sticker)
           const SizedBox(width: 44)
         else
-          _PinTarget(pinned: note.pinned, cb: cb, seed: note.guid),
+          _PinTarget(pinned: note.pinned, cb: cb, seed: note.guid, row: true),
         _leading(),
         if (note.emoji.isNotEmpty && _leadingKind != _Lead.emoji)
           Padding(
