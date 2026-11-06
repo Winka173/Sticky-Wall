@@ -881,6 +881,90 @@ class AppLocalizationsEn extends AppLocalizations {
       'This backup is too big to open on this phone (over 300 MB). Make a smaller backup on the other device, or move fewer photos at a time.';
 
   @override
+  String get syncTitle => 'Sync across devices';
+
+  @override
+  String get syncOffHint => 'Off: everything stays on this phone';
+
+  @override
+  String get syncReady => 'On';
+
+  @override
+  String syncDone(String when) {
+    return 'Synced $when';
+  }
+
+  @override
+  String get syncSyncing => 'Syncing…';
+
+  @override
+  String get syncOffline => 'Offline: will sync when the connection is back';
+
+  @override
+  String get syncAuthNeeded =>
+      'Google needs you to allow access again: turn sync off and on';
+
+  @override
+  String get syncQuota => 'Your Google Drive is full, so nothing new was sent';
+
+  @override
+  String get syncFailed =>
+      'Couldn\'t sync this time. Your notes here are unchanged.';
+
+  @override
+  String get syncExplain =>
+      'Keeps your boards, notes, threads, photos, recordings and Trash the same on every Android device signed in to the same Google account. It uses a hidden Sticky Wall folder in your Google Drive; your other Drive files are never seen. Works offline and catches up later. Not the same as a backup: a deletion syncs too, so keep making backups.';
+
+  @override
+  String get syncWithDrive => 'Sync with Google Drive';
+
+  @override
+  String get syncIncludeLocked => 'Include locked boards';
+
+  @override
+  String get syncIncludeLockedHint =>
+      'Locked boards are locked in the app, not encrypted: switched on, their notes are stored in your Google Drive like the others.';
+
+  @override
+  String get syncNow => 'Sync now';
+
+  @override
+  String syncConflicts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count notes were changed on two devices at once: both versions are kept.',
+      one: '1 note was changed on two devices at once: both versions are kept.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photos or recordings haven\'t arrived from another device yet.',
+      one: '1 photo or recording hasn\'t arrived from another device yet.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncOffNote =>
+      'Turning sync off keeps everything on this phone. The copy in Google Drive stays for your other devices; delete it in Google Drive settings → Manage apps.';
+
+  @override
+  String get syncPrivacy =>
+      'Sticky Wall has no servers: the data goes only to your own Google Drive. iPhone and Android do not sync with each other; move between them with a backup file.';
+
+  @override
+  String get syncConnectFailed =>
+      'Couldn\'t connect to Google Drive. Check the connection, or try again later.';
+
+  @override
   String get backupFailed => 'Could not make the backup';
 
   @override

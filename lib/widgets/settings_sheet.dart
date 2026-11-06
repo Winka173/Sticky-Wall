@@ -18,6 +18,7 @@ import '../services/image_service.dart';
 import '../services/notes_controller.dart';
 import '../services/pro_controller.dart';
 import '../services/settings_controller.dart';
+import '../services/sync/sync_service.dart';
 import '../services/widget_service.dart';
 import '../theme.dart';
 import 'action_sheet.dart';
@@ -25,6 +26,7 @@ import 'keyboard_tappable.dart';
 import 'note_views.dart';
 import 'pro_sheet.dart';
 import 'restore_preview.dart';
+import 'sync_sheet.dart';
 
 part 'widget_settings_sheet.dart';
 
@@ -561,6 +563,27 @@ class _SettingsSheet extends StatelessWidget {
             );
           },
         ),
+        if (SyncService.instance case final sync?)
+          ListenableBuilder(
+            listenable: sync,
+            builder: (context, _) => ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.sync, color: AppColors.ink),
+              title: Text(
+                l10n.syncTitle,
+                style: const TextStyle(fontSize: 16, color: AppColors.ink),
+              ),
+              subtitle: Text(
+                syncStatusText(l10n, sync, context),
+                style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+              ),
+              trailing: const Icon(
+                Icons.chevron_right,
+                color: AppColors.inkSoft,
+              ),
+              onTap: () => showSyncSheet(context, sync),
+            ),
+          ),
         _autoBackupTile(context, l10n),
         if (settings.lastAutoBackup != null)
           Padding(

@@ -871,6 +871,88 @@ class AppLocalizationsVi extends AppLocalizations {
       'Bản sao lưu quá lớn để mở trên điện thoại này (trên 300 MB). Hãy sao lưu nhỏ hơn trên máy kia, hoặc chuyển ít ảnh hơn mỗi lần.';
 
   @override
+  String get syncTitle => 'Đồng bộ giữa các thiết bị';
+
+  @override
+  String get syncOffHint => 'Tắt: mọi thứ chỉ nằm trên điện thoại này';
+
+  @override
+  String get syncReady => 'Đang bật';
+
+  @override
+  String syncDone(String when) {
+    return 'Đã đồng bộ $when';
+  }
+
+  @override
+  String get syncSyncing => 'Đang đồng bộ…';
+
+  @override
+  String get syncOffline => 'Mất mạng: sẽ đồng bộ khi có mạng lại';
+
+  @override
+  String get syncAuthNeeded =>
+      'Google cần bạn cho phép lại: hãy tắt rồi bật đồng bộ';
+
+  @override
+  String get syncQuota =>
+      'Google Drive của bạn đã đầy, nên chưa gửi được gì mới';
+
+  @override
+  String get syncFailed =>
+      'Lần này chưa đồng bộ được. Ghi chú trên máy vẫn nguyên.';
+
+  @override
+  String get syncExplain =>
+      'Giữ bảng, ghi chú, dây nối, ảnh, ghi âm và Thùng rác giống nhau trên mọi máy Android đăng nhập cùng tài khoản Google. Dùng một thư mục ẩn của Sticky Wall trong Google Drive của bạn; các tệp Drive khác không bao giờ bị đọc. Vẫn dùng được khi mất mạng và tự đồng bộ sau. Không thay cho sao lưu: thao tác xóa cũng được đồng bộ, nên vẫn hãy sao lưu.';
+
+  @override
+  String get syncWithDrive => 'Đồng bộ với Google Drive';
+
+  @override
+  String get syncIncludeLocked => 'Gồm cả bảng có khóa';
+
+  @override
+  String get syncIncludeLockedHint =>
+      'Bảng có khóa chỉ khóa trong app, không mã hóa: khi bật, ghi chú của bảng đó được lưu trong Google Drive như các bảng khác.';
+
+  @override
+  String get syncNow => 'Đồng bộ ngay';
+
+  @override
+  String syncConflicts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ghi chú bị sửa trên hai máy cùng lúc: cả hai bản đều được giữ.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ảnh hoặc ghi âm từ máy khác chưa về tới.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncOffNote =>
+      'Tắt đồng bộ vẫn giữ mọi thứ trên điện thoại này. Bản trong Google Drive vẫn còn cho các máy khác; muốn xóa thì vào cài đặt Google Drive → Quản lý ứng dụng.';
+
+  @override
+  String get syncPrivacy =>
+      'Sticky Wall không có máy chủ: dữ liệu chỉ đi tới Google Drive của chính bạn. iPhone và Android không đồng bộ với nhau; chuyển giữa hai bên bằng tệp sao lưu.';
+
+  @override
+  String get syncConnectFailed =>
+      'Không kết nối được Google Drive. Kiểm tra mạng hoặc thử lại sau.';
+
+  @override
   String get backupFailed => 'Không tạo được bản sao lưu';
 
   @override

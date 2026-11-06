@@ -1622,6 +1622,120 @@ abstract class AppLocalizations {
   /// **'This backup is too big to open on this phone (over 300 MB). Make a smaller backup on the other device, or move fewer photos at a time.'**
   String get importTooLarge;
 
+  /// No description provided for @syncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync across devices'**
+  String get syncTitle;
+
+  /// No description provided for @syncOffHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: everything stays on this phone'**
+  String get syncOffHint;
+
+  /// No description provided for @syncReady.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get syncReady;
+
+  /// No description provided for @syncDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced {when}'**
+  String syncDone(String when);
+
+  /// No description provided for @syncSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get syncSyncing;
+
+  /// No description provided for @syncOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline: will sync when the connection is back'**
+  String get syncOffline;
+
+  /// No description provided for @syncAuthNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Google needs you to allow access again: turn sync off and on'**
+  String get syncAuthNeeded;
+
+  /// No description provided for @syncQuota.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Google Drive is full, so nothing new was sent'**
+  String get syncQuota;
+
+  /// No description provided for @syncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sync this time. Your notes here are unchanged.'**
+  String get syncFailed;
+
+  /// No description provided for @syncExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps your boards, notes, threads, photos, recordings and Trash the same on every Android device signed in to the same Google account. It uses a hidden Sticky Wall folder in your Google Drive; your other Drive files are never seen. Works offline and catches up later. Not the same as a backup: a deletion syncs too, so keep making backups.'**
+  String get syncExplain;
+
+  /// No description provided for @syncWithDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync with Google Drive'**
+  String get syncWithDrive;
+
+  /// No description provided for @syncIncludeLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Include locked boards'**
+  String get syncIncludeLocked;
+
+  /// No description provided for @syncIncludeLockedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked boards are locked in the app, not encrypted: switched on, their notes are stored in your Google Drive like the others.'**
+  String get syncIncludeLockedHint;
+
+  /// No description provided for @syncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get syncNow;
+
+  /// No description provided for @syncConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 note was changed on two devices at once: both versions are kept.} other{{count} notes were changed on two devices at once: both versions are kept.}}'**
+  String syncConflicts(int count);
+
+  /// No description provided for @syncMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo or recording hasn\'t arrived from another device yet.} other{{count} photos or recordings haven\'t arrived from another device yet.}}'**
+  String syncMissing(int count);
+
+  /// No description provided for @syncOffNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Turning sync off keeps everything on this phone. The copy in Google Drive stays for your other devices; delete it in Google Drive settings → Manage apps.'**
+  String get syncOffNote;
+
+  /// No description provided for @syncPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticky Wall has no servers: the data goes only to your own Google Drive. iPhone and Android do not sync with each other; move between them with a backup file.'**
+  String get syncPrivacy;
+
+  /// No description provided for @syncConnectFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t connect to Google Drive. Check the connection, or try again later.'**
+  String get syncConnectFailed;
+
   /// No description provided for @backupFailed.
   ///
   /// In en, this message translates to:

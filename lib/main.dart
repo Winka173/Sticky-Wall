@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'l10n/app_localizations.dart';
 import 'models/view_mode.dart';
@@ -18,6 +20,8 @@ import 'services/reminder_service.dart';
 import 'services/sample_notes.dart';
 import 'services/settings_controller.dart';
 import 'services/share_service.dart';
+import 'services/sync/drive_backend.dart';
+import 'services/sync/sync_service.dart';
 import 'services/widget_service.dart';
 import 'theme.dart';
 import 'widgets/lock_gate.dart';
@@ -76,6 +80,34 @@ Future<void> main() async {
     // under the welcome that offers a blank wall or a template instead.
     notes.viewMode = ViewMode.wall;
     await storage.setWelcomePending(true);
+  }
+
+  // Sync across devices (Google Drive's app folder), off unless switched
+  // on; offered on Android, where the provider is set up.
+  if (!kIsWeb && Platform.isAndroid) {
+    final sync = SyncService(
+      prefs: await SharedPreferences.getInstance(),
+      notes: notes,
+    );
+    SyncService.instance = sync;
+    if (sync.enabled) sync.attach(DriveSyncBackend());
+    Timer? pending;
+    // A change syncs half a minute after the last edit, not on every one.
+    notes.addListener(() {
+      if (!sync.enabled || sync.applying) return;
+      pending?.cancel();
+      pending = Timer(const Duration(seconds: 30), sync.syncNow);
+    });
+    AppLifecycleListener(
+      onResume: () => unawaited(sync.syncNow()),
+      onPause: () {
+        if (pending?.isActive ?? false) {
+          pending!.cancel();
+          unawaited(sync.syncNow());
+        }
+      },
+    );
+    if (sync.enabled) unawaited(sync.syncNow());
   }
 
   // While the app lock is on or a private board is open, the recent-apps

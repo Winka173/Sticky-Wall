@@ -1673,6 +1673,63 @@ class NotesController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Takes the state a sync merged (see `SyncService`): boards, the Trash's
+  /// boards, every note and thread. Files are never deleted here; the board
+  /// open stays open when it still exists. A note whose board is in neither
+  /// list lands on the first board instead of disappearing.
+  void applySync({
+    required List<Board> boards,
+    required List<Board> deletedBoards,
+    required List<Note> notes,
+    required List<NoteLink> links,
+  }) {
+    if (boards.isEmpty) return;
+    for (final note in _notes) {
+      _reminders.cancel(note);
+    }
+    _lastDeleted = const [];
+    _boards
+      ..clear()
+      ..addAll(boards);
+    final ids = {for (final b in boards) b.id};
+    _deletedBoards
+      ..clear()
+      ..addAll(deletedBoards.where((b) => ids.add(b.id)));
+    final guids = <String>{};
+    _notes
+      ..clear()
+      ..addAll(notes.where((n) => guids.add(n.guid)));
+    for (final n in _notes) {
+      if (!ids.contains(n.boardId)) n.boardId = _boards.first.id;
+    }
+    final seen = <String>{};
+    _links
+      ..clear()
+      ..addAll(
+        links.where(
+          (l) =>
+              guids.contains(l.a) &&
+              guids.contains(l.b) &&
+              seen.add(([l.a, l.b]..sort()).join('|')),
+        ),
+      );
+    if (_boards.every((b) => b.id != _currentBoardId)) {
+      _currentBoardId = _boards.first.id;
+    }
+    _storage
+      ..saveBoards(_boards)
+      ..saveDeletedBoards(_deletedBoards)
+      ..saveNotes(_notes)
+      ..saveLinks(_links)
+      ..setCurrentBoardId(_currentBoardId);
+    for (final note in _notes) {
+      if (!note.isTrashed && !_isDeletedBoard(note.boardId)) {
+        _syncReminder(note);
+      }
+    }
+    notifyListeners();
+  }
+
   /// Replaces all boards and notes with imported data, and the threads with
   /// [links] when the backup carried any.
   void replaceAll(
