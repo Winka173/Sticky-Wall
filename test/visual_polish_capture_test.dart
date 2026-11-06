@@ -206,7 +206,14 @@ void main() {
             await precacheImage(FileImage(File(path)), ctx());
           }
         });
-        unawaited(showMemoryWallSheet(ctx(), count: 3, photos: photos));
+        unawaited(
+          showMemoryWallSheet(
+            ctx(),
+            count: 3,
+            photos: photos,
+            onAddPhotos: (_) async => [],
+          ),
+        );
         await shot('memory');
         for (final label in [
           words.layoutPrints,

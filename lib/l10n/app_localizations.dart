@@ -3626,6 +3626,18 @@ abstract class AppLocalizations {
   /// **'Make the wall'**
   String get memoryCreate;
 
+  /// No description provided for @memoryAddPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos'**
+  String get memoryAddPhotos;
+
+  /// No description provided for @memoryAddPhotosHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select several photos, then confirm. Add up to {max} photos here.'**
+  String memoryAddPhotosHint(int max);
+
   /// No description provided for @memoryTitle.
   ///
   /// In en, this message translates to:

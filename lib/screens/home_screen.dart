@@ -546,31 +546,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final l10n = _l10n;
     List<String> stored;
     if (photos != null) {
-      stored = photos;
+      stored = List.of(photos);
     } else {
       try {
-        stored = await _imageService.pickImages();
+        stored = await _imageService.pickImages(limit: memoryWallMax);
       } catch (_) {
         if (mounted) _toast(l10n.photoPickFailed);
         return;
       }
     }
-    if (stored.isEmpty || !mounted) return;
+    if (stored.isEmpty) return;
+    if (!mounted) {
+      for (final f in stored) {
+        unawaited(ImageService.deleteFile(f));
+      }
+      return;
+    }
     final choice = await showMemoryWallSheet(
       context,
       count: stored.length,
       photos: stored,
+      onAddPhotos: (remaining) async {
+        final added = await _imageService.pickImages(limit: remaining);
+        stored.addAll(added);
+        return added;
+      },
     );
-    if (!mounted) return;
-    if (choice == null) {
+    if (!mounted || choice == null) {
       // Copied in for nothing: nothing refers to them.
       for (final f in stored) {
         unawaited(ImageService.deleteFile(f));
       }
       return;
     }
-    final used = stored.take(memoryWallMax).toList();
-    for (final f in stored.skip(memoryWallMax)) {
+    final used = choice.photos;
+    for (final f in stored.where((f) => !used.contains(f))) {
       unawaited(ImageService.deleteFile(f));
     }
     _notes.addMemoryWall(

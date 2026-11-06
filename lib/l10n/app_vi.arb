@@ -588,6 +588,8 @@
   "layoutTimeline": "Dòng thời gian",
   "memoryLook": "Chủ đề",
   "memoryCreate": "Tạo tường",
+  "memoryAddPhotos": "Thêm ảnh",
+  "memoryAddPhotosHint": "Chọn nhiều ảnh rồi xác nhận. Bạn có thể thêm tối đa {max} ảnh tại đây.",
   "memoryTitle": "Kỷ niệm",
   "memoryMade": "Đã dán {count} ảnh lên tường kỷ niệm. Chạm vào ảnh để thêm chú thích.",
   "allBoards": "Tất cả bảng",

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 
-/// Icon and text choices without a persistent background or border.
+/// Icon and text choices on bare paper, with a quiet outline when selected.
 class PaperChoiceChip extends StatelessWidget {
   const PaperChoiceChip({
     super.key,
@@ -23,13 +23,19 @@ class PaperChoiceChip extends StatelessWidget {
     final text = Text(
       label,
       style: TextStyle(
-        fontWeight: selected ? FontWeight.w700 : FontWeight.normal,
-        decoration: selected ? TextDecoration.underline : null,
+        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
       ),
     );
     final style = TextButton.styleFrom(
       foregroundColor: color,
       backgroundColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      side: BorderSide(
+        color: selected
+            ? AppColors.ink.withValues(alpha: .65)
+            : Colors.transparent,
+        width: 1.4,
+      ),
       minimumSize: const Size(48, AppMetrics.target),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
     );

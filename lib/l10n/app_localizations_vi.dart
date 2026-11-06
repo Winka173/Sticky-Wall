@@ -1979,6 +1979,14 @@ class AppLocalizationsVi extends AppLocalizations {
   String get memoryCreate => 'Tạo tường';
 
   @override
+  String get memoryAddPhotos => 'Thêm ảnh';
+
+  @override
+  String memoryAddPhotosHint(int max) {
+    return 'Chọn nhiều ảnh rồi xác nhận. Bạn có thể thêm tối đa $max ảnh tại đây.';
+  }
+
+  @override
   String get memoryTitle => 'Kỷ niệm';
 
   @override

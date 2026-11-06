@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
+import '../services/image_service.dart';
 import '../services/memory_wall.dart';
 import '../services/pro_controller.dart';
 import '../services/theme_packs.dart';
@@ -30,6 +31,7 @@ typedef MemoryWallChoice = ({
   ThemePack look,
   PhotoFrame frame,
   CaptionPreset caption,
+  List<String> photos,
 });
 
 /// Asks how [count] picked photos should be laid out, framed and captioned,
@@ -38,21 +40,31 @@ Future<MemoryWallChoice?> showMemoryWallSheet(
   BuildContext context, {
   required int count,
   List<String> photos = const [],
+  Future<List<String>> Function(int remaining)? onAddPhotos,
 }) {
   return showModalBottomSheet<MemoryWallChoice>(
     context: context,
     isScrollControlled: true,
-    builder: (context) => _MemoryWallSheet(count: count, photos: photos),
+    builder: (context) => _MemoryWallSheet(
+      count: count,
+      photos: photos,
+      onAddPhotos: onAddPhotos,
+    ),
   );
 }
 
 class _MemoryWallSheet extends StatefulWidget {
-  const _MemoryWallSheet({required this.count, this.photos = const []});
+  const _MemoryWallSheet({
+    required this.count,
+    this.photos = const [],
+    this.onAddPhotos,
+  });
 
   final int count;
 
   /// The picked photos (stored names), shown in the live preview.
   final List<String> photos;
+  final Future<List<String>> Function(int remaining)? onAddPhotos;
 
   @override
   State<_MemoryWallSheet> createState() => _MemoryWallSheetState();
@@ -63,10 +75,37 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
   ThemePack _look = themePackById(memoryWallLooks.first)!;
   PhotoFrame _frame = PhotoFrame.polaroid;
   CaptionPreset _caption = CaptionPreset.none;
+  late final List<String> _photos;
+  bool _picking = false;
+  bool _pickFailed = false;
+
+  Future<void> _addPhotos() async {
+    setState(() {
+      _picking = true;
+      _pickFailed = false;
+    });
+    try {
+      final added = await widget.onAddPhotos!(memoryWallMax - _photos.length);
+      if (!mounted) {
+        for (final photo in added) {
+          await ImageService.deleteFile(photo);
+        }
+        return;
+      }
+      setState(
+        () => _photos.addAll(added.take(memoryWallMax - _photos.length)),
+      );
+    } catch (_) {
+      if (mounted) setState(() => _pickFailed = true);
+    } finally {
+      if (mounted) setState(() => _picking = false);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    _photos = widget.photos.take(memoryWallMax).toList();
     // Without Pro the first look offered is a free one.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || ProScope.unlockedOf(context) || !_look.pro) return;
@@ -104,7 +143,9 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
             ),
             const SizedBox(height: 4),
             Text(
-              l10n.memoryPhotoCount(widget.count),
+              l10n.memoryPhotoCount(
+                _photos.isEmpty ? widget.count : _photos.length,
+              ),
               textAlign: TextAlign.center,
               style: const TextStyle(color: AppColors.inkSoft),
             ),
@@ -114,7 +155,30 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 13, color: AppColors.warnText),
               ),
-            if (widget.photos.isNotEmpty) ...[
+            if (widget.onAddPhotos != null) ...[
+              const SizedBox(height: 8),
+              Center(
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.add_photo_alternate_outlined),
+                  label: Text(l10n.memoryAddPhotos),
+                  onPressed: _picking || _photos.length >= memoryWallMax
+                      ? null
+                      : _addPhotos,
+                ),
+              ),
+              Text(
+                l10n.memoryAddPhotosHint(memoryWallMax),
+                textAlign: TextAlign.center,
+                style: AppType.caption(context),
+              ),
+              if (_pickFailed)
+                Text(
+                  l10n.photoPickFailed,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: AppColors.warnText),
+                ),
+            ],
+            if (_photos.isNotEmpty) ...[
               const SizedBox(height: 12),
               // What the board will look like, with these very photos:
               // layout, frame and look change it live, before anything is
@@ -123,7 +187,7 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
                 key: const ValueKey('memory-live-preview'),
                 label: l10n.memoryPreview,
                 child: _MemoryPreview(
-                  photos: widget.photos.take(memoryWallMax).toList(),
+                  photos: _photos.toList(),
                   layout: _layout,
                   frame: _frame,
                   look: _look,
@@ -239,20 +303,25 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
                     ? l10n.proUnlock
                     : l10n.memoryCreate,
               ),
-              onPressed: () async {
-                if ((_look.pro || _frame.pro) &&
-                    !ProScope.unlockedOf(context)) {
-                  await showProSheet(context);
-                  if (!context.mounted || !ProScope.unlockedOf(context)) return;
-                }
-                if (!context.mounted) return;
-                Navigator.pop(context, (
-                  layout: _layout,
-                  look: _look,
-                  frame: _frame,
-                  caption: _caption,
-                ));
-              },
+              onPressed: _picking
+                  ? null
+                  : () async {
+                      if ((_look.pro || _frame.pro) &&
+                          !ProScope.unlockedOf(context)) {
+                        await showProSheet(context);
+                        if (!context.mounted || !ProScope.unlockedOf(context)) {
+                          return;
+                        }
+                      }
+                      if (!context.mounted) return;
+                      Navigator.pop(context, (
+                        layout: _layout,
+                        look: _look,
+                        frame: _frame,
+                        caption: _caption,
+                        photos: List<String>.unmodifiable(_photos),
+                      ));
+                    },
             ),
           ],
         ),

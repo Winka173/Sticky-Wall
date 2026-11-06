@@ -2001,6 +2001,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memoryCreate => 'Make the wall';
 
   @override
+  String get memoryAddPhotos => 'Add photos';
+
+  @override
+  String memoryAddPhotosHint(int max) {
+    return 'Select several photos, then confirm. Add up to $max photos here.';
+  }
+
+  @override
   String get memoryTitle => 'Memories';
 
   @override

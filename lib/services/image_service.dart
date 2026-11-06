@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_picker_android/image_picker_android.dart';
+import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -96,9 +98,32 @@ class ImageService {
 
   /// Picks any number of photos from the gallery and stores each. Returns
   /// their references in the order chosen; empty when the user cancelled.
-  Future<List<String>> pickImages() async {
-    final picked = await _picker.pickMultiImage(maxWidth: _maxPhotoEdge);
-    return [for (final file in picked) await _import(file.path)];
+  Future<List<String>> pickImages({int? limit}) async {
+    // Use Android's multi-select Photo Picker rather than a document provider
+    // that can finish as soon as one photo is tapped.
+    final platform = ImagePickerPlatform.instance;
+    final android = platform is ImagePickerAndroid ? platform : null;
+    final previous = android?.useAndroidPhotoPicker;
+    if (android != null) android.useAndroidPhotoPicker = true;
+    final stored = <String>[];
+    try {
+      final picked = await _picker.pickMultiImage(
+        maxWidth: _maxPhotoEdge,
+        limit: limit,
+      );
+      for (final file in limit == null ? picked : picked.take(limit)) {
+        stored.add(await _import(file.path));
+      }
+      return stored;
+    } catch (_) {
+      // Do not leave orphaned copies when an import fails mid-batch.
+      for (final file in stored) {
+        await deleteFile(file);
+      }
+      rethrow;
+    } finally {
+      if (android != null) android.useAndroidPhotoPicker = previous!;
+    }
   }
 
   /// The most photos one share brings in (a memory wall holds as many).
