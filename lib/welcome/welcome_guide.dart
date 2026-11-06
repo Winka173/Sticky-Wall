@@ -18,10 +18,6 @@ enum GuideStart {
 
   /// The sample wall stays as it is.
   explore,
-
-  /// A backup is restored (moving from another phone); the samples go once
-  /// it is in.
-  restore,
 }
 
 /// The guide's three stages: the story (one stage, two beats), the practice
@@ -439,15 +435,6 @@ class _WelcomeGuideState extends State<WelcomeGuide>
         l10n.welcomeExplore,
         l10n.welcomeExploreHint,
       ),
-      // Not when the guide is replayed: the wall is already the user's.
-      if (!widget.replay)
-        (
-          GuideStart.restore,
-          Icons.settings_backup_restore,
-          AppColors.notePapers[3],
-          l10n.welcomeRestore,
-          l10n.welcomeRestoreHint,
-        ),
     ];
     return GuideReveal(
       from: .2,

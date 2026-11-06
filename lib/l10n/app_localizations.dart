@@ -3458,18 +3458,6 @@ abstract class AppLocalizations {
   /// **'A few notes that show what you can do; delete them any time'**
   String get welcomeExploreHint;
 
-  /// No description provided for @welcomeRestore.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore a backup'**
-  String get welcomeRestore;
-
-  /// No description provided for @welcomeRestoreHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Moving from another phone? Bring your boards back from a backup file'**
-  String get welcomeRestoreHint;
-
   /// No description provided for @memoryWall.
   ///
   /// In en, this message translates to:
@@ -4757,19 +4745,19 @@ abstract class AppLocalizations {
   /// No description provided for @manualSafeSummary.
   ///
   /// In en, this message translates to:
-  /// **'Backups, a new phone, and locks.'**
+  /// **'Backups, moving to a new phone, and locks.'**
   String get manualSafeSummary;
 
   /// No description provided for @manualSafeStep1.
   ///
   /// In en, this message translates to:
-  /// **'Backup & restore, in Settings under Data, makes one file with every board, photo and voice note. Restoring shows what the file holds before anything changes.'**
+  /// **'In Settings under Data, Back up notes makes one file with every board, photo and voice note. A copy is also made each week; the last 4 stay on this phone.'**
   String get manualSafeStep1;
 
   /// No description provided for @manualSafeStep2.
   ///
   /// In en, this message translates to:
-  /// **'The automatic weekly backup keeps the last 4 copies on this phone.'**
+  /// **'New phone: back up on the old one and send the file to yourself, then on the new one tap Restore backup in the same place. You see what the file holds before anything changes, and Undo puts things back.'**
   String get manualSafeStep2;
 
   /// No description provided for @manualSafeSync.

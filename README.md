@@ -319,8 +319,7 @@ then taken well beyond it.
 - A fresh install seeds five sample notes (with one thread tied between two
   of them) and opens the first-run guide: a short story, a practice wall
   that saves nothing (add a note, move it, tie a thread), then a blank wall
-  (the samples go), a template, the sample wall, or restoring a backup
-  from another phone. See
+  (the samples go), a template or the sample wall. See
   `docs/sticky-final/FIRST_RUN_GUIDE.md`
 
 **Privacy**

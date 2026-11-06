@@ -49,7 +49,7 @@ the focus.
    - When done, the dark lifts, a check pops, and a panel rises: "That's the
      wall." The words say nothing was saved. Button: **Next**.
    - Back into the practice starts it afresh.
-3. **Make it yours.** Four large choices, Explore chosen to begin with:
+3. **Make it yours.** Three large choices, Explore chosen to begin with:
    - **Start with a blank wall**: `NotesController.discardSamples`.
    - **Pick a template**: `GalleryScreen.open` into the current board. A
      template used replaces the samples; backing out keeps them.
@@ -92,8 +92,10 @@ removed: everything it said is in the manual's topics.
      pill), Select notes and the loop.
   10. Share and export: Share / Save image on a note, Export board as image
       or PDF, sharing into Sticky Wall from other apps.
-  11. Keeping it safe: Backup & restore, the weekly automatic backup, Sync
-      (only in builds with `STICKY_SYNC`), App lock and locked boards.
+  11. Keeping it safe: Back up notes and the weekly automatic copy, moving
+      to a new phone (back up, send the file, Restore backup), Sync (only in
+      builds with `STICKY_SYNC`), App lock and locked boards. Restoring is
+      taught here, not in the guide.
   12. Make it yours: Customize (walls, handwriting, pins, try-on), Lights
       off and its schedule, the home-screen widget, the language.
 

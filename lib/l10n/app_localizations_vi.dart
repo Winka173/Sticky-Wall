@@ -1884,13 +1884,6 @@ class AppLocalizationsVi extends AppLocalizations {
       'Vài ghi chú chỉ cách dùng; xóa lúc nào cũng được';
 
   @override
-  String get welcomeRestore => 'Khôi phục bản sao lưu';
-
-  @override
-  String get welcomeRestoreHint =>
-      'Chuyển từ máy khác? Mang các bảng trở lại từ tệp sao lưu';
-
-  @override
   String get memoryWall => 'Tường kỷ niệm';
 
   @override
@@ -2640,15 +2633,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String get manualSafeTitle => 'Giữ an toàn';
 
   @override
-  String get manualSafeSummary => 'Sao lưu, đổi điện thoại, và khóa.';
+  String get manualSafeSummary =>
+      'Sao lưu, chuyển sang điện thoại mới, và khóa.';
 
   @override
   String get manualSafeStep1 =>
-      'Sao lưu & khôi phục, trong Cài đặt mục Dữ liệu, tạo một tệp chứa mọi bảng, ảnh và ghi âm. Khi khôi phục, bạn xem trước tệp có gì rồi mới thay đổi.';
+      'Trong Cài đặt mục Dữ liệu, Sao lưu ghi chú tạo một tệp chứa mọi bảng, ảnh và ghi âm. Mỗi tuần app cũng tự sao lưu và giữ 4 bản gần nhất trên máy.';
 
   @override
   String get manualSafeStep2 =>
-      'Tự động sao lưu hằng tuần giữ 4 bản gần nhất ngay trên máy.';
+      'Đổi điện thoại: sao lưu trên máy cũ rồi gửi tệp cho chính mình, sang máy mới bấm Khôi phục ở cùng chỗ đó. Bạn xem trước tệp có gì rồi mới thay đổi, và Hoàn tác được.';
 
   @override
   String get manualSafeSync =>

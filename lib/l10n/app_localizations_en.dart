@@ -1901,13 +1901,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'A few notes that show what you can do; delete them any time';
 
   @override
-  String get welcomeRestore => 'Restore a backup';
-
-  @override
-  String get welcomeRestoreHint =>
-      'Moving from another phone? Bring your boards back from a backup file';
-
-  @override
   String get memoryWall => 'Memory wall';
 
   @override
@@ -2681,15 +2674,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manualSafeTitle => 'Keeping it safe';
 
   @override
-  String get manualSafeSummary => 'Backups, a new phone, and locks.';
+  String get manualSafeSummary => 'Backups, moving to a new phone, and locks.';
 
   @override
   String get manualSafeStep1 =>
-      'Backup & restore, in Settings under Data, makes one file with every board, photo and voice note. Restoring shows what the file holds before anything changes.';
+      'In Settings under Data, Back up notes makes one file with every board, photo and voice note. A copy is also made each week; the last 4 stay on this phone.';
 
   @override
   String get manualSafeStep2 =>
-      'The automatic weekly backup keeps the last 4 copies on this phone.';
+      'New phone: back up on the old one and send the file to yourself, then on the new one tap Restore backup in the same place. You see what the file holds before anything changes, and Undo puts things back.';
 
   @override
   String get manualSafeSync =>

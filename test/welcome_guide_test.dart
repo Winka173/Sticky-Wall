@@ -295,24 +295,17 @@ void main() {
     expect(_snapshot(app.notes), before);
   });
 
-  testWidgets('Restore a backup opens the backup dialog; cancelling keeps '
-      'the samples', (tester) async {
-    final app = await _pump(tester);
-    final before = _snapshot(app.notes);
-    await _toChoices(tester);
-    final restore = find.byKey(const Key('guide-choice-restore'));
-    await tester.ensureVisible(restore);
+  testWidgets('moving to a new phone is taught in How to use', (tester) async {
+    await _pump(tester, firstRun: false);
+    await _openHowToUse(tester);
+    await _reveal(tester, find.byKey(const Key('manual-topic-10')));
+    await tester.tap(find.byKey(const Key('manual-topic-10')));
     await tester.pumpAndSettle();
-    await tester.tap(restore);
-    await tester.pumpAndSettle();
-    await _primary(tester);
-    expect(find.byType(WelcomeGuide), findsNothing);
-    expect(find.byType(AlertDialog), findsOneWidget);
-    expect(find.text('Restore backup'), findsWidgets);
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-    expect(find.byType(AlertDialog), findsNothing);
-    expect(_snapshot(app.notes), before);
+    expect(find.text('Keeping it safe'), findsOneWidget);
+    expect(
+      find.textContaining('New phone: back up on the old one'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('How to use: replay changes nothing, and its last stage '

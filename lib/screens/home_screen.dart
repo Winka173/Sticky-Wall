@@ -436,16 +436,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           _notes.discardSamples(board, only: firstRun);
         }
         showGalleryResult(context, result);
-      case GuideStart.restore:
-        final board = _notes.currentBoardId;
-        final firstRun = {for (final n in _notes.sampleNotes(board)) n.guid};
-        final restored = await restoreBackup(
-          context,
-          settings: widget.settings,
-          notes: _notes,
-        );
-        // Restored next to the samples: they have done their job.
-        if (restored && mounted) _notes.discardSamples(board, only: firstRun);
     }
   }
 
