@@ -908,6 +908,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get discardChangesTitle => 'Bỏ các thay đổi?';
 
   @override
+  String get saveChangesTitle => 'Lưu các thay đổi cho ghi chú này?';
+
+  @override
   String get keepEditing => 'Sửa tiếp';
 
   @override

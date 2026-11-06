@@ -237,42 +237,54 @@ class _NoteDialogState extends State<_NoteDialog>
     return jsonEncode(now) != _initial;
   }
 
-  /// Back and a tap beside the paper keep what was written, as putting a
-  /// note down would; only the ✕ throws an edit away.
-  Future<void> _leave() async {
-    if (!_dirty) {
-      Navigator.of(context).pop();
-      return;
-    }
-    await _save(leaving: true);
-  }
+  /// Back, a tap beside the paper and the ✕ all leave the same way: an
+  /// untouched note just closes; an edited one asks whether to save the
+  /// changes, discard them or keep editing. Nothing is kept or thrown away
+  /// without the user saying which. Only the tick saves straight away.
+  Future<void> _leave() => _close();
 
-  /// The ✕, and leaving a note that cannot be saved as it is: an untouched
-  /// note just closes, an edited one asks first.
+  bool _asking = false;
+
   Future<void> _close() async {
     if (!_dirty) {
       Navigator.of(context).pop();
       return;
     }
+    // A second Back while the question is up must not stack another one.
+    if (_asking) return;
+    _asking = true;
     final l10n = AppLocalizations.of(context)!;
-    final discard = await showDialog<bool>(
+    final choice = await showDialog<_LeaveChoice>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.discardChangesTitle),
+        title: Text(l10n.saveChangesTitle),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(context, _LeaveChoice.keep),
             child: Text(l10n.keepEditing),
           ),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.deleteIcon),
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(context, _LeaveChoice.discard),
             child: Text(l10n.discard),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, _LeaveChoice.save),
+            child: Text(l10n.save),
           ),
         ],
       ),
     );
-    if (discard == true && mounted) Navigator.of(context).pop();
+    _asking = false;
+    if (!mounted) return;
+    switch (choice) {
+      case _LeaveChoice.save:
+        await _save();
+      case _LeaveChoice.discard:
+        Navigator.of(context).pop();
+      case _LeaveChoice.keep || null:
+        break;
+    }
   }
 
   /// Two links are the same page if they differ only by scheme, "www." or a
@@ -284,7 +296,7 @@ class _NoteDialogState extends State<_NoteDialog>
       .replaceFirst(RegExp(r'^www\.'), '')
       .replaceFirst(RegExp(r'/+$'), '');
 
-  Future<void> _save({bool leaving = false}) async {
+  Future<void> _save() async {
     final l10n = AppLocalizations.of(context)!;
     // A take still running is what the user meant to keep: end it first.
     final voice = _voice.currentState;
@@ -334,13 +346,8 @@ class _NoteDialogState extends State<_NoteDialog>
         break;
     }
     if (error != null) {
-      // Leaving with nothing that can be kept: ask, rather than shake a note
-      // the user is putting down.
-      if (leaving) {
-        await _close();
-      } else {
-        _fail(error);
-      }
+      // Stays open with the reason under the field, text and focus intact.
+      _fail(error);
       return;
     }
 
@@ -751,3 +758,6 @@ class _NoteDialogState extends State<_NoteDialog>
     );
   }
 }
+
+/// What to do with an edited note that is being closed.
+enum _LeaveChoice { save, discard, keep }

@@ -1700,6 +1700,12 @@ abstract class AppLocalizations {
   /// **'Discard your changes?'**
   String get discardChangesTitle;
 
+  /// No description provided for @saveChangesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your changes to this note?'**
+  String get saveChangesTitle;
+
   /// No description provided for @keepEditing.
   ///
   /// In en, this message translates to:

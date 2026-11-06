@@ -78,9 +78,8 @@ void main() {
     expect(find.text('Write something first'), findsNothing);
   });
 
-  testWidgets('the cross asks before dropping the text; back keeps it', (
-    tester,
-  ) async {
+  testWidgets('closing an edited note always asks: save, discard or keep '
+      'editing', (tester) async {
     final notes = await _pumpApp(tester);
 
     // Untouched, Cancel just closes.
@@ -89,15 +88,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(_saveButton, findsNothing);
 
+    // The cross: Keep editing, then Discard.
     await _openEditor(tester);
     await tester.enterText(find.byType(TextField).first, 'Buy bread');
     await tester.tap(find.byTooltip('Cancel'));
     await tester.pumpAndSettle();
-    expect(find.text('Discard your changes?'), findsOneWidget);
+    expect(find.text('Save your changes to this note?'), findsOneWidget);
     await tester.tap(find.text('Keep editing'));
     await tester.pumpAndSettle();
     expect(find.text('Buy bread'), findsOneWidget);
-
     await tester.tap(find.byTooltip('Cancel'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Discard'));
@@ -105,23 +104,33 @@ void main() {
     expect(_saveButton, findsNothing);
     expect(notes.boardNotes, isEmpty);
 
-    // The system back button puts the note on the wall, like the tick.
+    // System back asks the same question; Save puts the note on the wall.
     await _openEditor(tester);
     await tester.enterText(find.byType(TextField).first, 'Buy milk');
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
+    expect(notes.boardNotes, isEmpty, reason: 'nothing saved before asking');
+    // A second back answers the question with "keep editing".
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Save your changes to this note?'), findsNothing);
+    expect(find.text('Buy milk'), findsOneWidget);
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
     expect(_saveButton, findsNothing);
     expect(notes.boardNotes.single.content, 'Buy milk');
 
-    // With nothing that could be kept, back asks instead of saving.
+    // Save with nothing that can be kept: the editor stays, saying why.
     await _openEditor(tester);
     await tester.tap(find.byTooltip('To-do list'));
     await tester.pumpAndSettle();
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
-    expect(find.text('Discard your changes?'), findsOneWidget);
-    await tester.tap(find.text('Discard'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await tester.pumpAndSettle();
+    expect(_saveButton, findsOneWidget);
     expect(notes.boardNotes, hasLength(1));
   });
 

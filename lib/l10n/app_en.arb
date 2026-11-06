@@ -313,6 +313,7 @@
   "toneKraft": "Kraft paper",
   "toneChalkboard": "Chalkboard",
   "discardChangesTitle": "Discard your changes?",
+  "saveChangesTitle": "Save your changes to this note?",
   "keepEditing": "Keep editing",
   "discard": "Discard",
   "deleteForeverConfirm": "Delete this note for good? It can't be brought back.",

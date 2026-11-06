@@ -918,6 +918,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get discardChangesTitle => 'Discard your changes?';
 
   @override
+  String get saveChangesTitle => 'Save your changes to this note?';
+
+  @override
   String get keepEditing => 'Keep editing';
 
   @override
