@@ -584,19 +584,28 @@ extension _Chrome on _HomeScreenState {
           child: InkWell(
             customBorder: const StadiumBorder(),
             onTap: _quickAdd,
-            child: _Glass(
-              decoration: _frosted(wall, radius: 20, strong: true),
-              padding: const EdgeInsets.fromLTRB(10, 8, 14, 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.add, size: 18, color: wall.wallText),
-                  const SizedBox(width: 4),
-                  Text(
-                    _l10n.addOtherKindsShort,
-                    style: TextStyle(color: wall.wallText, fontSize: 14),
-                  ),
-                ],
+            // With very large text the label shortens instead of pushing
+            // the button off the screen.
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 190),
+              child: _Glass(
+                decoration: _frosted(wall, radius: 20, strong: true),
+                padding: const EdgeInsets.fromLTRB(10, 8, 14, 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add, size: 18, color: wall.wallText),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        _l10n.addOtherKindsShort,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: wall.wallText, fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

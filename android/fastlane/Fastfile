@@ -48,7 +48,11 @@ platform :android do
   desc "Build the signed, obfuscated release bundle"
   lane :build do
     Dir.chdir(ROOT) do
-      sh("flutter", "build", "appbundle", "--release", "--obfuscate", "--split-debug-info=build/symbols")
+      args = ["flutter", "build", "appbundle", "--release", "--obfuscate", "--split-debug-info=build/symbols"]
+      # Sync is offered only once the Google OAuth clients exist:
+      # STICKY_SYNC=true fastlane android build
+      args << "--dart-define=STICKY_SYNC=true" if ENV["STICKY_SYNC"] == "true"
+      sh(*args)
     end
   end
 

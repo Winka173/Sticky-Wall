@@ -1724,51 +1724,54 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget _emptyState(WallStyle wall, {String? tip}) {
     final faded = wall.wallTextFaded;
+    // Scrolls rather than overflowing on a short wall with large text.
     return Center(
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () => _openEditor(_notes.draft(), isNew: true),
-        child: Transform.rotate(
-          angle: -0.03,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // A dashed "ghost note" inviting the first pin.
-                SizedBox(
-                  width: 150,
-                  height: 112,
-                  child: CustomPaint(
-                    painter: _GhostNotePainter(faded),
-                    child: Icon(Icons.add, size: 36, color: faded),
+      child: SingleChildScrollView(
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => _openEditor(_notes.draft(), isNew: true),
+          child: Transform.rotate(
+            angle: -0.03,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // A dashed "ghost note" inviting the first pin.
+                  SizedBox(
+                    width: 150,
+                    height: 112,
+                    child: CustomPaint(
+                      painter: _GhostNotePainter(faded),
+                      child: Icon(Icons.add, size: 36, color: faded),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  _l10n.emptyState,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 21,
-                    height: 1.4,
-                    color: faded,
-                    shadows: wall.wallTextShadows,
-                  ),
-                ),
-                if (tip != null) ...[
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   Text(
-                    tip,
+                    _l10n.emptyState,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 15,
-                      height: 1.35,
+                      fontSize: 21,
+                      height: 1.4,
                       color: faded,
                       shadows: wall.wallTextShadows,
                     ),
                   ),
+                  if (tip != null) ...[
+                    const SizedBox(height: 14),
+                    Text(
+                      tip,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        height: 1.35,
+                        color: faded,
+                        shadows: wall.wallTextShadows,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),

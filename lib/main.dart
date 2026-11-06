@@ -28,6 +28,9 @@ import 'widgets/lock_gate.dart';
 
 /// Boots storage, reminders and the image cache, seeds the sample notes on a
 /// first run, wires the home-screen widget, then starts the app.
+/// Whether this build offers sync (see main).
+const _syncBuild = bool.fromEnvironment('STICKY_SYNC');
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final storage = await NoteStorage.create();
@@ -83,8 +86,10 @@ Future<void> main() async {
   }
 
   // Sync across devices (Google Drive's app folder), off unless switched
-  // on; offered on Android, where the provider is set up.
-  if (!kIsWeb && Platform.isAndroid) {
+  // on. Offered on Android, and only in builds made with
+  // --dart-define=STICKY_SYNC=true: a release without the Google OAuth
+  // clients set up would show a switch that cannot connect.
+  if (!kIsWeb && Platform.isAndroid && _syncBuild) {
     final sync = SyncService(
       prefs: await SharedPreferences.getInstance(),
       notes: notes,

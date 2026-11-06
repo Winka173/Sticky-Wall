@@ -229,7 +229,8 @@ extension _NoteActions on _HomeScreenState {
             onTap: () => Navigator.pop(context, 'hero'),
           ),
         ListTile(
-          leading: Icon(note.locked ? Icons.lock_open : Icons.lock_outline),
+          // An anchor, never a padlock: a padlock means a locked board.
+          leading: Icon(note.locked ? Icons.open_with : Icons.anchor),
           title: Text(note.locked ? l10n.unlock : l10n.lockInPlace),
           onTap: () => Navigator.pop(context, 'lock'),
         ),

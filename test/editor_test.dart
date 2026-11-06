@@ -1041,7 +1041,7 @@ void main() {
     await _dragNote(tester, find.text('This week'), const Offset(60, 120));
     expect(head.x, 0.05, reason: 'locked: the drag does nothing');
     expect(head.y, 0.02);
-    expect(find.byIcon(Icons.lock), findsOneWidget);
+    expect(find.byIcon(Icons.anchor), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
@@ -1285,7 +1285,7 @@ void main() {
     await tester.tap(find.text('Lock in place'));
     await tester.pumpAndSettle();
     expect(label.locked, true);
-    expect(find.byIcon(Icons.lock), findsOneWidget);
+    expect(find.byIcon(Icons.anchor), findsOneWidget);
   });
 
   testWidgets('the format buttons mark the text and the card renders it', (

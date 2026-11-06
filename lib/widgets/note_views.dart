@@ -1071,7 +1071,8 @@ class StickyNoteCard extends StatelessWidget {
               left: 5,
               top: _pinInset + 4,
               child: Icon(
-                Icons.lock,
+                // Fixed in place: an anchor (a padlock means a locked board).
+                Icons.anchor,
                 size: 12,
                 color: AppColors.inkSoft,
                 semanticLabel: AppLocalizations.of(context)?.locked,
