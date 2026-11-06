@@ -1,6 +1,6 @@
 # Privacy Policy · Chính sách quyền riêng tư
 
-**Sticky Wall** — last updated 3 November 2026 · cập nhật 03/11/2026
+**Sticky Wall** — last updated 6 November 2026 · cập nhật 06/11/2026
 
 ---
 
@@ -78,6 +78,21 @@ The app makes no network connections of its own. It touches the internet only
 when *you* open a link from a note, which your browser handles, and when the
 Google Play (or App Store) app on your phone is asked for the Pro price or
 whether Pro was bought.
+
+### Optional sync across devices (Android)
+
+Off unless you switch it on in *Customize → Sync across devices*. When on,
+Sticky Wall copies your boards, notes, threads, Trash, photos and voice
+recordings to a hidden Sticky Wall folder (the "app data" folder) in **your
+own Google Drive**, and reads them back on your other Android devices signed
+in to the same Google account. It asks Google only for access to that one
+folder; it cannot see your other Drive files. The data goes from your phone
+to your Google account and nowhere else: we run no server and cannot read
+it. It is stored by Google as ordinary Drive data, not end-to-end encrypted.
+Locked boards are left out unless you choose to include them. Turning sync
+off keeps everything on the phone; the copy in Drive stays until you delete
+it in Google Drive's settings (*Manage apps → Sticky Wall → Delete hidden
+app data*).
 
 ### Children
 
@@ -167,6 +182,20 @@ hàng xem tài khoản của bạn đã mua Pro chưa và ghi nhớ câu trả l
 Ứng dụng không tự tạo kết nối mạng nào. Nó chỉ chạm tới Internet khi *bạn*
 mở một liên kết từ ghi chú (do trình duyệt xử lý), và khi ứng dụng Google
 Play (hoặc App Store) trên máy được hỏi giá Pro hoặc bạn đã mua Pro chưa.
+
+### Đồng bộ giữa các thiết bị (Android, tùy chọn)
+
+Mặc định tắt, chỉ chạy khi bạn bật trong *Tùy chỉnh → Đồng bộ giữa các thiết
+bị*. Khi bật, Sticky Wall sao chép bảng, ghi chú, dây nối, Thùng rác, ảnh và
+ghi âm vào một thư mục ẩn của Sticky Wall (thư mục "dữ liệu ứng dụng") trong
+**chính Google Drive của bạn**, rồi đọc lại trên các máy Android khác đăng
+nhập cùng tài khoản Google. Ứng dụng chỉ xin quyền với đúng thư mục đó, không
+thấy được các tệp Drive khác. Dữ liệu chỉ đi từ điện thoại tới tài khoản
+Google của bạn: chúng tôi không có máy chủ và không đọc được. Google lưu dữ
+liệu này như dữ liệu Drive thông thường, không mã hóa đầu-cuối. Bảng có khóa
+không được đồng bộ trừ khi bạn chọn. Tắt đồng bộ vẫn giữ mọi thứ trên máy;
+bản trong Drive còn đó cho tới khi bạn xóa trong cài đặt Google Drive (*Quản
+lý ứng dụng → Sticky Wall → Xóa dữ liệu ứng dụng ẩn*).
 
 ### Trẻ em
 

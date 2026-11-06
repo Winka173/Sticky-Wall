@@ -1,0 +1,8 @@
+00:15 +291 ~53: All tests passed!
+No issues found! (ran in 8.1s)
+b6a492c Sync across devices (opt-in, Android): per-device state files in Google Drive's app folder, Lamport-revision merge with tombstones, edit-beats-delete, conflict copies, content-hashed media checked on arrival, locked boards excluded unless chosen; status and controls in Customize
+ce46b81 Interactive guide on the real wall: tap, drag and thread steps that move on when done (or with Next), Skip any time, replay from the menu; starts from 'Explore the sample wall' and changes nothing itself
+7010cb5 Share sheet: every shared photo is kept (up to 20, size-bounded, the rest counted aloud), pinned as prints or made into a memory wall; the same share is handled once
+e09338d Editor: Back, tap-outside and the cross all ask before leaving an edited note (Save / Discard / Keep editing); an invalid Save keeps the editor open with the reason
+8618d87 Board Trash: a deleted board waits 30 days with every note, thread, drawing and file, restores whole, survives backups; drag-to-delete tray and auto-trash of finished checklists removed (old switches ignored and cleared); backups refuse oversized documents and count damaged files
+release APK (BlueStacks build) sha256: 0ad6fc5a9f52c12b6f09a918cdd2f17ce4f2da889331bc09cd03b217a47a7283
