@@ -443,6 +443,10 @@ certificate fingerprints are public, so they may go in docs and `Info.plist`.
    -jarfile` prints nothing for these APKs (they have no v1 signature).
 4. Nothing goes into the Android project: no `google-services.json`, no client
    id in code. Google matches the package name + signing certificate.
+   - A package + SHA-1 pair can belong to **one OAuth client in all of
+     Google Cloud**. To move an app to another project, delete its clients in
+     the old project first, then create them in the new one. The app needs no
+     change; sync data saved under the old project is not seen by the new one.
 5. Changes can take a few minutes (sometimes hours) to reach devices.
 
 ### 10.2 iOS (not built yet): what turning it on takes
@@ -514,6 +518,7 @@ never reach Android.
 | `403 accessNotConfigured` / Drive API disabled | Drive API not enabled in this project | 10.1 step 1 |
 | Works on Android, iPhone sees no data | iOS client created in a different Cloud project | Recreate it in the same project |
 | iOS crashes or returns at once when signing in | `GIDClientID` or URL scheme missing from `Info.plist` | 10.2 step 2 |
+| Creating the Android client fails: package name and fingerprint already in use | That pair is still registered in another project | Delete the client there first (10.1 step 4), wait a few minutes, retry |
 | Sync row missing | Build made without `STICKY_SYNC=true`, or iOS (not enabled yet) | Rebuild with the define; 10.2 |
 
 ---
