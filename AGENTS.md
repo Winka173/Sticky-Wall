@@ -1,3 +1,8 @@
+# Start here
+
+- `docs/HANDOFF.md`: where the project stands, the owner's working rules,
+  how to build and test, and what is still open.
+
 # Repository workflow
 
 - After completing the user's requested changes and the appropriate checks,
