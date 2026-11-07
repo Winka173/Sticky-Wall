@@ -401,53 +401,99 @@ certificate fingerprints are public, so they may go in docs and `Info.plist`.
   app folder belongs to the **project**. Two apps in one project would share
   one folder and one name; Android and iPhone clients of the same app must be
   in the same project, or they never see each other's data.
-- Create it from the project picker at the top of the Cloud console → *New
-  project*, named after the app (for example `sticky-wall`). Keep
-  `play-publisher-513712` for the Play service account only.
+- `play-publisher-513712` holds the Play service account only. Never put an
+  app's OAuth clients there.
 - An account can create a limited number of projects (about a dozen by
   default); ask Google for more from the quota page when needed.
+- A package + SHA-1 pair can belong to **one OAuth client in all of Google
+  Cloud**. To move an app to another project, delete its clients in the old
+  project first (step D), then create them in the new one.
+- Nothing goes into the Android project: no `google-services.json`, no client
+  id in code. Google matches the package name + signing certificate. Moving
+  projects needs no app change; sync data saved under the old project is not
+  seen by the new one.
 
-1. *APIs & Services → Library*: enable the **Google Drive API**.
-2. *OAuth consent screen* (Google Auth Platform → Branding / Audience / Data
-   access):
-   - *Branding:* app name **Sticky Wall**, support email
-     `apps.winka.studio@gmail.com`, developer email. **Leave the logo empty**:
-     a logo makes Google verify the app before it can be published. The app
-     domain fields are optional; the privacy policy lives on `github.com`,
-     which this account does not own, so leave them empty unless the policy
-     moves to a domain the owner can verify (for example GitHub Pages,
-     `<user>.github.io`, verified in Search Console).
-   - *Audience:* External.
-   - *Data access:* add the scope `https://www.googleapis.com/auth/drive.appdata`.
-     It is a non-sensitive scope: no security assessment.
-   - **Publish the app** (*Audience → Publish app*, status *In production*).
-     While it is in *Testing*, only individually listed **test users** can
-     sign in (up to 100), and **Google Groups are not accepted there**, so the
-     Play testers' group would be shut out. Publishing is independent of Play:
-     an app on closed testing can use a consent screen in production.
-3. *Credentials → Create credentials → OAuth client ID → Android*, **twice**:
+Click by click. Sticky Wall's values are shown; for another app use its name,
+package and SHA-1s. In every URL below, replace `PROJECT` with the project id.
 
-   | Client | Package name | SHA-1 |
+**A. Create the project**
+1. https://console.cloud.google.com/projectcreate
+   - *Project name:* the app (`Sticky Wall`). Note the **project ID** under it
+     (for example `sticky-wall-123456`); you can edit it before creating.
+   - *Location / Organization:* *No organization*. → **Create**.
+2. Make sure the project picker at the top shows the new project before going
+   on. Every step below happens inside it.
+
+**B. Turn on the Drive API**
+1. https://console.cloud.google.com/apis/library/drive.googleapis.com?project=PROJECT
+   → **Enable**. That is the only API needed. No billing account is needed.
+
+**C. Consent screen (Google Auth Platform)**
+1. https://console.cloud.google.com/auth/overview?project=PROJECT → **Get
+   started**. The wizard asks:
+   1. *App information:* app name **Sticky Wall**; user support email
+      `apps.winka.studio@gmail.com`. → Next.
+   2. *Audience:* **External**. → Next.
+   3. *Contact information:* `apps.winka.studio@gmail.com`. → Next.
+   4. *Finish:* accept the Google API Services User Data Policy. → Continue →
+      **Create**.
+2. *Branding* (https://console.cloud.google.com/auth/branding?project=PROJECT):
+   - **Leave the logo empty.** A logo makes Google verify the app before it
+     can be published.
+   - *App domain* (home page, privacy policy, terms) and *Authorized domains*:
+     leave empty. The privacy policy lives on `github.com`, which this
+     account cannot verify. Fill them in only after the policy moves to a
+     domain the owner can verify (for example GitHub Pages `<user>.github.io`,
+     verified in Search Console).
+   - *Developer contact:* `apps.winka.studio@gmail.com`. → **Save**.
+3. *Data Access* (https://console.cloud.google.com/auth/scopes?project=PROJECT):
+   - **Add or remove scopes** → in the filter type `drive.appdata` → tick
+     `.../auth/drive.appdata` (*See, create, and delete its own configuration
+     data in your Google Drive*) → **Update**.
+   - It lands under *Your non-sensitive scopes*: no security assessment.
+     → **Save**.
+4. *Audience* (https://console.cloud.google.com/auth/audience?project=PROJECT):
+   - *Publishing status* → **Publish app** → **Confirm**. Status becomes
+     *In production*.
+   - Why: in *Testing*, only individually listed test users can sign in (up
+     to 100), and **Google Groups are not accepted there**, so the Play
+     testers' group would be shut out. Publishing is independent of Play: an
+     app on closed testing can use a consent screen in production.
+
+**D. Moving an app from another project: delete its old clients first**
+1. Open the old project's clients (for example
+   https://console.cloud.google.com/auth/clients?project=play-publisher-513712).
+2. Open each of the app's clients and **copy its SHA-1** before deleting it.
+3. Tick the app's clients → **Delete**. Only this app's clients: other apps'
+   clients stay until their own move.
+
+**E. Create the Android OAuth clients**
+1. https://console.cloud.google.com/auth/clients?project=PROJECT → **Create
+   client** → *Application type:* **Android**. Create these:
+
+   | Name | Package name | SHA-1 certificate fingerprint |
    |---|---|---|
-   | Upload key (sideloaded and locally built release APKs) | `com.apps.winka.stickywall` | `D3:3A:8D:B4:1C:9E:53:41:9E:0B:A7:98:97:73:4D:75:60:A7:44:F2` |
-   | Play app signing (anything installed from Play, testers included) | `com.apps.winka.stickywall` | Play Console → the app → *Test and release → App integrity → App signing key certificate → SHA-1* |
+   | `Sticky Wall (Play signing)`: anything installed from Play, testers included | `com.apps.winka.stickywall` | Play Console → the app → *Test and release → Setup → App integrity → App signing* → *App signing key certificate* → **SHA-1** |
+   | `Sticky Wall (upload key)`: sideloaded and locally built release APKs | `com.apps.winka.stickywall` | `D3:3A:8D:B4:1C:9E:53:41:9E:0B:A7:98:97:73:4D:75:60:A7:44:F2` (the *Upload key certificate* on the same Play page) |
+   | `Sticky Wall (debug)`: optional, `flutter run` builds | `com.apps.winka.stickywall` | `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android` |
 
-   Optional third client for debug builds: the SHA-1 of
-   `~/.android/debug.keystore` (`keytool -list -v -keystore
-   ~/.android/debug.keystore -alias androiddebugkey -storepass android`).
-
-   To read the upload SHA-1 again without the keystore password, from any
-   release APK built on this machine:
+   - Leave *Enable custom URI scheme* off. → **Create**. Nothing has to be
+     downloaded or copied into the app.
+   - If it fails with *package name and fingerprint already in use*, the pair
+     is still in another project (step D); wait a few minutes and retry.
+2. To read the upload SHA-1 from a release APK built on this machine, without
+   the keystore password:
    `apksigner verify --print-certs build/app/outputs/flutter-apk/app-release.apk`
    (`apksigner` is in `Sdk/build-tools/<version>/`). `keytool -printcert
    -jarfile` prints nothing for these APKs (they have no v1 signature).
-4. Nothing goes into the Android project: no `google-services.json`, no client
-   id in code. Google matches the package name + signing certificate.
-   - A package + SHA-1 pair can belong to **one OAuth client in all of
-     Google Cloud**. To move an app to another project, delete its clients in
-     the old project first, then create them in the new one. The app needs no
-     change; sync data saved under the old project is not seen by the new one.
-5. Changes can take a few minutes (sometimes hours) to reach devices.
+
+**F. Check**
+1. Wait a few minutes (sometimes up to an hour) for the clients to reach
+   Google's servers.
+2. Install the app from the closed-testing track (Play-signed) → *Customize
+   → Sync across devices* → turn on → choose the account → **Allow**. The
+   status should become *Synced …*. Then run the list in 10.3.
+3. Failures: 10.4.
 
 ### 10.2 iOS (not built yet): what turning it on takes
 
@@ -515,10 +561,10 @@ never reach Android.
 |---|---|---|
 | Sync shows *Allow access again* right after allowing; logcat has `DEVELOPER_ERROR` / status 10 | No Android client matches this package + SHA-1 | Add the client for the key that signed this install (Play installs: app-signing key; local release: upload key) |
 | `access_denied` / "app has not completed verification" | Account isn't a test user while the consent screen is in Testing | Add the account as a test user, or publish the consent screen |
-| `403 accessNotConfigured` / Drive API disabled | Drive API not enabled in this project | 10.1 step 1 |
+| `403 accessNotConfigured` / Drive API disabled | Drive API not enabled in this project | 10.1 step B |
 | Works on Android, iPhone sees no data | iOS client created in a different Cloud project | Recreate it in the same project |
 | iOS crashes or returns at once when signing in | `GIDClientID` or URL scheme missing from `Info.plist` | 10.2 step 2 |
-| Creating the Android client fails: package name and fingerprint already in use | That pair is still registered in another project | Delete the client there first (10.1 step 4), wait a few minutes, retry |
+| Creating the Android client fails: package name and fingerprint already in use | That pair is still registered in another project | Delete the client there first (10.1 step D), wait a few minutes, retry |
 | Sync row missing | Build made without `STICKY_SYNC=true`, or iOS (not enabled yet) | Rebuild with the define; 10.2 |
 
 ---
