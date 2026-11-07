@@ -1156,8 +1156,8 @@ class StickyNoteCard extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        if (under.length > 1) sheet(under[1], 12, 14, 0.09),
-        if (under.isNotEmpty) sheet(under[0], -10, 9, -0.07),
+        if (under.length > 1) sheet(under[1], 16, 18, 0.1),
+        if (under.isNotEmpty) sheet(under[0], -14, 13, -0.09),
         paper,
         // Top right: the bottom corners belong to the resize and turn grips.
         Positioned(

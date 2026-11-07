@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "9bfe6fe194dd383c8aec5a9d88db1c0874d8f4b1",
+  "sourceCommit": "fcd8f781acca5344b451559ffd3e604f838e85b7",
   "build": "1.5.1+12 / STICKY_SYNC=true",
   "method": "Actual StickyWallApp widgets rendered by Flutter; cropped at measured target bounds; highlight drawn over original UI pixels. Fixture data only.",
   "files": {
@@ -28,7 +28,7 @@
     "lib/widgets/lock_gate.dart": "20127b792f75577bfa516023f24be31ccca2da63385427fe56dd731601da6ba9",
     "lib/widgets/note_dialog.dart": "518899079c084dad78d5ed78d797d4ef739c93a6803c080d633a1a533890de51",
     "lib/widgets/note_dialog_pieces.dart": "edd560f6659a71eb83b3baec2e3e01c86b8aac6ba7cf0446aee88da8bd2affc9",
-    "lib/widgets/note_views.dart": "34e1887e9dfff5931e0c62cedab55e9160862e42ea74a316ad78132af88a3cd2",
+    "lib/widgets/note_views.dart": "973e11bd7ad28ab554543d6ca780c236ffe6a326ed450d5e66deba639baf9817",
     "lib/widgets/paper_choice_chip.dart": "0442bc94a545a4030037715de0ca4272902c04c15ebf70a46a95cbaad5280309",
     "lib/widgets/paper_color_dialog.dart": "9c6d7bb68a0bcf2d826ca60c1071814900ebec6235c4e97aee2e284a5746f7f0",
     "lib/widgets/peel_away.dart": "c2e1ae4254831863a4afa53a8b6a7d1a1c07a4d8f991143d437a33ff56f189b0",
