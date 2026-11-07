@@ -2,8 +2,9 @@
 
 This is the one document to read before you build, publish or change the store
 listing. It covers a fresh machine, the secrets, the one-command release, store
-screenshots, a brand-new app on the same account, and what still has to be done
-by hand in the Play Console web UI.
+screenshots, a brand-new app on the same account, what still has to be done
+by hand in the Play Console web UI, and setting up sync across devices (Google
+Drive) for Android and iOS (section 10).
 
 Sticky Wall (`com.apps.winka.stickywall`) is the working reference. Copy
 `android/fastlane/` and `tool/play.py` from it for another app.
@@ -140,13 +141,9 @@ python tool/play.py codes                   # highest versionCode Play has seen
 ### Sync builds (Google Drive)
 
 Store builds are made with `--dart-define=STICKY_SYNC=true`. `publish` does
-this by itself. Release 1.5.0 (11) and later were built this way.
-
-Sign-in on Android works only if Google Cloud has Android OAuth clients for:
-- the package with the **upload key's SHA-1**, and
-- the package with the **Play app-signing key's SHA-1** (Play Console → *App integrity*).
-
-The setup is in `docs/sticky-final/SYNC_DESIGN_AND_LIMITATIONS.md`.
+this by itself. Release 1.5.0 (11) and later were built this way. Turning sync
+on in the app works only once Google Cloud is set up: see **section 10**
+(Android and iOS).
 
 ---
 
@@ -374,3 +371,130 @@ How to use it for Sticky Wall:
   - listing text, graphics and products need their own ask.
 - Production stays manual. The key deliberately cannot do it.
 - Never delete or "clean up" releases, testers or products through the API.
+
+---
+
+## 10. Sync across devices (Google Drive): Android and iOS
+
+Sticky Wall syncs through the **hidden app folder of the user's own Google
+Drive** (`appDataFolder`, scope `drive.appdata` only). There is no Sticky Wall
+server. How the merge works: `docs/sticky-final/SYNC_DESIGN_AND_LIMITATIONS.md`.
+
+| | Android | iOS |
+|---|---|---|
+| In the code | Yes: `lib/services/sync/`, switched on in `lib/main.dart` when `Platform.isAndroid` and `STICKY_SYNC=true` | **No.** The sync row is not shown on iPhone |
+| Google Cloud | Two Android OAuth clients (10.1) | One iOS OAuth client (10.2) |
+| Verified on real Drive | Only once the clients exist; then run the test list in 10.3 | Never |
+
+The repo cannot tell whether the Google Cloud part is done: open the project's
+*Credentials* page and look. Nothing here is a secret: OAuth client ids and
+certificate fingerprints are public, so they may go in docs and `Info.plist`.
+
+### 10.1 Android, once per app (owner, Google Cloud console)
+
+Use the **same Google Cloud project for every platform** of one app (the one
+Play uses is `play-publisher-513712`, or a dedicated one). Drive's app folder
+belongs to the project, so Android and iPhone clients in one project see the
+same data; clients in different projects never will.
+
+1. *APIs & Services → Library*: enable the **Google Drive API**.
+2. *OAuth consent screen* (Google Auth Platform → Branding / Audience / Data
+   access):
+   - External; app name **Sticky Wall**, support email, privacy policy URL
+     (the same one as the Play listing), developer email.
+   - Data access: add the scope `https://www.googleapis.com/auth/drive.appdata`.
+     It is not a restricted scope, so no security assessment is needed; Google
+     may still ask for verification before the screen is published.
+   - While it is in *Testing*, only listed **test users** can sign in (up to
+     100). Add the testers' Google accounts, or publish the consent screen
+     before a public release.
+3. *Credentials → Create credentials → OAuth client ID → Android*, **twice**:
+
+   | Client | Package name | SHA-1 |
+   |---|---|---|
+   | Upload key (sideloaded and locally built release APKs) | `com.apps.winka.stickywall` | `D3:3A:8D:B4:1C:9E:53:41:9E:0B:A7:98:97:73:4D:75:60:A7:44:F2` |
+   | Play app signing (anything installed from Play, testers included) | `com.apps.winka.stickywall` | Play Console → the app → *Test and release → App integrity → App signing key certificate → SHA-1* |
+
+   Optional third client for debug builds: the SHA-1 of
+   `~/.android/debug.keystore` (`keytool -list -v -keystore
+   ~/.android/debug.keystore -alias androiddebugkey -storepass android`).
+
+   To read the upload SHA-1 again without the keystore password, from any
+   release APK built on this machine:
+   `apksigner verify --print-certs build/app/outputs/flutter-apk/app-release.apk`
+   (`apksigner` is in `Sdk/build-tools/<version>/`). `keytool -printcert
+   -jarfile` prints nothing for these APKs (they have no v1 signature).
+4. Nothing goes into the Android project: no `google-services.json`, no client
+   id in code. Google matches the package name + signing certificate.
+5. Changes can take a few minutes (sometimes hours) to reach devices.
+
+### 10.2 iOS (not built yet): what turning it on takes
+
+Needs a Mac with Xcode for building and testing. Steps, in order:
+
+1. **Google Cloud**, same project as 10.1: *Create OAuth client ID → iOS*,
+   bundle ID **`com.winka.stickyWall`** (from `ios/Runner.xcodeproj`), Team ID
+   from the Apple developer account. Note the **client ID**
+   (`<number>-<id>.apps.googleusercontent.com`) and the **iOS URL scheme**
+   (the reversed id, `com.googleusercontent.apps.<number>-<id>`).
+2. **`ios/Runner/Info.plist`**: add
+   ```xml
+   <key>GIDClientID</key>
+   <string>NUMBER-ID.apps.googleusercontent.com</string>
+   <key>CFBundleURLTypes</key>
+   <array>
+     <dict>
+       <key>CFBundleTypeRole</key><string>Editor</string>
+       <key>CFBundleURLSchemes</key>
+       <array><string>com.googleusercontent.apps.NUMBER-ID</string></array>
+     </dict>
+   </array>
+   ```
+   (If `CFBundleURLTypes` already exists, add the `dict` to it.)
+3. **Code** (one PR, with tests):
+   - `lib/main.dart`: the sync gate `Platform.isAndroid && _syncBuild` becomes
+     `(Platform.isAndroid || Platform.isIOS) && _syncBuild`.
+   - On a device, check that turning sync on shows Google's sign-in sheet. If
+     `authorizeScopes` fails on iOS with no signed-in user, call
+     `GoogleSignIn.instance.authenticate(scopeHint: [DriveSyncBackend.scope])`
+     first in `DriveSyncBackend.authorize`.
+   - Strings, EN and VI (`lib/l10n/app_*.arb`, then `flutter gen-l10n`):
+     `syncExplain` ("every Android device") and `syncPrivacy` ("iPhone and
+     Android do not sync with each other") must say the new truth: with one
+     Cloud project, **iPhone and Android sync with each other**.
+   - `PRIVACY.md` ("Optional sync across devices (Android)") and
+     `docs/sticky-final/SYNC_DESIGN_AND_LIMITATIONS.md` (Platforms, Not done).
+   - Regenerate the manual pictures if the guide changes (see `CLAUDE.md`).
+4. **App Store Connect → App Privacy**: sync sends data only to the user's own
+   Drive at their request, nothing to the developer. Declare it the way the
+   Play Data safety form does.
+5. Build: `flutter build ipa --release --dart-define=STICKY_SYNC=true`, then
+   TestFlight.
+
+Why Google Drive and not iCloud on iPhone: one store of data for both
+platforms. iCloud would need its own backend, an iCloud entitlement, and would
+never reach Android.
+
+### 10.3 Testing on real Drive (both platforms)
+
+1. Install the store build (closed testing / TestFlight) on two devices signed
+   in to the same Google account, which is a consent-screen test user.
+2. *Customize → Sync across devices* → turn on → allow.
+3. Run: edits on each device; one device offline while the other edits; delete
+   then restore a board; photos and voice notes; a locked board with and
+   without *Include locked boards*; turn sync off; revoke access in the Google
+   account (*Security → Third-party connections*); for iOS, one iPhone and one
+   Android phone.
+4. Write the result in the Verification table of
+   `docs/sticky-final/SYNC_DESIGN_AND_LIMITATIONS.md`.
+
+### 10.4 When sync sign-in fails
+
+| What you see | Cause | Fix |
+|---|---|---|
+| Sync shows *Allow access again* right after allowing; logcat has `DEVELOPER_ERROR` / status 10 | No Android client matches this package + SHA-1 | Add the client for the key that signed this install (Play installs: app-signing key; local release: upload key) |
+| `access_denied` / "app has not completed verification" | Account isn't a test user while the consent screen is in Testing | Add the account as a test user, or publish the consent screen |
+| `403 accessNotConfigured` / Drive API disabled | Drive API not enabled in this project | 10.1 step 1 |
+| Works on Android, iPhone sees no data | iOS client created in a different Cloud project | Recreate it in the same project |
+| iOS crashes or returns at once when signing in | `GIDClientID` or URL scheme missing from `Info.plist` | 10.2 step 2 |
+| Sync row missing | Build made without `STICKY_SYNC=true`, or iOS (not enabled yet) | Rebuild with the define; 10.2 |
