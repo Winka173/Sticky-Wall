@@ -1,0 +1,7 @@
+• Faster taps: notes and checkboxes respond at once; zoom to a note from its menu
+• The eraser rubs out just the part of a line it passes over
+• Drawing stays smooth on busy walls
+• How to use shows real screens for every step
+• Memory wall: the preview matches the wall that is made, with tidy margins
+• Threads can take any colour (Pro)
+• Free choices come before Pro ones in every picker
