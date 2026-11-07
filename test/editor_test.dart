@@ -1056,6 +1056,8 @@ void main() {
     await tester.tap(find.text('Drawing'));
     await tester.pumpAndSettle();
     expect(find.byType(DrawingEditor), findsOneWidget);
+    // Any ink, as on the wall: the rainbow after the pen colours.
+    expect(find.byKey(const Key('drawing-any-color')), findsOneWidget);
   });
 
   testWidgets('the Undo pill puts a moved note back', (tester) async {
@@ -1877,6 +1879,18 @@ void _quickFlows() {
 
     await tester.longPress(find.text('Paint me'));
     await tester.pumpAndSettle();
+    // A paper of one's own: the rainbow at the end of the papers.
+    await tester.dragUntilVisible(
+      find.byKey(const Key('note-any-color')),
+      find
+          .ancestor(
+            of: find.bySemanticsLabel('Pink'),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+      const Offset(-200, 0),
+    );
+    expect(find.byKey(const Key('note-any-color')), findsOneWidget);
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
     expect(notes.boardNotes, isEmpty);

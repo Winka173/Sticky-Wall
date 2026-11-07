@@ -4,9 +4,12 @@ import 'package:flutter/services.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/draw_stroke.dart';
+import '../services/pro_controller.dart';
 import '../theme.dart';
 import 'eraser_icon.dart';
 import 'keyboard_tappable.dart';
+import 'paper_color_dialog.dart';
+import 'pro_sheet.dart';
 
 /// Width : height of every drawing surface. Strokes are stored normalized, so
 /// the editor and the card thumbnails must share one aspect ratio or a sketch
@@ -419,6 +422,7 @@ class _DrawingEditorState extends State<DrawingEditor> {
   /// Pen colors; picking one also switches back to the pen.
   Widget _colorRow(AppLocalizations l10n) {
     final names = _penColorNames(l10n);
+    final pro = ProScope.unlockedOf(context);
     return _evenRow([
       for (var i = 0; i < _penColors.length; i++)
         _Swatch(
@@ -430,6 +434,29 @@ class _DrawingEditorState extends State<DrawingEditor> {
             _tool = _Tool.pen;
           }),
         ),
+      // Any ink at all, mixed (Sticky Wall Pro), as on the wall.
+      _Swatch(
+        key: const Key('drawing-any-color'),
+        color: Color(_color),
+        label: pro ? l10n.inkCustom : l10n.proLocked(l10n.inkCustom),
+        mixed: true,
+        locked: !pro,
+        selected: _tool == _Tool.pen && !_penColors.contains(_color),
+        onTap: !pro
+            ? () => showProSheet(context)
+            : () async {
+                final c = await showInkColorDialog(
+                  context,
+                  wall: Color(widget.canvas.color),
+                  initial: Color(_color),
+                );
+                if (c == null || !mounted) return;
+                setState(() {
+                  _color = c;
+                  _tool = _Tool.pen;
+                });
+              },
+      ),
     ]);
   }
 
@@ -644,11 +671,14 @@ class _CanvasPanel extends StatelessWidget {
 /// whatever width its row gives it.
 class _Swatch extends StatelessWidget {
   const _Swatch({
+    super.key,
     required this.color,
     required this.label,
     required this.selected,
     required this.onTap,
     this.square = false,
+    this.mixed = false,
+    this.locked = false,
   });
 
   final Color color;
@@ -656,6 +686,11 @@ class _Swatch extends StatelessWidget {
   final bool selected;
   final bool square;
   final VoidCallback onTap;
+
+  /// Any colour (Sticky Wall Pro): a rainbow, the ink mixed last in its
+  /// middle once chosen.
+  final bool mixed;
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
@@ -677,7 +712,19 @@ class _Swatch extends StatelessWidget {
                 width: selected ? 28 : 22,
                 height: selected ? 28 : 22,
                 decoration: BoxDecoration(
-                  color: color,
+                  color: mixed ? null : color,
+                  gradient: mixed
+                      ? const SweepGradient(
+                          colors: [
+                            Color(0xFFE53935),
+                            Color(0xFFFDD835),
+                            Color(0xFF43A047),
+                            Color(0xFF1E88E5),
+                            Color(0xFF8E24AA),
+                            Color(0xFFE53935),
+                          ],
+                        )
+                      : null,
                   shape: square ? BoxShape.rectangle : BoxShape.circle,
                   borderRadius: square ? BorderRadius.circular(5) : null,
                   border: Border.all(
@@ -685,6 +732,24 @@ class _Swatch extends StatelessWidget {
                     width: selected ? 2.5 : 1,
                   ),
                 ),
+                child: locked
+                    ? const Icon(Icons.lock, size: 11, color: Colors.white)
+                    : mixed && selected
+                    ? Center(
+                        child: Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.chalk,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                      )
+                    : null,
               ),
             ),
           ),

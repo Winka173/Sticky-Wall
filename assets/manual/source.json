@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "047f7c1b52f0c44276bfcf022eb47b060fe1ee58",
+  "sourceCommit": "1139435314ad4f2360d36a94bc0d499c906a9ddc",
   "build": "1.5.1+12 / STICKY_SYNC=true",
   "method": "Actual StickyWallApp widgets rendered by Flutter; cropped at measured target bounds; highlight drawn over original UI pixels. Fixture data only.",
   "files": {
@@ -7,7 +7,7 @@
     "lib/l10n/app_vi.arb": "b48009ae4a2569c2079ff0737e007e612e1e6cbbb485d977b5141688f6aab5f5",
     "lib/screens/gallery_screen.dart": "1bd5df07adfc03f556138e9ce2048e4a4eca4a79344dd3697463216a15e209a4",
     "lib/screens/home_screen.dart": "6bc1af2abbf78543ceb7345db0910f0d6e3ff6dc7aaec7e82eef5ccaebfb68a2",
-    "lib/screens/home_screen_actions.dart": "b5c17b75ac28c54106ee64ad0910d7cf197e76d0897c23b10f290b982dd2bd3d",
+    "lib/screens/home_screen_actions.dart": "3d75d8d6e10a18ce809926c570009dc9e96db959c8ef4a8b6d7a32fb00d649a7",
     "lib/screens/home_screen_chrome.dart": "91072ec0a0e074f7fe7c6505e51c40248922acf802905ef549d7c1bddc286bcb",
     "lib/screens/home_screen_widgets.dart": "d743a4aeaf955bdcccac5de5bb3c0799ae19afcec36d85ca278f2502dbfdc053",
     "lib/screens/memory_wall_sheet.dart": "13bc0694aa8ab100ced5901eae30e0f80bafe0e310193f6cbfdda2be8e6c90d1",
@@ -21,7 +21,7 @@
     "lib/widgets/board_dialog.dart": "8351067f701845995dfaff45f8e074009384612f0f1b14eac731b2f0d8543a7e",
     "lib/widgets/board_picker.dart": "792316aa7ff2f744fce9aa29f935247940f68b2889560c62b48c83f11030cfcf",
     "lib/widgets/board_poster.dart": "eefe968148bc8f37b85f3cb8cdae80af28dde6999c017918891d5bc6d0727030",
-    "lib/widgets/drawing_canvas.dart": "6ca7ed45685bd2130c8f54ba14be99b46c9771819a4378cea64cb5fcfd2e1499",
+    "lib/widgets/drawing_canvas.dart": "fd572cd8e429b64f69722fb0fd824ec58188f9d5c7ed5366a2d6775eb1378ca5",
     "lib/widgets/eraser_icon.dart": "de9f45fe2f51668bd8e66c3a232676bd17602d60c640c5188a0d10c58ec24f06",
     "lib/widgets/gesture_tips.dart": "ed343aa76277c887aadc919236a240deb07d14e0a5b3a6e6b6d8dd57c4780301",
     "lib/widgets/keyboard_tappable.dart": "e964938311a7a146839ab779b76538968a382bcbca97b22245619740328c587a",

@@ -147,6 +147,20 @@ extension _NoteActions on _HomeScreenState {
                       ),
                     ),
                   ),
+                // A paper of one's own, mixed (Sticky Wall Pro), as in the
+                // editor.
+                Padding(
+                  padding: const EdgeInsets.only(left: 10),
+                  child: _Swatch(
+                    key: const Key('note-any-color'),
+                    name: l10n.inkCustom,
+                    color: noteColor(note.colorIndex, note.guid),
+                    mixed: true,
+                    selected: isCustomPaper(note.colorIndex),
+                    locked: !pro,
+                    onTap: () => Navigator.pop(context, pro ? 'mix' : 'pro'),
+                  ),
+                ),
               ],
             ),
           ),
@@ -325,6 +339,16 @@ extension _NoteActions on _HomeScreenState {
         _undoToast(l10n.heroSet, undo);
       case 'pro':
         await showProSheet(context);
+      case 'mix':
+        final mixed = await showPaperColorDialog(
+          context,
+          initial: isCustomPaper(note.colorIndex)
+              ? noteColor(note.colorIndex, note.guid)
+              : null,
+        );
+        if (mixed == null || !mounted) return;
+        unawaited(HapticFeedback.selectionClick());
+        _notes.recolor([note], mixed);
       case 'edit':
         await _openEditor(note, isNew: false);
       case 'photo':
