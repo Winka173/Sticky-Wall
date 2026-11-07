@@ -396,22 +396,35 @@ certificate fingerprints are public, so they may go in docs and `Info.plist`.
 
 ### 10.1 Android, once per app (owner, Google Cloud console)
 
-Use the **same Google Cloud project for every platform** of one app (the one
-Play uses is `play-publisher-513712`, or a dedicated one). Drive's app folder
-belongs to the project, so Android and iPhone clients in one project see the
-same data; clients in different projects never will.
+**One Google Cloud project per app**, shared by that app's platforms.
+- A project has exactly one consent screen (one app name), and Drive's hidden
+  app folder belongs to the **project**. Two apps in one project would share
+  one folder and one name; Android and iPhone clients of the same app must be
+  in the same project, or they never see each other's data.
+- Create it from the project picker at the top of the Cloud console → *New
+  project*, named after the app (for example `sticky-wall`). Keep
+  `play-publisher-513712` for the Play service account only.
+- An account can create a limited number of projects (about a dozen by
+  default); ask Google for more from the quota page when needed.
 
 1. *APIs & Services → Library*: enable the **Google Drive API**.
 2. *OAuth consent screen* (Google Auth Platform → Branding / Audience / Data
    access):
-   - External; app name **Sticky Wall**, support email, privacy policy URL
-     (the same one as the Play listing), developer email.
-   - Data access: add the scope `https://www.googleapis.com/auth/drive.appdata`.
-     It is not a restricted scope, so no security assessment is needed; Google
-     may still ask for verification before the screen is published.
-   - While it is in *Testing*, only listed **test users** can sign in (up to
-     100). Add the testers' Google accounts, or publish the consent screen
-     before a public release.
+   - *Branding:* app name **Sticky Wall**, support email
+     `apps.winka.studio@gmail.com`, developer email. **Leave the logo empty**:
+     a logo makes Google verify the app before it can be published. The app
+     domain fields are optional; the privacy policy lives on `github.com`,
+     which this account does not own, so leave them empty unless the policy
+     moves to a domain the owner can verify (for example GitHub Pages,
+     `<user>.github.io`, verified in Search Console).
+   - *Audience:* External.
+   - *Data access:* add the scope `https://www.googleapis.com/auth/drive.appdata`.
+     It is a non-sensitive scope: no security assessment.
+   - **Publish the app** (*Audience → Publish app*, status *In production*).
+     While it is in *Testing*, only individually listed **test users** can
+     sign in (up to 100), and **Google Groups are not accepted there**, so the
+     Play testers' group would be shut out. Publishing is independent of Play:
+     an app on closed testing can use a consent screen in production.
 3. *Credentials → Create credentials → OAuth client ID → Android*, **twice**:
 
    | Client | Package name | SHA-1 |
