@@ -4,8 +4,9 @@ This is the one document to read before you build, publish or change the store
 listing. It covers a fresh machine, the secrets, the one-command release, store
 screenshots, a brand-new app on the same account, what still has to be done
 by hand in the Play Console web UI, setting up sync across devices (Google
-Drive) for Android and iOS (section 10), and how every app handles in-app
-purchases (section 11: trust Google Play's answer, no licensing key).
+Drive) for Android and iOS (section 10), how every app handles in-app
+purchases (section 11: trust Google Play's answer, no licensing key), and going
+to production (section 12).
 
 Sticky Wall (`com.apps.winka.stickywall`) is the working reference. Copy
 `android/fastlane/` and `tool/play.py` from it for another app.
@@ -57,7 +58,8 @@ another track.
 
 **Production** is never automated. The key cannot do it. The owner promotes a
 tested release in Play Console. Personal accounts first need 12+ testers opted
-in for 14 days in a row before production unlocks.
+in for 14 days in a row before production unlocks. Every step, the checklist
+and later rollouts: **section 12**.
 
 To try a build on a device or emulator without Play:
 
@@ -340,7 +342,7 @@ How to use it for Sticky Wall:
 - **Testers:** the closed-testing tester list or Google Group, and the
   opt-in link.
 - **Production:** releasing to production, and applying for production
-  access.
+  access (section 12).
 
 ---
 
@@ -626,3 +628,111 @@ Remove it: the verification code, the key setting and its build or config
 plumbing, and any rule that disables buying when the key is missing. Keep
 everything in **Do** above. Test that a license tester can buy, restore after
 reinstalling, and keep the unlock offline.
+
+---
+
+## 12. Production: from closed testing to the public (owner, Play Console)
+
+Production is **never automated**: the service account has no production
+rights, on purpose. Everything here is clicked by the owner in Play Console
+(https://play.google.com/console). An agent can prepare it (version, notes,
+checks with `python tool/play.py check`) and say what is missing, but cannot
+press the buttons.
+
+### 12.1 The order, once per app
+
+1. Closed testing runs long enough (12.2).
+2. Everything below 12.3 is green.
+3. Apply for production access and wait for Google's answer (12.4).
+4. Set countries and release the tested bundle to production (12.5).
+5. Every later version: closed testing first, then promote (12.6).
+
+### 12.2 Closed-testing requirement (personal developer accounts)
+
+Personal accounts created after 13 Nov 2023 must run a closed test before
+production unlocks:
+- at least **12 testers opted in, continuously for the last 14 days**;
+- testers count only after they **opt in** through the opt-in link
+  (*Test and release → Testing → Closed testing → the track → Testers → Copy
+  link*) **and** install the app from Play. Being in the Google Group alone
+  does not count;
+- the **Dashboard** shows the progress ("x testers opted in, y of 14 days").
+  If the count drops below 12, the 14 days start again.
+
+Keep shipping versions to closed testing during these 14 days and keep a short
+log of tester feedback and what changed: the application in 12.4 asks for it.
+
+Organization accounts skip 12.2 and 12.4.
+
+### 12.3 Before applying: everything that must be ready
+
+Check each page in Play Console. A red or "action needed" item blocks the
+release.
+
+| Where | What | Sticky Wall |
+|---|---|---|
+| *Grow users → Store presence → Main store listing* | Title, short and full description, icon 512, feature graphic 1024×500, at least 2 phone screenshots, in every listed language | en-US and vi complete. **Default language is still `vi`**: switch it to *English (United States)* under *Store settings → Manage translations / default language* if English should lead (the owner's choice) |
+| *Grow users → Store presence → Store settings* | Category (Productivity), contact email, privacy policy URL | Email set; website and phone empty (optional) |
+| *Policy and programs → App content* | Privacy policy, App access, Ads, Content rating, Target audience, Data safety, Government apps, Financial features, Health, Advertising ID | Answers and reasons: `docs/release/PLAY_LISTING_1_4_1.md` section 4. **Data safety must include:** audio recordings (processed on device, not collected), purchase history handled by Google Play, and opt-in sync to the user's own Google Drive (data not collected by the developer) |
+| *Monetize with Play → Products → One-time products* | Product active, with a listing in each store language | `sticky_wall_pro` is active but **only has a `vi` title**: add an `en-US` title and description |
+| *Monetize with Play → Payments profile* | Merchant profile verified | Needed to be paid for Pro |
+| *Test and release → Setup → App integrity* | Play App Signing on | On |
+| Google Cloud, the app's own project | Sync consent screen **In production**, Android clients for the Play app-signing SHA-1 (10.1) | Otherwise sync fails for the public |
+| `PRIVACY.md`, the in-app policy link | Matches what the app does | Update together with Data safety |
+| Target API level | The bundle meets Play's current target SDK requirement | Flutter's default `targetSdk` normally does; Play Console warns on upload if not |
+
+Clean-up worth doing once: the custom track `1.0` has an empty draft; delete
+it in *Test and release → Testing* (the API never deletes anything).
+
+### 12.4 Apply for production access (personal accounts)
+
+1. **Dashboard** → *Apply for production* (appears once 12.2 is met).
+2. The form asks, in prose:
+   - how testers were recruited and how engaged they were;
+   - what feedback came in and what was changed because of it;
+   - who the app is for and what it offers;
+   - why it is ready for production.
+   Answer from the closed-testing log; concrete examples (a fixed bug, an
+   added feature) help.
+3. Submit. Google answers by email, usually **within 7 days**. If it says no,
+   it says why; keep testing and apply again.
+
+### 12.5 The first production release
+
+1. **Countries:** *Test and release → Production → Countries / regions → Add
+   countries / regions*. Pick them (all, or start with a few such as Vietnam
+   and the US) → Save.
+2. **Release the bundle testers already have.** Never rebuild for production:
+   the same versionCode that passed closed testing goes out.
+   - Either *Test and release → Testing → Closed testing → the track →
+     Releases → the release → **Promote release → Production***,
+   - or *Production → **Create new release** → Add from library* → pick that
+     versionCode.
+3. **Release notes:** copy `android/fastlane/metadata/android/en-US/changelogs/N.txt`
+   and `.../vi/changelogs/N.txt`. The release name fills itself
+   (`1.5.2 (13)` style).
+4. **Next → review the summary.** Warnings may stay; errors must be fixed.
+   The **first** production release goes to 100% (staged rollout is only for
+   updates).
+5. **Save → Publishing overview → Send changes for review.** With *Managed
+   publishing* on, Play waits for **Publish** after approval; with it off,
+   the release goes live once approved. The first production review can take
+   up to about a week; later ones usually hours to a couple of days.
+6. **After it is live:**
+   - open the public store page in each language;
+   - install from Play on a clean device; buy Pro with a non-tester account
+     (a real charge; refund it from *Order management* if it was only a
+     check), restore after reinstall, try sync;
+   - watch *Monitor and improve → Android vitals* (crashes, ANRs) and
+     ratings for the first days.
+
+### 12.6 Every later version
+
+1. The owner says "publish": section 0 ships it to closed testing.
+2. Testers try it (a day or more for anything big).
+3. The owner promotes that release to production (12.5 step 2) with a
+   **staged rollout**: start at 10–20%, raise it to 50% and then 100% over a
+   few days if Android vitals stay calm. *Production → the release → Update
+   rollout* changes the percentage; **Halt rollout** stops a bad release
+   (fix it, ship a higher versionCode).
+4. The version on production is always one that closed testing has had first.

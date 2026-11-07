@@ -231,6 +231,8 @@ def codes(package: str) -> None:
 
 
 def main() -> None:
+    # Listings are Vietnamese too; a Windows console defaults to cp1252.
+    sys.stdout.reconfigure(encoding='utf-8')
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest='cmd', required=True)
     c = sub.add_parser('check')

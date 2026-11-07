@@ -115,7 +115,10 @@ Owner only (accounts and hardware):
    the app fails with *Allow access again*.
 2. **Production release** in Play Console when closed testing is done
    (if the developer account is personal, Google first wants 12 testers on
-   closed testing for 14 days).
+   closed testing for 14 days). Every step and the checklist: Play guide
+   section 12. Found missing on 8 Nov: the Pro product has only a `vi`
+   title, the listing's default language is still `vi`, and an empty custom
+   track `1.0` is left over.
 3. **Play Data safety** form: check it covers voice recordings (on device),
    purchases, and opt-in sync to the user's own Drive.
 4. **License-tester purchase** of `sticky_wall_pro` on a real device.
