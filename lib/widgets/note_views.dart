@@ -958,16 +958,11 @@ class _ChecklistRow extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 160),
-                  transitionBuilder: (child, anim) =>
-                      ScaleTransition(scale: anim, child: child),
-                  child: Icon(
-                    item.done ? Icons.check_box : Icons.check_box_outline_blank,
-                    key: ValueKey(item.done),
-                    size: 18,
-                    color: AppColors.ink.withValues(alpha: 0.8),
-                  ),
+                Icon(
+                  item.done ? Icons.check_box : Icons.check_box_outline_blank,
+                  key: ValueKey(item.done),
+                  size: 18,
+                  color: AppColors.ink.withValues(alpha: 0.8),
                 ),
                 const SizedBox(width: 4),
                 Expanded(

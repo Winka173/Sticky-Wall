@@ -16,7 +16,7 @@ const kDrawingAspect = 1.5;
 /// Paints normalized strokes (0..1) scaled to the given canvas size. Shared by
 /// the editor and the small thumbnails on note cards.
 class StrokePainter extends CustomPainter {
-  StrokePainter(this.strokes);
+  StrokePainter(this.strokes, {super.repaint});
 
   final List<DrawStroke> strokes;
 

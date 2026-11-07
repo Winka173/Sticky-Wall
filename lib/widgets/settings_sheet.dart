@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -83,7 +84,10 @@ String pinStyleLabel(AppLocalizations l10n, PinStyle style) => switch (style) {
 };
 
 /// Whether this platform has a home-screen widget to set up.
-bool get _hasHomeWidget => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+bool get _hasHomeWidget =>
+    !kIsWeb &&
+    (defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS);
 
 /// Localized label for a lights setting.
 String nightModeLabel(AppLocalizations l10n, NightMode mode) => switch (mode) {

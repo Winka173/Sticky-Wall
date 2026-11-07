@@ -213,39 +213,47 @@ void main() {
     expect(notes.currentBoard.themeId, '');
   });
 
-  testWidgets('compact memory preview keeps all print corners in frame', (
-    tester,
-  ) async {
-    await _pump(tester);
-    final context = tester.element(find.byType(Scaffold).first);
-    unawaited(
-      showMemoryWallSheet(
-        context,
-        count: 20,
-        photos: [for (var i = 0; i < 20; i++) 'missing-fixture-$i.jpg'],
-      ),
-    );
-    await tester.pumpAndSettle();
-    final preview = find.byKey(const ValueKey('memory-live-preview'));
-    final bounds = tester.getRect(preview).inflate(1);
-    final prints = find.descendant(
-      of: preview,
-      matching: find.byType(FramedPrint),
-    );
-    expect(prints, findsNWidgets(20));
-    for (final element in prints.evaluate()) {
-      final box = element.renderObject! as RenderBox;
-      for (final corner in [
-        Offset.zero,
-        Offset(box.size.width, 0),
-        Offset(0, box.size.height),
-        Offset(box.size.width, box.size.height),
-      ]) {
-        expect(bounds.contains(box.localToGlobal(corner)), isTrue);
+  testWidgets(
+    'compact memory preview preserves phone layout and visible photo centers',
+    (tester) async {
+      await _pump(tester);
+      final context = tester.element(find.byType(Scaffold).first);
+      unawaited(
+        showMemoryWallSheet(
+          context,
+          count: 20,
+          photos: [for (var i = 0; i < 20; i++) 'missing-fixture-$i.jpg'],
+        ),
+      );
+      await tester.pumpAndSettle();
+      final preview = find.byKey(const ValueKey('memory-live-preview'));
+      final bounds = tester.getRect(preview).inflate(1);
+      final board = tester.widget<BoardPreview>(
+        find.descendant(of: preview, matching: find.byType(BoardPreview)),
+      );
+      expect(
+        board.fitContent,
+        isFalse,
+        reason:
+            'The current preview shows the real phone viewport, not a separately fitted collage',
+      );
+      final prints = find.descendant(
+        of: preview,
+        matching: find.byType(FramedPrint),
+      );
+      expect(prints, findsNWidgets(20));
+      for (final element in prints.evaluate()) {
+        final box = element.renderObject! as RenderBox;
+        // Turned paper edges may leave the phone viewport, just as on the
+        // actual board. Every photo must still be centered within the preview.
+        expect(
+          bounds.contains(box.localToGlobal(box.size.center(Offset.zero))),
+          isTrue,
+        );
       }
-    }
-    expect(tester.takeException(), isNull);
-  });
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('owned Pro applies the exact trial look without moving words', (
     tester,

@@ -8,6 +8,7 @@ import '../models/draw_stroke.dart';
 import '../models/note.dart';
 import '../theme.dart';
 import '../util/angles.dart';
+import '../util/stroke_eraser.dart';
 import 'drawing_canvas.dart';
 import 'note_views.dart';
 import 'thread_style.dart';
@@ -34,6 +35,9 @@ class WallHandle {
 
   /// Glides the camera out (or in) until every note is in view.
   void fitAll() => _state?._fitAll();
+
+  /// Zooms to a note from its action menu, without delaying single taps.
+  void focus(Note note) => _state?._focusOn(note);
 
   /// Where a new note should go so it lands in the middle of what is on
   /// screen (as fractions, like [Note.x]); null while the camera is at rest
@@ -362,7 +366,7 @@ class _WallViewState extends State<WallView>
   // The loop being drawn in select mode, in wall coordinates.
   List<Offset>? _lasso;
 
-  // The note the camera was last pointed at by a double tap.
+  // The note the camera was last pointed at from its action menu.
   String? _focusedGuid;
 
   // Marker mode: the finger drawing, every finger down (a second one turns
@@ -372,6 +376,9 @@ class _WallViewState extends State<WallView>
   final _inkDown = <int>{};
   bool _inkBlocked = false;
   bool _erased = false;
+  Offset? _eraseLast;
+  final _inkRepaint = ValueNotifier(0);
+  final _eraserCursor = ValueNotifier<(Offset, double)?>(null);
   // Where the finger last was, in wall coordinates. Drag distance is measured
   // there rather than from the gesture's local delta, because the detector
   // sits inside the note's rotation and would otherwise report it turned.
@@ -476,6 +483,8 @@ class _WallViewState extends State<WallView>
     if (widget.handle?._state == this) widget.handle?._state = null;
     _zoomReset.dispose();
     _ownTc?.dispose();
+    _inkRepaint.dispose();
+    _eraserCursor.dispose();
     super.dispose();
   }
 
@@ -941,31 +950,36 @@ class _WallViewState extends State<WallView>
       // A second finger: this is a pinch, not a line. Drop the line begun.
       if (!widget.marker.eraser && widget.strokes.isNotEmpty) {
         widget.strokes.removeLast();
+      } else if (_erased) {
+        // Keep the erase already shown before the gesture became a pinch.
+        widget.onInkChanged?.call();
       }
       _inkPointer = null;
       _inkBlocked = true;
-      setState(() {});
+      _eraseLast = null;
+      _eraserCursor.value = null;
+      _inkRepaint.value++;
       return;
     }
     if (_inkBlocked) return;
     _inkPointer = e.pointer;
     _erased = false;
-    widget.onInkBegin?.call();
+    _eraseLast = null;
     if (widget.marker.eraser) {
       _eraseAt(e.localPosition);
     } else {
-      setState(() {
-        widget.strokes.add(
-          DrawStroke(
-            color: widget.marker.strokeColor,
-            width: widget.marker.strokeWidth,
-            points: [_inkNorm(e.localPosition)],
-            // Remembered so the stroke keeps its shape on other screens.
-            refWidth: _size.width,
-            refHeight: _size.height,
-          ),
-        );
-      });
+      widget.onInkBegin?.call();
+      widget.strokes.add(
+        DrawStroke(
+          color: widget.marker.strokeColor,
+          width: widget.marker.strokeWidth,
+          points: [_inkNorm(e.localPosition)],
+          // Remembered so the stroke keeps its shape on other screens.
+          refWidth: _size.width,
+          refHeight: _size.height,
+        ),
+      );
+      _inkRepaint.value++;
     }
   }
 
@@ -974,7 +988,8 @@ class _WallViewState extends State<WallView>
     if (widget.marker.eraser) {
       _eraseAt(e.localPosition);
     } else if (widget.strokes.isNotEmpty) {
-      setState(() => widget.strokes.last.addPoint(_inkNorm(e.localPosition)));
+      widget.strokes.last.addPoint(_inkNorm(e.localPosition));
+      _inkRepaint.value++;
     }
   }
 
@@ -982,29 +997,40 @@ class _WallViewState extends State<WallView>
     _inkDown.remove(e.pointer);
     if (e.pointer == _inkPointer) {
       _inkPointer = null;
+      _eraseLast = null;
+      _eraserCursor.value = null;
       if (!widget.marker.eraser || _erased) widget.onInkChanged?.call();
     }
     if (_inkDown.isEmpty) _inkBlocked = false;
   }
 
-  /// Removes every stroke passing within a fingertip of [local].
+  /// Cuts ink along the whole eraser sweep, retaining the untouched pieces.
   void _eraseAt(Offset local) {
-    final w = _size.width;
-    final h = _size.height;
-    final before = widget.strokes.length;
-    widget.strokes.removeWhere((s) {
-      final reach = 14 + s.width / 2;
-      for (final p in s.points) {
-        final at = s.place(p, Size(w, h));
-        final dx = _pad + at.dx - local.dx;
-        final dy = _pad + at.dy - local.dy;
-        if (dx * dx + dy * dy <= reach * reach) return true;
-      }
-      return false;
-    });
-    if (widget.strokes.length != before) {
+    final point = local - const Offset(_pad, _pad);
+    final previous = _eraseLast ?? point;
+    _eraseLast = point;
+    final radius = 14 / _tc.value.getMaxScaleOnAxis();
+    _eraserCursor.value = (local, radius);
+    final next = <DrawStroke>[];
+    var changed = false;
+    for (final stroke in widget.strokes) {
+      final pieces = eraseStroke(
+        stroke,
+        size: _size,
+        from: previous,
+        to: point,
+        radius: radius,
+      );
+      changed |= pieces.length != 1 || !identical(pieces.first, stroke);
+      next.addAll(pieces);
+    }
+    if (changed) {
+      if (!_erased) widget.onInkBegin?.call();
+      widget.strokes
+        ..clear()
+        ..addAll(next);
       _erased = true;
-      setState(() {});
+      _inkRepaint.value++;
     }
   }
 
@@ -1258,15 +1284,20 @@ class _WallViewState extends State<WallView>
                     ),
                     // Marker strokes lie on the wall itself, under the paper,
                     // measured against the home area like the notes are.
-                    if (widget.strokes.isNotEmpty)
+                    if (widget.strokes.isNotEmpty || widget.marking)
                       Positioned(
                         left: _pad,
                         top: _pad,
                         width: w,
                         height: h,
                         child: IgnorePointer(
-                          child: CustomPaint(
-                            painter: StrokePainter(widget.strokes),
+                          child: RepaintBoundary(
+                            child: CustomPaint(
+                              painter: StrokePainter(
+                                widget.strokes,
+                                repaint: _inkRepaint,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -1326,6 +1357,44 @@ class _WallViewState extends State<WallView>
                       ),
                     // Marker mode: the finger draws on the wall and the
                     // notes under it are left alone.
+                    if (widget.marking)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: ValueListenableBuilder<(Offset, double)?>(
+                            valueListenable: _eraserCursor,
+                            builder: (_, cursor, _) => Stack(
+                              children: [
+                                if (cursor case (final point, final radius))
+                                  Positioned(
+                                    left: point.dx - radius,
+                                    top: point.dy - radius,
+                                    width: radius * 2,
+                                    height: radius * 2,
+                                    child: DecoratedBox(
+                                      key: const ValueKey('wall-eraser-cursor'),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: const Color(0x22FFFFFF),
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width:
+                                              1.5 /
+                                              _tc.value.getMaxScaleOnAxis(),
+                                        ),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Colors.black38,
+                                            blurRadius: 2,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     if (widget.marking)
                       Positioned.fill(
                         child: Listener(
@@ -1780,9 +1849,8 @@ class _WallViewState extends State<WallView>
         _setActive(note.guid);
         base.onLongPress();
       },
-      // Not in select mode: there a tap must toggle at once, not wait to
-      // see whether a second one follows.
-      onDoubleTap: widget.still || widget.lasso ? null : () => _focusOn(note),
+      // Opening a note and toggling its checklist must not wait for a possible
+      // double tap. Zoom to a note is available from its long-press menu.
       onPinDragStart: canThread ? (g) => _threadStart(note, g) : null,
       onPinDragUpdate: canThread ? _threadUpdate : null,
       onPinDragEnd: canThread ? _threadEnd : null,

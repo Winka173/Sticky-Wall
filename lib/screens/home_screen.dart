@@ -1112,8 +1112,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           final onWall = _notes.viewMode == ViewMode.wall;
           // The tool pill sits bottom-left; on narrow phones an extended FAB
           // next to it would not fit, so the label only shows on wide screens.
-          final wide = MediaQuery.sizeOf(context).width >= 420;
-          final showFabLabel = (_notes.boardNotes.isEmpty || !onWall) && wide;
+          final availableForFab =
+              MediaQuery.sizeOf(context).width -
+              32 - // screen margins
+              (4 * 54 + 8) - // the four tools and the pill's padding
+              12; // gap between the two controls
+          final showFabLabel =
+              (_notes.boardNotes.isEmpty || !onWall) &&
+              AddNoteButton.widthWithLabel(context, _l10n.addToWall) <=
+                  availableForFab;
           if (_notes.wallEdits != _seenWallEdits) {
             _seenWallEdits = _notes.wallEdits;
             _armUndo();

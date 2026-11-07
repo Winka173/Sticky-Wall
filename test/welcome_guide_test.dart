@@ -13,6 +13,7 @@ import 'package:sticky_wall/services/settings_controller.dart';
 import 'package:sticky_wall/services/template_library.dart';
 import 'package:sticky_wall/welcome/guide_motion.dart';
 import 'package:sticky_wall/welcome/how_to_use.dart';
+import 'package:sticky_wall/welcome/manual_illustration.dart';
 import 'package:sticky_wall/welcome/manual_screens.dart';
 import 'package:sticky_wall/welcome/welcome_guide.dart';
 
@@ -337,7 +338,13 @@ void main() {
     await _reveal(tester, find.byKey(const Key('manual-topic-10')));
     await tester.tap(find.byKey(const Key('manual-topic-10')));
     await tester.pumpAndSettle();
-    expect(find.text('Keeping it safe'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(ManualTopicPage),
+        matching: find.text('Keeping it safe'),
+      ),
+      findsOneWidget,
+    );
     expect(
       find.textContaining('New phone: back up on the old one'),
       findsOneWidget,
@@ -382,15 +389,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(ManualTopicPage), findsOneWidget);
     expect(find.text('Topic 2 of 12'), findsOneWidget);
-    expect(find.text('Moving and arranging'), findsOneWidget);
-    // Each step plays on the little phone; a tap picks another.
-    expect(find.byType(ManualPlayer), findsOneWidget);
-    expect(find.byKey(const ValueKey('show-1-0')), findsOneWidget);
-    await tester.ensureVisible(find.byKey(const Key('manual-step-2')));
+    expect(
+      find.descendant(
+        of: find.byType(ManualTopicPage),
+        matching: find.text('Moving and arranging'),
+      ),
+      findsOneWidget,
+    );
+    // Every instruction owns its still image; no playback or hidden step.
+    expect(find.byType(ManualPlayer), findsNothing);
+    expect(find.byType(ManualIllustration), findsWidgets);
+    expect(tester.hasRunningAnimations, isFalse);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('manual-step-2')),
+      250,
+      scrollable: find
+          .descendant(
+            of: find.byType(ManualTopicPage),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('manual-step-2')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('show-1-2')), findsOneWidget);
+    expect(tester.takeException(), isNull);
 
     await tester.tap(find.byKey(const Key('manual-previous')));
     await tester.pumpAndSettle();
@@ -402,8 +423,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Topic $i of 12'), findsOneWidget);
     }
-    expect(find.text('Make it yours'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('manual-next')));
+    expect(
+      find.descendant(
+        of: find.byType(ManualTopicPage),
+        matching: find.text('Make it yours'),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('manual-done')));
     await tester.pumpAndSettle();
     expect(find.byType(ManualTopicPage), findsNothing);
     expect(find.byType(HowToUsePage), findsOneWidget);
@@ -457,10 +484,30 @@ void main() {
           await _reveal(tester, find.byKey(const Key('manual-topic-0')));
           await tester.tap(find.byKey(const Key('manual-topic-0')));
           await tester.pumpAndSettle();
-          for (var i = 1; i < 12; i++) {
-            await tester.tap(find.byKey(const Key('manual-next')));
+          for (var i = 0; i < 12; i++) {
+            final page = find.byType(ManualTopicPage);
+            final context = tester.element(page);
+            final count = manualTopics(
+              AppLocalizations.of(context)!,
+            )[i].steps.length;
+            await tester.scrollUntilVisible(
+              find.byKey(Key('manual-step-${count - 1}')),
+              200,
+              scrollable: find
+                  .descendant(of: page, matching: find.byType(Scrollable))
+                  .first,
+            );
             await tester.pumpAndSettle();
+            expect(tester.takeException(), isNull);
+            expect(tester.hasRunningAnimations, isFalse);
+            if (i < 11) {
+              await tester.tap(find.byKey(const Key('manual-next')));
+              await tester.pumpAndSettle();
+            }
           }
+          await tester.tap(find.byKey(const Key('manual-done')));
+          await tester.pumpAndSettle();
+          expect(find.byType(HowToUsePage), findsOneWidget);
           expect(tester.takeException(), isNull);
         });
       }

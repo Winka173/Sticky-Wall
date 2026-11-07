@@ -243,6 +243,12 @@ extension _NoteActions on _HomeScreenState {
           onTap: () => Navigator.pop(context, 'lock'),
         ),
         // Menu paths for what the wall otherwise only does by dragging.
+        if (onWall)
+          ListTile(
+            leading: const Icon(Icons.zoom_in),
+            title: Text(l10n.zoomToNote),
+            onTap: () => Navigator.pop(context, 'zoom'),
+          ),
         if (onWall && !note.locked)
           ListTile(
             leading: const Icon(Icons.open_in_full),
@@ -331,6 +337,8 @@ extension _NoteActions on _HomeScreenState {
         _notes.toggleLock(note);
       case 'size':
         await _sizeAndTurn(note);
+      case 'zoom':
+        _wallHandle.focus(note);
       case 'tie':
         await _tieThreadFrom(note);
       case 'stack':

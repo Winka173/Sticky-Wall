@@ -563,6 +563,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetZoom => 'Reset zoom';
 
   @override
+  String get zoomToNote => 'Zoom to note';
+
+  @override
   String get wallDecor => 'Wall stains & marks';
 
   @override
@@ -793,7 +796,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipWallBody =>
-      'Long-press an empty spot to stick a note or photos there. Pinch to zoom, pan out to the wall’s margins and park notes there. Double-tap a note to zoom in on it; the frame button shows everything.';
+      'Long-press an empty spot to stick a note or photos there. Pinch to zoom, or long-press a note and choose Zoom to note. The frame button shows everything.';
 
   @override
   String get tipDropTitle => 'Move to another board';
@@ -814,7 +817,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipDrawBody =>
-      'The pen in the toolbar starts marker mode: one finger draws behind the notes, two still zoom. The eraser rubs out one line at a time; Undo and Done sit in the bar below.';
+      'The pen in the toolbar starts marker mode: one finger draws behind the notes, two still zoom. Rub the eraser across ink to remove only the parts you touch. Undo and Done sit in the bar below.';
 
   @override
   String get tipUndoTitle => 'Undo';
@@ -2487,7 +2490,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get howToUse => 'How to use';
 
   @override
-  String get howToUseHint => 'Replay the guide, or read it topic by topic';
+  String get howToUseHint =>
+      'Short steps for each feature, or replay the introduction';
 
   @override
   String get howToUseTopics => 'Topics';
@@ -2504,239 +2508,241 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manualFirstTitle => 'Your first note';
 
   @override
-  String get manualFirstSummary => 'Add a note, write on it, change it later.';
+  String get manualFirstSummary => 'Add, write, and save to your wall.';
 
   @override
-  String get manualFirstStep1 =>
-      'Tap the yellow paper at the bottom right of the wall.';
+  String get manualFirstStep1 => 'Tap the yellow paper at the bottom right.';
 
   @override
-  String get manualFirstStep2 =>
-      'Choose what to add: a note, a list, a photo, a link, a voice note or a drawing.';
+  String get manualFirstStep2 => 'Choose Text to start writing.';
 
   @override
   String get manualFirstStep3 =>
-      'Write, then tick to stick it up. Tap a note to change it; long-press it for its menu.';
+      'Write your note, then tap the checkmark to save. Tap the note on the wall to edit it.';
 
   @override
   String get manualMoveTitle => 'Moving and arranging';
 
   @override
-  String get manualMoveSummary => 'Drag, turn, resize and tidy up.';
+  String get manualMoveSummary => 'Put every note where you want it.';
 
   @override
   String get manualMoveStep1 => 'Drag a note with one finger to move it.';
 
   @override
   String get manualMoveStep2 =>
-      'The grips at its bottom corners resize (right) and rotate (left; tap it to square the note up). Two fingers twist and pinch too.';
+      'Tap a note to show its corner handles. Drag the right handle to resize; the left one rotates it.';
 
   @override
   String get manualMoveStep3 =>
-      'Pinch the wall to zoom. Arrange… in the More menu tidies the notes into rows.';
+      'Open More → Arrange to tidy notes into rows. Pinch the wall with two fingers to zoom.';
 
   @override
-  String get manualMoveStep4 =>
-      'Undo shows for a few seconds after every change.';
+  String get manualMoveStep4 => 'Made a mistake? Tap Undo just after a change.';
 
   @override
   String get manualThreadTitle => 'Threads between notes';
 
   @override
-  String get manualThreadSummary => 'Tie notes that belong together.';
+  String get manualThreadSummary => 'Connect ideas that belong together.';
 
   @override
   String get manualThreadStep1 =>
-      'Pull a note’s red pin onto another note: a thread ties the two.';
+      'Drag a note’s red pin onto another note to connect them.';
 
   @override
   String get manualThreadStep2 =>
-      'Tap a thread to colour it, write on it, add an arrowhead or cut it.';
+      'Tap a thread to change its color, add a label or arrow, or cut it.';
 
   @override
-  String get manualThreadStep3 => 'Tap a pin to keep its note on top.';
+  String get manualThreadStep3 => 'Tap the red pin to keep that note on top.';
 
   @override
-  String get manualDrawTitle => 'Drawing on the wall';
+  String get manualDrawTitle => 'Draw on the wall';
 
   @override
-  String get manualDrawSummary => 'A pen, a highlighter and an eraser.';
+  String get manualDrawSummary => 'Sketch behind your notes.';
 
   @override
-  String get manualDrawStep1 => 'Tap the pen in the toolbar to start drawing.';
+  String get manualDrawStep1 => 'Tap the pen in the bottom toolbar.';
 
   @override
   String get manualDrawStep2 =>
-      'One finger draws behind the notes; two fingers still move and zoom the wall.';
+      'Draw with one finger. Use two fingers to move or zoom the wall.';
 
   @override
   String get manualDrawStep3 =>
-      'The eraser rubs out one line at a time. Undo puts it back; Done stops drawing.';
+      'Rub the eraser across ink to remove only the parts you touch. Undo restores the whole erase gesture. Tap Done to stop drawing.';
 
   @override
-  String get manualBoardsTitle => 'Boards and the Trash';
+  String get manualBoardsTitle => 'Boards and Trash';
 
   @override
-  String get manualBoardsSummary => 'Several walls, and a safe bin.';
+  String get manualBoardsSummary =>
+      'Separate your projects and recover deleted notes.';
 
   @override
   String get manualBoardsStep1 =>
-      'The tabs at the top are your boards. The + tab starts a new one, blank or from a template.';
+      'Tap + beside the board tabs. Start with a blank board or a template.';
 
   @override
   String get manualBoardsStep2 =>
-      'Drag a note onto a tab to move it to that board.';
+      'Drag a note onto another board’s tab to move it there.';
 
   @override
   String get manualBoardsStep3 =>
-      'Deleted notes wait in the Trash, in the More menu, for 30 days.';
+      'Open More → Trash to restore deleted notes or boards within 30 days.';
 
   @override
   String get manualPhotosTitle => 'Photos and memory walls';
 
   @override
-  String get manualPhotosSummary => 'Pin photos; make a wall of memories.';
+  String get manualPhotosSummary =>
+      'Add several photos and arrange your memories.';
 
   @override
   String get manualPhotosStep1 =>
-      'Long-press an empty spot on the wall to stick a note or photos right there.';
+      'Long-press an empty spot → Photos here to pin photos at that spot.';
 
   @override
   String get manualPhotosStep2 =>
-      'Pin photos on the wall, in the More menu, adds several at once.';
+      'More → Pin photos on the wall lets you select several photos in one go. Confirm your selection in the photo picker.';
+
+  @override
+  String get manualPhotosStep4 =>
+      'Tap the add-photo icon beside the photo count for more (up to 20). Choose a layout, frame and theme, then tap Make the wall.';
 
   @override
   String get manualPhotosStep3 =>
-      'A memory wall lays many photos out for you: tap the yellow paper and choose Memory wall.';
+      'Yellow paper → Memory wall. Select photos and confirm to open the preview.';
 
   @override
   String get manualFindTitle => 'Search and views';
 
   @override
-  String get manualFindSummary =>
-      'Find any note; see them as a wall, grid or list.';
+  String get manualFindSummary => 'Find notes and switch how you see them.';
 
   @override
   String get manualFindStep1 =>
-      'Search does not need accents: “tuoi” finds “Tưới cây”.';
+      'Tap Search and type a word. Accents are optional: “tuoi” finds “Tưới cây”.';
 
   @override
   String get manualFindStep2 =>
-      'Switch between Wall, Grid and List in the tool pill at the bottom left.';
+      'Use the view button at the bottom left to choose Wall, Grid, or List.';
 
   @override
   String get manualFindStep3 =>
-      'To act on several notes, long-press one and pick Select notes, or draw a loop round them from an empty spot.';
+      'Long-press a note → Select notes to act on several at once. You can also draw a loop from an empty spot.';
 
   @override
-  String get manualKindsTitle => 'Kinds of notes and reminders';
+  String get manualKindsTitle => 'Note types and reminders';
 
   @override
   String get manualKindsSummary =>
-      'Lists, voice notes, labels, stickers, and a nudge when it is time.';
+      'Lists, recordings, and reminders in one place.';
 
   @override
   String get manualKindsStep1 =>
-      'The yellow paper offers a note, a to-do list, a photo, a link, a voice note or a drawing; further down, a label, a sticker or a memory wall.';
+      'Open the yellow paper and choose a type. Try a to-do list; labels and stickers are further down.';
 
   @override
   String get manualKindsStep2 =>
-      'A voice note: tap the microphone to record, or hold it and let go. It plays right on the wall.';
+      'Choose Voice note. Tap the microphone to record, or hold it and release to stop.';
 
   @override
   String get manualKindsStep3 =>
-      'Reminder, in the note: in an hour, this evening, tomorrow morning or any date, once or repeating daily, weekly or monthly.';
+      'In a note, tap Reminder. Choose a time and repeat schedule if needed.';
 
   @override
   String get manualKindsStep4 =>
-      'Long-press a note and choose Lock in place, so it cannot be moved by accident.';
+      'Long-press a note → Lock in place to prevent accidental moves.';
 
   @override
   String get manualLooksTitle => 'Templates and themes';
 
   @override
-  String get manualLooksSummary =>
-      'A ready board in one tap, and a look for it.';
+  String get manualLooksSummary => 'Start with a layout, then choose its look.';
 
   @override
   String get manualLooksStep1 =>
-      'Templates & themes, in the More menu (or the + tab), has board templates: planners, study boards, moodboards and more.';
+      'Open More → Templates & themes to browse board templates.';
 
   @override
   String get manualLooksStep2 =>
-      'A template makes a new board of real notes to edit. Clear the examples, in the board\'s menu, keeps only the headings and the wall.';
+      'Apply a template to create an editable board. Its menu → Clear examples removes sample notes and keeps the headings.';
 
   @override
   String get manualLooksStep3 =>
-      'A theme dresses the open board: wall, papers, pin and handwriting. What the notes say stays as it is, and Undo puts the old look back.';
+      'Board menu → Change theme updates its look without changing your words. Use Undo to go back.';
 
   @override
   String get manualLooksStep4 =>
-      'Tap the open board\'s tab again for its menu: edit, change the theme, lock or delete it. A deleted board waits in the Trash too.';
+      'Tap the active board’s tab again to edit, lock, or delete that board.';
 
   @override
   String get manualShareTitle => 'Share and export';
 
   @override
   String get manualShareSummary =>
-      'Send a note, the whole board, or catch things from other apps.';
+      'Send a note or board; receive content from other apps.';
 
   @override
   String get manualShareStep1 =>
-      'Long-press a note: Share sends it as a picture, Save image puts it in your photos.';
+      'Long-press a note. Share sends a picture; Save image saves it to your photos.';
 
   @override
   String get manualShareStep2 =>
-      'The share button at the top (or Export board as image in the More menu): the whole wall or the part in view, as a picture or a PDF.';
+      'Tap Share at the top. Export the whole board or the visible area as an image or PDF.';
 
   @override
   String get manualShareStep3 =>
-      'In another app, share text, a link or photos to Sticky Wall: pick a board and it lands there.';
+      'From another app, share text, a link, or photos to Sticky Wall, then choose a board.';
 
   @override
   String get manualSafeTitle => 'Keeping it safe';
 
   @override
-  String get manualSafeSummary => 'Backups, moving to a new phone, and locks.';
+  String get manualSafeSummary =>
+      'Back up, move to a new phone, and protect your wall.';
 
   @override
   String get manualSafeStep1 =>
-      'In Settings under Data, Back up notes makes one file with every board, photo and voice note. A copy is also made each week; the last 4 stay on this phone.';
+      'Settings → Data → Back up notes saves all boards, photos, and recordings in one file. Keep a copy outside this phone.';
 
   @override
   String get manualSafeStep2 =>
-      'New phone: back up on the old one and send the file to yourself, then on the new one tap Restore backup in the same place. You see what the file holds before anything changes, and Undo puts things back.';
+      'New phone: back up on the old one and transfer the file. On the new phone, open Settings → Data → Restore backup and review before restoring.';
 
   @override
   String get manualSafeSync =>
-      'Sync across devices, also under Data, keeps your phones in step through your own Google Drive. It is off until you switch it on.';
+      'Settings → Data → Sync across devices uses your Google Drive. Turn it on on each device you want to sync.';
 
   @override
   String get manualSafeStep3 =>
-      'App lock, in Settings under Privacy, asks for your fingerprint or screen lock when the app opens. A single board can be locked from its menu.';
+      'Settings → Privacy → App lock protects the app with your device lock. Lock one board from its tab menu.';
 
   @override
   String get manualYoursTitle => 'Make it yours';
 
   @override
   String get manualYoursSummary =>
-      'Wall, handwriting, Lights off and the widget.';
+      'Change the look, language, and home-screen widget.';
 
   @override
   String get manualYoursStep1 =>
-      'Customize (the palette at the top) changes the wall, the handwriting and the pins. Pro ones can be tried on first.';
+      'Tap the palette at the top to change the wall, handwriting, or pins. Pro styles can be previewed.';
 
   @override
   String get manualYoursStep2 =>
-      'Lights off, in the More menu, dims the wall for the evening; Customize can switch it on a schedule.';
+      'More → Lights off dims the wall. Set a schedule in Customize if you like.';
 
   @override
   String get manualYoursStep3 =>
-      'Home-screen widget, in Settings under General: choose the board and what it lists, then add the widget from your home screen.';
+      'Settings → General → Home-screen widget: choose a board, then add the widget from your phone’s home screen.';
 
   @override
   String get manualYoursStep4 =>
-      'The language is in Settings under General too.';
+      'Settings → General → Language changes the app’s language.';
 
   @override
   String get manualTabHome => 'Home';

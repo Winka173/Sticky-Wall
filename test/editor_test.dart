@@ -862,7 +862,7 @@ void main() {
     );
   });
 
-  testWidgets('double-tapping a note zooms the wall onto it and back', (
+  testWidgets('Zoom to note in its menu zooms the wall onto it and back', (
     tester,
   ) async {
     await _pumpApp(
@@ -882,16 +882,18 @@ void main() {
     final reset = find.byTooltip('Reset zoom');
     expect(reset, findsNothing, reason: 'camera at rest: no reset button');
 
-    await tester.tap(find.text('Focus me'));
-    await tester.pump(const Duration(milliseconds: 80));
-    await tester.tap(find.text('Focus me'));
+    await tester.longPress(find.text('Focus me'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Zoom to note'));
+    await tester.tap(find.text('Zoom to note'));
     await tester.pumpAndSettle();
     expect(reset, findsOneWidget, reason: 'zoomed in');
     expect(find.byType(TextField), findsNothing, reason: 'no editor opened');
 
-    await tester.tap(find.text('Focus me'));
-    await tester.pump(const Duration(milliseconds: 80));
-    await tester.tap(find.text('Focus me'));
+    await tester.longPress(find.text('Focus me'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Zoom to note'));
+    await tester.tap(find.text('Zoom to note'));
     await tester.pumpAndSettle();
     expect(reset, findsNothing, reason: 'back out');
   });
@@ -923,6 +925,7 @@ void main() {
     );
     await tester.longPress(find.text('Aa'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Select notes'));
     await tester.tap(find.text('Select notes'));
     await tester.pumpAndSettle();
     expect(find.text('1 selected'), findsOneWidget);
@@ -978,6 +981,7 @@ void main() {
     final b = notes.boardNotes[1];
     await tester.longPress(find.text('Aa'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Select notes'));
     await tester.tap(find.text('Select notes'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Bb')); // adds B to the selection
@@ -1442,12 +1446,14 @@ void main() {
       ],
     );
     // Zoom in on A (so there is a "part in view") and select A.
-    await tester.tap(find.text('Aa'));
-    await tester.pump(const Duration(milliseconds: 80));
-    await tester.tap(find.text('Aa'));
+    await tester.longPress(find.text('Aa'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Zoom to note'));
+    await tester.tap(find.text('Zoom to note'));
     await tester.pumpAndSettle();
     await tester.longPress(find.text('Aa'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Select notes'));
     await tester.tap(find.text('Select notes'));
     await tester.pumpAndSettle();
     expect(notes.boardNotes.length, 2);
@@ -1591,6 +1597,7 @@ void main() {
 
     await tester.longPress(find.text('Still'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Select notes'));
     await tester.tap(find.text('Select notes'));
     await tester.pumpAndSettle();
     expect(find.text('1 selected'), findsOneWidget);

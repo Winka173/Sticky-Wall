@@ -31,6 +31,25 @@ class AddNoteButton extends StatelessWidget {
   /// Same slight tilt the wall gives its notes.
   static const _tilt = -0.045;
 
+  /// The label must fit alongside the tool pill, including translated text,
+  /// the user's text size and the small overhang of the tilted paper.
+  static double widthWithLabel(BuildContext context, String label) {
+    final text = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+          fontSize: 17 * noteFontScale(context),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+    final width = text.width + 78;
+    text.dispose();
+    return width;
+  }
+
   @override
   Widget build(BuildContext context) {
     // A brighter yellow than the note papers so it stands out as the one

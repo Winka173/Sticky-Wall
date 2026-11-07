@@ -90,6 +90,8 @@ flutter:
   # Fabric069, Fabric034 (recoloured), Fabric030.
   assets:
     - assets/images/
+    - assets/manual/en/
+    - assets/manual/vi/
     - assets/templates/
     - assets/stickers/
 

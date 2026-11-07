@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sticky_wall/l10n/app_localizations.dart';
 import 'package:sticky_wall/main.dart';
 import 'package:sticky_wall/models/note.dart';
 import 'package:sticky_wall/models/view_mode.dart';
@@ -81,6 +82,12 @@ void main() {
 
       Future<void> shot(String step) async {
         await tester.pumpAndSettle();
+        for (var frame = 0; frame < 3; frame++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 40)),
+          );
+          await tester.pump();
+        }
         await tester.runAsync(() async {
           final boundary =
               key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
@@ -159,6 +166,19 @@ void main() {
           await tap(find.byKey(const Key('manual-next')));
         }
         await shot('5_topic_${i + 1}');
+        final page = find.byType(ManualTopicPage);
+        final words = AppLocalizations.of(tester.element(page))!;
+        final steps = manualTopics(words)[i].steps.length;
+        for (var step = 0; step < steps; step++) {
+          await tester.scrollUntilVisible(
+            find.byKey(ValueKey('still-$i-$step')),
+            180,
+            scrollable: find
+                .descendant(of: page, matching: find.byType(Scrollable))
+                .first,
+          );
+          await shot('6_topic_${i + 1}_step_${step + 1}');
+        }
       }
       nav.popUntil((r) => r.isFirst);
       await tester.pumpAndSettle();

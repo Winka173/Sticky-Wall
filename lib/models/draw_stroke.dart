@@ -9,6 +9,7 @@ class DrawStroke {
     required this.points,
     this.refWidth,
     this.refHeight,
+    this.anchor,
   });
 
   /// ARGB value.
@@ -23,6 +24,10 @@ class DrawStroke {
   /// a drawing note (it scales with its card) and for older wall strokes.
   final double? refWidth;
   final double? refHeight;
+
+  /// Cut pieces share the original wall stroke's placement anchor, so they
+  /// stay aligned when the wall is shown on another screen size.
+  final Offset? anchor;
 
   Offset? _center;
 
@@ -49,10 +54,35 @@ class DrawStroke {
     if (rw == null || rh == null || rw <= 0 || rh <= 0) {
       return Offset(p.dx * size.width, p.dy * size.height);
     }
-    final c = _middle;
+    final c = anchor ?? _middle;
     return Offset(
       c.dx * size.width + (p.dx - c.dx) * rw,
       c.dy * size.height + (p.dy - c.dy) * rh,
+    );
+  }
+
+  /// A surviving piece, supplied in the current wall's logical coordinates.
+  /// Keep the original anchor rather than recentering each piece separately.
+  DrawStroke fragment(List<Offset> placed, Size size) {
+    final rw = refWidth;
+    final rh = refHeight;
+    final fixed = rw != null && rh != null && rw > 0 && rh > 0;
+    final center = anchor ?? _middle;
+    return DrawStroke(
+      color: color,
+      width: width,
+      refWidth: refWidth,
+      refHeight: refHeight,
+      anchor: fixed ? center : anchor,
+      points: [
+        for (final p in placed)
+          fixed
+              ? Offset(
+                  center.dx + (p.dx - center.dx * size.width) / rw,
+                  center.dy + (p.dy - center.dy * size.height) / rh,
+                )
+              : Offset(p.dx / size.width, p.dy / size.height),
+      ],
     );
   }
 
@@ -67,6 +97,12 @@ class DrawStroke {
     width: (json['width'] as num?)?.toDouble() ?? 3.0,
     refWidth: (json['rw'] as num?)?.toDouble(),
     refHeight: (json['rh'] as num?)?.toDouble(),
+    anchor: json['anchor'] is Map<String, dynamic>
+        ? Offset(
+            ((json['anchor'] as Map<String, dynamic>)['x'] as num).toDouble(),
+            ((json['anchor'] as Map<String, dynamic>)['y'] as num).toDouble(),
+          )
+        : null,
     points: [
       for (final p in (json['points'] as List<dynamic>? ?? const []))
         Offset(
@@ -81,6 +117,7 @@ class DrawStroke {
     'width': width,
     if (refWidth != null) 'rw': refWidth,
     if (refHeight != null) 'rh': refHeight,
+    if (anchor case final a?) 'anchor': {'x': a.dx, 'y': a.dy},
     'points': [
       for (final p in points) {'x': p.dx, 'y': p.dy},
     ],
@@ -92,6 +129,7 @@ class DrawStroke {
     points: List<Offset>.from(points),
     refWidth: refWidth,
     refHeight: refHeight,
+    anchor: anchor,
   );
 }
 

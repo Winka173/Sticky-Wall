@@ -1076,6 +1076,12 @@ abstract class AppLocalizations {
   /// **'Reset zoom'**
   String get resetZoom;
 
+  /// No description provided for @zoomToNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom to note'**
+  String get zoomToNote;
+
   /// No description provided for @wallDecor.
   ///
   /// In en, this message translates to:
@@ -1457,7 +1463,7 @@ abstract class AppLocalizations {
   /// No description provided for @tipWallBody.
   ///
   /// In en, this message translates to:
-  /// **'Long-press an empty spot to stick a note or photos there. Pinch to zoom, pan out to the wall’s margins and park notes there. Double-tap a note to zoom in on it; the frame button shows everything.'**
+  /// **'Long-press an empty spot to stick a note or photos there. Pinch to zoom, or long-press a note and choose Zoom to note. The frame button shows everything.'**
   String get tipWallBody;
 
   /// No description provided for @tipDropTitle.
@@ -1493,7 +1499,7 @@ abstract class AppLocalizations {
   /// No description provided for @tipDrawBody.
   ///
   /// In en, this message translates to:
-  /// **'The pen in the toolbar starts marker mode: one finger draws behind the notes, two still zoom. The eraser rubs out one line at a time; Undo and Done sit in the bar below.'**
+  /// **'The pen in the toolbar starts marker mode: one finger draws behind the notes, two still zoom. Rub the eraser across ink to remove only the parts you touch. Undo and Done sit in the bar below.'**
   String get tipDrawBody;
 
   /// No description provided for @tipUndoTitle.
@@ -4427,7 +4433,7 @@ abstract class AppLocalizations {
   /// No description provided for @howToUseHint.
   ///
   /// In en, this message translates to:
-  /// **'Replay the guide, or read it topic by topic'**
+  /// **'Short steps for each feature, or replay the introduction'**
   String get howToUseHint;
 
   /// No description provided for @howToUseTopics.
@@ -4457,25 +4463,25 @@ abstract class AppLocalizations {
   /// No description provided for @manualFirstSummary.
   ///
   /// In en, this message translates to:
-  /// **'Add a note, write on it, change it later.'**
+  /// **'Add, write, and save to your wall.'**
   String get manualFirstSummary;
 
   /// No description provided for @manualFirstStep1.
   ///
   /// In en, this message translates to:
-  /// **'Tap the yellow paper at the bottom right of the wall.'**
+  /// **'Tap the yellow paper at the bottom right.'**
   String get manualFirstStep1;
 
   /// No description provided for @manualFirstStep2.
   ///
   /// In en, this message translates to:
-  /// **'Choose what to add: a note, a list, a photo, a link, a voice note or a drawing.'**
+  /// **'Choose Text to start writing.'**
   String get manualFirstStep2;
 
   /// No description provided for @manualFirstStep3.
   ///
   /// In en, this message translates to:
-  /// **'Write, then tick to stick it up. Tap a note to change it; long-press it for its menu.'**
+  /// **'Write your note, then tap the checkmark to save. Tap the note on the wall to edit it.'**
   String get manualFirstStep3;
 
   /// No description provided for @manualMoveTitle.
@@ -4487,7 +4493,7 @@ abstract class AppLocalizations {
   /// No description provided for @manualMoveSummary.
   ///
   /// In en, this message translates to:
-  /// **'Drag, turn, resize and tidy up.'**
+  /// **'Put every note where you want it.'**
   String get manualMoveSummary;
 
   /// No description provided for @manualMoveStep1.
@@ -4499,19 +4505,19 @@ abstract class AppLocalizations {
   /// No description provided for @manualMoveStep2.
   ///
   /// In en, this message translates to:
-  /// **'The grips at its bottom corners resize (right) and rotate (left; tap it to square the note up). Two fingers twist and pinch too.'**
+  /// **'Tap a note to show its corner handles. Drag the right handle to resize; the left one rotates it.'**
   String get manualMoveStep2;
 
   /// No description provided for @manualMoveStep3.
   ///
   /// In en, this message translates to:
-  /// **'Pinch the wall to zoom. Arrange… in the More menu tidies the notes into rows.'**
+  /// **'Open More → Arrange to tidy notes into rows. Pinch the wall with two fingers to zoom.'**
   String get manualMoveStep3;
 
   /// No description provided for @manualMoveStep4.
   ///
   /// In en, this message translates to:
-  /// **'Undo shows for a few seconds after every change.'**
+  /// **'Made a mistake? Tap Undo just after a change.'**
   String get manualMoveStep4;
 
   /// No description provided for @manualThreadTitle.
@@ -4523,85 +4529,85 @@ abstract class AppLocalizations {
   /// No description provided for @manualThreadSummary.
   ///
   /// In en, this message translates to:
-  /// **'Tie notes that belong together.'**
+  /// **'Connect ideas that belong together.'**
   String get manualThreadSummary;
 
   /// No description provided for @manualThreadStep1.
   ///
   /// In en, this message translates to:
-  /// **'Pull a note’s red pin onto another note: a thread ties the two.'**
+  /// **'Drag a note’s red pin onto another note to connect them.'**
   String get manualThreadStep1;
 
   /// No description provided for @manualThreadStep2.
   ///
   /// In en, this message translates to:
-  /// **'Tap a thread to colour it, write on it, add an arrowhead or cut it.'**
+  /// **'Tap a thread to change its color, add a label or arrow, or cut it.'**
   String get manualThreadStep2;
 
   /// No description provided for @manualThreadStep3.
   ///
   /// In en, this message translates to:
-  /// **'Tap a pin to keep its note on top.'**
+  /// **'Tap the red pin to keep that note on top.'**
   String get manualThreadStep3;
 
   /// No description provided for @manualDrawTitle.
   ///
   /// In en, this message translates to:
-  /// **'Drawing on the wall'**
+  /// **'Draw on the wall'**
   String get manualDrawTitle;
 
   /// No description provided for @manualDrawSummary.
   ///
   /// In en, this message translates to:
-  /// **'A pen, a highlighter and an eraser.'**
+  /// **'Sketch behind your notes.'**
   String get manualDrawSummary;
 
   /// No description provided for @manualDrawStep1.
   ///
   /// In en, this message translates to:
-  /// **'Tap the pen in the toolbar to start drawing.'**
+  /// **'Tap the pen in the bottom toolbar.'**
   String get manualDrawStep1;
 
   /// No description provided for @manualDrawStep2.
   ///
   /// In en, this message translates to:
-  /// **'One finger draws behind the notes; two fingers still move and zoom the wall.'**
+  /// **'Draw with one finger. Use two fingers to move or zoom the wall.'**
   String get manualDrawStep2;
 
   /// No description provided for @manualDrawStep3.
   ///
   /// In en, this message translates to:
-  /// **'The eraser rubs out one line at a time. Undo puts it back; Done stops drawing.'**
+  /// **'Rub the eraser across ink to remove only the parts you touch. Undo restores the whole erase gesture. Tap Done to stop drawing.'**
   String get manualDrawStep3;
 
   /// No description provided for @manualBoardsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Boards and the Trash'**
+  /// **'Boards and Trash'**
   String get manualBoardsTitle;
 
   /// No description provided for @manualBoardsSummary.
   ///
   /// In en, this message translates to:
-  /// **'Several walls, and a safe bin.'**
+  /// **'Separate your projects and recover deleted notes.'**
   String get manualBoardsSummary;
 
   /// No description provided for @manualBoardsStep1.
   ///
   /// In en, this message translates to:
-  /// **'The tabs at the top are your boards. The + tab starts a new one, blank or from a template.'**
+  /// **'Tap + beside the board tabs. Start with a blank board or a template.'**
   String get manualBoardsStep1;
 
   /// No description provided for @manualBoardsStep2.
   ///
   /// In en, this message translates to:
-  /// **'Drag a note onto a tab to move it to that board.'**
+  /// **'Drag a note onto another board’s tab to move it there.'**
   String get manualBoardsStep2;
 
   /// No description provided for @manualBoardsStep3.
   ///
   /// In en, this message translates to:
-  /// **'Deleted notes wait in the Trash, in the More menu, for 30 days.'**
+  /// **'Open More → Trash to restore deleted notes or boards within 30 days.'**
   String get manualBoardsStep3;
 
   /// No description provided for @manualPhotosTitle.
@@ -4613,25 +4619,31 @@ abstract class AppLocalizations {
   /// No description provided for @manualPhotosSummary.
   ///
   /// In en, this message translates to:
-  /// **'Pin photos; make a wall of memories.'**
+  /// **'Add several photos and arrange your memories.'**
   String get manualPhotosSummary;
 
   /// No description provided for @manualPhotosStep1.
   ///
   /// In en, this message translates to:
-  /// **'Long-press an empty spot on the wall to stick a note or photos right there.'**
+  /// **'Long-press an empty spot → Photos here to pin photos at that spot.'**
   String get manualPhotosStep1;
 
   /// No description provided for @manualPhotosStep2.
   ///
   /// In en, this message translates to:
-  /// **'Pin photos on the wall, in the More menu, adds several at once.'**
+  /// **'More → Pin photos on the wall lets you select several photos in one go. Confirm your selection in the photo picker.'**
   String get manualPhotosStep2;
+
+  /// No description provided for @manualPhotosStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the add-photo icon beside the photo count for more (up to 20). Choose a layout, frame and theme, then tap Make the wall.'**
+  String get manualPhotosStep4;
 
   /// No description provided for @manualPhotosStep3.
   ///
   /// In en, this message translates to:
-  /// **'A memory wall lays many photos out for you: tap the yellow paper and choose Memory wall.'**
+  /// **'Yellow paper → Memory wall. Select photos and confirm to open the preview.'**
   String get manualPhotosStep3;
 
   /// No description provided for @manualFindTitle.
@@ -4643,61 +4655,61 @@ abstract class AppLocalizations {
   /// No description provided for @manualFindSummary.
   ///
   /// In en, this message translates to:
-  /// **'Find any note; see them as a wall, grid or list.'**
+  /// **'Find notes and switch how you see them.'**
   String get manualFindSummary;
 
   /// No description provided for @manualFindStep1.
   ///
   /// In en, this message translates to:
-  /// **'Search does not need accents: “tuoi” finds “Tưới cây”.'**
+  /// **'Tap Search and type a word. Accents are optional: “tuoi” finds “Tưới cây”.'**
   String get manualFindStep1;
 
   /// No description provided for @manualFindStep2.
   ///
   /// In en, this message translates to:
-  /// **'Switch between Wall, Grid and List in the tool pill at the bottom left.'**
+  /// **'Use the view button at the bottom left to choose Wall, Grid, or List.'**
   String get manualFindStep2;
 
   /// No description provided for @manualFindStep3.
   ///
   /// In en, this message translates to:
-  /// **'To act on several notes, long-press one and pick Select notes, or draw a loop round them from an empty spot.'**
+  /// **'Long-press a note → Select notes to act on several at once. You can also draw a loop from an empty spot.'**
   String get manualFindStep3;
 
   /// No description provided for @manualKindsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Kinds of notes and reminders'**
+  /// **'Note types and reminders'**
   String get manualKindsTitle;
 
   /// No description provided for @manualKindsSummary.
   ///
   /// In en, this message translates to:
-  /// **'Lists, voice notes, labels, stickers, and a nudge when it is time.'**
+  /// **'Lists, recordings, and reminders in one place.'**
   String get manualKindsSummary;
 
   /// No description provided for @manualKindsStep1.
   ///
   /// In en, this message translates to:
-  /// **'The yellow paper offers a note, a to-do list, a photo, a link, a voice note or a drawing; further down, a label, a sticker or a memory wall.'**
+  /// **'Open the yellow paper and choose a type. Try a to-do list; labels and stickers are further down.'**
   String get manualKindsStep1;
 
   /// No description provided for @manualKindsStep2.
   ///
   /// In en, this message translates to:
-  /// **'A voice note: tap the microphone to record, or hold it and let go. It plays right on the wall.'**
+  /// **'Choose Voice note. Tap the microphone to record, or hold it and release to stop.'**
   String get manualKindsStep2;
 
   /// No description provided for @manualKindsStep3.
   ///
   /// In en, this message translates to:
-  /// **'Reminder, in the note: in an hour, this evening, tomorrow morning or any date, once or repeating daily, weekly or monthly.'**
+  /// **'In a note, tap Reminder. Choose a time and repeat schedule if needed.'**
   String get manualKindsStep3;
 
   /// No description provided for @manualKindsStep4.
   ///
   /// In en, this message translates to:
-  /// **'Long-press a note and choose Lock in place, so it cannot be moved by accident.'**
+  /// **'Long-press a note → Lock in place to prevent accidental moves.'**
   String get manualKindsStep4;
 
   /// No description provided for @manualLooksTitle.
@@ -4709,31 +4721,31 @@ abstract class AppLocalizations {
   /// No description provided for @manualLooksSummary.
   ///
   /// In en, this message translates to:
-  /// **'A ready board in one tap, and a look for it.'**
+  /// **'Start with a layout, then choose its look.'**
   String get manualLooksSummary;
 
   /// No description provided for @manualLooksStep1.
   ///
   /// In en, this message translates to:
-  /// **'Templates & themes, in the More menu (or the + tab), has board templates: planners, study boards, moodboards and more.'**
+  /// **'Open More → Templates & themes to browse board templates.'**
   String get manualLooksStep1;
 
   /// No description provided for @manualLooksStep2.
   ///
   /// In en, this message translates to:
-  /// **'A template makes a new board of real notes to edit. Clear the examples, in the board\'s menu, keeps only the headings and the wall.'**
+  /// **'Apply a template to create an editable board. Its menu → Clear examples removes sample notes and keeps the headings.'**
   String get manualLooksStep2;
 
   /// No description provided for @manualLooksStep3.
   ///
   /// In en, this message translates to:
-  /// **'A theme dresses the open board: wall, papers, pin and handwriting. What the notes say stays as it is, and Undo puts the old look back.'**
+  /// **'Board menu → Change theme updates its look without changing your words. Use Undo to go back.'**
   String get manualLooksStep3;
 
   /// No description provided for @manualLooksStep4.
   ///
   /// In en, this message translates to:
-  /// **'Tap the open board\'s tab again for its menu: edit, change the theme, lock or delete it. A deleted board waits in the Trash too.'**
+  /// **'Tap the active board’s tab again to edit, lock, or delete that board.'**
   String get manualLooksStep4;
 
   /// No description provided for @manualShareTitle.
@@ -4745,25 +4757,25 @@ abstract class AppLocalizations {
   /// No description provided for @manualShareSummary.
   ///
   /// In en, this message translates to:
-  /// **'Send a note, the whole board, or catch things from other apps.'**
+  /// **'Send a note or board; receive content from other apps.'**
   String get manualShareSummary;
 
   /// No description provided for @manualShareStep1.
   ///
   /// In en, this message translates to:
-  /// **'Long-press a note: Share sends it as a picture, Save image puts it in your photos.'**
+  /// **'Long-press a note. Share sends a picture; Save image saves it to your photos.'**
   String get manualShareStep1;
 
   /// No description provided for @manualShareStep2.
   ///
   /// In en, this message translates to:
-  /// **'The share button at the top (or Export board as image in the More menu): the whole wall or the part in view, as a picture or a PDF.'**
+  /// **'Tap Share at the top. Export the whole board or the visible area as an image or PDF.'**
   String get manualShareStep2;
 
   /// No description provided for @manualShareStep3.
   ///
   /// In en, this message translates to:
-  /// **'In another app, share text, a link or photos to Sticky Wall: pick a board and it lands there.'**
+  /// **'From another app, share text, a link, or photos to Sticky Wall, then choose a board.'**
   String get manualShareStep3;
 
   /// No description provided for @manualSafeTitle.
@@ -4775,31 +4787,31 @@ abstract class AppLocalizations {
   /// No description provided for @manualSafeSummary.
   ///
   /// In en, this message translates to:
-  /// **'Backups, moving to a new phone, and locks.'**
+  /// **'Back up, move to a new phone, and protect your wall.'**
   String get manualSafeSummary;
 
   /// No description provided for @manualSafeStep1.
   ///
   /// In en, this message translates to:
-  /// **'In Settings under Data, Back up notes makes one file with every board, photo and voice note. A copy is also made each week; the last 4 stay on this phone.'**
+  /// **'Settings → Data → Back up notes saves all boards, photos, and recordings in one file. Keep a copy outside this phone.'**
   String get manualSafeStep1;
 
   /// No description provided for @manualSafeStep2.
   ///
   /// In en, this message translates to:
-  /// **'New phone: back up on the old one and send the file to yourself, then on the new one tap Restore backup in the same place. You see what the file holds before anything changes, and Undo puts things back.'**
+  /// **'New phone: back up on the old one and transfer the file. On the new phone, open Settings → Data → Restore backup and review before restoring.'**
   String get manualSafeStep2;
 
   /// No description provided for @manualSafeSync.
   ///
   /// In en, this message translates to:
-  /// **'Sync across devices, also under Data, keeps your phones in step through your own Google Drive. It is off until you switch it on.'**
+  /// **'Settings → Data → Sync across devices uses your Google Drive. Turn it on on each device you want to sync.'**
   String get manualSafeSync;
 
   /// No description provided for @manualSafeStep3.
   ///
   /// In en, this message translates to:
-  /// **'App lock, in Settings under Privacy, asks for your fingerprint or screen lock when the app opens. A single board can be locked from its menu.'**
+  /// **'Settings → Privacy → App lock protects the app with your device lock. Lock one board from its tab menu.'**
   String get manualSafeStep3;
 
   /// No description provided for @manualYoursTitle.
@@ -4811,31 +4823,31 @@ abstract class AppLocalizations {
   /// No description provided for @manualYoursSummary.
   ///
   /// In en, this message translates to:
-  /// **'Wall, handwriting, Lights off and the widget.'**
+  /// **'Change the look, language, and home-screen widget.'**
   String get manualYoursSummary;
 
   /// No description provided for @manualYoursStep1.
   ///
   /// In en, this message translates to:
-  /// **'Customize (the palette at the top) changes the wall, the handwriting and the pins. Pro ones can be tried on first.'**
+  /// **'Tap the palette at the top to change the wall, handwriting, or pins. Pro styles can be previewed.'**
   String get manualYoursStep1;
 
   /// No description provided for @manualYoursStep2.
   ///
   /// In en, this message translates to:
-  /// **'Lights off, in the More menu, dims the wall for the evening; Customize can switch it on a schedule.'**
+  /// **'More → Lights off dims the wall. Set a schedule in Customize if you like.'**
   String get manualYoursStep2;
 
   /// No description provided for @manualYoursStep3.
   ///
   /// In en, this message translates to:
-  /// **'Home-screen widget, in Settings under General: choose the board and what it lists, then add the widget from your home screen.'**
+  /// **'Settings → General → Home-screen widget: choose a board, then add the widget from your phone’s home screen.'**
   String get manualYoursStep3;
 
   /// No description provided for @manualYoursStep4.
   ///
   /// In en, this message translates to:
-  /// **'The language is in Settings under General too.'**
+  /// **'Settings → General → Language changes the app’s language.'**
   String get manualYoursStep4;
 
   /// No description provided for @manualTabHome.

@@ -66,6 +66,10 @@ Future<Note?> showNoteDialog(
 }) {
   return showDialog<Note>(
     context: context,
+    animationStyle: AnimationStyle(
+      duration: AppMetrics.motion(context, milliseconds: 120),
+      reverseDuration: AppMetrics.motion(context, milliseconds: 90),
+    ),
     builder: (context) => _NoteDialog(
       note: note.clone(),
       isNew: isNew,
