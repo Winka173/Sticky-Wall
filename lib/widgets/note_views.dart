@@ -29,6 +29,8 @@ String paperStyleLabel(AppLocalizations l10n, PaperStyle style) =>
       PaperStyle.dots => l10n.paperDots,
       PaperStyle.indexCard => l10n.paperIndex,
       PaperStyle.notebook => l10n.paperNotebook,
+      PaperStyle.flecks => l10n.paperFlecks,
+      PaperStyle.stitched => l10n.paperStitched,
     };
 
 String paperName(AppLocalizations l10n, int? index) => switch (index) {
@@ -2138,6 +2140,42 @@ class PaperPatternPainter extends CustomPainter {
         final hole = Paint()..color = Colors.black.withValues(alpha: 0.16);
         for (var y = line * 0.9; y < size.height - 8; y += line * 2) {
           canvas.drawCircle(Offset(10, y), 3.2, hole);
+        }
+      case PaperStyle.flecks:
+        // Fixed, irregular little paper fibres: no random work per frame and
+        // no regular dot grid competing with the writing.
+        final fibre = Paint()
+          ..color = AppColors.ink.withValues(alpha: .12)
+          ..strokeWidth = .7
+          ..strokeCap = StrokeCap.round;
+        for (var row = 0, y = 9.0; y < size.height - 4; row++, y += 18) {
+          for (var col = 0, x = 8.0; x < size.width - 4; col++, x += 19) {
+            final seed = (col * 73 + row * 151) % 997;
+            final at = Offset(
+              x + (seed % 11 - 5) * .5,
+              y + ((seed ~/ 11) % 11 - 5) * .45,
+            );
+            canvas.drawLine(at, at + Offset(1.3 + (seed % 5) * .25, .5), fibre);
+          }
+        }
+      case PaperStyle.stitched:
+        // A quiet sewn edge, inset from the text and behind the curled corner.
+        final inset = math.min(7.0, size.shortestSide * .14);
+        final right = size.width - inset;
+        final bottom = size.height - inset;
+        final thread = Paint()
+          ..color = const Color(0xFF805E45).withValues(alpha: .38)
+          ..strokeWidth = 1.1
+          ..strokeCap = StrokeCap.round;
+        for (var x = inset + 3; x < right - 3; x += 8) {
+          final end = math.min(x + 3.5, right - 2);
+          canvas.drawLine(Offset(x, inset), Offset(end, inset), thread);
+          canvas.drawLine(Offset(x, bottom), Offset(end, bottom), thread);
+        }
+        for (var y = inset + 3; y < bottom - 3; y += 8) {
+          final end = math.min(y + 3.5, bottom - 2);
+          canvas.drawLine(Offset(inset, y), Offset(inset, end), thread);
+          canvas.drawLine(Offset(right, y), Offset(right, end), thread);
         }
     }
   }

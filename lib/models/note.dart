@@ -38,16 +38,19 @@ enum PhotoFrame {
 }
 
 /// The ruling printed on a sheet of note paper. Plain is the classic sticky
-/// note; the others are Sticky Wall Pro's.
+/// note; the plain and softly flecked papers are free.
 enum PaperStyle {
   plain,
   lined,
   grid,
   dots,
   indexCard,
-  notebook;
+  notebook,
+  // Append new IDs: names are persisted with the note.
+  flecks,
+  stitched;
 
-  bool get pro => this != plain;
+  bool get pro => this != plain && this != flecks;
 
   /// Ruled across, line by line: these only suit a note of running text,
   /// whose lines they can follow; lists and links take squares or dots.

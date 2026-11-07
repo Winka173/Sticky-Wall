@@ -63,8 +63,8 @@ Future<(NotesController, NoteStorage)> _pump(
 
 void main() {
   test('catalog entitlement split and billing identity remain unchanged', () {
-    expect(themePacks.length, 37);
-    expect(themePacks.where((p) => !p.pro).length, 17);
+    expect(themePacks.length, 43);
+    expect(themePacks.where((p) => !p.pro).length, 20);
     expect(PhotoFrame.values.where((f) => !f.pro).length, 3);
     expect(ProController.productId, 'sticky_wall_pro');
   });

@@ -828,9 +828,7 @@ extension _EditorPieces on _NoteDialogState {
     );
   }
 
-  /// The ruling on the paper: plain, or (with Pro) lined, grid, dots, an
-  /// index card or a notebook page — each shown on a scrap of the note's
-  /// own colour.
+  /// Paper styles on scraps of the note's own colour, free choices first.
   Widget _paperStyles(AppLocalizations l10n, bool pro) {
     final paper = noteColor(_n.colorIndex, _n.guid);
     return Padding(
@@ -839,9 +837,10 @@ extension _EditorPieces on _NoteDialogState {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            for (final style in PaperStyle.values.where(
-              (s) => s.suits(_n.type),
-            ))
+            for (final style in [
+              ...PaperStyle.values.where((s) => !s.pro),
+              ...PaperStyle.values.where((s) => s.pro),
+            ].where((s) => s.suits(_n.type)))
               _paperStyleTile(
                 l10n,
                 style: style,

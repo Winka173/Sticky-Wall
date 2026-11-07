@@ -2864,6 +2864,18 @@ abstract class AppLocalizations {
   /// **'Notebook page'**
   String get paperNotebook;
 
+  /// No description provided for @paperFlecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft flecks'**
+  String get paperFlecks;
+
+  /// No description provided for @paperStitched.
+  ///
+  /// In en, this message translates to:
+  /// **'Stitched edge'**
+  String get paperStitched;
+
   /// No description provided for @typeSticker.
   ///
   /// In en, this message translates to:

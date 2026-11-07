@@ -1564,6 +1564,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get paperNotebook => 'Trang vở';
 
   @override
+  String get paperFlecks => 'Giấy hạt mịn';
+
+  @override
+  String get paperStitched => 'Giấy viền chỉ';
+
+  @override
   String get typeSticker => 'Sticker';
 
   @override

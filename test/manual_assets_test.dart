@@ -453,7 +453,8 @@ void main() {
                 'rev-parse',
                 'HEAD',
               ]).stdout.toString().trim(),
-              'build': '1.5.0+11 / STICKY_SYNC=true',
+              'build':
+                  '${RegExp(r"^version:\s*(\S+)", multiLine: true).firstMatch(File("pubspec.yaml").readAsStringSync())!.group(1)} / STICKY_SYNC=true',
               'method':
                   'Actual StickyWallApp widgets rendered by Flutter; cropped at measured target bounds; highlight drawn over original UI pixels. Fixture data only.',
               'files': manualSourceHashes(),

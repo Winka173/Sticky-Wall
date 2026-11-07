@@ -1586,6 +1586,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paperNotebook => 'Notebook page';
 
   @override
+  String get paperFlecks => 'Soft flecks';
+
+  @override
+  String get paperStitched => 'Stitched edge';
+
+  @override
   String get typeSticker => 'Sticker';
 
   @override

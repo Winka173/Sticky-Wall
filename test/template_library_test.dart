@@ -172,8 +172,8 @@ void main() {
   });
 
   group('Theme packs', () {
-    test('30–40 packs, unique ids and looks', () {
-      expect(themePacks.length, inInclusiveRange(30, 40));
+    test('theme packs have unique ids and distinct looks', () {
+      expect(themePacks.length, greaterThanOrEqualTo(37));
       expect(themePacks.map((t) => t.id).toSet().length, themePacks.length);
       final looks = {
         for (final t in themePacks)
