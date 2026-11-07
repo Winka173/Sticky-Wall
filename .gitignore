@@ -58,3 +58,6 @@ android/fastlane/README.md
 
 # Local review renders and logs (large; not part of the app)
 output/
+
+# Agent skills: restored from skills-lock.json with `npx skills experimental_install`
+.agents/

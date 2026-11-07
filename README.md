@@ -603,18 +603,23 @@ and product rights but no production or financial rights. Ruby 3.3 and the
 `fastlane` gem are needed. From `android/`:
 
 ```sh
+fastlane android publish    # preflight, build (sync on), upload to closed testing, roll out
+fastlane android preflight  # read-only: keystore, release notes, versionCode above Play's
 fastlane android check      # read-only: key works, which codes are on closed testing
 fastlane android build      # flutter build appbundle --release --obfuscate ...
 fastlane android closed     # upload to closed testing as a draft release
 fastlane android internal   # same, internal testing
 fastlane android metadata   # push listing text from fastlane/metadata/android
+fastlane android images     # replace store graphics from fastlane/metadata/android/*/images
 ```
 
-Before an upload, bump `version:` in `pubspec.yaml` and add
+Before a release, bump `version:` in `pubspec.yaml` and add
 `fastlane/metadata/android/{en-US,vi}/changelogs/<versionCode>.txt`
-(≤ 500 characters). Releases arrive as drafts; roll them out in Play Console.
-`tool/play.py check` prints a fuller read-only report (listings, images,
-tracks, testers, the Pro product).
+(≤ 500 characters). `tool/play.py` (`check`, `codes`, `complete`) talks to
+the same API from Python. The full guide is
+[docs/release/PLAY_CONSOLE_API_GUIDE.md](docs/release/PLAY_CONSOLE_API_GUIDE.md).
+It covers setting up a fresh machine, the secrets, store screenshots made with
+the `app-store-screenshots` skill, and a new app on the same account.
 
 ## Assets & credits
 

@@ -8,6 +8,15 @@ from ~/.secrets/play-publisher.json. It never belongs in this repo.
     python tool/play.py upload <aab> <track>  [--name NAME] [--notes FILE]
                                               upload a bundle to a testing track
                                               as a draft release
+    python tool/play.py complete <track> <versionCode>
+                                              roll a draft out: the release with
+                                              that code becomes "completed" (sent
+                                              for review, then live on the track)
+    python tool/play.py codes                 print the highest versionCode ever
+                                              uploaded (the next must be higher)
+
+Tracks: internal, alpha (= closed testing), beta (= open testing). The key
+has no production rights, on purpose.
 
 Every write happens inside an "edit" that is committed only at the end; a
 failed run leaves the console untouched.
@@ -174,6 +183,53 @@ def upload(package: str, aab: str, track: str, name: str | None, notes: str | No
         raise
 
 
+def complete(package: str, track: str, code: str) -> None:
+    """Rolls the release holding [code] out to everyone on [track].
+
+    Older releases on the track are dropped from it: the new one replaces
+    them, as rolling out in Play Console would.
+    """
+    api = service()
+    edits = api.edits()
+    eid = edits.insert(packageName=package, body={}).execute()['id']
+    try:
+        t = edits.tracks().get(packageName=package, editId=eid, track=track).execute()
+        before = [(r.get('versionCodes'), r.get('status')) for r in t.get('releases', [])]
+        print(f'{track} before: {before}')
+        keep = [r for r in t.get('releases', []) if code in r.get('versionCodes', [])]
+        if not keep:
+            sys.exit(f'No release with versionCode {code} on {track}.')
+        for r in keep:
+            r['status'] = 'completed'
+            r.pop('userFraction', None)
+        t['releases'] = keep
+        edits.tracks().update(packageName=package, editId=eid, track=track, body=t).execute()
+        edits.commit(packageName=package, editId=eid).execute()
+    except BaseException:
+        try:
+            edits.delete(packageName=package, editId=eid).execute()
+        except HttpError:
+            pass
+        raise
+    eid = edits.insert(packageName=package, body={}).execute()['id']
+    t = edits.tracks().get(packageName=package, editId=eid, track=track).execute()
+    print(f"{track} after: {[(r.get('versionCodes'), r.get('status'), r.get('name')) for r in t.get('releases', [])]}")
+    edits.delete(packageName=package, editId=eid).execute()
+
+
+def codes(package: str) -> None:
+    """Prints the highest versionCode Play has ever seen for the app."""
+    api = service()
+    edits = api.edits()
+    eid = edits.insert(packageName=package, body={}).execute()['id']
+    try:
+        b = edits.bundles().list(packageName=package, editId=eid).execute()
+        seen = [x['versionCode'] for x in b.get('bundles', [])]
+        print(max(seen) if seen else 0)
+    finally:
+        edits.delete(packageName=package, editId=eid).execute()
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest='cmd', required=True)
@@ -185,9 +241,19 @@ def main() -> None:
     u.add_argument('--package', default=DEFAULT_PACKAGE)
     u.add_argument('--name')
     u.add_argument('--notes', help='JSON list of {"language", "text"}')
+    r = sub.add_parser('complete')
+    r.add_argument('track')
+    r.add_argument('code')
+    r.add_argument('--package', default=DEFAULT_PACKAGE)
+    k = sub.add_parser('codes')
+    k.add_argument('--package', default=DEFAULT_PACKAGE)
     a = p.parse_args()
     if a.cmd == 'check':
         check(a.package)
+    elif a.cmd == 'complete':
+        complete(a.package, a.track, a.code)
+    elif a.cmd == 'codes':
+        codes(a.package)
     else:
         upload(a.package, a.aab, a.track, a.name, a.notes)
 
