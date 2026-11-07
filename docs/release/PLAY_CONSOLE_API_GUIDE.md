@@ -3,8 +3,9 @@
 This is the one document to read before you build, publish or change the store
 listing. It covers a fresh machine, the secrets, the one-command release, store
 screenshots, a brand-new app on the same account, what still has to be done
-by hand in the Play Console web UI, and setting up sync across devices (Google
-Drive) for Android and iOS (section 10).
+by hand in the Play Console web UI, setting up sync across devices (Google
+Drive) for Android and iOS (section 10), and how every app handles in-app
+purchases (section 11: trust Google Play's answer, no licensing key).
 
 Sticky Wall (`com.apps.winka.stickywall`) is the working reference. Copy
 `android/fastlane/` and `tool/play.py` from it for another app.
@@ -334,7 +335,8 @@ How to use it for Sticky Wall:
 - **Store settings:** category, tags, contact details, external marketing.
 - **Money:** merchant profile, prices, promo codes, license testers. In-app
   products can be created only after a bundle with the billing permission
-  is uploaded.
+  is uploaded. The app's code follows section 11; the licensing key on the
+  *Monetization setup* page is not used.
 - **Testers:** the closed-testing tester list or Google Group, and the
   opt-in link.
 - **Production:** releasing to production, and applying for production
@@ -371,6 +373,8 @@ How to use it for Sticky Wall:
   - listing text, graphics and products need their own ask.
 - Production stays manual. The key deliberately cannot do it.
 - Never delete or "clean up" releases, testers or products through the API.
+- In-app purchases trust Google Play's answer (section 11). No licensing key,
+  no on-device signature check, and buying is never disabled for a missing key.
 
 ---
 
@@ -498,3 +502,63 @@ never reach Android.
 | Works on Android, iPhone sees no data | iOS client created in a different Cloud project | Recreate it in the same project |
 | iOS crashes or returns at once when signing in | `GIDClientID` or URL scheme missing from `Info.plist` | 10.2 step 2 |
 | Sync row missing | Build made without `STICKY_SYNC=true`, or iOS (not enabled yet) | Rebuild with the define; 10.2 |
+
+---
+
+## 11. In-app purchases: trust Google Play's answer (every Winka Studio app)
+
+**Decided by the owner, for every app on this account:** an app unlocks a
+purchase when **Google Play says it is bought**, through Flutter's
+`in_app_purchase` plugin. There is **no on-device signature check** with the
+app's licensing key and **no purchase server**. Sticky Wall
+(`lib/services/pro_controller.dart`) is the reference.
+
+### Do
+
+- Products are one-time and non-consumable (Sticky Wall: `sticky_wall_pro`).
+- Listen to `purchaseStream` before anything else; then load the product with
+  `queryProductDetails` and call `restorePurchases()` at start.
+- Unlock on `purchased` or `restored`, but only when the Play purchase state is
+  really *purchased*. Google reports a purchase still waiting for cash or a
+  bank transfer as "restored" too; show that one as **pending** (Sticky Wall:
+  `ProController._settled`).
+- Call `completePurchase` for every purchase that needs it and is not pending.
+  Play refunds a purchase that is not acknowledged within 3 days.
+- Keep the unlock cached on the device, so the app works offline.
+- Revoke only on a **clear "no"** from Play (`queryPastPurchases` no longer
+  lists it: refund, cancelled order). Offline, an error or Play missing keeps
+  the unlock. Never stop rendering what the user already made with paid
+  things; stop only choosing them.
+- The buy button depends only on the product having loaded from Play. When it
+  has not (no Play, offline, product not yet active), say so and let the user
+  try again.
+- Test with **license testers** (Play Console → *Settings → License
+  testing*) on a build installed from a testing track.
+
+### Don't
+
+- **Don't add signature verification** with the "Base64-encoded RSA public
+  key" from *Monetize with Play → Monetization setup → Licensing*.
+- **Don't ask the owner for that key**, and don't put it in code, config,
+  `--dart-define`s or local store files.
+- **Never disable or hide the buy button because a key or setting is
+  missing.** That locks out paying customers: the one failure that costs real
+  money.
+- Don't build a purchase server or call the Play Developer API's purchase
+  endpoints from the app. The service account cannot read orders anyway.
+
+### Why
+
+- On-device verification stops only casual purchase-faking tools. Anyone who
+  can root a phone can also patch the check out of the app.
+- A wrong or missing key breaks buying for every real customer.
+- Prices are small one-time unlocks; the apps are local-first, with no server.
+- Real protection would need a server asking Google about each purchase. That
+  is a separate decision for the owner, not something to add on the side.
+
+### An app that already has a signature check
+
+Remove it: the verification code, the key setting and its build or config
+plumbing, and any rule that disables buying when the key is missing. Keep
+everything in **Do** above. Test that a license tester can buy, restore after
+reinstalling, and keep the unlock offline.

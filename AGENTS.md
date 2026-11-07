@@ -31,6 +31,8 @@
   4. Run `cd android && fastlane android publish`. It checks, builds with sync,
      uploads to closed testing and rolls out.
 - Production stays manual: the service account cannot release to it.
+- In-app purchases trust Google Play's answer through `in_app_purchase`:
+  no licensing (RSA) key and no on-device signature check (guide section 11).
 - Secrets stay outside the repo and are never printed:
   `~/.secrets/play-publisher.json`, the upload keystore, and the gitignored
   `android/key.properties`.

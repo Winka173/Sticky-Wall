@@ -101,6 +101,8 @@ adb -s <device> install -r build/app/outputs/flutter-apk/app-release.apk
   images`, `tool/play.py codes | complete`, the full Play guide, and the
   `app-store-screenshots` skill pinned in `skills-lock.json`.
 - **Sync docs** (`5536b37`): Play guide section 10.
+- **Purchases**: Play guide section 11, how every app handles in-app
+  purchases.
 
 ## 6. Open items
 
@@ -136,7 +138,9 @@ Not done in code:
   `app-store-screenshots` skill yet (Play guide section 5). The current Play
   images are the older ones. Uploading new ones (`fastlane android images`)
   replaces all of them, so it needs the owner's go-ahead.
-- Pro is not revoked after a refund (left this way on purpose).
+- Purchases trust Google Play's answer, with no signature check and no
+  server: the owner's decision for every app (Play guide section 11). A refund
+  takes Pro away on the next start, once Play clearly says so.
 - No encryption of locked boards; they are a UI lock, and the privacy policy
   says so.
 - No background sync while the app is closed; no field-level merge (a whole
