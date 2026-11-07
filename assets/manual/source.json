@@ -1,6 +1,6 @@
 {
-  "sourceCommit": "fcd8f781acca5344b451559ffd3e604f838e85b7",
-  "build": "1.5.1+12 / STICKY_SYNC=true",
+  "sourceCommit": "7452e8f72b567ee8c04c8f46364680ca0c6a7131",
+  "build": "1.5.2+13 / STICKY_SYNC=true",
   "method": "Actual StickyWallApp widgets rendered by Flutter; cropped at measured target bounds; highlight drawn over original UI pixels. Fixture data only.",
   "files": {
     "lib/l10n/app_en.arb": "341e6e4f434c86bfdf7eed6ed529fd2cbd6900072b5e285b3b1e80e106cfea38",
