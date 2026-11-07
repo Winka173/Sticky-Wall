@@ -83,12 +83,14 @@ String _markerName(AppLocalizations l10n, int i) => switch (i) {
 /// A colour choice in a sheet (paper colours, yarn colours).
 class _Swatch extends StatelessWidget {
   const _Swatch({
+    super.key,
     required this.name,
     required this.color,
     required this.onTap,
     this.auto = false,
     this.selected = false,
     this.locked = false,
+    this.mixed = false,
   });
 
   final String name;
@@ -96,6 +98,10 @@ class _Swatch extends StatelessWidget {
   final VoidCallback onTap;
   final bool auto;
   final bool selected;
+
+  /// Any colour at all (Sticky Wall Pro): a rainbow, with the colour mixed
+  /// last in its middle once one is chosen.
+  final bool mixed;
 
   /// A Pro paper without Pro: marked, and tapping it offers Pro.
   final bool locked;
@@ -115,7 +121,19 @@ class _Swatch extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: color,
+              color: mixed ? null : color,
+              gradient: mixed
+                  ? const SweepGradient(
+                      colors: [
+                        Color(0xFFE53935),
+                        Color(0xFFFDD835),
+                        Color(0xFF43A047),
+                        Color(0xFF1E88E5),
+                        Color(0xFF8E24AA),
+                        Color(0xFFE53935),
+                      ],
+                    )
+                  : null,
               shape: BoxShape.circle,
               border: selected
                   ? Border.all(color: AppColors.ink, width: 3)
@@ -135,6 +153,18 @@ class _Swatch extends StatelessWidget {
                     Icons.lock_outline,
                     size: 16,
                     color: AppColors.inkSoft,
+                  )
+                : mixed && selected
+                ? Center(
+                    child: Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.chalk, width: 2),
+                      ),
+                    ),
                   )
                 : null,
           ),
@@ -217,6 +247,28 @@ class _ThreadSheetState extends State<_ThreadSheet> {
                         ? () => showProSheet(context)
                         : () => _apply(_link.copyWith(color: c)),
                   ),
+                // Any colour, mixed as on the wall's pen (Sticky Wall Pro).
+                _Swatch(
+                  key: const Key('thread-any-color'),
+                  name: l10n.inkCustom,
+                  color: color,
+                  mixed: true,
+                  selected:
+                      _link.color != null &&
+                      !AppColors.yarns.contains(_link.color),
+                  locked: !pro,
+                  onTap: !pro
+                      ? () => showProSheet(context)
+                      : () async {
+                          final c = await showInkColorDialog(
+                            context,
+                            wall: const Color(0xFFB98B5E),
+                            initial: color,
+                          );
+                          if (c == null || !mounted) return;
+                          _apply(_link.copyWith(color: c));
+                        },
+                ),
               ],
             ),
             const SizedBox(height: 12),

@@ -862,7 +862,7 @@ void main() {
     );
   });
 
-  testWidgets('double-tapping a note zooms the wall onto it and back', (
+  testWidgets('Zoom to note in its menu zooms the wall onto it and back', (
     tester,
   ) async {
     await _pumpApp(
@@ -882,16 +882,18 @@ void main() {
     final reset = find.byTooltip('Reset zoom');
     expect(reset, findsNothing, reason: 'camera at rest: no reset button');
 
-    await tester.tap(find.text('Focus me'));
-    await tester.pump(const Duration(milliseconds: 80));
-    await tester.tap(find.text('Focus me'));
+    await tester.longPress(find.text('Focus me'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Zoom to note'));
+    await tester.tap(find.text('Zoom to note'));
     await tester.pumpAndSettle();
     expect(reset, findsOneWidget, reason: 'zoomed in');
     expect(find.byType(TextField), findsNothing, reason: 'no editor opened');
 
-    await tester.tap(find.text('Focus me'));
-    await tester.pump(const Duration(milliseconds: 80));
-    await tester.tap(find.text('Focus me'));
+    await tester.longPress(find.text('Focus me'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Zoom to note'));
+    await tester.tap(find.text('Zoom to note'));
     await tester.pumpAndSettle();
     expect(reset, findsNothing, reason: 'back out');
   });
@@ -1265,6 +1267,8 @@ void main() {
     await tester.tapAt((pa + pb) / 2 + Offset(0, sag / 2));
     await tester.pumpAndSettle();
     expect(find.text('Thread'), findsOneWidget);
+    // Any colour, as for the wall's pen: the rainbow after the yarns.
+    expect(find.byKey(const Key('thread-any-color')), findsOneWidget);
 
     await tester.tap(find.byType(SwitchListTile));
     await tester.pumpAndSettle();
