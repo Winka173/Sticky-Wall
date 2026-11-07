@@ -563,9 +563,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetZoom => 'Reset zoom';
 
   @override
-  String get zoomToNote => 'Zoom to note';
-
-  @override
   String get wallDecor => 'Wall stains & marks';
 
   @override
@@ -796,7 +793,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipWallBody =>
-      'Long-press an empty spot to stick a note or photos there. Pinch to zoom, or long-press a note and choose Zoom to note. The frame button shows everything.';
+      'Long-press an empty spot to stick a note or photos there. Pinch to zoom, or double-tap the wall to zoom back. The frame button shows everything.';
 
   @override
   String get tipDropTitle => 'Move to another board';
@@ -1262,24 +1259,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get photoPickFailed => 'Couldn\'t open that photo';
 
   @override
-  String get sizeAndTurn => 'Size and turn';
-
-  @override
-  String get smaller => 'Smaller';
-
-  @override
-  String get larger => 'Larger';
-
-  @override
-  String get turnLeft => 'Turn left';
-
-  @override
-  String get turnRight => 'Turn right';
-
-  @override
-  String get straighten => 'Straighten';
-
-  @override
   String get tieThreadTo => 'Tie a thread to…';
 
   @override
@@ -1324,7 +1303,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get unstack => 'Spread out';
+  String get unstack => 'Unstack all';
+
+  @override
+  String get takeOutOfStack => 'Take out of the stack';
 
   @override
   String otherBoardsMatches(int count) {

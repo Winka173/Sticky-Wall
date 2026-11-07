@@ -554,9 +554,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get resetZoom => 'Về cỡ gốc';
 
   @override
-  String get zoomToNote => 'Phóng to ghi chú';
-
-  @override
   String get wallDecor => 'Vết ố & dấu vết trên tường';
 
   @override
@@ -779,7 +776,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get tipWallBody =>
-      'Nhấn giữ chỗ trống để dán ghi chú hoặc ảnh tại đó. Chụm hai ngón để thu phóng, hoặc nhấn giữ ghi chú rồi chọn Phóng to ghi chú. Nút khung hiện toàn cảnh.';
+      'Nhấn giữ chỗ trống để dán ghi chú hoặc ảnh tại đó. Chụm hai ngón để thu phóng, chạm đúp lên tường để thu về. Nút khung hiện toàn cảnh.';
 
   @override
   String get tipDropTitle => 'Chuyển sang bảng khác';
@@ -1242,24 +1239,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get photoPickFailed => 'Không mở được ảnh đó';
 
   @override
-  String get sizeAndTurn => 'Cỡ và góc xoay';
-
-  @override
-  String get smaller => 'Nhỏ lại';
-
-  @override
-  String get larger => 'To lên';
-
-  @override
-  String get turnLeft => 'Xoay trái';
-
-  @override
-  String get turnRight => 'Xoay phải';
-
-  @override
-  String get straighten => 'Để thẳng';
-
-  @override
   String get tieThreadTo => 'Nối dây tới…';
 
   @override
@@ -1303,7 +1282,10 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get unstack => 'Trải ra';
+  String get unstack => 'Tách hết khỏi chồng';
+
+  @override
+  String get takeOutOfStack => 'Rút khỏi chồng';
 
   @override
   String otherBoardsMatches(int count) {

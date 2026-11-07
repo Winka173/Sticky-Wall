@@ -909,7 +909,7 @@ class _Frame extends StatelessWidget {
         (Icons.edit_outlined, l10n.edit),
         (Icons.inventory_2_outlined, l10n.archiveNote),
         (Icons.anchor, l10n.lockInPlace),
-        (Icons.open_in_full, l10n.sizeAndTurn),
+        (Icons.layers_outlined, l10n.stackNotes),
         (Icons.timeline, l10n.tieThreadTo),
         (Icons.checklist_rtl, l10n.select),
       ],

@@ -1076,12 +1076,6 @@ abstract class AppLocalizations {
   /// **'Reset zoom'**
   String get resetZoom;
 
-  /// No description provided for @zoomToNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Zoom to note'**
-  String get zoomToNote;
-
   /// No description provided for @wallDecor.
   ///
   /// In en, this message translates to:
@@ -1463,7 +1457,7 @@ abstract class AppLocalizations {
   /// No description provided for @tipWallBody.
   ///
   /// In en, this message translates to:
-  /// **'Long-press an empty spot to stick a note or photos there. Pinch to zoom, or long-press a note and choose Zoom to note. The frame button shows everything.'**
+  /// **'Long-press an empty spot to stick a note or photos there. Pinch to zoom, or double-tap the wall to zoom back. The frame button shows everything.'**
   String get tipWallBody;
 
   /// No description provided for @tipDropTitle.
@@ -2276,42 +2270,6 @@ abstract class AppLocalizations {
   /// **'Couldn\'t open that photo'**
   String get photoPickFailed;
 
-  /// No description provided for @sizeAndTurn.
-  ///
-  /// In en, this message translates to:
-  /// **'Size and turn'**
-  String get sizeAndTurn;
-
-  /// No description provided for @smaller.
-  ///
-  /// In en, this message translates to:
-  /// **'Smaller'**
-  String get smaller;
-
-  /// No description provided for @larger.
-  ///
-  /// In en, this message translates to:
-  /// **'Larger'**
-  String get larger;
-
-  /// No description provided for @turnLeft.
-  ///
-  /// In en, this message translates to:
-  /// **'Turn left'**
-  String get turnLeft;
-
-  /// No description provided for @turnRight.
-  ///
-  /// In en, this message translates to:
-  /// **'Turn right'**
-  String get turnRight;
-
-  /// No description provided for @straighten.
-  ///
-  /// In en, this message translates to:
-  /// **'Straighten'**
-  String get straighten;
-
   /// No description provided for @tieThreadTo.
   ///
   /// In en, this message translates to:
@@ -2387,8 +2345,14 @@ abstract class AppLocalizations {
   /// No description provided for @unstack.
   ///
   /// In en, this message translates to:
-  /// **'Spread out'**
+  /// **'Unstack all'**
   String get unstack;
+
+  /// No description provided for @takeOutOfStack.
+  ///
+  /// In en, this message translates to:
+  /// **'Take out of the stack'**
+  String get takeOutOfStack;
 
   /// No description provided for @otherBoardsMatches.
   ///

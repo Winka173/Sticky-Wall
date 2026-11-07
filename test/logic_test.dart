@@ -553,6 +553,13 @@ void main() {
       expect(a.x == b.x && a.y == b.y, isFalse, reason: 'fanned out');
 
       expect(c.duplicate(a).stack, isNull, reason: 'copies lie alone');
+
+      c.stackNotes([a, b]);
+      c.takeOutOfStack(a);
+      expect((a.stack, b.stack), (null, null), reason: 'one left: no pile');
+      expect(a.x == b.x && a.y == b.y, isFalse, reason: 'laid beside it');
+      c.undoWall();
+      expect(a.stack, isNotNull, reason: 'Undo puts it back on the pile');
     });
 
     test('search counts what it finds on the other walls', () async {

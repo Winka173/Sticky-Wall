@@ -1000,12 +1000,15 @@ class StickyNoteCard extends StatelessWidget {
     this.maxContentLines = 6,
     this.captureKey,
     this.rotated = true,
-    this.stackCount = 1,
+    this.pile = const [],
   });
 
-  /// How many notes lie in this card's pile, itself included. Above one the
-  /// card draws the sheets under it peeking out, and a count to open them.
-  final int stackCount;
+  /// The notes of the stack this card tops, itself included, bottom first.
+  /// With more than one the card fans the two under it out from behind, each
+  /// in its own paper, and wears a count that opens them.
+  final List<Note> pile;
+
+  int get stackCount => pile.length;
 
   final Note note;
   final NoteCallbacks cb;
@@ -1113,37 +1116,48 @@ class StickyNoteCard extends StatelessWidget {
     return NoteTurn(angle: note.pinned ? 0 : noteTilt(note), child: said);
   }
 
-  /// The card on top of its stack: two sheets of the pile peek out below
-  /// and to the side, a little askew, and a count on the corner opens them.
+  /// The card on top of its stack: the next two notes down fan out from
+  /// behind it, turned either way and each in its own paper, so a pile reads
+  /// as several notes at a glance; a count on the corner opens them.
   Widget _pile(BuildContext context, Widget paper) {
-    final under = paperColorOf(context, note.colorIndex, note.guid);
-    Widget sheet(double dx, double dy, double turn) => Positioned.fill(
-      child: Transform.translate(
-        offset: Offset(dx, dy),
-        child: Transform.rotate(
-          angle: turn,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: Color.lerp(under, Colors.black, 0.12),
-              borderRadius: BorderRadius.circular(AppRadii.paper),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 3,
-                  offset: Offset(0, 1.5),
-                ),
-              ],
+    final under = [
+      for (final n in pile.reversed)
+        if (n.guid != note.guid) n,
+    ].take(2).toList();
+    Widget sheet(Note n, double dx, double dy, double turn) {
+      final color = n.type == NoteType.photo
+          ? AppColors.chalk
+          : paperColorOf(context, n.colorIndex, n.guid);
+      return Positioned.fill(
+        child: Transform.translate(
+          offset: Offset(dx, dy),
+          child: Transform.rotate(
+            angle: turn,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(AppRadii.paper),
+                border: Border.all(color: Colors.black12),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black38,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
     final l10n = AppLocalizations.of(context);
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        if (stackCount > 2) sheet(10, 10, 0.04),
-        sheet(5, 6, -0.03),
+        if (under.length > 1) sheet(under[1], 12, 14, 0.09),
+        if (under.isNotEmpty) sheet(under[0], -10, 9, -0.07),
         paper,
         // Top right: the bottom corners belong to the resize and turn grips.
         Positioned(

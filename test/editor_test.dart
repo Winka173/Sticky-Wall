@@ -862,40 +862,59 @@ void main() {
     );
   });
 
-  testWidgets('Zoom to note in its menu zooms the wall onto it and back', (
+  testWidgets('a stack shows its notes and gives them back one by one', (
     tester,
   ) async {
-    await _pumpApp(
+    final notes = await _pumpApp(
       tester,
       viewMode: ViewMode.wall,
       notes: [
-        Note(
-          guid: 'a',
-          content: 'Focus me',
-          createdAt: DateTime(2026),
-          boardId: 'default',
-          x: 0.3,
-          y: 0.3,
-        ),
+        for (final (i, word) in ['Low', 'Mid', 'Top'].indexed)
+          Note(
+            guid: word,
+            content: word,
+            createdAt: DateTime(2026),
+            boardId: 'default',
+            colorIndex: i,
+            x: 0.3,
+            y: 0.3,
+            stack: 's',
+          ),
       ],
     );
-    final reset = find.byTooltip('Reset zoom');
-    expect(reset, findsNothing, reason: 'camera at rest: no reset button');
+    final card = tester.widget<StickyNoteCard>(
+      find.ancestor(
+        of: find.text('Top'),
+        matching: find.byType(StickyNoteCard),
+      ),
+    );
+    expect(card.pile.map((n) => n.guid), ['Low', 'Mid', 'Top']);
+    expect(find.text('Mid'), findsNothing, reason: 'folded under the top');
 
-    await tester.longPress(find.text('Focus me'));
+    await tester.tap(find.bySemanticsLabel('3 notes in this stack'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Zoom to note'));
-    await tester.tap(find.text('Zoom to note'));
+    await tester.tap(find.byKey(const Key('stack-take-out-Mid')));
     await tester.pumpAndSettle();
-    expect(reset, findsOneWidget, reason: 'zoomed in');
-    expect(find.byType(TextField), findsNothing, reason: 'no editor opened');
+    final mid = notes.boardNotes.firstWhere((n) => n.guid == 'Mid');
+    expect(mid.stack, isNull);
+    expect(mid.x, isNot(0.3), reason: 'laid beside the pile');
+    expect(
+      notes.stackOf(notes.boardNotes.firstWhere((n) => n.guid == 'Top')).length,
+      2,
+    );
+    expect(find.text('Mid'), findsOneWidget);
 
-    await tester.longPress(find.text('Focus me'));
+    await tester.tap(find.bySemanticsLabel('2 notes in this stack'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Zoom to note'));
-    await tester.tap(find.text('Zoom to note'));
+    expect(find.text('Unstack all'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('stack-take-out-Low')));
     await tester.pumpAndSettle();
-    expect(reset, findsNothing, reason: 'back out');
+    expect(
+      notes.boardNotes.every((n) => n.stack == null),
+      isTrue,
+      reason: 'a pile of one is no stack',
+    );
+    expect(find.text('Low'), findsOneWidget);
   });
 
   testWidgets('a lasso drawn round notes in select mode picks them up', (
@@ -1447,11 +1466,14 @@ void main() {
         ),
       ],
     );
-    // Zoom in on A (so there is a "part in view") and select A.
-    await tester.longPress(find.text('Aa'));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Zoom to note'));
-    await tester.tap(find.text('Zoom to note'));
+    // Nudge the wall along (so there is a "part in view"), then select A.
+    final wall = tester.getRect(find.byType(InteractiveViewer));
+    final g = await tester.startGesture(wall.center + const Offset(0, 200));
+    await g.moveBy(const Offset(40, 40));
+    await tester.pump();
+    await g.moveBy(const Offset(40, 40));
+    await tester.pump();
+    await g.up();
     await tester.pumpAndSettle();
     await tester.longPress(find.text('Aa'));
     await tester.pumpAndSettle();

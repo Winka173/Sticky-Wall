@@ -1416,7 +1416,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         notesThisWay: _l10n.notesThisWay,
         rotateTooltip: _l10n.rotate,
         resizeTooltip: _l10n.resize,
-        stackSizeOf: (n) => _notes.stackOf(n).length,
+        stackOf: _notes.stackOf,
         emptyHint: _emptyState(wall, tip: _l10n.wallCreateHint),
         // The wall fills the body: notes pan under the header rows and the
         // system bar, while its resting view stays between them.

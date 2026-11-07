@@ -1,13 +1,13 @@
 {
-  "sourceCommit": "1139435314ad4f2360d36a94bc0d499c906a9ddc",
+  "sourceCommit": "9bfe6fe194dd383c8aec5a9d88db1c0874d8f4b1",
   "build": "1.5.1+12 / STICKY_SYNC=true",
   "method": "Actual StickyWallApp widgets rendered by Flutter; cropped at measured target bounds; highlight drawn over original UI pixels. Fixture data only.",
   "files": {
-    "lib/l10n/app_en.arb": "c16d479be2fe91bda72f81569a9741d67d319f248c794efe3114e9f1c47d838e",
-    "lib/l10n/app_vi.arb": "b48009ae4a2569c2079ff0737e007e612e1e6cbbb485d977b5141688f6aab5f5",
+    "lib/l10n/app_en.arb": "341e6e4f434c86bfdf7eed6ed529fd2cbd6900072b5e285b3b1e80e106cfea38",
+    "lib/l10n/app_vi.arb": "095eaba92df2f5d5adf02218a78eb43f823bdb121cc062d69c41500e4a0eb7b6",
     "lib/screens/gallery_screen.dart": "1bd5df07adfc03f556138e9ce2048e4a4eca4a79344dd3697463216a15e209a4",
-    "lib/screens/home_screen.dart": "6bc1af2abbf78543ceb7345db0910f0d6e3ff6dc7aaec7e82eef5ccaebfb68a2",
-    "lib/screens/home_screen_actions.dart": "3d75d8d6e10a18ce809926c570009dc9e96db959c8ef4a8b6d7a32fb00d649a7",
+    "lib/screens/home_screen.dart": "630f9138dda09ca3d3ac5839286ff4f0ee5c7df3f650a7c9f2c526cfb7b69d66",
+    "lib/screens/home_screen_actions.dart": "62f74af456108451d65559da78fde25e3147a960544cd448fc0badb528497cbc",
     "lib/screens/home_screen_chrome.dart": "91072ec0a0e074f7fe7c6505e51c40248922acf802905ef549d7c1bddc286bcb",
     "lib/screens/home_screen_widgets.dart": "d743a4aeaf955bdcccac5de5bb3c0799ae19afcec36d85ca278f2502dbfdc053",
     "lib/screens/memory_wall_sheet.dart": "13bc0694aa8ab100ced5901eae30e0f80bafe0e310193f6cbfdda2be8e6c90d1",
@@ -28,7 +28,7 @@
     "lib/widgets/lock_gate.dart": "20127b792f75577bfa516023f24be31ccca2da63385427fe56dd731601da6ba9",
     "lib/widgets/note_dialog.dart": "518899079c084dad78d5ed78d797d4ef739c93a6803c080d633a1a533890de51",
     "lib/widgets/note_dialog_pieces.dart": "edd560f6659a71eb83b3baec2e3e01c86b8aac6ba7cf0446aee88da8bd2affc9",
-    "lib/widgets/note_views.dart": "a6442e948d3aea7281b0fa3320ba5bce3deedfbdd4e12d61a3505bfbb795d93d",
+    "lib/widgets/note_views.dart": "34e1887e9dfff5931e0c62cedab55e9160862e42ea74a316ad78132af88a3cd2",
     "lib/widgets/paper_choice_chip.dart": "0442bc94a545a4030037715de0ca4272902c04c15ebf70a46a95cbaad5280309",
     "lib/widgets/paper_color_dialog.dart": "9c6d7bb68a0bcf2d826ca60c1071814900ebec6235c4e97aee2e284a5746f7f0",
     "lib/widgets/peel_away.dart": "c2e1ae4254831863a4afa53a8b6a7d1a1c07a4d8f991143d437a33ff56f189b0",
@@ -43,7 +43,7 @@
     "lib/widgets/thread_style.dart": "c1c404f4a2328de3d0f4de85e5dbff68e8524c8758927d8ed86f53491e1ca0aa",
     "lib/widgets/wall_background.dart": "7ba3d40b8ed87710c02e5fd168ba12b03eb48e84ab5de59448025dd3fd30906a",
     "lib/widgets/wall_decor.dart": "929a3831009e9a0154026d5355c71347a15701426ed700e7ed15bcedb7352cde",
-    "lib/widgets/wall_view.dart": "c56c7c1e6adb9cfed030736a8e970a29e79751121df3d18cb0daa362ec182172",
+    "lib/widgets/wall_view.dart": "609c6e57e107d264bafe2726d65f43989ed5127bc548a03f119eacd5b7f64572",
     "lib/widgets/wall_view_parts.dart": "9b67cfeba316874ae89d77e673c06e919cf3d45ab8833a9a9eb4bf0c483e1d7a",
     "lib/widgets/widget_settings_sheet.dart": "8307ba8be76d17429c19c1637de7bc98cb122ede9a10897c0fae6ce22eb51a37"
   }

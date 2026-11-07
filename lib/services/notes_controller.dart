@@ -30,6 +30,7 @@ class _Placement {
       y = note.y,
       scale = note.scale,
       rotation = note.rotation,
+      stack = note.stack,
       boardId = note.boardId;
 
   final Note note;
@@ -37,6 +38,7 @@ class _Placement {
   final double y;
   final double scale;
   final double? rotation;
+  final String? stack;
   final String boardId;
 
   /// Puts the note back — onto its old board too, unless that is gone.
@@ -45,7 +47,8 @@ class _Placement {
       ..x = x
       ..y = y
       ..scale = scale
-      ..rotation = rotation;
+      ..rotation = rotation
+      ..stack = stack;
     if (boards.any((b) => b.id == boardId)) note.boardId = boardId;
   }
 }
@@ -1571,6 +1574,31 @@ class NotesController extends ChangeNotifier {
         ..x = _onWall(note.x + i * 0.07)
         ..y = _onWall(note.y + i * 0.05);
     }
+    _persistNotes();
+    notifyListeners();
+  }
+
+  /// Lifts [note] off its stack and lays it beside the pile, clear of it
+  /// (toward the roomier side); a pile left with a single note is no stack
+  /// any more.
+  void takeOutOfStack(Note note) {
+    if (note.stack == null) return;
+    final pile = stackOf(note);
+    _rememberWall(WallEditKind.move, pile);
+    final left = [
+      for (final n in pile)
+        if (n != note) n,
+    ];
+    note
+      ..stack = null
+      ..x = _onWall(note.x + (note.x < 0.55 ? 0.45 : -0.45))
+      ..y = _onWall(note.y + 0.04);
+    if (left.length < 2) {
+      for (final n in left) {
+        n.stack = null;
+      }
+    }
+    _bringToFront(note);
     _persistNotes();
     notifyListeners();
   }

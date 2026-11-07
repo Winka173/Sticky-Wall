@@ -193,7 +193,7 @@ class WallView extends StatefulWidget {
     this.notesThisWay,
     this.rotateTooltip = 'Rotate',
     this.resizeTooltip = 'Resize',
-    this.stackSizeOf,
+    this.stackOf,
     this.still = false,
     this.topInset = 0,
     this.bottomInset = 0,
@@ -291,8 +291,9 @@ class WallView extends StatefulWidget {
   final String rotateTooltip;
   final String resizeTooltip;
 
-  /// How many notes lie in a card's stack (see Note.stack); null: none do.
-  final int Function(Note note)? stackSizeOf;
+  /// The notes of a card's stack, bottom first (see Note.stack); null:
+  /// none stack.
+  final List<Note> Function(Note note)? stackOf;
 
   /// A still render of the board (the export): complete on its first frame
   /// with no entrance animation, no grips, and cards turned near the edge
@@ -1921,7 +1922,7 @@ class _WallViewState extends State<WallView>
                           maxContentLines: 6,
                           captureKey: widget.captureKeys?[note.guid],
                           rotated: false,
-                          stackCount: widget.stackSizeOf?.call(note) ?? 1,
+                          pile: widget.stackOf?.call(note) ?? const [],
                         ),
                         if (!widget.still)
                           Positioned(

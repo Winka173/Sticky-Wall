@@ -32,7 +32,8 @@ extension _NoteActions on _HomeScreenState {
     onOpenStack: note.stack == null ? null : () => _openStack(note),
   );
 
-  /// A stack's cards, top first: tap one to edit it, or spread them out.
+  /// A stack's cards, top first: tap one to edit it, take one out, or
+  /// unstack them all.
   Future<void> _openStack(Note note) async {
     final l10n = _l10n;
     final pile = _notes.stackOf(note).reversed.toList();
@@ -51,10 +52,17 @@ extension _NoteActions on _HomeScreenState {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
+            trailing: IconButton(
+              key: Key('stack-take-out-${n.guid}'),
+              tooltip: l10n.takeOutOfStack,
+              icon: const Icon(Icons.output),
+              onPressed: () => Navigator.pop(context, ('out', n)),
+            ),
             onTap: () => Navigator.pop(context, n),
           ),
         const Divider(height: 1),
         ListTile(
+          key: const Key('stack-unstack'),
           leading: const Icon(Icons.call_split),
           title: Text(l10n.unstack),
           onTap: () => Navigator.pop(context, 'unstack'),
@@ -62,11 +70,15 @@ extension _NoteActions on _HomeScreenState {
       ],
     );
     if (!mounted) return;
-    if (choice == 'unstack') {
-      unawaited(HapticFeedback.lightImpact());
-      _notes.unstack(note);
-    } else if (choice is Note) {
-      await _openEditor(choice, isNew: false);
+    switch (choice) {
+      case 'unstack':
+        unawaited(HapticFeedback.lightImpact());
+        _notes.unstack(note);
+      case ('out', final Note n):
+        unawaited(HapticFeedback.lightImpact());
+        _notes.takeOutOfStack(n);
+      case final Note n:
+        await _openEditor(n, isNew: false);
     }
   }
 
@@ -259,18 +271,6 @@ extension _NoteActions on _HomeScreenState {
         // Menu paths for what the wall otherwise only does by dragging.
         if (onWall)
           ListTile(
-            leading: const Icon(Icons.zoom_in),
-            title: Text(l10n.zoomToNote),
-            onTap: () => Navigator.pop(context, 'zoom'),
-          ),
-        if (onWall && !note.locked)
-          ListTile(
-            leading: const Icon(Icons.open_in_full),
-            title: Text(l10n.sizeAndTurn),
-            onTap: () => Navigator.pop(context, 'size'),
-          ),
-        if (onWall)
-          ListTile(
             leading: const Icon(Icons.timeline),
             title: Text(l10n.tieThreadTo),
             onTap: () => Navigator.pop(context, 'tie'),
@@ -359,10 +359,6 @@ extension _NoteActions on _HomeScreenState {
       case 'lock':
         unawaited(HapticFeedback.selectionClick());
         _notes.toggleLock(note);
-      case 'size':
-        await _sizeAndTurn(note);
-      case 'zoom':
-        _wallHandle.focus(note);
       case 'tie':
         await _tieThreadFrom(note);
       case 'stack':
@@ -390,80 +386,6 @@ extension _NoteActions on _HomeScreenState {
       case 'delete':
         await _delete(note);
     }
-  }
-
-  /// Resize and turn from buttons, for anyone who cannot pinch, twist or
-  /// drag the grips. Each press is one step of the wall's Undo.
-  Future<void> _sizeAndTurn(Note note) async {
-    final l10n = _l10n;
-    const step = math.pi / 12; // 15°
-    await showActionSheet<void>(
-      context,
-      title: l10n.sizeAndTurn,
-      children: [
-        StatefulBuilder(
-          builder: (context, setSheet) {
-            void apply(void Function() change) {
-              HapticFeedback.selectionClick();
-              change();
-              setSheet(() {});
-            }
-
-            Widget button(String label, IconData icon, VoidCallback onTap) =>
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: OutlinedButton.icon(
-                      onPressed: () => apply(onTap),
-                      icon: Icon(icon),
-                      label: Text(label, textAlign: TextAlign.center),
-                    ),
-                  ),
-                );
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      button(
-                        l10n.smaller,
-                        Icons.zoom_out,
-                        () => _notes.resizeNote(note, note.scale - 0.1),
-                      ),
-                      button(
-                        l10n.larger,
-                        Icons.zoom_in,
-                        () => _notes.resizeNote(note, note.scale + 0.1),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      button(
-                        l10n.turnLeft,
-                        Icons.rotate_left,
-                        () => _notes.rotateNote(note, noteAngle(note) - step),
-                      ),
-                      button(
-                        l10n.straighten,
-                        Icons.crop_portrait,
-                        () => _notes.rotateNote(note, 0),
-                      ),
-                      button(
-                        l10n.turnRight,
-                        Icons.rotate_right,
-                        () => _notes.rotateNote(note, noteAngle(note) + step),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
-    );
   }
 
   /// Ties a thread from [note] to another note picked from a list — the
