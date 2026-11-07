@@ -54,8 +54,8 @@ List<({double x, double y, double scale, double? rotation})> memoryPositions(
     MemoryLayout.hero => n <= 5 ? 0.62 : (n <= 9 ? 0.52 : 0.44),
     _ => switch (columns) {
       2 => 0.95,
-      3 => 0.68,
-      _ => 0.52,
+      3 => 0.62,
+      _ => 0.48,
     },
   };
   // Rows sit a print's height apart (not spread over the whole wall, which
@@ -63,8 +63,16 @@ List<({double x, double y, double scale, double? rotation})> memoryPositions(
   // a little above the middle. Many rows still fit, closer together.
   final span = 0.98 - top;
   final rowStep = rows <= 1 ? 0.0 : math.min(span / (rows - 1), 0.46 * scale);
-  final rowStart = top + (span - rowStep * (rows - 1)) * 0.3;
-  double rowY(int r) => rows <= 1 ? (top + span * 0.3) : rowStart + rowStep * r;
+  final rowStart = top + (span - rowStep * (rows - 1)) * 0.12;
+  double rowY(int r) =>
+      rows <= 1 ? (top + span * 0.12) : rowStart + rowStep * r;
+
+  // Columns keep a margin from the wall's sides, so a turned print never
+  // runs off the screen.
+  const left = 0.05;
+  const right = 0.95;
+  double column(int c) =>
+      columns == 1 ? 0.5 : left + (right - left) * c / (columns - 1);
 
   final out = <({double x, double y, double scale, double? rotation})>[];
   for (var i = 0; i < n; i++) {
@@ -73,19 +81,16 @@ List<({double x, double y, double scale, double? rotation})> memoryPositions(
     final jitter2 = ((h ~/ 1000) % 1000) / 1000 - 0.5;
     switch (layout) {
       case MemoryLayout.collage:
-        final c = i % columns;
         final r = i ~/ columns;
-        final x = columns == 1 ? 0.5 : c / (columns - 1);
         out.add((
-          x: (x + jitter * 0.12).clamp(0.0, 1.0),
+          x: (column(i % columns) + jitter * 0.08).clamp(0.02, 0.98),
           y: (rowY(r) + jitter2 * 0.06).clamp(0.0, 1.0),
           scale: scale,
           rotation: jitter * 0.22,
         ));
       case MemoryLayout.prints:
-        final c = i % columns;
         out.add((
-          x: columns == 1 ? 0.5 : c / (columns - 1),
+          x: column(i % columns),
           y: rowY(i ~/ columns),
           scale: scale,
           rotation: 0,
@@ -102,10 +107,10 @@ List<({double x, double y, double scale, double? rotation})> memoryPositions(
         // than a print's height (they alternate sides).
         final steps = math.max(n - 1, 1);
         final step = math.min(span / steps, 0.3 * scale);
-        final start = top + (span - step * steps) * 0.3;
+        final start = top + (span - step * steps) * 0.12;
         out.add((
-          x: i.isEven ? 0.0 : 1.0,
-          y: n == 1 ? top + span * 0.3 : start + step * i,
+          x: i.isEven ? left : right,
+          y: n == 1 ? top + span * 0.12 : start + step * i,
           scale: scale,
           rotation: (i.isEven ? -1 : 1) * 0.04,
         ));
@@ -119,10 +124,10 @@ List<({double x, double y, double scale, double? rotation})> memoryPositions(
         final k = i - 1;
         final around = n - 1;
         final t = around == 1 ? 0.5 : k / (around - 1);
-        final x = (k.isEven ? 0.0 : 1.0);
+        final x = k.isEven ? left : right;
         final y = top + 0.02 + t * (0.96 - top);
         out.add((
-          x: (x + jitter * 0.06).clamp(0.0, 1.0),
+          x: (x + jitter * 0.04).clamp(0.02, 0.98),
           y: y.clamp(0.0, 1.0),
           scale: scale,
           rotation: jitter * 0.14,

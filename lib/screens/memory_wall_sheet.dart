@@ -10,13 +10,15 @@ import '../services/memory_wall.dart';
 import '../services/pro_controller.dart';
 import '../services/theme_packs.dart';
 import '../theme.dart';
+import '../util/pro_last.dart';
 import '../widgets/paper_choice_chip.dart';
 import '../widgets/photo_frames.dart';
 import '../widgets/pro_sheet.dart';
 import 'gallery_screen.dart';
 
 /// The looks offered for a memory wall: papers and frames that suit
-/// photos. Any other pack can be put on the board later.
+/// photos. Any other pack can be put on the board later. Shown free ones
+/// first ([memoryWallLookPacks]).
 const memoryWallLooks = [
   'polaroid_studio',
   'cork_classic',
@@ -27,6 +29,11 @@ const memoryWallLooks = [
   'minimal_cream',
   'dark_chalk',
 ];
+
+/// [memoryWallLooks] as packs, the free ones first.
+List<ThemePack> get memoryWallLookPacks => proLast([
+  for (final id in memoryWallLooks) ?themePackById(id),
+], (p) => p.pro);
 
 /// What the memory-wall sheet settled on.
 typedef MemoryWallChoice = ({
@@ -75,7 +82,7 @@ class _MemoryWallSheet extends StatefulWidget {
 
 class _MemoryWallSheetState extends State<_MemoryWallSheet> {
   MemoryLayout _layout = MemoryLayout.collage;
-  ThemePack _look = themePackById(memoryWallLooks.first)!;
+  ThemePack _look = memoryWallLookPacks.first;
   PhotoFrame _frame = PhotoFrame.polaroid;
   CaptionPreset _caption = CaptionPreset.none;
   late final List<String> _photos;
@@ -309,7 +316,10 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
                       spacing: 8,
                       runSpacing: 6,
                       children: [
-                        for (final f in PhotoFrame.values)
+                        for (final f in proLast(
+                          PhotoFrame.values,
+                          (f) => f.pro,
+                        ))
                           PaperChoiceChip(
                             icon: switch (f) {
                               PhotoFrame.print => Icons.crop_original_rounded,
@@ -373,18 +383,17 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: [
-                          for (final id in memoryWallLooks)
-                            if (themePackById(id) case final pack?)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: _LookChoice(
-                                  pack: pack,
-                                  name: pack.name(lang),
-                                  selected: _look.id == pack.id,
-                                  locked: pack.pro && !pro,
-                                  onTap: () => setState(() => _look = pack),
-                                ),
+                          for (final pack in memoryWallLookPacks)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: _LookChoice(
+                                pack: pack,
+                                name: pack.name(lang),
+                                selected: _look.id == pack.id,
+                                locked: pack.pro && !pro,
+                                onTap: () => setState(() => _look = pack),
                               ),
+                            ),
                         ],
                       ),
                     ),
@@ -562,26 +571,30 @@ class _MemoryPreview extends StatelessWidget {
       'memory-preview',
       layout,
       pack: look,
+      title: AppLocalizations.of(context)!.memoryTitle,
       frame: frame,
       caption: caption,
       date: MaterialLocalizations.of(context).formatMediumDate(DateTime.now()),
       now: DateTime(2026),
     );
-    // The actual renderer preserves image aspect ratios, frame geometry,
-    // captions and timeline threads, rather than forcing photos into squares.
+    // The wall as a phone shows it once made: laid out on a phone-sized
+    // wall by the real renderer, then the whole screen shrunk to fit, so
+    // the spacing and edges are the ones the board will have (fitting the
+    // photos instead used to make it look tighter than it would be).
     return SizedBox(
       height: 260,
       child: Center(
-        child: AspectRatio(
-          aspectRatio: previewSize.aspectRatio,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadii.control),
-            child: BoardPreview(
-              fitContent: true,
-              wall: look.wallStyle,
-              notes: made.notes,
-              links: made.links,
-              pack: look,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadii.control),
+          child: FittedBox(
+            child: SizedBox.fromSize(
+              size: previewSize,
+              child: BoardPreview(
+                wall: look.wallStyle,
+                notes: made.notes,
+                links: made.links,
+                pack: look,
+              ),
             ),
           ),
         ),

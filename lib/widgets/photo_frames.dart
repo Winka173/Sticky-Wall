@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
 import '../theme.dart';
+import '../util/pro_last.dart';
 
 /// The print white for a frame, dimmed with the lights off like the rest.
 Color frameWhite(BuildContext context) => printColorOf(context);
@@ -450,7 +451,7 @@ Future<PhotoFrame?> showFramePicker(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               children: [
-                for (final f in PhotoFrame.values)
+                for (final f in proLast(PhotoFrame.values, (f) => f.pro))
                   Padding(
                     padding: const EdgeInsets.only(right: 18),
                     child: Semantics(

@@ -13,6 +13,7 @@ import '../services/pro_controller.dart';
 import '../services/template_library.dart';
 import '../services/theme_packs.dart';
 import '../theme.dart';
+import '../util/pro_last.dart';
 import '../util/text_fold.dart';
 import '../widgets/note_views.dart';
 import '../widgets/paper_choice_chip.dart';
@@ -421,8 +422,12 @@ class _ThemesTabState extends State<_ThemesTab>
         })
           t,
     ];
-    // A pack whose occasion is near comes first; the rest keep their order.
-    final shown = [...matching.where(near), ...matching.where((t) => !near(t))];
+    // Free packs before Pro ones; within each, a pack whose occasion is near
+    // comes first and the rest keep their order.
+    final shown = proLast([
+      ...matching.where(near),
+      ...matching.where((t) => !near(t)),
+    ], (t) => t.pro);
     return Column(
       children: [
         const SizedBox(height: 8),
