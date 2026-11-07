@@ -862,7 +862,7 @@ void main() {
     );
   });
 
-  testWidgets('Zoom to note in its menu zooms the wall onto it and back', (
+  testWidgets('double-tapping a note zooms the wall onto it and back', (
     tester,
   ) async {
     await _pumpApp(
@@ -882,18 +882,16 @@ void main() {
     final reset = find.byTooltip('Reset zoom');
     expect(reset, findsNothing, reason: 'camera at rest: no reset button');
 
-    await tester.longPress(find.text('Focus me'));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Zoom to note'));
-    await tester.tap(find.text('Zoom to note'));
+    await tester.tap(find.text('Focus me'));
+    await tester.pump(const Duration(milliseconds: 80));
+    await tester.tap(find.text('Focus me'));
     await tester.pumpAndSettle();
     expect(reset, findsOneWidget, reason: 'zoomed in');
     expect(find.byType(TextField), findsNothing, reason: 'no editor opened');
 
-    await tester.longPress(find.text('Focus me'));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Zoom to note'));
-    await tester.tap(find.text('Zoom to note'));
+    await tester.tap(find.text('Focus me'));
+    await tester.pump(const Duration(milliseconds: 80));
+    await tester.tap(find.text('Focus me'));
     await tester.pumpAndSettle();
     expect(reset, findsNothing, reason: 'back out');
   });
