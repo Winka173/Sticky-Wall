@@ -1,0 +1,6 @@
+• Home-screen widget: a + button for a new note on the board it shows
+• Tap a note on the widget to open it
+• To-do lists on the widget show how far along they are (2/5)
+• Each widget line has a dot in its note's paper colour
+• To-do lists: a + button on the Add item line
+• Adding an item saves the list, so closing keeps it without asking

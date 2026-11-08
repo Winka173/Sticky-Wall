@@ -1,0 +1,6 @@
+• Widget màn hình chính: nút + để viết ghi chú mới trên bảng đang hiện
+• Chạm vào ghi chú trên widget để mở ngay
+• Danh sách việc trên widget hiện tiến độ (2/5)
+• Mỗi dòng trên widget có chấm theo màu giấy của ghi chú
+• Danh sách việc: nút + ở dòng Thêm mục
+• Thêm mục là danh sách được lưu, đóng lại không cần hỏi
