@@ -470,7 +470,7 @@ class _BoardBarState extends State<BoardBar> {
     if (action == null || !context.mounted) return;
 
     if (action == 'pro') {
-      await showProSheet(context);
+      await showProSheet(context, focus: ProPerk.privateBoards);
       return;
     }
     if (action == 'theme') {
@@ -513,7 +513,7 @@ class _BoardBarState extends State<BoardBar> {
       final frame = await showFramePicker(context, title: l10n.framesAll);
       if (frame == null || !context.mounted) return;
       if (frame.pro && !pro) {
-        await showProSheet(context);
+        await showProSheet(context, focus: ProPerk.frames);
         return;
       }
       final undo = widget.notes.setFrames(

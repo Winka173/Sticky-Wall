@@ -879,7 +879,7 @@ extension _EditorPieces on _NoteDialogState {
     final name = paperStyleLabel(l10n, style);
     void pick() {
       if (locked) {
-        showProSheet(context);
+        showProSheet(context, focus: ProPerk.paperStyles);
         return;
       }
       HapticFeedback.selectionClick();
@@ -964,7 +964,7 @@ extension _EditorPieces on _NoteDialogState {
                 // Kept when it came from a backup or a Pro phone.
                 selected: _n.colorIndex == i,
                 locked: true,
-                onTap: () => showProSheet(context),
+                onTap: () => showProSheet(context, focus: ProPerk.papers),
               )
             else
               _swatch(
@@ -983,7 +983,9 @@ extension _EditorPieces on _NoteDialogState {
             rainbow: !isCustomPaper(_n.colorIndex),
             mixed: isCustomPaper(_n.colorIndex),
             locked: !pro,
-            onTap: pro ? _mixColor : () => showProSheet(context),
+            onTap: pro
+                ? _mixColor
+                : () => showProSheet(context, focus: ProPerk.papers),
           ),
         ],
       ),

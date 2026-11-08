@@ -329,7 +329,7 @@ extension _NoteActions on _HomeScreenState {
         final frame = await showFramePicker(context, current: note.frame);
         if (frame == null || !mounted) return;
         if (frame.pro && !pro) {
-          await showProSheet(context);
+          await showProSheet(context, focus: ProPerk.frames);
           return;
         }
         final undo = _notes.setFrames([note], frame);
@@ -338,7 +338,7 @@ extension _NoteActions on _HomeScreenState {
         final undo = _notes.rearrangePrints(note.boardId, hero: note.guid);
         _undoToast(l10n.heroSet, undo);
       case 'pro':
-        await showProSheet(context);
+        await showProSheet(context, focus: ProPerk.papers);
       case 'mix':
         final mixed = await showPaperColorDialog(
           context,

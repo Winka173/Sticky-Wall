@@ -244,7 +244,7 @@ class _ThreadSheetState extends State<_ThreadSheet> {
                     selected: (_link.color ?? AppColors.yarns.first) == c,
                     locked: !pro && i >= AppColors.freeYarns,
                     onTap: !pro && i >= AppColors.freeYarns
-                        ? () => showProSheet(context)
+                        ? () => showProSheet(context, focus: ProPerk.threads)
                         : () => _apply(_link.copyWith(color: c)),
                   ),
                 // Any colour, mixed as on the wall's pen (Sticky Wall Pro).
@@ -258,7 +258,7 @@ class _ThreadSheetState extends State<_ThreadSheet> {
                       !AppColors.yarns.contains(_link.color),
                   locked: !pro,
                   onTap: !pro
-                      ? () => showProSheet(context)
+                      ? () => showProSheet(context, focus: ProPerk.threads)
                       : () async {
                           final c = await showInkColorDialog(
                             context,
@@ -289,7 +289,7 @@ class _ThreadSheetState extends State<_ThreadSheet> {
                       selected: _link.style == style,
                       locked: style.pro && !pro,
                       onTap: style.pro && !pro
-                          ? () => showProSheet(context)
+                          ? () => showProSheet(context, focus: ProPerk.threads)
                           : () => _apply(_link.copyWith(style: style)),
                     ),
                 ],

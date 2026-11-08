@@ -1089,7 +1089,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
     if (picked == null || !mounted) return;
     if (picked == -2) {
-      await showProSheet(context);
+      await showProSheet(context, focus: ProPerk.papers);
       return;
     }
     _notes.recolor(notes, picked < 0 ? null : picked);

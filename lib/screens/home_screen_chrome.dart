@@ -124,7 +124,10 @@ extension _Chrome on _HomeScreenState {
                           selected: !_marker.eraser && _marker.color == c,
                           locked: !pro && i >= AppColors.freeMarkers,
                           onTap: !pro && i >= AppColors.freeMarkers
-                              ? () => showProSheet(context)
+                              ? () => showProSheet(
+                                  context,
+                                  focus: ProPerk.markers,
+                                )
                               : () => _update(
                                   () => _marker = _marker.copyWith(
                                     color: c,
@@ -142,7 +145,8 @@ extension _Chrome on _HomeScreenState {
                             !AppColors.markers.contains(_marker.color),
                         locked: !pro,
                         onTap: !pro
-                            ? () => showProSheet(context)
+                            ? () =>
+                                  showProSheet(context, focus: ProPerk.markers)
                             : () async {
                                 final c = await showInkColorDialog(
                                   context,

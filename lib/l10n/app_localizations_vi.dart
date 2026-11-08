@@ -1311,19 +1311,6 @@ class AppLocalizationsVi extends AppLocalizations {
       'Trả một lần, dùng mãi mãi. Mọi thứ bạn đang có vẫn miễn phí.';
 
   @override
-  String get proPerkPapers => 'Thêm 6 màu giấy';
-
-  @override
-  String get proPerkWalls => 'Thêm 5 kiểu tường';
-
-  @override
-  String get proPerkFonts => 'Thêm 5 phông chữ';
-
-  @override
-  String get proPerkPins =>
-      'Thêm 5 kiểu ghim ghi chú: ghim nhiều màu, đinh bấm, băng dính washi, kẹp giấy và nam châm';
-
-  @override
   String proBuy(String price) {
     return 'Mở khóa với giá $price';
   }
@@ -1627,21 +1614,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get proNudgeAction => 'Xem Pro';
 
   @override
-  String get proPerkPaperStyles =>
-      '5 kiểu giấy: kẻ dòng, kẻ ô, chấm bi, thẻ ghi chú, trang vở';
-
-  @override
-  String get proPerkStickers =>
-      'Trọn bộ sticker: con dấu, hình vẽ tay và các gói minh họa';
-
-  @override
-  String get proPerkMarkers => 'Thêm 5 màu bút và bút dạ quang để vẽ lên tường';
-
-  @override
-  String get proPerkThreads =>
-      '4 loại dây (dây đay, ruy băng, nét đứt, chuỗi hạt) và thêm 4 màu';
-
-  @override
   String get proTryHint =>
       'Chạm vào tường, phông chữ hoặc kiểu ghim có nhãn PRO trong Tùy chỉnh để thử ngay trên tường của bạn.';
 
@@ -1742,16 +1714,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get wallLove => 'Hồng Valentine';
-
-  @override
-  String get proPerkSeasons =>
-      'Gói theo mùa: tường và sticker Tết, Giáng Sinh, Trung Thu, Valentine';
-
-  @override
-  String get proPerkPrivate => 'Khóa bảng bằng vân tay hoặc khóa màn hình';
-
-  @override
-  String get proPerkCustomColor => 'Tự pha màu giấy theo ý thích';
 
   @override
   String seasonUntil(String date) {
@@ -2697,4 +2659,233 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get manualPhotoCaption => 'Hè 2026';
+
+  @override
+  String get proGroupWall => 'Tường theo ý bạn';
+
+  @override
+  String get proGroupPaper => 'Giấy, ghim và sticker';
+
+  @override
+  String get proGroupMore => 'Nối dây, vẽ, giữ riêng';
+
+  @override
+  String proWallsTitle(int count) {
+    return 'Thêm $count bức tường';
+  }
+
+  @override
+  String get proWallsBody =>
+      'Tường Pro đổi cả nền bảng dưới các ghi chú. Chạm một tường trong Tùy chỉnh để thử ngay trên bảng của bạn trước.';
+
+  @override
+  String proPacksTitle(int count) {
+    return 'Thêm $count chủ đề';
+  }
+
+  @override
+  String get proPacksLine => 'Tường, giấy, chữ và ghim trong một chạm';
+
+  @override
+  String get proPacksBody =>
+      'Một chủ đề đổi cả bảng trong một lần: tường, màu và kiểu giấy, nét chữ, ghim và dây nối. Xem trước chủ đề nào cũng được trên bảng của bạn; Hoàn tác trả lại như cũ.';
+
+  @override
+  String get proSeasonsTitle => 'Gói theo mùa';
+
+  @override
+  String proSeasonsBody(int walls, int stickers) {
+    return '$walls bức tường và $stickers sticker cho các dịp lễ. Gói nào tới dịp sẽ lên đầu danh sách.';
+  }
+
+  @override
+  String proFontsTitle(int count) {
+    return 'Thêm $count phông chữ viết tay';
+  }
+
+  @override
+  String get proFontsBody =>
+      'Phông nào cũng đủ dấu tiếng Việt và được chỉnh cỡ cho đều nhau, nên đổi phông ghi chú vẫn giữ dáng. Thử trước trong Tùy chỉnh.';
+
+  @override
+  String proPapersTitle(int count) {
+    return 'Thêm $count màu giấy';
+  }
+
+  @override
+  String get proPapersLine => 'Và màu nào bạn tự pha';
+
+  @override
+  String get proPapersBody =>
+      'Xanh chanh, san hô, tím nhạt, xanh xô thơm, giấy kraft và trắng, màu nào cũng dễ đọc khi tắt đèn. Hoặc tự pha một màu giấy cho từng ghi chú.';
+
+  @override
+  String proPaperStylesTitle(int count) {
+    return '$count kiểu giấy';
+  }
+
+  @override
+  String get proPaperStylesBody =>
+      'Kẻ ghi chú như trang vở, giấy ô li hay thẻ ghi nhớ. Giấy kẻ dòng hợp với chữ; danh sách dùng ô vuông hoặc chấm.';
+
+  @override
+  String proPinsTitle(int count) {
+    return 'Thêm $count kiểu ghim';
+  }
+
+  @override
+  String get proPinsBody =>
+      'Chọn thứ giữ ghi chú trên tường. Ghi chú được ghim lên đầu vẫn hiện ghim màu vàng.';
+
+  @override
+  String proStickersTitle(int count) {
+    return 'Thêm $count sticker';
+  }
+
+  @override
+  String get proStickersLine => 'Bộ tranh vẽ và băng dính washi';
+
+  @override
+  String get proStickersBody =>
+      'Cả thư viện: sticker vẽ tay cho học tập, nhà cửa, kế hoạch, cảm xúc và các dịp lễ, cùng băng dính washi để dán ngang tường.';
+
+  @override
+  String proFramesTitle(int count) {
+    return '$count khung ảnh';
+  }
+
+  @override
+  String get proFramesBody =>
+      'Đóng khung một tấm ảnh, hoặc mọi ảnh trên tường kỷ niệm cùng lúc.';
+
+  @override
+  String proThreadsTitle(int styles, int colors) {
+    return '$styles kiểu dây, thêm $colors màu';
+  }
+
+  @override
+  String get proThreadsBody =>
+      'Nối các ghi chú bằng dây đay, ruy băng, dây nét đứt hay chuỗi hạt, màu hồng, xanh ngọc, nâu hoặc trắng.';
+
+  @override
+  String proMarkersTitle(int count) {
+    return 'Thêm $count màu bút';
+  }
+
+  @override
+  String get proMarkersLine => 'Và màu mực bạn tự pha';
+
+  @override
+  String get proMarkersBody =>
+      'Vẽ lên tường và trong ghi chú vẽ bằng màu cam, tím, hồng, xanh ngọc và vàng, hoặc tự pha màu mực riêng.';
+
+  @override
+  String get proPrivateTitle => 'Bảng riêng tư';
+
+  @override
+  String get proPrivateLine => 'Mở bằng vân tay hoặc khóa màn hình';
+
+  @override
+  String get proPrivateBody =>
+      'Khóa một bảng bằng vân tay, khuôn mặt hoặc khóa màn hình của chính điện thoại. Bảng tự đóng mỗi khi bạn rời ứng dụng; khi đóng, ghi chú của nó không hiện trong tìm kiếm và widget, lời nhắc cũng ẩn nội dung.';
+
+  @override
+  String proPlayIt(String name) {
+    return '$name. Xem diễn ở trên';
+  }
+
+  @override
+  String get proReplay => 'Xem lại';
+
+  @override
+  String get proCompareTitle => 'Miễn phí và Pro';
+
+  @override
+  String get proFree => 'Miễn phí';
+
+  @override
+  String proPlus(int count) {
+    return '+ $count';
+  }
+
+  @override
+  String proPlusMix(int count) {
+    return '+ $count, và màu tự pha';
+  }
+
+  @override
+  String proAll(int count) {
+    return 'Cả $count';
+  }
+
+  @override
+  String get proNoLimits => 'Không giới hạn';
+
+  @override
+  String get proRowNotes => 'Ghi chú, bảng, lời nhắc';
+
+  @override
+  String get proRowTemplates => 'Mẫu bảng';
+
+  @override
+  String get proRowWalls => 'Tường';
+
+  @override
+  String proFreeWalls(int count) {
+    return '$count, và ảnh của bạn';
+  }
+
+  @override
+  String proProWalls(int count, int seasonal) {
+    return '+ $count, và $seasonal tường dịp lễ';
+  }
+
+  @override
+  String get proRowPacks => 'Chủ đề';
+
+  @override
+  String get proRowFonts => 'Phông chữ viết tay';
+
+  @override
+  String get proRowPapers => 'Màu giấy';
+
+  @override
+  String get proRowPaperStyles => 'Kiểu giấy';
+
+  @override
+  String get proRowPins => 'Ghim';
+
+  @override
+  String get proRowStickers => 'Sticker';
+
+  @override
+  String get proRowFrames => 'Khung ảnh';
+
+  @override
+  String get proRowThreads => 'Dây nối';
+
+  @override
+  String proFreeThreads(int count) {
+    return 'Dây len $count màu';
+  }
+
+  @override
+  String proProThreads(int styles, int colors) {
+    return '+ $styles kiểu, $colors màu';
+  }
+
+  @override
+  String get proRowMarkers => 'Bút vẽ lên tường';
+
+  @override
+  String proFreeMarkers(int count) {
+    return '$count màu và bút dạ quang';
+  }
+
+  @override
+  String get proRowLock => 'Khóa';
+
+  @override
+  String get proAlwaysFree =>
+      'Luôn miễn phí: mọi loại ghi chú, bao nhiêu bảng cũng được, tất cả mẫu bảng, lời nhắc, widget màn hình chính, tìm kiếm, sao lưu, đồng bộ giữa các thiết bị và tắt đèn. Nếu không còn Pro, ghi chú vẫn giữ mọi kiểu Pro đã có.';
 }

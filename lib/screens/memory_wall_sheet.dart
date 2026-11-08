@@ -428,7 +428,12 @@ class _MemoryWallSheetState extends State<_MemoryWallSheet> {
                         : () async {
                             if ((_look.pro || _frame.pro) &&
                                 !ProScope.unlockedOf(context)) {
-                              await showProSheet(context);
+                              await showProSheet(
+                                context,
+                                focus: _frame.pro
+                                    ? ProPerk.frames
+                                    : ProPerk.themePacks,
+                              );
                               if (!context.mounted ||
                                   !ProScope.unlockedOf(context)) {
                                 return;

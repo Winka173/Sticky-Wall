@@ -443,7 +443,7 @@ class _DrawingEditorState extends State<DrawingEditor> {
         locked: !pro,
         selected: _tool == _Tool.pen && !_penColors.contains(_color),
         onTap: !pro
-            ? () => showProSheet(context)
+            ? () => showProSheet(context, focus: ProPerk.markers)
             : () async {
                 final c = await showInkColorDialog(
                   context,

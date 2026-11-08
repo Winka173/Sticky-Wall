@@ -501,7 +501,7 @@ class _ThemesTabState extends State<_ThemesTab>
     );
     if (apply != true || !context.mounted) return;
     if (t.pro && !ProScope.unlockedOf(context)) {
-      await showProSheet(context);
+      await showProSheet(context, focus: ProPerk.themePacks);
       if (!context.mounted || !ProScope.unlockedOf(context)) return;
     }
     // Recheck the board and entitlement after the asynchronous purchase sheet.

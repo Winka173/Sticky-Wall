@@ -586,7 +586,12 @@ class _StickerPicker extends StatelessWidget {
                         selected: sticker.id == current,
                         locked: sticker.pro && !pro,
                         onTap: sticker.pro && !pro
-                            ? () => showProSheet(context)
+                            ? () => showProSheet(
+                                context,
+                                focus: sticker.pack.season == null
+                                    ? ProPerk.stickers
+                                    : ProPerk.seasons,
+                              )
                             : () => Navigator.pop(context, sticker.id),
                       ),
                   ],

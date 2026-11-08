@@ -470,7 +470,9 @@ State lives in two `ChangeNotifier`s the widgets listen to:
 | `lib/services/widget_service.dart` | Push a board's pinned or newest notes, colours and text size to the home-screen widget |
 | `lib/services/pro_controller.dart` | Sticky Wall Pro: price, purchase, restore, the cached unlock; `ProScope` makes it reachable from any route |
 | `lib/services/app_lock.dart` · `lib/widgets/lock_gate.dart` | App lock: the phone's own lock prompt, and the cover over the whole app (above the navigator) |
-| `lib/widgets/pro_sheet.dart` | The Pro sheet and the PRO mark |
+| `lib/widgets/pro_sheet.dart` | The Pro sheet (a film per part, each part by group, Free and Pro counted from the catalogues, Unlock and Restore) and the PRO mark; `showProSheet(context, focus:)` plays the part that was tapped |
+| `lib/widgets/pro_demos.dart` | The Pro films: each part acted out on a 320 × 180 wall made of the app's own walls, papers, pins, stickers, frames and threads; t = 1 is the still |
+| `lib/widgets/demo_loop.dart` | Plays a film twice, rests on its last frame with Play again; only the still with reduced motion |
 | `lib/widgets/stickers.dart` | The sticker set, `StickerArt` and the sticker picker |
 | `lib/widgets/thread_style.dart` | Painting a thread as yarn, twine, ribbon, dashes or beads (`paintThreadLine`), and the samples in the thread sheet |
 | `lib/widgets/widget_settings_sheet.dart` | Home-screen widget settings with a live preview (part of `settings_sheet.dart`) |

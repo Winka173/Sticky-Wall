@@ -316,7 +316,12 @@ class _SettingsSheet extends StatelessWidget {
                 // A Pro wall is tried on first; a second tap offers Pro.
                 onTap: locked
                     ? (tried == index
-                          ? () => showProSheet(context)
+                          ? () => showProSheet(
+                              context,
+                              focus: wall.season == null
+                                  ? ProPerk.walls
+                                  : ProPerk.seasons,
+                            )
                           : () => settings.setTryWall(index))
                     : () {
                         settings.setTryWall(null);
@@ -438,7 +443,7 @@ class _SettingsSheet extends StatelessWidget {
                 tilt: (index.isEven ? -1 : 1) * 0.03,
                 onTap: locked
                     ? (settings.tryFont == font.id
-                          ? () => showProSheet(context)
+                          ? () => showProSheet(context, focus: ProPerk.fonts)
                           : () => settings.setTryFont(font.id))
                     : () {
                         settings.setTryFont(null);
@@ -467,7 +472,7 @@ class _SettingsSheet extends StatelessWidget {
                 locked: locked,
                 onTap: locked
                     ? (settings.tryPin == style
-                          ? () => showProSheet(context)
+                          ? () => showProSheet(context, focus: ProPerk.pins)
                           : () => settings.setTryPin(style))
                     : () {
                         settings.setTryPin(null);

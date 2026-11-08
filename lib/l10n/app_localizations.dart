@@ -2384,30 +2384,6 @@ abstract class AppLocalizations {
   /// **'One payment, yours for good. Everything you have now stays free.'**
   String get proPitch;
 
-  /// No description provided for @proPerkPapers.
-  ///
-  /// In en, this message translates to:
-  /// **'6 more paper colors'**
-  String get proPerkPapers;
-
-  /// No description provided for @proPerkWalls.
-  ///
-  /// In en, this message translates to:
-  /// **'5 more walls'**
-  String get proPerkWalls;
-
-  /// No description provided for @proPerkFonts.
-  ///
-  /// In en, this message translates to:
-  /// **'5 more fonts'**
-  String get proPerkFonts;
-
-  /// No description provided for @proPerkPins.
-  ///
-  /// In en, this message translates to:
-  /// **'5 more ways to hold notes up: colorful pins, thumbtacks, washi tape, paper clips and magnets'**
-  String get proPerkPins;
-
   /// No description provided for @proBuy.
   ///
   /// In en, this message translates to:
@@ -2984,30 +2960,6 @@ abstract class AppLocalizations {
   /// **'See Pro'**
   String get proNudgeAction;
 
-  /// No description provided for @proPerkPaperStyles.
-  ///
-  /// In en, this message translates to:
-  /// **'5 paper styles: lined, grid, dotted, index card, notebook page'**
-  String get proPerkPaperStyles;
-
-  /// No description provided for @proPerkStickers.
-  ///
-  /// In en, this message translates to:
-  /// **'The whole sticker library: stamps, doodles and illustrated packs'**
-  String get proPerkStickers;
-
-  /// No description provided for @proPerkMarkers.
-  ///
-  /// In en, this message translates to:
-  /// **'5 more marker colors and a highlighter for the wall'**
-  String get proPerkMarkers;
-
-  /// No description provided for @proPerkThreads.
-  ///
-  /// In en, this message translates to:
-  /// **'4 thread styles (twine, ribbon, dashed, beads) and 4 more colors'**
-  String get proPerkThreads;
-
   /// No description provided for @proTryHint.
   ///
   /// In en, this message translates to:
@@ -3205,24 +3157,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Valentine pink'**
   String get wallLove;
-
-  /// No description provided for @proPerkSeasons.
-  ///
-  /// In en, this message translates to:
-  /// **'Seasonal packs: Tết, Christmas, Mid-Autumn and Valentine\'s walls and stickers'**
-  String get proPerkSeasons;
-
-  /// No description provided for @proPerkPrivate.
-  ///
-  /// In en, this message translates to:
-  /// **'Lock boards with your fingerprint or screen lock'**
-  String get proPerkPrivate;
-
-  /// No description provided for @proPerkCustomColor.
-  ///
-  /// In en, this message translates to:
-  /// **'Mix any paper color you like'**
-  String get proPerkCustomColor;
 
   /// No description provided for @seasonUntil.
   ///
@@ -4855,6 +4789,360 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Summer 2026'**
   String get manualPhotoCaption;
+
+  /// No description provided for @proGroupWall.
+  ///
+  /// In en, this message translates to:
+  /// **'Make the wall yours'**
+  String get proGroupWall;
+
+  /// No description provided for @proGroupPaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper, pins and stickers'**
+  String get proGroupPaper;
+
+  /// No description provided for @proGroupMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Tie, draw, keep private'**
+  String get proGroupMore;
+
+  /// No description provided for @proWallsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more walls'**
+  String proWallsTitle(int count);
+
+  /// No description provided for @proWallsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A Pro wall changes the whole board under your notes. Tap one in Customize to try it on your own board first.'**
+  String get proWallsBody;
+
+  /// No description provided for @proPacksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more theme packs'**
+  String proPacksTitle(int count);
+
+  /// No description provided for @proPacksLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall, papers, font and pins in one tap'**
+  String get proPacksLine;
+
+  /// No description provided for @proPacksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A theme pack restyles a board at once: its wall, paper colors and ruling, handwriting, pins and threads. Preview any pack on your board; Undo puts it back.'**
+  String get proPacksBody;
+
+  /// No description provided for @proSeasonsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Seasonal packs'**
+  String get proSeasonsTitle;
+
+  /// No description provided for @proSeasonsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{walls} festive walls and {stickers} stickers for the holidays. Each pack moves to the front of the list around its day.'**
+  String proSeasonsBody(int walls, int stickers);
+
+  /// No description provided for @proFontsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more handwriting fonts'**
+  String proFontsTitle(int count);
+
+  /// No description provided for @proFontsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each one has the full Vietnamese alphabet and is sized to match the others, so notes keep their shape when you switch. Try one on in Customize first.'**
+  String get proFontsBody;
+
+  /// No description provided for @proPapersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more paper colors'**
+  String proPapersTitle(int count);
+
+  /// No description provided for @proPapersLine.
+  ///
+  /// In en, this message translates to:
+  /// **'And any color you mix yourself'**
+  String get proPapersLine;
+
+  /// No description provided for @proPapersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Lime, coral, periwinkle, sage, kraft and white, each still easy to read with the lights off. Or mix a paper of your own for one note.'**
+  String get proPapersBody;
+
+  /// No description provided for @proPaperStylesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} paper styles'**
+  String proPaperStylesTitle(int count);
+
+  /// No description provided for @proPaperStylesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule a note like a notebook page, graph paper or an index card. Ruled papers suit running text; lists take squares or dots.'**
+  String get proPaperStylesBody;
+
+  /// No description provided for @proPinsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more ways to pin'**
+  String proPinsTitle(int count);
+
+  /// No description provided for @proPinsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what holds your notes up. A note pinned to the top still shows its pin in gold.'**
+  String get proPinsBody;
+
+  /// No description provided for @proStickersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more stickers'**
+  String proStickersTitle(int count);
+
+  /// No description provided for @proStickersLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Illustrated packs and washi tapes'**
+  String get proStickersLine;
+
+  /// No description provided for @proStickersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole library: hand-drawn stickers for study, home, planning, feelings and the holidays, plus washi tapes to stick across the wall.'**
+  String get proStickersBody;
+
+  /// No description provided for @proFramesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photo frames'**
+  String proFramesTitle(int count);
+
+  /// No description provided for @proFramesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame one photo print, or every photo on a memory wall at once.'**
+  String get proFramesBody;
+
+  /// No description provided for @proThreadsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{styles} thread styles, {colors} more colors'**
+  String proThreadsTitle(int styles, int colors);
+
+  /// No description provided for @proThreadsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tie notes together with twine, ribbon, a dashed cord or a string of beads, in pink, teal, brown or white.'**
+  String get proThreadsBody;
+
+  /// No description provided for @proMarkersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more marker colors'**
+  String proMarkersTitle(int count);
+
+  /// No description provided for @proMarkersLine.
+  ///
+  /// In en, this message translates to:
+  /// **'And any ink you mix'**
+  String get proMarkersLine;
+
+  /// No description provided for @proMarkersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw on the wall and in drawing notes in orange, purple, pink, teal and yellow, or mix an ink of your own.'**
+  String get proMarkersBody;
+
+  /// No description provided for @proPrivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Private boards'**
+  String get proPrivateTitle;
+
+  /// No description provided for @proPrivateLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Opened with your fingerprint or screen lock'**
+  String get proPrivateLine;
+
+  /// No description provided for @proPrivateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock a board with your phone\'s own fingerprint, face or screen lock. It shuts whenever you leave the app; while shut, its notes stay out of search and the widget, and its reminders hide their words.'**
+  String get proPrivateBody;
+
+  /// No description provided for @proPlayIt.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}. Play it above'**
+  String proPlayIt(String name);
+
+  /// No description provided for @proReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play again'**
+  String get proReplay;
+
+  /// No description provided for @proCompareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free and Pro'**
+  String get proCompareTitle;
+
+  /// No description provided for @proFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get proFree;
+
+  /// No description provided for @proPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {count}'**
+  String proPlus(int count);
+
+  /// No description provided for @proPlusMix.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {count}, and any color you mix'**
+  String proPlusMix(int count);
+
+  /// No description provided for @proAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count}'**
+  String proAll(int count);
+
+  /// No description provided for @proNoLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'No limits'**
+  String get proNoLimits;
+
+  /// No description provided for @proRowNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes, boards, reminders'**
+  String get proRowNotes;
+
+  /// No description provided for @proRowTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Board templates'**
+  String get proRowTemplates;
+
+  /// No description provided for @proRowWalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Walls'**
+  String get proRowWalls;
+
+  /// No description provided for @proFreeWalls.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}, and your own photo'**
+  String proFreeWalls(int count);
+
+  /// No description provided for @proProWalls.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {count}, and {seasonal} for the holidays'**
+  String proProWalls(int count, int seasonal);
+
+  /// No description provided for @proRowPacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme packs'**
+  String get proRowPacks;
+
+  /// No description provided for @proRowFonts.
+  ///
+  /// In en, this message translates to:
+  /// **'Handwriting fonts'**
+  String get proRowFonts;
+
+  /// No description provided for @proRowPapers.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper colors'**
+  String get proRowPapers;
+
+  /// No description provided for @proRowPaperStyles.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper styles'**
+  String get proRowPaperStyles;
+
+  /// No description provided for @proRowPins.
+  ///
+  /// In en, this message translates to:
+  /// **'Pins'**
+  String get proRowPins;
+
+  /// No description provided for @proRowStickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Stickers'**
+  String get proRowStickers;
+
+  /// No description provided for @proRowFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo frames'**
+  String get proRowFrames;
+
+  /// No description provided for @proRowThreads.
+  ///
+  /// In en, this message translates to:
+  /// **'Threads'**
+  String get proRowThreads;
+
+  /// No description provided for @proFreeThreads.
+  ///
+  /// In en, this message translates to:
+  /// **'Yarn in {count} colors'**
+  String proFreeThreads(int count);
+
+  /// No description provided for @proProThreads.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {styles} styles, {colors} colors'**
+  String proProThreads(int styles, int colors);
+
+  /// No description provided for @proRowMarkers.
+  ///
+  /// In en, this message translates to:
+  /// **'Marker on the wall'**
+  String get proRowMarkers;
+
+  /// No description provided for @proFreeMarkers.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} colors and a highlighter'**
+  String proFreeMarkers(int count);
+
+  /// No description provided for @proRowLock.
+  ///
+  /// In en, this message translates to:
+  /// **'Locking'**
+  String get proRowLock;
+
+  /// No description provided for @proAlwaysFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Always free: every kind of note, as many boards as you like, all the templates, reminders, the home-screen widget, search, backups, sync across devices and lights off. If you ever lose Pro, your notes keep every Pro look they already have.'**
+  String get proAlwaysFree;
 }
 
 class _AppLocalizationsDelegate

@@ -1333,19 +1333,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'One payment, yours for good. Everything you have now stays free.';
 
   @override
-  String get proPerkPapers => '6 more paper colors';
-
-  @override
-  String get proPerkWalls => '5 more walls';
-
-  @override
-  String get proPerkFonts => '5 more fonts';
-
-  @override
-  String get proPerkPins =>
-      '5 more ways to hold notes up: colorful pins, thumbtacks, washi tape, paper clips and magnets';
-
-  @override
   String proBuy(String price) {
     return 'Unlock for $price';
   }
@@ -1649,22 +1636,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get proNudgeAction => 'See Pro';
 
   @override
-  String get proPerkPaperStyles =>
-      '5 paper styles: lined, grid, dotted, index card, notebook page';
-
-  @override
-  String get proPerkStickers =>
-      'The whole sticker library: stamps, doodles and illustrated packs';
-
-  @override
-  String get proPerkMarkers =>
-      '5 more marker colors and a highlighter for the wall';
-
-  @override
-  String get proPerkThreads =>
-      '4 thread styles (twine, ribbon, dashed, beads) and 4 more colors';
-
-  @override
   String get proTryHint =>
       'Tap a Pro wall, font or pin in Customize to try it on your own wall first.';
 
@@ -1764,17 +1735,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wallLove => 'Valentine pink';
-
-  @override
-  String get proPerkSeasons =>
-      'Seasonal packs: Tết, Christmas, Mid-Autumn and Valentine\'s walls and stickers';
-
-  @override
-  String get proPerkPrivate =>
-      'Lock boards with your fingerprint or screen lock';
-
-  @override
-  String get proPerkCustomColor => 'Mix any paper color you like';
 
   @override
   String seasonUntil(String date) {
@@ -2747,4 +2707,233 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manualPhotoCaption => 'Summer 2026';
+
+  @override
+  String get proGroupWall => 'Make the wall yours';
+
+  @override
+  String get proGroupPaper => 'Paper, pins and stickers';
+
+  @override
+  String get proGroupMore => 'Tie, draw, keep private';
+
+  @override
+  String proWallsTitle(int count) {
+    return '$count more walls';
+  }
+
+  @override
+  String get proWallsBody =>
+      'A Pro wall changes the whole board under your notes. Tap one in Customize to try it on your own board first.';
+
+  @override
+  String proPacksTitle(int count) {
+    return '$count more theme packs';
+  }
+
+  @override
+  String get proPacksLine => 'Wall, papers, font and pins in one tap';
+
+  @override
+  String get proPacksBody =>
+      'A theme pack restyles a board at once: its wall, paper colors and ruling, handwriting, pins and threads. Preview any pack on your board; Undo puts it back.';
+
+  @override
+  String get proSeasonsTitle => 'Seasonal packs';
+
+  @override
+  String proSeasonsBody(int walls, int stickers) {
+    return '$walls festive walls and $stickers stickers for the holidays. Each pack moves to the front of the list around its day.';
+  }
+
+  @override
+  String proFontsTitle(int count) {
+    return '$count more handwriting fonts';
+  }
+
+  @override
+  String get proFontsBody =>
+      'Each one has the full Vietnamese alphabet and is sized to match the others, so notes keep their shape when you switch. Try one on in Customize first.';
+
+  @override
+  String proPapersTitle(int count) {
+    return '$count more paper colors';
+  }
+
+  @override
+  String get proPapersLine => 'And any color you mix yourself';
+
+  @override
+  String get proPapersBody =>
+      'Lime, coral, periwinkle, sage, kraft and white, each still easy to read with the lights off. Or mix a paper of your own for one note.';
+
+  @override
+  String proPaperStylesTitle(int count) {
+    return '$count paper styles';
+  }
+
+  @override
+  String get proPaperStylesBody =>
+      'Rule a note like a notebook page, graph paper or an index card. Ruled papers suit running text; lists take squares or dots.';
+
+  @override
+  String proPinsTitle(int count) {
+    return '$count more ways to pin';
+  }
+
+  @override
+  String get proPinsBody =>
+      'Choose what holds your notes up. A note pinned to the top still shows its pin in gold.';
+
+  @override
+  String proStickersTitle(int count) {
+    return '$count more stickers';
+  }
+
+  @override
+  String get proStickersLine => 'Illustrated packs and washi tapes';
+
+  @override
+  String get proStickersBody =>
+      'The whole library: hand-drawn stickers for study, home, planning, feelings and the holidays, plus washi tapes to stick across the wall.';
+
+  @override
+  String proFramesTitle(int count) {
+    return '$count photo frames';
+  }
+
+  @override
+  String get proFramesBody =>
+      'Frame one photo print, or every photo on a memory wall at once.';
+
+  @override
+  String proThreadsTitle(int styles, int colors) {
+    return '$styles thread styles, $colors more colors';
+  }
+
+  @override
+  String get proThreadsBody =>
+      'Tie notes together with twine, ribbon, a dashed cord or a string of beads, in pink, teal, brown or white.';
+
+  @override
+  String proMarkersTitle(int count) {
+    return '$count more marker colors';
+  }
+
+  @override
+  String get proMarkersLine => 'And any ink you mix';
+
+  @override
+  String get proMarkersBody =>
+      'Draw on the wall and in drawing notes in orange, purple, pink, teal and yellow, or mix an ink of your own.';
+
+  @override
+  String get proPrivateTitle => 'Private boards';
+
+  @override
+  String get proPrivateLine => 'Opened with your fingerprint or screen lock';
+
+  @override
+  String get proPrivateBody =>
+      'Lock a board with your phone\'s own fingerprint, face or screen lock. It shuts whenever you leave the app; while shut, its notes stay out of search and the widget, and its reminders hide their words.';
+
+  @override
+  String proPlayIt(String name) {
+    return '$name. Play it above';
+  }
+
+  @override
+  String get proReplay => 'Play again';
+
+  @override
+  String get proCompareTitle => 'Free and Pro';
+
+  @override
+  String get proFree => 'Free';
+
+  @override
+  String proPlus(int count) {
+    return '+ $count';
+  }
+
+  @override
+  String proPlusMix(int count) {
+    return '+ $count, and any color you mix';
+  }
+
+  @override
+  String proAll(int count) {
+    return 'All $count';
+  }
+
+  @override
+  String get proNoLimits => 'No limits';
+
+  @override
+  String get proRowNotes => 'Notes, boards, reminders';
+
+  @override
+  String get proRowTemplates => 'Board templates';
+
+  @override
+  String get proRowWalls => 'Walls';
+
+  @override
+  String proFreeWalls(int count) {
+    return '$count, and your own photo';
+  }
+
+  @override
+  String proProWalls(int count, int seasonal) {
+    return '+ $count, and $seasonal for the holidays';
+  }
+
+  @override
+  String get proRowPacks => 'Theme packs';
+
+  @override
+  String get proRowFonts => 'Handwriting fonts';
+
+  @override
+  String get proRowPapers => 'Paper colors';
+
+  @override
+  String get proRowPaperStyles => 'Paper styles';
+
+  @override
+  String get proRowPins => 'Pins';
+
+  @override
+  String get proRowStickers => 'Stickers';
+
+  @override
+  String get proRowFrames => 'Photo frames';
+
+  @override
+  String get proRowThreads => 'Threads';
+
+  @override
+  String proFreeThreads(int count) {
+    return 'Yarn in $count colors';
+  }
+
+  @override
+  String proProThreads(int styles, int colors) {
+    return '+ $styles styles, $colors colors';
+  }
+
+  @override
+  String get proRowMarkers => 'Marker on the wall';
+
+  @override
+  String proFreeMarkers(int count) {
+    return '$count colors and a highlighter';
+  }
+
+  @override
+  String get proRowLock => 'Locking';
+
+  @override
+  String get proAlwaysFree =>
+      'Always free: every kind of note, as many boards as you like, all the templates, reminders, the home-screen widget, search, backups, sync across devices and lights off. If you ever lose Pro, your notes keep every Pro look they already have.';
 }
