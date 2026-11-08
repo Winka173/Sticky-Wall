@@ -12,7 +12,8 @@ và khi bạn dùng trang web này. Cài đặt hoặc sử dụng ứng dụng 
 Sticky Wall là ứng dụng ghi chú, lưu bảng, ghi chú, ảnh và bản ghi âm ngay
 trên thiết bị của bạn. Không cần tạo tài khoản và không có máy chủ Sticky
 Wall. Ứng dụng được cung cấp theo hiện trạng, và tính năng có thể thay đổi
-giữa các phiên bản.
+giữa các phiên bản. Ứng dụng lưu gì và lưu ở đâu được nêu trong
+[chính sách quyền riêng tư](https://winka.top/vi/apps/sticky-wall/privacy/).
 
 ## 2. Ghi chú là của bạn
 

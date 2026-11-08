@@ -6,8 +6,8 @@ screenshots, a brand-new app on the same account, what still has to be done
 by hand in the Play Console web UI, setting up sync across devices (Google
 Drive) for Android and iOS (section 10), how every app handles in-app
 purchases (section 11: trust Google Play's answer, no licensing key), going to
-production (section 12), and what to change once the studio website exists
-(section 13). Start with *How to help the owner*, right below: it says how to
+production (section 12), and where the legal links on the studio website
+are used (section 13). Start with *How to help the owner*, right below: it says how to
 answer when the owner asks for setup steps.
 
 Sticky Wall (`com.apps.winka.stickywall`) is the working reference. Copy
@@ -481,24 +481,22 @@ package and SHA-1s. In every URL below, replace `PROJECT` with the project id.
      can be published.
    - *App domain* and *Authorized domains* are **required before Audience
      lets you publish** ("complete your configuration on the Branding page").
-     Every link must be on an authorized domain:
+     Every link must be on an authorized domain. All apps use the studio
+     website `winka.top` (section 13 has every app's addresses):
 
-     | Field | Quick (GitHub repo pages) | Lasting (one studio site on GitHub Pages) |
-     |---|---|---|
-     | Application home page | `https://github.com/Winka173/Sticky-Wall` | `https://winka173.github.io/sticky-wall/` |
-     | Application privacy policy link | `https://github.com/Winka173/Sticky-Wall/blob/main/PRIVACY.md` | `https://winka173.github.io/sticky-wall/privacy/` |
-     | Application terms of service link | optional, leave empty | optional |
-     | Authorized domains | `github.com` | `winka173.github.io` |
+     | Field | Sticky Wall |
+     |---|---|
+     | Application home page | `https://winka.top/en/apps/sticky-wall/` |
+     | Application privacy policy link | `https://winka.top/en/apps/sticky-wall/privacy/` |
+     | Application terms of service link | `https://winka.top/en/apps/sticky-wall/terms/` |
+     | Authorized domains | `winka.top` (remove `github.com` once nothing uses it) |
 
-     - **In use today: *Quick*.** It works while Google asks for no
-       verification, but the owner can never prove `github.com` is theirs; if
-       Google ever asks, the app is stuck. **When the studio website exists,
-       switch every app to it: the list of places is section 13.**
-     - *Lasting*: one GitHub Pages user site (`Winka173/winka173.github.io`)
-       holds a home page and privacy policy per app. Verify
-       `https://winka173.github.io/` once in Google Search Console (URL
-       prefix property, HTML file method) and every app's project can use it.
-       The Play listing's privacy URL can point there too.
+     - Verify `winka.top` once in Google Search Console (a *Domain* property,
+       DNS TXT record at the domain registrar) with the same Google account
+       that owns the Cloud projects; then every app's project can use it.
+       Before that, Google accepts it while it asks for no verification (no
+       logo, only `drive.appdata`), but could not verify the app if it ever
+       asked.
    - *Developer contact:* `apps.winka.studio@gmail.com`. → **Save**.
 3. *Data Access* (https://console.cloud.google.com/auth/scopes?project=PROJECT):
    - **Add or remove scopes** → in the filter type `drive.appdata` → tick
@@ -791,34 +789,47 @@ it in *Test and release → Testing* (the API never deletes anything).
 
 ---
 
-## 13. Pending: the studio website (come back and change these)
+## 13. The studio website: legal links
 
-**Today (8 Nov 2026)** every app uses its GitHub repo pages for the links
-Google asks for (the *Quick* column in 10.1 step C2): home page
-`https://github.com/<owner>/<repo>`, privacy policy
-`https://github.com/<owner>/<repo>/blob/main/PRIVACY.md`, authorized domain
-`github.com`. It works because no app needs Google's verification (no logo,
-only the non-sensitive `drive.appdata` scope). It cannot be verified, so it
-is a stopgap.
+Since 9 Nov 2026 every app's legal pages live on the studio website
+**https://winka.top** (Netlify; source repo `Winka173/winka-studio`,
+`C:\Users\Winka\Projects\winka-studio`, guide
+`GOOGLE_PLAY_POLICY_TERMS_GUIDE.md` there). Each page has an English copy
+under `/en/` and a Vietnamese one under `/vi/`; stores and Google Cloud get
+the English one.
 
-**Planned:** one website for the whole studio, holding a home page, privacy
-policy (EN + VI) and later terms of service for each app. Either GitHub Pages
-(`https://winka173.github.io/<app>/`) or the studio's own domain. Verify it
-once in Google Search Console (URL-prefix property, HTML file or DNS) and
-every app uses it.
+| Page | Sticky Wall (English) |
+|---|---|
+| App page | `https://winka.top/en/apps/sticky-wall/` |
+| Privacy policy | `https://winka.top/en/apps/sticky-wall/privacy/` |
+| Terms of service | `https://winka.top/en/apps/sticky-wall/terms/` |
+| Data deletion | `https://winka.top/en/apps/sticky-wall/data-deletion/` |
+| Support | `https://winka.top/en/support/sticky-wall/` |
 
-**When the site exists, change all of these**, app by app:
+**Where the text comes from:** `PRIVACY.md` is the source of truth; its
+halves are copied to `docs/website/legal/privacy.{en,vi}.md`, beside
+`terms.{en,vi}.md`. The website imports them from this repo
+(`scripts/import-website-kits.py --only sticky-wall` there, into
+`src/content/website-kits.json`). Change all three together, then commit and
+push the website repo; Netlify publishes it.
 
-| Where | What to change | Sticky Wall today |
+**Where each link is used:**
+
+| Where | Value | State (9 Nov 2026) |
 |---|---|---|
-| Google Cloud → the app's project → *Branding* (10.1 C2) | Home page, privacy link, terms link; *Authorized domains*: add the site's domain, then remove `github.com` | GitHub repo links, `github.com` |
-| Play Console → *Policy and programs → App content → Privacy policy* | The new privacy URL | `https://github.com/Winka173/Sticky-Wall/blob/main/PRIVACY.md` |
-| Play Console → *Store settings → Store listing contact details* | *Website*: the app's page | empty |
-| The app: privacy link in Settings | Constant in code, then a new release | `lib/widgets/settings_sheet.dart` (`privacyPolicyUrl`, the GitHub URL); *Terms of service* still says "coming soon" |
-| `PRIVACY.md` | Contact link (now GitHub issues), and keep the file as the source of the site's page | `<https://github.com/Winka173/Sticky-Wall/issues>` |
-| `docs/release/PLAY_LISTING_1_4_1.md` | The privacy URL row | GitHub URL |
-| This guide, 10.1 C2 | Make the site the only column; delete this section's "Today" paragraph | |
-| App Store Connect (iOS, later) | Privacy policy URL, support URL, marketing URL | not set up |
+| The app: *Settings → About → Privacy policy / Terms of service* | `lib/util/legal_links.dart` (`/vi/` when the app is in Vietnamese) | In code; reaches users with the next release |
+| Play Console → *Policy and programs → App content → Privacy policy* | Privacy policy | Owner: switch from the GitHub `PRIVACY.md` URL |
+| Play Console → *Store presence → Store settings → Store listing contact details → Website* | App page | Owner |
+| Google Cloud → the app's project → *Google Auth Platform → Branding* (10.1 C2) | Home page, privacy, terms; authorized domain `winka.top` | Owner |
+| Google Search Console | Domain property `winka.top` (DNS TXT) | Owner, once for all apps |
+| App Store Connect (iOS, later) | Privacy policy URL, support URL, marketing URL | Not set up |
 
-After switching: open every new link logged out, check the consent screen
-still says *In production*, and run a sync once on a device.
+The data-deletion page explains how people delete their own data (on the
+phone, and the Drive copy if they used sync). It is not an account-deletion
+service: the app has no accounts of its own and no server, so Play's account
+deletion requirement does not apply. Keep *Data safety* as it is (the *App content* row in
+section 12 above); a new URL changes nothing there.
+
+After switching: open every link logged out, check the consent screen still
+says *In production*, and run a sync once on a device. Keep the old GitHub
+`PRIVACY.md` in place: builds already installed link to it.

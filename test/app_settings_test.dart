@@ -9,6 +9,7 @@ import 'package:sticky_wall/services/note_storage.dart';
 import 'package:sticky_wall/services/notes_controller.dart';
 import 'package:sticky_wall/services/reminder_service.dart';
 import 'package:sticky_wall/services/settings_controller.dart';
+import 'package:sticky_wall/util/legal_links.dart';
 
 /// Settings lives in the More menu, apart from Customize, in sections.
 void main() {
@@ -84,14 +85,33 @@ void main() {
       last = y;
     }
     expect(find.text('apps.winka.studio@gmail.com'), findsOneWidget);
-    // Not written yet: shown, but not tappable.
-    final terms = tester.widget<ListTile>(
-      find.ancestor(
-        of: find.text('Terms of service'),
-        matching: find.byType(ListTile),
-      ),
+    // Both legal pages are live on the studio website and open from here.
+    for (final label in ['Privacy policy', 'Terms of service']) {
+      final tile = tester.widget<ListTile>(
+        find.ancestor(of: find.text(label), matching: find.byType(ListTile)),
+      );
+      expect(tile.enabled, isTrue, reason: label);
+      expect(tile.onTap, isNotNull, reason: label);
+    }
+  });
+
+  test('legal pages: Vietnamese gets /vi/, every other language English', () {
+    expect(
+      privacyPolicyUri('en').toString(),
+      'https://winka.top/en/apps/sticky-wall/privacy/',
     );
-    expect(terms.enabled, isFalse);
+    expect(
+      termsOfServiceUri('vi').toString(),
+      'https://winka.top/vi/apps/sticky-wall/terms/',
+    );
+    expect(
+      dataDeletionUri('fr').toString(),
+      'https://winka.top/en/apps/sticky-wall/data-deletion/',
+    );
+    expect(
+      supportUri('vi').toString(),
+      'https://winka.top/vi/support/sticky-wall/',
+    );
   });
 
   testWidgets('delete all data asks twice, then clears everything', (

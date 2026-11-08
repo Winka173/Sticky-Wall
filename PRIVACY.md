@@ -1,6 +1,6 @@
 # Privacy Policy · Chính sách quyền riêng tư
 
-**Sticky Wall** — last updated 6 November 2026 · cập nhật 06/11/2026
+**Sticky Wall** — last updated 9 November 2026 · cập nhật 09/11/2026
 
 ---
 
@@ -20,7 +20,7 @@ own backup copies it (see below).
 
 Once a week the app also writes a backup file of all of this into the same
 private storage (the newest four are kept), so you can roll back if
-something goes wrong. You can turn this off under *Customize → Backup*. These
+something goes wrong. You can turn this off under *Settings → Backup & restore*. These
 files stay on the device too, unless you share one.
 
 Uninstalling the app deletes all of it from the phone. The app keeps no
@@ -74,14 +74,15 @@ device.
 
 ### Network
 
-The app makes no network connections of its own. It touches the internet only
-when *you* open a link from a note, which your browser handles, and when the
-Google Play (or App Store) app on your phone is asked for the Pro price or
-whether Pro was bought.
+The app makes no network connections of its own, except for sync when you
+switch it on (below). Otherwise it touches the internet only when *you* open
+a link from a note, which your browser handles, and when the Google Play (or
+App Store) app on your phone is asked for the Pro price or whether Pro was
+bought.
 
 ### Optional sync across devices (Android)
 
-Off unless you switch it on in *Customize → Sync across devices*. When on,
+Off unless you switch it on in *Settings → Sync across devices*. When on,
 Sticky Wall copies your boards, notes, threads, Trash, photos and voice
 recordings to a hidden Sticky Wall folder (the "app data" folder) in **your
 own Google Drive**, and reads them back on your other Android devices signed
@@ -106,8 +107,8 @@ with the date above updated.
 
 ### Contact
 
-Questions about this policy: open an issue at
-<https://github.com/Winka173/Sticky-Wall/issues>.
+Questions about this policy: email Winka Studio at
+<apps.winka.studio@gmail.com>, or see <https://winka.top/en/support/sticky-wall/>.
 
 ---
 
@@ -127,7 +128,7 @@ chỉ rời máy khi bạn chủ động chia sẻ, hoặc khi chức năng sao 
 
 Mỗi tuần ứng dụng còn tự ghi một tệp sao lưu toàn bộ dữ liệu trên vào chính
 bộ nhớ riêng đó (giữ 4 bản mới nhất), để bạn có thể quay lại khi có sự cố.
-Bạn có thể tắt việc này trong *Tùy chỉnh → Sao lưu*. Các tệp này cũng chỉ
+Bạn có thể tắt việc này trong *Cài đặt → Sao lưu & khôi phục*. Các tệp này cũng chỉ
 nằm trên máy, trừ khi bạn chia sẻ.
 
 Gỡ ứng dụng sẽ xóa toàn bộ dữ liệu này khỏi máy. Ứng dụng không giữ bản sao
@@ -179,13 +180,14 @@ hàng xem tài khoản của bạn đã mua Pro chưa và ghi nhớ câu trả l
 
 ### Mạng
 
-Ứng dụng không tự tạo kết nối mạng nào. Nó chỉ chạm tới Internet khi *bạn*
-mở một liên kết từ ghi chú (do trình duyệt xử lý), và khi ứng dụng Google
-Play (hoặc App Store) trên máy được hỏi giá Pro hoặc bạn đã mua Pro chưa.
+Ứng dụng không tự tạo kết nối mạng nào, trừ khi bạn bật đồng bộ (xem bên
+dưới). Ngoài ra nó chỉ chạm tới Internet khi *bạn* mở một liên kết từ ghi chú
+(do trình duyệt xử lý), và khi ứng dụng Google Play (hoặc App Store) trên máy
+được hỏi giá Pro hoặc bạn đã mua Pro chưa.
 
 ### Đồng bộ giữa các thiết bị (Android, tùy chọn)
 
-Mặc định tắt, chỉ chạy khi bạn bật trong *Tùy chỉnh → Đồng bộ giữa các thiết
+Mặc định tắt, chỉ chạy khi bạn bật trong *Cài đặt → Đồng bộ giữa các thiết
 bị*. Khi bật, Sticky Wall sao chép bảng, ghi chú, dây nối, Thùng rác, ảnh và
 ghi âm vào một thư mục ẩn của Sticky Wall (thư mục "dữ liệu ứng dụng") trong
 **chính Google Drive của bạn**, rồi đọc lại trên các máy Android khác đăng
@@ -209,5 +211,5 @@ cập nhật ở đầu trang.
 
 ### Liên hệ
 
-Thắc mắc về chính sách này: mở issue tại
-<https://github.com/Winka173/Sticky-Wall/issues>.
+Thắc mắc về chính sách này: gửi email cho Winka Studio tại
+<apps.winka.studio@gmail.com>, hoặc xem <https://winka.top/vi/support/sticky-wall/>.

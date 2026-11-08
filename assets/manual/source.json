@@ -1,10 +1,10 @@
 {
-  "sourceCommit": "fa164c7e32c43cd308e6b2e523c0967a4beacf6e",
-  "build": "1.5.2+13 / STICKY_SYNC=true",
+  "sourceCommit": "2c1ec57aaf5b270e6848773c6e7cc29966549b89",
+  "build": "1.6.0+14 / STICKY_SYNC=true",
   "method": "Actual StickyWallApp widgets rendered by Flutter; cropped at measured target bounds; highlight drawn over original UI pixels. Fixture data only.",
   "files": {
-    "lib/l10n/app_en.arb": "341e6e4f434c86bfdf7eed6ed529fd2cbd6900072b5e285b3b1e80e106cfea38",
-    "lib/l10n/app_vi.arb": "095eaba92df2f5d5adf02218a78eb43f823bdb121cc062d69c41500e4a0eb7b6",
+    "lib/l10n/app_en.arb": "b1dd43f06b0a97512eef44dd1339590507d80d95f0fee0cc38b9e246be5d8762",
+    "lib/l10n/app_vi.arb": "03dd13972f0429bf4db1000c9f94d0cae0d59f4b5db09267f3bad7b476d9639e",
     "lib/screens/gallery_screen.dart": "1bd5df07adfc03f556138e9ce2048e4a4eca4a79344dd3697463216a15e209a4",
     "lib/screens/home_screen.dart": "464d37588cd3d0ac47bb23789f7916cc9daca13bb688732f784140c812eca517",
     "lib/screens/home_screen_actions.dart": "62f74af456108451d65559da78fde25e3147a960544cd448fc0badb528497cbc",
@@ -36,7 +36,7 @@
     "lib/widgets/photo_viewer.dart": "c9461118edbe1206d32dafd2ab5ab059995e2d4e1f0d0fda4ca663b0efac4637",
     "lib/widgets/pro_sheet.dart": "6c354fd174bc0e0010de806ea6c707095e9a7473855e990ce82fdeac81720545",
     "lib/widgets/restore_preview.dart": "793ac3713980f26bc4cdd163fab2cbc0b0470379876d49ad8b617eaeabc8a492",
-    "lib/widgets/settings_sheet.dart": "3538ee113a139795ce60d7a66a725e68d149aa6634342307c7be9fbacf470637",
+    "lib/widgets/settings_sheet.dart": "1fea515a4544392c1c6763738c73aa8ff77ebeba879fbee68ca1d6d6afce17da",
     "lib/widgets/sticker_assets.g.dart": "58a6d02791ac0283953e6a76c7fc3e692ceaaa03c28051ce553b117ad17c5154",
     "lib/widgets/stickers.dart": "a803b0adac12087a3182bfdfa15d6e9c06a25ac0bf9e09d9740764f402491fe6",
     "lib/widgets/sync_sheet.dart": "1352aa080ce1e35817eb6bb10dd15cb673032cb5f48525ea4cfa81efbf806b42",

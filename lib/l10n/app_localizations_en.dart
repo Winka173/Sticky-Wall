@@ -1457,6 +1457,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'What Sticky Wall keeps, and where. Opens in your browser.';
 
   @override
+  String get termsOfServiceHint =>
+      'The rules for using Sticky Wall and Pro. Opens in your browser.';
+
+  @override
   String get appLock => 'App lock';
 
   @override

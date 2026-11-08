@@ -1436,6 +1436,10 @@ class AppLocalizationsVi extends AppLocalizations {
       'Sticky Wall lưu gì và lưu ở đâu. Mở trong trình duyệt.';
 
   @override
+  String get termsOfServiceHint =>
+      'Quy định khi dùng Sticky Wall và Pro. Mở trong trình duyệt.';
+
+  @override
   String get appLock => 'Khóa ứng dụng';
 
   @override

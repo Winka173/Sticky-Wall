@@ -11,7 +11,8 @@ agree, please do not use the app.
 Sticky Wall is a notes app that keeps your boards, notes, photos and voice
 recordings on your own device. There is no account to create and no Sticky
 Wall server. The app is offered as it is, and features may change from one
-version to the next.
+version to the next. What the app keeps, and where, is set out in the
+[privacy policy](https://winka.top/en/apps/sticky-wall/privacy/).
 
 ## 2. Your notes are yours
 

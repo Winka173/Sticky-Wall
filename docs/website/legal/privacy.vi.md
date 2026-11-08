@@ -1,6 +1,6 @@
 # Chính sách quyền riêng tư
 
-**Sticky Wall** — cập nhật 06/11/2026
+**Sticky Wall** — cập nhật 09/11/2026
 
 <!-- Bản gốc: /PRIVACY.md trong repo ứng dụng. Sửa thì sửa cả hai. -->
 
@@ -18,7 +18,7 @@ chỉ rời máy khi bạn chủ động chia sẻ, hoặc khi chức năng sao 
 
 Mỗi tuần ứng dụng còn tự ghi một tệp sao lưu toàn bộ dữ liệu trên vào chính
 bộ nhớ riêng đó (giữ 4 bản mới nhất), để bạn có thể quay lại khi có sự cố.
-Bạn có thể tắt việc này trong *Tùy chỉnh → Sao lưu*. Các tệp này cũng chỉ
+Bạn có thể tắt việc này trong *Cài đặt → Sao lưu & khôi phục*. Các tệp này cũng chỉ
 nằm trên máy, trừ khi bạn chia sẻ.
 
 Gỡ ứng dụng sẽ xóa toàn bộ dữ liệu này khỏi máy. Ứng dụng không giữ bản sao
@@ -70,13 +70,14 @@ hàng xem tài khoản của bạn đã mua Pro chưa và ghi nhớ câu trả l
 
 ### Mạng
 
-Ứng dụng không tự tạo kết nối mạng nào. Nó chỉ chạm tới Internet khi *bạn*
-mở một liên kết từ ghi chú (do trình duyệt xử lý), và khi ứng dụng Google
-Play (hoặc App Store) trên máy được hỏi giá Pro hoặc bạn đã mua Pro chưa.
+Ứng dụng không tự tạo kết nối mạng nào, trừ khi bạn bật đồng bộ (xem bên
+dưới). Ngoài ra nó chỉ chạm tới Internet khi *bạn* mở một liên kết từ ghi chú
+(do trình duyệt xử lý), và khi ứng dụng Google Play (hoặc App Store) trên máy
+được hỏi giá Pro hoặc bạn đã mua Pro chưa.
 
 ### Đồng bộ giữa các thiết bị (Android, tùy chọn)
 
-Mặc định tắt, chỉ chạy khi bạn bật trong *Tùy chỉnh → Đồng bộ giữa các thiết
+Mặc định tắt, chỉ chạy khi bạn bật trong *Cài đặt → Đồng bộ giữa các thiết
 bị*. Khi bật, Sticky Wall sao chép bảng, ghi chú, dây nối, Thùng rác, ảnh và
 ghi âm vào một thư mục ẩn của Sticky Wall (thư mục "dữ liệu ứng dụng") trong
 **chính Google Drive của bạn**, rồi đọc lại trên các máy Android khác đăng
@@ -100,5 +101,5 @@ cập nhật ở đầu trang.
 
 ### Liên hệ
 
-Thắc mắc về chính sách này: mở issue tại
-<https://github.com/Winka173/Sticky-Wall/issues>.
+Thắc mắc về chính sách này: gửi email cho Winka Studio tại
+<apps.winka.studio@gmail.com>, hoặc xem <https://winka.top/vi/support/sticky-wall/>.

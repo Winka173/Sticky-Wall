@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Sticky Wall** — last updated 6 November 2026
+**Sticky Wall** — last updated 9 November 2026
 
 <!-- Source of truth: /PRIVACY.md in the app repo. Keep the two in step. -->
 
@@ -18,7 +18,7 @@ own backup copies it (see below).
 
 Once a week the app also writes a backup file of all of this into the same
 private storage (the newest four are kept), so you can roll back if
-something goes wrong. You can turn this off under *Customize → Backup*. These
+something goes wrong. You can turn this off under *Settings → Backup & restore*. These
 files stay on the device too, unless you share one.
 
 Uninstalling the app deletes all of it from the phone. The app keeps no
@@ -72,14 +72,15 @@ device.
 
 ### Network
 
-The app makes no network connections of its own. It touches the internet only
-when *you* open a link from a note, which your browser handles, and when the
-Google Play (or App Store) app on your phone is asked for the Pro price or
-whether Pro was bought.
+The app makes no network connections of its own, except for sync when you
+switch it on (below). Otherwise it touches the internet only when *you* open
+a link from a note, which your browser handles, and when the Google Play (or
+App Store) app on your phone is asked for the Pro price or whether Pro was
+bought.
 
 ### Optional sync across devices (Android)
 
-Off unless you switch it on in *Customize → Sync across devices*. When on,
+Off unless you switch it on in *Settings → Sync across devices*. When on,
 Sticky Wall copies your boards, notes, threads, Trash, photos and voice
 recordings to a hidden Sticky Wall folder (the "app data" folder) in **your
 own Google Drive**, and reads them back on your other Android devices signed
@@ -104,5 +105,5 @@ with the date above updated.
 
 ### Contact
 
-Questions about this policy: open an issue at
-<https://github.com/Winka173/Sticky-Wall/issues>.
+Questions about this policy: email Winka Studio at
+<apps.winka.studio@gmail.com>, or see <https://winka.top/en/support/sticky-wall/>.

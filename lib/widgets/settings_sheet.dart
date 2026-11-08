@@ -22,6 +22,7 @@ import '../services/settings_controller.dart';
 import '../services/sync/sync_service.dart';
 import '../services/widget_service.dart';
 import '../theme.dart';
+import '../util/legal_links.dart';
 import '../welcome/how_to_use.dart';
 import 'action_sheet.dart';
 import 'keyboard_tappable.dart';
@@ -32,10 +33,6 @@ import 'restore_preview.dart';
 import 'sync_sheet.dart';
 
 part 'widget_settings_sheet.dart';
-
-/// The published privacy policy (the Play listing links the same page).
-const privacyPolicyUrl =
-    'https://github.com/Winka173/Sticky-Wall/blob/main/PRIVACY.md';
 
 /// Localized display name for a bundled wall texture.
 String wallLabel(AppLocalizations l10n, String id) => switch (id) {
@@ -718,32 +715,29 @@ class _SettingsSheet extends StatelessWidget {
           subtitle: feedbackEmail,
           onTap: () => _sendFeedback(context, l10n),
         ),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.policy_outlined, color: AppColors.ink),
-          title: Text(
-            l10n.privacyPolicy,
-            style: const TextStyle(fontSize: 16, color: AppColors.ink),
-          ),
-          subtitle: Text(
-            l10n.privacyPolicyHint,
-            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
-          ),
+        _row(
+          icon: Icons.policy_outlined,
+          title: l10n.privacyPolicy,
+          subtitle: l10n.privacyPolicyHint,
           trailing: const Icon(Icons.open_in_new, color: AppColors.inkSoft),
-          onTap: () => unawaited(
-            launchUrl(
-              Uri.parse(privacyPolicyUrl),
-              mode: LaunchMode.externalApplication,
-            ),
-          ),
+          onTap: () => _openPage(context, privacyPolicyUri),
         ),
         _row(
           icon: Icons.gavel_outlined,
           title: l10n.termsOfService,
-          subtitle: l10n.comingSoon,
+          subtitle: l10n.termsOfServiceHint,
+          trailing: const Icon(Icons.open_in_new, color: AppColors.inkSoft),
+          onTap: () => _openPage(context, termsOfServiceUri),
         ),
       ],
     );
+  }
+
+  /// Opens one of the app's pages on the studio website, in the app's
+  /// language, in the browser.
+  void _openPage(BuildContext context, Uri Function(String) page) {
+    final uri = page(Localizations.localeOf(context).languageCode);
+    unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
   }
 
   Future<void> _sendFeedback(

@@ -70,19 +70,20 @@ and the favicons in `brand/logo/`.
 - **iPhone:** not on the App Store. The FAQ suggests "An iPhone version is
   planned"; confirm or drop it.
 - **Governing law** in the terms is set to Vietnam; confirm.
-- **Contact:** the kit uses `apps.winka.studio@gmail.com` (the Play support
-  address). The privacy policy still says "open a GitHub issue"; when the
-  site goes live, change its Contact section in `/PRIVACY.md` and here.
+- **Contact:** `apps.winka.studio@gmail.com` (the Play support address), in
+  the privacy policy, the terms and the app.
 - **Price:** never write a price on the page. `21_pro` shows the current test
   price on the button; crop or blur it, or leave that screenshot out.
 
-## After the site is live
+## Live addresses
 
-Follow `/docs/release/PLAY_CONSOLE_API_GUIDE.md` §13: point Play Console's
-privacy policy and website fields, the Google Cloud Branding page and the
-app's own privacy link (`privacyPolicyUrl` in
-`lib/widgets/settings_sheet.dart`, plus the "Terms of service — coming soon"
-item) at the new addresses.
+The site is live at https://winka.top (since 9 Nov 2026): app page
+`/en/apps/sticky-wall/`, `privacy/`, `terms/`, `data-deletion/` and support
+`/en/support/sticky-wall/`, each with a `/vi/` twin. The app opens them from
+*Settings → About* (`lib/util/legal_links.dart`); Play Console and Google
+Cloud take the English ones (`/docs/release/PLAY_CONSOLE_API_GUIDE.md` §13).
+When `PRIVACY.md` or `legal/` changes, the website imports this folder again
+(`scripts/import-website-kits.py --only sticky-wall` in the website repo).
 
 ## How the screenshots and clips were made (to redo them)
 

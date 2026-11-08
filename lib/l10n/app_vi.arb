@@ -419,6 +419,7 @@
   "privacySection": "Riêng tư",
   "privacyPolicy": "Chính sách quyền riêng tư",
   "privacyPolicyHint": "Sticky Wall lưu gì và lưu ở đâu. Mở trong trình duyệt.",
+  "termsOfServiceHint": "Quy định khi dùng Sticky Wall và Pro. Mở trong trình duyệt.",
   "appLock": "Khóa ứng dụng",
   "appLockHint": "Hỏi vân tay, khuôn mặt hoặc khóa màn hình khi mở Sticky Wall, và khi quay lại sau hơn một phút.",
   "appLockReason": "Mở khóa Sticky Wall",

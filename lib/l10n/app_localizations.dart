@@ -2612,6 +2612,12 @@ abstract class AppLocalizations {
   /// **'What Sticky Wall keeps, and where. Opens in your browser.'**
   String get privacyPolicyHint;
 
+  /// No description provided for @termsOfServiceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The rules for using Sticky Wall and Pro. Opens in your browser.'**
+  String get termsOfServiceHint;
+
   /// No description provided for @appLock.
   ///
   /// In en, this message translates to:
