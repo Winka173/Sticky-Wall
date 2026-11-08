@@ -5,6 +5,10 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
@@ -16,7 +20,9 @@ import java.io.File
  * Home-screen widget. Shows a picture of the board when the app has exported
  * one to it and "Board picture" is chosen, else a board's pinned or newest
  * notes as text, in the colours and text size chosen in the app (Customize →
- * Home-screen widget). Data is pushed from Flutter via the home_widget plugin
+ * Home-screen widget). Each line opens its note (stickywall://note/<guid>),
+ * the + button a new note on the board shown (stickywall://new?board=<id>);
+ * the app reads both in lib/services/widget_service.dart (WidgetTap). Data is pushed from Flutter via the home_widget plugin
  * (see lib/services/widget_service.dart; the colours match widgetColors in
  * lib/widgets/widget_settings_sheet.dart).
  */
@@ -37,6 +43,7 @@ class StickyWidgetProvider : HomeWidgetProvider() {
             } else {
                 null
             }
+            var addTint = CHALK
             if (wall != null) {
                 views.setImageViewBitmap(R.id.widget_wall, wall)
                 views.setViewVisibility(R.id.widget_wall, View.VISIBLE)
@@ -44,21 +51,33 @@ class StickyWidgetProvider : HomeWidgetProvider() {
             } else {
                 views.setViewVisibility(R.id.widget_wall, View.GONE)
                 views.setViewVisibility(R.id.widget_lines, View.VISIBLE)
-                bindLines(views, widgetData)
+                addTint = bindLines(context, views, widgetData)
             }
 
-            // Tapping the widget opens the app.
-            val pendingIntent = HomeWidgetLaunchIntent.getActivity(
-                context,
-                MainActivity::class.java,
+            // Tapping the widget opens the app; a line opens its note.
+            views.setOnClickPendingIntent(R.id.widget_root, launch(context, null))
+
+            // + starts a new note on the board the widget shows.
+            val board = widgetData.getString("boardId", "") ?: ""
+            views.setInt(R.id.widget_add, "setColorFilter", addTint)
+            views.setOnClickPendingIntent(
+                R.id.widget_add,
+                launch(context, Uri.parse("stickywall://new?board=${Uri.encode(board)}")),
             )
-            views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 
             appWidgetManager.updateAppWidget(widgetId, views)
         }
     }
 
-    private fun bindLines(views: RemoteViews, widgetData: SharedPreferences) {
+    private fun launch(context: Context, uri: Uri?) =
+        HomeWidgetLaunchIntent.getActivity(context, MainActivity::class.java, uri)
+
+    /** Fills the text lines; returns the text colour for the + button. */
+    private fun bindLines(
+        context: Context,
+        views: RemoteViews,
+        widgetData: SharedPreferences,
+    ): Int {
         val look = widgetData.getString("look", "wall")
         val (background, text, faded) = when (look) {
             "paper" -> Triple(R.drawable.widget_bg_paper, INK, INK_FADED)
@@ -72,7 +91,8 @@ class StickyWidgetProvider : HomeWidgetProvider() {
         }
         views.setInt(R.id.widget_root, "setBackgroundResource", background)
 
-        val title = widgetData.getString("title", "Sticky Wall") ?: "Sticky Wall"
+        val title = widgetData.getString("title", null)
+            ?: context.getString(R.string.widget_title_default)
         views.setTextViewText(R.id.widget_title, title)
         views.setTextColor(R.id.widget_title, text)
         views.setTextViewTextSize(R.id.widget_title, TypedValue.COMPLEX_UNIT_SP, titleSize)
@@ -87,9 +107,22 @@ class StickyWidgetProvider : HomeWidgetProvider() {
                 views.setViewVisibility(ids[i], View.GONE)
             } else {
                 views.setViewVisibility(ids[i], View.VISIBLE)
-                views.setTextViewText(ids[i], "• $line")
+                // A dot of the note's paper colour leads the line.
+                val dot = widgetData.getString("color${i + 1}", "")?.toLongOrNull()?.toInt()
+                val shown = SpannableString("● $line")
+                if (dot != null) {
+                    shown.setSpan(ForegroundColorSpan(dot), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+                views.setTextViewText(ids[i], shown)
                 views.setTextColor(ids[i], text)
                 views.setTextViewTextSize(ids[i], TypedValue.COMPLEX_UNIT_SP, lineSize)
+                val id = widgetData.getString("id${i + 1}", "") ?: ""
+                if (id.isNotEmpty()) {
+                    views.setOnClickPendingIntent(
+                        ids[i],
+                        launch(context, Uri.parse("stickywall://note/${Uri.encode(id)}")),
+                    )
+                }
             }
         }
 
@@ -98,11 +131,14 @@ class StickyWidgetProvider : HomeWidgetProvider() {
             R.id.widget_empty,
             if (empty) View.VISIBLE else View.GONE,
         )
-        widgetData.getString("empty", null)?.let {
-            views.setTextViewText(R.id.widget_empty, it)
-        }
+        views.setTextViewText(
+            R.id.widget_empty,
+            widgetData.getString("empty", null)
+                ?: context.getString(R.string.widget_empty_default),
+        )
         views.setTextColor(R.id.widget_empty, faded)
         views.setTextViewTextSize(R.id.widget_empty, TypedValue.COMPLEX_UNIT_SP, lineSize)
+        return text
     }
 
     /**

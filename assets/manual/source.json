@@ -1,12 +1,12 @@
 {
-  "sourceCommit": "c581d6cca1118d97bca4a335b89b614000f68739",
+  "sourceCommit": "fa164c7e32c43cd308e6b2e523c0967a4beacf6e",
   "build": "1.5.2+13 / STICKY_SYNC=true",
   "method": "Actual StickyWallApp widgets rendered by Flutter; cropped at measured target bounds; highlight drawn over original UI pixels. Fixture data only.",
   "files": {
     "lib/l10n/app_en.arb": "341e6e4f434c86bfdf7eed6ed529fd2cbd6900072b5e285b3b1e80e106cfea38",
     "lib/l10n/app_vi.arb": "095eaba92df2f5d5adf02218a78eb43f823bdb121cc062d69c41500e4a0eb7b6",
     "lib/screens/gallery_screen.dart": "1bd5df07adfc03f556138e9ce2048e4a4eca4a79344dd3697463216a15e209a4",
-    "lib/screens/home_screen.dart": "630f9138dda09ca3d3ac5839286ff4f0ee5c7df3f650a7c9f2c526cfb7b69d66",
+    "lib/screens/home_screen.dart": "464d37588cd3d0ac47bb23789f7916cc9daca13bb688732f784140c812eca517",
     "lib/screens/home_screen_actions.dart": "62f74af456108451d65559da78fde25e3147a960544cd448fc0badb528497cbc",
     "lib/screens/home_screen_chrome.dart": "91072ec0a0e074f7fe7c6505e51c40248922acf802905ef549d7c1bddc286bcb",
     "lib/screens/home_screen_widgets.dart": "d743a4aeaf955bdcccac5de5bb3c0799ae19afcec36d85ca278f2502dbfdc053",

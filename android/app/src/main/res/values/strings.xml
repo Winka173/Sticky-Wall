@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Words the home-screen widget shows before the app has sent its own
+     (the app pushes the board name and its localized words on every change). -->
+<resources>
+    <string name="widget_title_default">Sticky Wall</string>
+    <string name="widget_empty_default">Open Sticky Wall to fill this widget</string>
+    <string name="widget_description">A board\'s pinned or newest notes. Tap a note to open it, + for a new one.</string>
+    <string name="widget_add">New note</string>
+    <string name="widget_preview_line1">Buy milk and eggs</string>
+    <string name="widget_preview_line2">Weekend plan · 2/5</string>
+    <string name="widget_preview_line3">Call the dentist</string>
+</resources>

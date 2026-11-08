@@ -146,6 +146,7 @@ Future<void> main() async {
     // notes there, open or not.
     widgetService.update(
       title: board.name.isEmpty ? l10n.defaultBoardName : board.name,
+      boardId: board.id,
       notes: board.isPrivate
           ? const []
           : WidgetService.notesFor(notes.allNotes, board.id, content),

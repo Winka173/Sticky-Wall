@@ -208,6 +208,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _searchController.addListener(() => _notes.search = _searchController.text);
     widget.shareReceiver?.listen(_onShared);
     _reminderTaps = ReminderService.opened.listen(_openFromReminder);
+    // The home-screen widget's + button and lines.
+    _widgetTaps = WidgetService.taps().listen(
+      (tap) => WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _openFromWidget(tap),
+      ),
+    );
     final launched = ReminderService.takeLaunchNote();
     if (launched != null) {
       WidgetsBinding.instance.addPostFrameCallback(
@@ -217,6 +223,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   StreamSubscription<String>? _reminderTaps;
+  StreamSubscription<WidgetTap>? _widgetTaps;
+
+  /// A tap on the home-screen widget: a line opens its note (as a reminder
+  /// does); the + button starts a new note on the board the widget shows.
+  Future<void> _openFromWidget(WidgetTap tap) async {
+    if (!mounted) return;
+    switch (tap) {
+      case WidgetOpenNote(:final guid):
+        await _openFromReminder(guid);
+      case WidgetNewNote(:final boardId):
+        if (!await _makeWayForIncoming() || !mounted) return;
+        final board = _notes.boards.where((b) => b.id == boardId).firstOrNull;
+        if (board != null && board.id != _notes.currentBoardId) {
+          _notes.selectBoard(board.id);
+        }
+        if (_notes.currentBoardShut) {
+          final open = await unlockPrivateBoard(
+            context,
+            _notes,
+            _notes.currentBoard,
+          );
+          if (!open || !mounted) return;
+        }
+        await _openEditor(_draftHere(), isNew: true);
+    }
+  }
 
   /// A tapped reminder opens its note, on its own board.
   Future<void> _openFromReminder(String guid) async {
@@ -243,6 +275,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     widget.shareReceiver?.dispose();
     unawaited(_reminderTaps?.cancel());
+    unawaited(_widgetTaps?.cancel());
     _searchController.dispose();
     _camera.dispose();
     _dropTarget.dispose();

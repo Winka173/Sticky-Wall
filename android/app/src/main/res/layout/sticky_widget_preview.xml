@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What the widget picker shows (Android 12+): the widget with sample
+     notes. Kept in step with sticky_widget.xml. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/preview_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:clipToOutline="true">
+
+    <ImageView
+        android:id="@+id/preview_widget_wall"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="@null"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/preview_widget_lines"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <TextView
+            android:id="@+id/preview_widget_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="34dp"
+            android:text="@string/widget_title_default"
+            android:textColor="#FDFBF3"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:id="@+id/preview_widget_line1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FDFBF3"
+            android:textSize="14sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:text="@string/widget_preview_line1" />
+
+        <TextView
+            android:id="@+id/preview_widget_line2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FDFBF3"
+            android:textSize="14sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:text="@string/widget_preview_line2" />
+
+        <TextView
+            android:id="@+id/preview_widget_line3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FDFBF3"
+            android:textSize="14sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:text="@string/widget_preview_line3" />
+
+    </LinearLayout>
+
+    <!-- A new note on the board the widget shows. -->
+    <ImageView
+        android:id="@+id/preview_widget_add"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="8dp"
+        android:padding="7dp"
+        android:background="@drawable/widget_add_bg"
+        android:src="@drawable/widget_ic_add"
+        android:contentDescription="@string/widget_add" />
+
+</FrameLayout>

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Either a picture of the board (widget_wall, when the app has exported one
      to the widget and "Board picture" is chosen) or a board's pinned or
-     newest notes as text lines. Colours and text size are set from
-     StickyWidgetProvider to match the app's widget settings. -->
+     newest notes as text lines, each opening its note. Colours and text size
+     are set from StickyWidgetProvider to match the app's widget settings;
+     the + button starts a new note. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
@@ -27,9 +28,10 @@
 
         <TextView
             android:id="@+id/widget_title"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Sticky Wall"
+            android:layout_marginEnd="34dp"
+            android:text="@string/widget_title_default"
             android:textColor="#FDFBF3"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -45,6 +47,8 @@
             android:textSize="14sp"
             android:maxLines="1"
             android:ellipsize="end"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
             android:visibility="gone" />
 
         <TextView
@@ -55,6 +59,8 @@
             android:textSize="14sp"
             android:maxLines="1"
             android:ellipsize="end"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
             android:visibility="gone" />
 
         <TextView
@@ -65,6 +71,8 @@
             android:textSize="14sp"
             android:maxLines="1"
             android:ellipsize="end"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
             android:visibility="gone" />
 
         <TextView
@@ -75,6 +83,8 @@
             android:textSize="14sp"
             android:maxLines="1"
             android:ellipsize="end"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
             android:visibility="gone" />
 
         <TextView
@@ -85,6 +95,8 @@
             android:textSize="14sp"
             android:maxLines="1"
             android:ellipsize="end"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
             android:visibility="gone" />
 
         <TextView
@@ -95,17 +107,31 @@
             android:textSize="14sp"
             android:maxLines="1"
             android:ellipsize="end"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
             android:visibility="gone" />
 
         <TextView
             android:id="@+id/widget_empty"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="No pinned notes"
+            android:text="@string/widget_empty_default"
             android:textColor="#CCFDFBF3"
             android:textSize="14sp"
             android:visibility="gone" />
 
     </LinearLayout>
+
+    <!-- A new note on the board the widget shows. -->
+    <ImageView
+        android:id="@+id/widget_add"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="8dp"
+        android:padding="7dp"
+        android:background="@drawable/widget_add_bg"
+        android:src="@drawable/widget_ic_add"
+        android:contentDescription="@string/widget_add" />
 
 </FrameLayout>

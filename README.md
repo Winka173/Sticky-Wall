@@ -263,14 +263,23 @@ then taken well beyond it.
 
 **Home-screen widget** (Android)
 - A widget showing a board's pinned notes (or its newest notes, or a
-  picture of the board sent from the export); tap to open the app.
+  picture of the board sent from the export). Each line wears a dot of its
+  note's paper, a to-do list shows how far along it is ("Shopping · 2/5"),
+  a tap on a line opens that note and the **+** button starts a new note on
+  the board shown (links `stickywall://note/<guid>` and
+  `stickywall://new?board=<id>`, read by `WidgetTap` in
+  `lib/services/widget_service.dart`). The widget picker shows a sample
+  (`sticky_widget_preview.xml`, Android 12+); its default words are in
+  `res/values{,-vi}/strings.xml`.
   *Customize → Home-screen widget* picks the board (or "the open wall"),
   what it lists, its colours (wall brown / paper / ink) and text size, over a
   live preview. Data is pushed via `home_widget`; the native provider lives
   in `android/app/src/main/kotlin/.../StickyWidgetProvider.kt`.
 - iOS: the Dart side already pushes data; add a WidgetKit extension target in
   Xcode (named `StickyWidget`) reading the shared `home_widget` data to enable
-  it on iOS.
+  it on iOS. The Swift view does not yet have the + button, line links or
+  dots (`id1..6`, `color1..6`, `boardId`); add them with `Link` and a
+  `stickywall` URL scheme when the extension is built.
 
 **Boards**
 - A new board can start blank, from one of the **templates** or as a

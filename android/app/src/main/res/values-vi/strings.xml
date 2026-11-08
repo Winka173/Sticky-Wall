@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_title_default">Sticky Wall</string>
+    <string name="widget_empty_default">Mở Sticky Wall để widget hiện ghi chú</string>
+    <string name="widget_description">Ghi chú đã ghim hoặc mới nhất của một bảng. Chạm vào ghi chú để mở, + để viết ghi chú mới.</string>
+    <string name="widget_add">Ghi chú mới</string>
+    <string name="widget_preview_line1">Mua sữa và trứng</string>
+    <string name="widget_preview_line2">Kế hoạch cuối tuần · 2/5</string>
+    <string name="widget_preview_line3">Gọi nha sĩ</string>
+</resources>
