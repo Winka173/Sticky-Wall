@@ -124,6 +124,11 @@ Owner only (accounts and hardware):
 4. **License-tester purchase** of `sticky_wall_pro` on a real device.
 5. **A Mac with Xcode** for anything on iOS.
 
+6. **Studio website** (planned): one site with each app's home page and
+   privacy policy, verified in Search Console. Until then Google Cloud's
+   Branding and Play use the GitHub repo links. Everything to change when it
+   exists: Play guide section 13.
+
 Not done in code:
 
 - **Sync has never run against real Google Drive.** Engine and service are

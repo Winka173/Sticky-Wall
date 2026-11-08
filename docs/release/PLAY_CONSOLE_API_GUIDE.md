@@ -5,11 +5,48 @@ listing. It covers a fresh machine, the secrets, the one-command release, store
 screenshots, a brand-new app on the same account, what still has to be done
 by hand in the Play Console web UI, setting up sync across devices (Google
 Drive) for Android and iOS (section 10), how every app handles in-app
-purchases (section 11: trust Google Play's answer, no licensing key), and going
-to production (section 12).
+purchases (section 11: trust Google Play's answer, no licensing key), going to
+production (section 12), and what to change once the studio website exists
+(section 13). Start with *How to help the owner*, right below: it says how to
+answer when the owner asks for setup steps.
 
 Sticky Wall (`com.apps.winka.stickywall`) is the working reference. Copy
 `android/fastlane/` and `tool/play.py` from it for another app.
+
+---
+
+## How to help the owner with this guide (every repo, every app)
+
+The owner clicks the consoles (Play Console, Google Cloud, Search Console,
+App Store Connect); you guide. Whenever the owner asks how to set something
+up, or sends a screenshot of a console page, answer **step by step, ready to
+follow**, never with a summary:
+
+1. **Name the page and give its direct link**, with the project or app filled
+   in (`https://console.cloud.google.com/auth/branding?project=<id>`,
+   `https://play.google.com/console`). Say the menu path too, because links
+   move.
+2. **Number every click in order**: which button, which tab, which option to
+   choose, then *Save* / *Next* / *Create*. Group the steps under lettered
+   headings (A. Create the project, B. Turn on the API, …) when there are
+   many.
+3. **Give the exact value for every field**, as a table: field → what to type
+   (the app's real name, package, SHA-1, email, URLs). Say plainly which
+   fields stay **empty** and why (for example: no logo, or Google must verify
+   the app).
+4. **Warn before anything that cannot be undone or that blocks**, at the
+   step where it happens: deleting, publishing, "must be deleted before it
+   can be created elsewhere", waiting times.
+5. **End with how to check it worked**, and what the usual error looks like
+   if it did not.
+6. Read the screenshot: if the page shows something this guide does not
+   expect (a disabled button, a missing field, a new layout), say what it
+   means and fix the guide in the same turn.
+7. **Write it back here.** A step you had to work out goes into this guide,
+   in the same click-by-click form, so the next app and the next repo get it.
+
+Reply in the owner's language (Vietnamese); this file stays in English.
+Section 10.1 is the model to copy.
 
 ---
 
@@ -453,9 +490,10 @@ package and SHA-1s. In every URL below, replace `PROJECT` with the project id.
      | Application terms of service link | optional, leave empty | optional |
      | Authorized domains | `github.com` | `winka173.github.io` |
 
-     - *Quick* works while Google asks for no verification, but the owner can
-       never prove `github.com` is theirs; if Google ever asks, the app is
-       stuck.
+     - **In use today: *Quick*.** It works while Google asks for no
+       verification, but the owner can never prove `github.com` is theirs; if
+       Google ever asks, the app is stuck. **When the studio website exists,
+       switch every app to it: the list of places is section 13.**
      - *Lasting*: one GitHub Pages user site (`Winka173/winka173.github.io`)
        holds a home page and privacy policy per app. Verify
        `https://winka173.github.io/` once in Google Search Console (URL
@@ -750,3 +788,37 @@ it in *Test and release → Testing* (the API never deletes anything).
    rollout* changes the percentage; **Halt rollout** stops a bad release
    (fix it, ship a higher versionCode).
 4. The version on production is always one that closed testing has had first.
+
+---
+
+## 13. Pending: the studio website (come back and change these)
+
+**Today (8 Nov 2026)** every app uses its GitHub repo pages for the links
+Google asks for (the *Quick* column in 10.1 step C2): home page
+`https://github.com/<owner>/<repo>`, privacy policy
+`https://github.com/<owner>/<repo>/blob/main/PRIVACY.md`, authorized domain
+`github.com`. It works because no app needs Google's verification (no logo,
+only the non-sensitive `drive.appdata` scope). It cannot be verified, so it
+is a stopgap.
+
+**Planned:** one website for the whole studio, holding a home page, privacy
+policy (EN + VI) and later terms of service for each app. Either GitHub Pages
+(`https://winka173.github.io/<app>/`) or the studio's own domain. Verify it
+once in Google Search Console (URL-prefix property, HTML file or DNS) and
+every app uses it.
+
+**When the site exists, change all of these**, app by app:
+
+| Where | What to change | Sticky Wall today |
+|---|---|---|
+| Google Cloud → the app's project → *Branding* (10.1 C2) | Home page, privacy link, terms link; *Authorized domains*: add the site's domain, then remove `github.com` | GitHub repo links, `github.com` |
+| Play Console → *Policy and programs → App content → Privacy policy* | The new privacy URL | `https://github.com/Winka173/Sticky-Wall/blob/main/PRIVACY.md` |
+| Play Console → *Store settings → Store listing contact details* | *Website*: the app's page | empty |
+| The app: privacy link in Settings | Constant in code, then a new release | `lib/widgets/settings_sheet.dart` (`privacyPolicyUrl`, the GitHub URL); *Terms of service* still says "coming soon" |
+| `PRIVACY.md` | Contact link (now GitHub issues), and keep the file as the source of the site's page | `<https://github.com/Winka173/Sticky-Wall/issues>` |
+| `docs/release/PLAY_LISTING_1_4_1.md` | The privacy URL row | GitHub URL |
+| This guide, 10.1 C2 | Make the site the only column; delete this section's "Today" paragraph | |
+| App Store Connect (iOS, later) | Privacy policy URL, support URL, marketing URL | not set up |
+
+After switching: open every new link logged out, check the consent screen
+still says *In production*, and run a sync once on a device.

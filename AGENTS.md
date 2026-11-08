@@ -31,6 +31,13 @@
   4. Run `cd android && fastlane android publish`. It checks, builds with sync,
      uploads to closed testing and rolls out.
 - Production stays manual: the service account cannot release to it.
+- When the owner asks how to set up a console (Play, Google Cloud, Search
+  Console), answer click by click: direct links, numbered steps, a value for
+  every field, warnings, a final check. See *How to help the owner* at the top
+  of the guide; write new steps back into it.
+- App links (home page, privacy policy) are GitHub repo pages for now; a
+  studio website will replace them. The list of places to change is guide
+  section 13.
 - In-app purchases trust Google Play's answer through `in_app_purchase`:
   no licensing (RSA) key and no on-device signature check (guide section 11).
 - Secrets stay outside the repo and are never printed:
