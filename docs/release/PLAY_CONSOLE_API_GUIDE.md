@@ -442,11 +442,25 @@ package and SHA-1s. In every URL below, replace `PROJECT` with the project id.
 2. *Branding* (https://console.cloud.google.com/auth/branding?project=PROJECT):
    - **Leave the logo empty.** A logo makes Google verify the app before it
      can be published.
-   - *App domain* (home page, privacy policy, terms) and *Authorized domains*:
-     leave empty. The privacy policy lives on `github.com`, which this
-     account cannot verify. Fill them in only after the policy moves to a
-     domain the owner can verify (for example GitHub Pages `<user>.github.io`,
-     verified in Search Console).
+   - *App domain* and *Authorized domains* are **required before Audience
+     lets you publish** ("complete your configuration on the Branding page").
+     Every link must be on an authorized domain:
+
+     | Field | Quick (GitHub repo pages) | Lasting (one studio site on GitHub Pages) |
+     |---|---|---|
+     | Application home page | `https://github.com/Winka173/Sticky-Wall` | `https://winka173.github.io/sticky-wall/` |
+     | Application privacy policy link | `https://github.com/Winka173/Sticky-Wall/blob/main/PRIVACY.md` | `https://winka173.github.io/sticky-wall/privacy/` |
+     | Application terms of service link | optional, leave empty | optional |
+     | Authorized domains | `github.com` | `winka173.github.io` |
+
+     - *Quick* works while Google asks for no verification, but the owner can
+       never prove `github.com` is theirs; if Google ever asks, the app is
+       stuck.
+     - *Lasting*: one GitHub Pages user site (`Winka173/winka173.github.io`)
+       holds a home page and privacy policy per app. Verify
+       `https://winka173.github.io/` once in Google Search Console (URL
+       prefix property, HTML file method) and every app's project can use it.
+       The Play listing's privacy URL can point there too.
    - *Developer contact:* `apps.winka.studio@gmail.com`. → **Save**.
 3. *Data Access* (https://console.cloud.google.com/auth/scopes?project=PROJECT):
    - **Add or remove scopes** → in the filter type `drive.appdata` → tick
