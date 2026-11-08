@@ -490,6 +490,21 @@ extension _EditorPieces on _NoteDialogState {
                 ),
               ),
             ),
+            // The keyboard's Next key adds too, but not every keyboard shows
+            // it plainly: a visible button once something is typed.
+            ListenableBuilder(
+              listenable: _newItem,
+              builder: (context, _) => _newItem.text.trim().isEmpty
+                  ? const SizedBox.shrink()
+                  : IconButton(
+                      key: const Key('checklist-add-item'),
+                      tooltip: l10n.addItem,
+                      visualDensity: VisualDensity.compact,
+                      color: _NoteDialogState._ink,
+                      icon: const Icon(Icons.add_circle),
+                      onPressed: _addItem,
+                    ),
+            ),
           ],
         ),
       ],

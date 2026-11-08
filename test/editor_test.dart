@@ -274,14 +274,23 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.widgetWithText(TextField, 'milk'), findsOneWidget);
 
-    // Second item typed without pressing enter.
+    // The add button shows only once something is typed, and adds it.
+    expect(find.byKey(const Key('checklist-add-item')), findsNothing);
+    await tester.enterText(find.byType(TextField).last, 'bread');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('checklist-add-item')));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(TextField, 'bread'), findsOneWidget);
+    expect(find.byKey(const Key('checklist-add-item')), findsNothing);
+
+    // Last item typed without pressing enter.
     await tester.enterText(find.byType(TextField).last, 'eggs');
     await tester.tap(_saveButton);
     await tester.pumpAndSettle();
 
     final note = notes.boardNotes.single;
     expect(note.type, NoteType.checklist);
-    expect(note.checklist.map((i) => i.text), ['milk', 'eggs']);
+    expect(note.checklist.map((i) => i.text), ['milk', 'bread', 'eggs']);
   });
 
   testWidgets('a photo print needs its photo', (tester) async {
