@@ -293,6 +293,66 @@ void main() {
     expect(note.checklist.map((i) => i.text), ['milk', 'bread', 'eggs']);
   });
 
+  testWidgets('adding a list item saves the list: closing keeps it '
+      'without asking', (tester) async {
+    final notes = await _pumpApp(tester);
+    await _openEditor(tester);
+    await tester.ensureVisible(find.byTooltip('To-do list'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('To-do list'));
+    await tester.pumpAndSettle();
+
+    // The + button: closing afterwards asks nothing and keeps the list.
+    await tester.enterText(find.byType(TextField).last, 'milk');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('checklist-add-item')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Save your changes to this note?'), findsNothing);
+    expect(_saveButton, findsNothing);
+    final note = notes.boardNotes.single;
+    expect(note.type, NoteType.checklist);
+    expect(note.checklist.map((i) => i.text), ['milk']);
+  });
+
+  testWidgets('after an item is added, other changes still ask; Discard '
+      'keeps the list as it was then', (tester) async {
+    final notes = await _pumpApp(
+      tester,
+      notes: [
+        Note(
+          guid: 'l',
+          content: 'Shop',
+          type: NoteType.checklist,
+          checklist: [ChecklistItem(text: 'milk')],
+          createdAt: DateTime(2026),
+          boardId: 'default',
+        ),
+      ],
+    );
+    await tester.tap(find.text('Shop'));
+    await tester.pumpAndSettle();
+
+    // The keyboard's Next key saves like the + button.
+    await tester.enterText(find.byType(TextField).last, 'eggs');
+    await tester.testTextInput.receiveAction(TextInputAction.next);
+    await tester.pumpAndSettle();
+
+    // Something else changed afterwards: closing asks, and Discard keeps
+    // the list as it was when "eggs" went in.
+    await tester.tap(find.byType(Checkbox).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Save your changes to this note?'), findsOneWidget);
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+    final kept = notes.boardNotes.single;
+    expect(kept.checklist.map((i) => i.text), ['milk', 'eggs']);
+    expect(kept.checklist.every((i) => !i.done), true);
+  });
+
   testWidgets('a photo print needs its photo', (tester) async {
     final notes = await _pumpApp(tester);
     await _openEditor(tester);

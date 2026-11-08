@@ -142,8 +142,15 @@ class _NoteDialogState extends State<_NoteDialog>
   final _voice = GlobalKey<VoiceRecorderPanelState>();
   bool _saved = false;
 
-  /// The note as it was opened, to tell whether closing would lose anything.
-  late final String _initial;
+  /// The note as it was last saved: as opened, or as it stood when an item
+  /// was added to the list (see [_checkpoint]). Closing compares against it
+  /// to tell whether anything would be lost.
+  late String _initial;
+
+  /// Adding a list item (the + button or the keyboard's Next key) saves the
+  /// note as it stands: closing afterwards keeps it without asking, unless
+  /// something else changed since. Null until that happens.
+  Note? _checkpoint;
 
   String? _error;
 
@@ -172,11 +179,13 @@ class _NoteDialogState extends State<_NoteDialog>
 
   @override
   void dispose() {
+    // Files from this session live on only in the note that was kept.
+    final kept = _saved ? _n : _checkpoint;
     for (final path in _addedPhotos) {
-      if (!_saved || _n.imagePath != path) ImageService.deleteFile(path);
+      if (kept?.imagePath != path) ImageService.deleteFile(path);
     }
     for (final path in _addedAudio) {
-      if (!_saved || _n.audioPath != path) AudioService.deleteFile(path);
+      if (kept?.audioPath != path) AudioService.deleteFile(path);
     }
     // A voice note still playing from the editor stops with it.
     final playing = AudioPlayback.instance.current;
@@ -226,7 +235,12 @@ class _NoteDialogState extends State<_NoteDialog>
   /// on save.
   bool get _dirty {
     if (_newItem.text.trim().isNotEmpty) return true;
-    final now = _n.toJson()
+    return jsonEncode(_editingJson()) != _initial;
+  }
+
+  /// The note as the fields show it right now.
+  Map<String, dynamic> _editingJson() {
+    return _n.toJson()
       ..['content'] = _content.text
       ..['url'] = _url.text
       ..['checklist'] = [
@@ -238,20 +252,43 @@ class _NoteDialogState extends State<_NoteDialog>
             'done': _n.checklist[i].done,
           },
       ];
-    return jsonEncode(now) != _initial;
+  }
+
+  /// Saves the list as it stands, without closing (an item was just added).
+  /// Skipped when saving would need a question first (a drawing, link or
+  /// recording the list would drop): the tick asks that.
+  void _takeCheckpoint() {
+    if (_n.type != NoteType.checklist ||
+        _n.strokes.isNotEmpty ||
+        _url.text.trim().isNotEmpty ||
+        _n.hasAudio) {
+      return;
+    }
+    final kept = _n.clone()
+      ..content = _content.text.trim()
+      ..url = '';
+    for (var i = 0; i < kept.checklist.length && i < _items.length; i++) {
+      kept.checklist[i].text = _items[i].controller.text.trim();
+    }
+    kept.checklist.removeWhere((i) => i.text.isEmpty);
+    if (kept.content.isEmpty && kept.checklist.isEmpty) return;
+    _checkpoint = kept;
+    _initial = jsonEncode(_editingJson());
   }
 
   /// Back, a tap beside the paper and the ✕ all leave the same way: an
   /// untouched note just closes; an edited one asks whether to save the
   /// changes, discard them or keep editing. Nothing is kept or thrown away
-  /// without the user saying which. Only the tick saves straight away.
+  /// without the user saying which. The tick saves straight away, and so
+  /// does adding a list item ([_checkpoint]): after that, closing keeps the
+  /// list, and Discard goes back to it rather than to the note as opened.
   Future<void> _leave() => _close();
 
   bool _asking = false;
 
   Future<void> _close() async {
     if (!_dirty) {
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(_checkpoint);
       return;
     }
     // A second Back while the question is up must not stack another one.
@@ -285,7 +322,8 @@ class _NoteDialogState extends State<_NoteDialog>
       case _LeaveChoice.save:
         await _save();
       case _LeaveChoice.discard:
-        Navigator.of(context).pop();
+        // Back to the last save: the list as it was when an item was added.
+        Navigator.of(context).pop(_checkpoint);
       case _LeaveChoice.keep || null:
         break;
     }
@@ -530,6 +568,8 @@ class _NoteDialogState extends State<_NoteDialog>
   /// be deleted right away; the note's original photo is the caller's
   /// business (it may still be wanted if the edit is cancelled).
   void _discardPhotoIfAdded(String path) {
+    // The saved list may still show it: [dispose] decides then.
+    if (_checkpoint?.imagePath == path) return;
     if (_addedPhotos.remove(path)) ImageService.deleteFile(path);
   }
 
@@ -556,6 +596,7 @@ class _NoteDialogState extends State<_NoteDialog>
   }
 
   void _discardAudioIfAdded(String path) {
+    if (_checkpoint?.audioPath == path) return;
     if (_addedAudio.remove(path)) AudioService.deleteFile(path);
   }
 
@@ -568,7 +609,10 @@ class _NoteDialogState extends State<_NoteDialog>
       _newItem.clear();
       _error = null;
     });
-    if (keepFocus) _newItemFocus.requestFocus();
+    if (keepFocus) {
+      _takeCheckpoint();
+      _newItemFocus.requestFocus();
+    }
   }
 
   void _removeItem(int i) {
