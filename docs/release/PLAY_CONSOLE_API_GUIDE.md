@@ -820,6 +820,7 @@ push the website repo; Netlify publishes it.
 | The app: *Settings → About → Privacy policy / Terms of service* | `lib/util/legal_links.dart` (`/vi/` when the app is in Vietnamese) | In code; reaches users with the next release |
 | Play Console → *Policy and programs → App content → Privacy policy* | Privacy policy | Owner: switch from the GitHub `PRIVACY.md` URL |
 | Play Console → *Store presence → Store settings → Store listing contact details → Website* | App page | Owner |
+| Play Console → *Policy and programs → App content → Trader status* (EU Digital Services Act) | **Yes, my trader status applies to this app** (Pro is sold, so the app is part of a trade; the developer account is already declared a trader), then *Terms of service*: the terms page | Owner |
 | Google Cloud → the app's project → *Google Auth Platform → Branding* (10.1 C2) | Home page, privacy, terms; authorized domain `winka.top` | Owner |
 | Google Search Console | Domain property `winka.top` (DNS TXT) | Owner, once for all apps |
 | App Store Connect (iOS, later) | Privacy policy URL, support URL, marketing URL | Not set up |
