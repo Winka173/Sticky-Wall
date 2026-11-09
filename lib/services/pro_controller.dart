@@ -7,6 +7,7 @@ import 'package:in_app_purchase_android/billing_client_wrappers.dart'
     show PurchaseStateWrapper;
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 
+import 'ms_store.dart';
 import 'note_storage.dart';
 
 /// Where a purchase stands, for the Pro sheet to explain.
@@ -40,11 +41,14 @@ enum ProStatus {
 /// unlocking Pro. Without an answer from the store the cache stands.
 class ProController extends ChangeNotifier {
   /// [store] is null where there is no store to buy from (web, tests): Pro
-  /// then stays as cached. [ownership] replaces the Google Play query in
-  /// tests: true owned, false not owned, null no answer.
-  ProController(this._storage, {this._store, this._ownership})
+  /// then stays as cached. [addOn] is the store on Windows (the Microsoft
+  /// Store), used instead of [store]. [ownership] replaces the store's own
+  /// ownership query in tests: true owned, false not owned, null no answer.
+  ProController(this._storage, {this._store, this._addOn, this._ownership})
     : _unlocked = _storage.proUnlocked,
-      _status = _store == null ? ProStatus.unavailable : ProStatus.idle;
+      _status = _store == null && _addOn == null
+          ? ProStatus.unavailable
+          : ProStatus.idle;
 
   /// The product id to create in Play Console (Monetize → In-app products)
   /// and App Store Connect, as a non-consumable.
@@ -52,7 +56,11 @@ class ProController extends ChangeNotifier {
 
   final NoteStorage _storage;
   final InAppPurchase? _store;
+  final AddOnStore? _addOn;
   final Future<bool?> Function()? _ownership;
+
+  /// The Microsoft Store's price for Pro, once known.
+  String? _addOnPrice;
 
   bool _unlocked;
   ProStatus _status;
@@ -65,15 +73,25 @@ class ProController extends ChangeNotifier {
 
   /// The price as the store formats it for this user ("49.000 ₫", "$1.99"),
   /// once known.
-  String? get price => _product?.price;
+  String? get price => _product?.price ?? _addOnPrice;
 
   /// Whether a purchase can be started right now.
-  bool get canBuy => _product != null && !_unlocked;
+  bool get canBuy => (_product != null || _addOnPrice != null) && !_unlocked;
 
   /// Subscribes to purchase updates, looks up the price and quietly restores
   /// an earlier purchase. Never throws: without a store Pro just stays
   /// locked.
   Future<void> init() async {
+    final addOn = _addOn;
+    if (addOn != null) {
+      await loadProduct();
+      // Owning it on this account unlocks a new PC or a reinstall; a clear
+      // "no" (a refund) takes a cached unlock away, as on Google Play.
+      final owned = await (_ownership ?? addOn.owned)();
+      if (owned == true) _unlock();
+      if (owned == false && _unlocked) _revoke();
+      return;
+    }
     final store = _store;
     if (store == null) {
       _setStatus(ProStatus.unavailable);
@@ -103,7 +121,7 @@ class ProController extends ChangeNotifier {
   /// Pro look either way; only choosing Pro things stops.
   Future<void> checkOwnership() async {
     if (!_unlocked) return;
-    final owned = await (_ownership ?? _playOwnership)();
+    final owned = await (_ownership ?? _addOn?.owned ?? _playOwnership)();
     if (owned == false) _revoke();
   }
 
@@ -141,6 +159,14 @@ class ProController extends ChangeNotifier {
   /// Asks the store for the product (and so its price); the Pro sheet calls
   /// it again when it opens after a failed look-up.
   Future<void> loadProduct() async {
+    final addOn = _addOn;
+    if (addOn != null) {
+      if (_addOnPrice != null) return;
+      _setStatus(ProStatus.loading);
+      _addOnPrice = await addOn.price();
+      _setStatus(_addOnPrice == null ? ProStatus.unavailable : ProStatus.idle);
+      return;
+    }
     final store = _store;
     if (store == null || _product != null) return;
     _setStatus(ProStatus.loading);
@@ -163,6 +189,20 @@ class ProController extends ChangeNotifier {
   /// Opens the store's payment sheet. The outcome arrives through the
   /// purchase stream ([unlocked], [status]).
   Future<void> buy() async {
+    final addOn = _addOn;
+    if (addOn != null) {
+      if (_addOnPrice == null || _unlocked) return;
+      _setStatus(ProStatus.idle);
+      switch (await addOn.buy()) {
+        case AddOnPurchase.purchased || AddOnPurchase.alreadyOwned:
+          _unlock();
+        case AddOnPurchase.cancelled:
+          _setStatus(ProStatus.idle);
+        case AddOnPurchase.failed:
+          _setStatus(ProStatus.failed);
+      }
+      return;
+    }
     final store = _store;
     final product = _product;
     if (store == null || product == null || _unlocked) return;
@@ -180,6 +220,11 @@ class ProController extends ChangeNotifier {
   /// Asks the store for purchases made before (new phone, reinstall).
   /// Returns whether Pro is unlocked afterwards.
   Future<bool> restore() async {
+    final addOn = _addOn;
+    if (addOn != null) {
+      if (await addOn.owned() == true) _unlock();
+      return _unlocked;
+    }
     final store = _store;
     if (store == null) return _unlocked;
     if (_unlocked) return true;

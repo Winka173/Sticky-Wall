@@ -12,6 +12,7 @@ import 'screens/home_screen.dart';
 import 'services/audio_service.dart';
 import 'services/auto_backup.dart';
 import 'services/image_service.dart';
+import 'services/ms_store.dart';
 import 'services/note_storage.dart';
 import 'services/notes_controller.dart';
 import 'services/pro_controller.dart';
@@ -47,9 +48,16 @@ Future<void> main() async {
     deleteAudio: AudioService.deleteFile,
   );
   final settings = SettingsController(storage);
+  if (!kIsWeb && Platform.isWindows) notes.rescheduleRepeating();
+  // Google Play and the App Store through in_app_purchase; the Microsoft
+  // Store on Windows; none on the web.
+  final phone = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
   final pro = ProController(
     storage,
-    store: kIsWeb ? null : InAppPurchase.instance,
+    store: phone ? InAppPurchase.instance : null,
+    addOn: !kIsWeb && Platform.isWindows
+        ? const MsStoreAddOn(ProController.productId)
+        : null,
   );
   // The price and an earlier purchase arrive in the background; until then
   // Pro is whatever it was last time.

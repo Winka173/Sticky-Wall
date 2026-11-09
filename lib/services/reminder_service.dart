@@ -54,8 +54,19 @@ class ReminderService {
         requestBadgePermission: false,
         requestSoundPermission: false,
       );
+      // Windows shows the toasts under the app's name; the id and guid
+      // must never change, or old reminders lose their sender.
+      const windows = WindowsInitializationSettings(
+        appName: 'Sticky Wall',
+        appUserModelId: 'WinkaStudio.StickyWall',
+        guid: '7d2f4c1e-5b8a-4e3f-9c6d-2a1b0e9f8c7d',
+      );
       await _plugin.initialize(
-        settings: const InitializationSettings(android: android, iOS: darwin),
+        settings: const InitializationSettings(
+          android: android,
+          iOS: darwin,
+          windows: windows,
+        ),
         onDidReceiveNotificationResponse: (response) {
           final guid = response.payload;
           if (guid != null && guid.isNotEmpty) _opened.add(guid);
@@ -81,6 +92,7 @@ class ReminderService {
       priority: Priority.high,
     ),
     iOS: const DarwinNotificationDetails(),
+    windows: const WindowsNotificationDetails(),
   );
 
   /// A stable per-note notification id derived from the guid. Must survive a

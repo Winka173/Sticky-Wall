@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
@@ -86,7 +87,8 @@ class ShareReceiver {
   StreamSubscription<List<SharedMediaFile>>? _sub;
 
   void listen(void Function(SharedContent content) onShared) {
-    if (kIsWeb) return;
+    // Other apps share into Sticky Wall only on a phone.
+    if (kIsWeb || !(Platform.isAndroid || Platform.isIOS)) return;
     void deliver(List<SharedMediaFile> files) {
       if (files.isEmpty) return;
       final content = SharedContent.fromFiles(files);

@@ -245,6 +245,19 @@ class NotesController extends ChangeNotifier {
   void _syncReminder(Note note) =>
       _reminders.sync(note, hidden: _onPrivateBoard(note));
 
+  /// Books the next ring of every repeating reminder again. Windows books
+  /// one ring at a time (it has no repeating toasts), so the app does this
+  /// each time it starts there.
+  void rescheduleRepeating() {
+    for (final n in _notes) {
+      if (!n.isTrashed &&
+          n.reminderAt != null &&
+          n.repeat != ReminderRepeat.none) {
+        _syncReminder(n);
+      }
+    }
+  }
+
   /// The phone's lock was given for [boardId].
   void openPrivateBoard(String boardId) {
     if (_openPrivate.add(boardId)) notifyListeners();
