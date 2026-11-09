@@ -5143,6 +5143,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Always free: every kind of note, as many boards as you like, all the templates, reminders, the home-screen widget, search, backups, sync across devices and lights off. If you ever lose Pro, your notes keep every Pro look they already have.'**
   String get proAlwaysFree;
+
+  /// No description provided for @noteLinksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Links in this note'**
+  String get noteLinksTitle;
+
+  /// No description provided for @linkRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove link'**
+  String get linkRemove;
+
+  /// No description provided for @linkRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it a link'**
+  String get linkRestore;
+
+  /// No description provided for @linkPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'{url}, shown as plain words'**
+  String linkPlain(String url);
 }
 
 class _AppLocalizationsDelegate

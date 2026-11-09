@@ -2888,4 +2888,18 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get proAlwaysFree =>
       'Luôn miễn phí: mọi loại ghi chú, bao nhiêu bảng cũng được, tất cả mẫu bảng, lời nhắc, widget màn hình chính, tìm kiếm, sao lưu, đồng bộ giữa các thiết bị và tắt đèn. Nếu không còn Pro, ghi chú vẫn giữ mọi kiểu Pro đã có.';
+
+  @override
+  String get noteLinksTitle => 'Liên kết trong ghi chú';
+
+  @override
+  String get linkRemove => 'Bỏ liên kết';
+
+  @override
+  String get linkRestore => 'Gắn lại liên kết';
+
+  @override
+  String linkPlain(String url) {
+    return '$url, hiện như chữ thường';
+  }
 }

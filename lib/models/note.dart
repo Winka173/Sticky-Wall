@@ -110,6 +110,7 @@ class Note {
     this.sticker = '',
     this.sample = false,
     this.frame = PhotoFrame.print,
+    List<String>? plainLinks,
     this.editedAt,
     this.x = 0.5,
     this.y = 0.5,
@@ -121,7 +122,8 @@ class Note {
     this.completedAt,
   }) : type = type ?? (url.isEmpty ? NoteType.normal : NoteType.link),
        checklist = checklist ?? [],
-       strokes = strokes ?? [];
+       strokes = strokes ?? [],
+       plainLinks = plainLinks ?? [];
 
   final String guid;
   String content;
@@ -179,6 +181,10 @@ class Note {
 
   /// The frame of a photo print ([NoteType.photo]).
   PhotoFrame frame;
+
+  /// Web addresses in [content] the user turned back into plain words: the
+  /// others are links that open in the browser (see `noteLinks`).
+  List<String> plainLinks;
 
   /// When its words or look were last changed in the editor; null until then.
   DateTime? editedAt;
@@ -324,6 +330,10 @@ class Note {
       frame:
           PhotoFrame.values.where((f) => f.name == json['frame']).firstOrNull ??
           PhotoFrame.print,
+      plainLinks: [
+        for (final u in json['plainLinks'] as List<dynamic>? ?? const [])
+          if (u is String) u,
+      ],
       createdAt:
           _date(json['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
       x: (json['x'] as num?)?.toDouble() ?? 0.5,
@@ -359,6 +369,7 @@ class Note {
     if (sample) 'sample': true,
     if (editedAt != null) 'edited': editedAt!.toIso8601String(),
     if (frame != PhotoFrame.print) 'frame': frame.name,
+    if (plainLinks.isNotEmpty) 'plainLinks': plainLinks,
     'createdAt': createdAt.toIso8601String(),
     'x': x,
     'y': y,

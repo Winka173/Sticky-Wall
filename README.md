@@ -130,7 +130,11 @@ then taken well beyond it.
   Under a text note's field, **bold / italic / bullet** buttons put light
   markup into the text (`**bold**`, `*italic*`, `- item`) and the card
   renders it; search, the trash and the widget read the words without the
-  markers
+  markers. Web addresses in a text note (`https://…`, `www.…`) are links on
+  the card: a tap on one opens the browser, a tap anywhere else opens the
+  note. Under the field, *Links in this note* lists them, each with
+  *Remove link* (back to plain words, kept in `Note.plainLinks`) or *Make it
+  a link*
 - **Layout**: the title row has search and Customize; the second row is the
   board tabs, full width; the tools — type filter, pen (wall) or sort
   (grid/list), layout switcher and the ⋮ menu — sit in a pill at the bottom

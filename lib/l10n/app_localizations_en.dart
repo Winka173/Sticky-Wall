@@ -2936,4 +2936,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get proAlwaysFree =>
       'Always free: every kind of note, as many boards as you like, all the templates, reminders, the home-screen widget, search, backups, sync across devices and lights off. If you ever lose Pro, your notes keep every Pro look they already have.';
+
+  @override
+  String get noteLinksTitle => 'Links in this note';
+
+  @override
+  String get linkRemove => 'Remove link';
+
+  @override
+  String get linkRestore => 'Make it a link';
+
+  @override
+  String linkPlain(String url) {
+    return '$url, shown as plain words';
+  }
 }

@@ -898,11 +898,7 @@ class _NoteBody extends StatelessWidget {
           ],
         );
       case NoteType.normal:
-        return Text.rich(
-          TextSpan(style: body, children: noteSpans(note.content, body)),
-          maxLines: maxContentLines,
-          overflow: TextOverflow.ellipsis,
-        );
+        return NoteText(note: note, style: body, maxLines: maxContentLines);
       case NoteType.label:
         return Text(
           note.content,
@@ -1977,12 +1973,66 @@ class NoteListTile extends StatelessWidget {
           ],
         );
       case NoteType.normal:
-        return Text.rich(
-          TextSpan(style: body, children: noteSpans(note.content, body)),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        );
+        return NoteText(note: note, style: body, maxLines: 2);
     }
+  }
+}
+
+/// A text note's words with their markup applied, and the web addresses in
+/// them as links that open in the browser (except the ones the note keeps
+/// as plain words, [Note.plainLinks]). A tap on a link opens it; anywhere
+/// else on the card still opens the note.
+class NoteText extends StatefulWidget {
+  const NoteText({
+    super.key,
+    required this.note,
+    required this.style,
+    required this.maxLines,
+  });
+
+  final Note note;
+  final TextStyle style;
+  final int maxLines;
+
+  @override
+  State<NoteText> createState() => _NoteTextState();
+}
+
+class _NoteTextState extends State<NoteText> {
+  /// One recognizer per address, kept while the card lives.
+  final _taps = <String, TapGestureRecognizer>{};
+
+  @override
+  void dispose() {
+    for (final r in _taps.values) {
+      r.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final note = widget.note;
+    final spans = noteSpans(
+      note.content,
+      widget.style,
+      links: NoteLinkStyle(
+        style: const TextStyle(
+          color: AppColors.link,
+          decoration: TextDecoration.underline,
+          decorationColor: AppColors.link,
+        ),
+        plain: note.plainLinks.toSet(),
+        recognizer: (url) =>
+            _taps[url] ??= TapGestureRecognizer()
+              ..onTap = () => openNoteUrl(context, url),
+      ),
+    );
+    return Text.rich(
+      TextSpan(style: widget.style, children: spans),
+      maxLines: widget.maxLines,
+      overflow: TextOverflow.ellipsis,
+    );
   }
 }
 

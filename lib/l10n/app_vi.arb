@@ -840,5 +840,9 @@
   "proRowMarkers": "Bút vẽ lên tường",
   "proFreeMarkers": "{count} màu và bút dạ quang",
   "proRowLock": "Khóa",
-  "proAlwaysFree": "Luôn miễn phí: mọi loại ghi chú, bao nhiêu bảng cũng được, tất cả mẫu bảng, lời nhắc, widget màn hình chính, tìm kiếm, sao lưu, đồng bộ giữa các thiết bị và tắt đèn. Nếu không còn Pro, ghi chú vẫn giữ mọi kiểu Pro đã có."
+  "proAlwaysFree": "Luôn miễn phí: mọi loại ghi chú, bao nhiêu bảng cũng được, tất cả mẫu bảng, lời nhắc, widget màn hình chính, tìm kiếm, sao lưu, đồng bộ giữa các thiết bị và tắt đèn. Nếu không còn Pro, ghi chú vẫn giữ mọi kiểu Pro đã có.",
+  "noteLinksTitle": "Liên kết trong ghi chú",
+  "linkRemove": "Bỏ liên kết",
+  "linkRestore": "Gắn lại liên kết",
+  "linkPlain": "{url}, hiện như chữ thường"
 }

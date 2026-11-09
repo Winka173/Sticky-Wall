@@ -12,6 +12,7 @@ import '../services/image_service.dart';
 import '../services/pro_controller.dart';
 import '../services/reminder_service.dart';
 import '../theme.dart';
+import '../util/rich_note.dart';
 import 'action_sheet.dart';
 import 'audio_note.dart';
 import 'drawing_canvas.dart';
@@ -430,6 +431,10 @@ class _NoteDialogState extends State<_NoteDialog>
     // An untitled link shows its address on the card.
     _n.content = text.isEmpty && _n.type == NoteType.link ? url : text;
     _n.url = _n.type == NoteType.link ? url : '';
+    // Only addresses still in the words stay plain; one typed again later
+    // is a link again.
+    final links = noteLinks(_n.content);
+    _n.plainLinks.removeWhere((u) => !links.contains(u));
     if (_n.type == NoteType.checklist) {
       _n.checklist.removeWhere((i) => i.text.isEmpty);
     } else {

@@ -954,5 +954,10 @@
   "proFreeMarkers": "{count} colors and a highlighter",
   "@proFreeMarkers": {"placeholders": {"count": {"type": "int"}}},
   "proRowLock": "Locking",
-  "proAlwaysFree": "Always free: every kind of note, as many boards as you like, all the templates, reminders, the home-screen widget, search, backups, sync across devices and lights off. If you ever lose Pro, your notes keep every Pro look they already have."
+  "proAlwaysFree": "Always free: every kind of note, as many boards as you like, all the templates, reminders, the home-screen widget, search, backups, sync across devices and lights off. If you ever lose Pro, your notes keep every Pro look they already have.",
+  "noteLinksTitle": "Links in this note",
+  "linkRemove": "Remove link",
+  "linkRestore": "Make it a link",
+  "linkPlain": "{url}, shown as plain words",
+  "@linkPlain": {"placeholders": {"url": {"type": "String"}}}
 }

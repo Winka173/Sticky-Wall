@@ -229,6 +229,90 @@ extension _EditorPieces on _NoteDialogState {
           ],
         ),
         _formatRow(l10n),
+        _linksPanel(l10n),
+      ],
+    );
+  }
+
+  // --- links ------------------------------------------------------------------
+
+  /// The web addresses typed into a text note. Each is a link on the card
+  /// (a tap opens it in the browser) unless it is turned back into plain
+  /// words here; a second tap makes it a link again.
+  Widget _linksPanel(AppLocalizations l10n) {
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: _content,
+      builder: (context, value, _) {
+        final links = noteLinks(value.text);
+        if (links.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          key: const Key('note-links'),
+          padding: const EdgeInsets.only(top: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Semantics(
+                header: true,
+                child: Text(
+                  l10n.noteLinksTitle,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: _NoteDialogState._ink.withValues(alpha: 0.7),
+                  ),
+                ),
+              ),
+              for (final url in links) _linkRow(l10n, url),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _linkRow(AppLocalizations l10n, String url) {
+    final plain = _n.plainLinks.contains(url);
+    return Row(
+      children: [
+        Icon(
+          plain ? Icons.link_off : Icons.link,
+          size: 18,
+          color: _NoteDialogState._ink.withValues(alpha: 0.6),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Semantics(
+            label: plain ? l10n.linkPlain(url) : url,
+            excludeSemantics: true,
+            child: Text(
+              url,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 14,
+                color: plain
+                    ? _NoteDialogState._ink.withValues(alpha: 0.75)
+                    : AppColors.link,
+                decoration: plain ? null : TextDecoration.underline,
+                decorationColor: AppColors.link,
+              ),
+            ),
+          ),
+        ),
+        TextButton(
+          key: Key('link-toggle-$url'),
+          style: TextButton.styleFrom(
+            minimumSize: const Size(44, 44),
+            foregroundColor: _NoteDialogState._ink,
+          ),
+          onPressed: () => _update(() {
+            if (plain) {
+              _n.plainLinks.remove(url);
+            } else {
+              _n.plainLinks.add(url);
+            }
+          }),
+          child: Text(plain ? l10n.linkRestore : l10n.linkRemove),
+        ),
       ],
     );
   }
