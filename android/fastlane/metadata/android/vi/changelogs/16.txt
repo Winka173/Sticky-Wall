@@ -1,0 +1,2 @@
+• Link trong ghi chú chữ: địa chỉ web được gạch chân, chạm vào là mở trình duyệt
+• Dưới chữ của ghi chú, có thể bỏ liên kết cho từng link hoặc gắn lại

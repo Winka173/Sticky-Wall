@@ -1,0 +1,2 @@
+• Links in text notes: web addresses are underlined, and a tap opens them in your browser
+• Under a note's text, turn any link back into plain words, or make it a link again
