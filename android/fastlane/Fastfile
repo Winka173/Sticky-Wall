@@ -111,7 +111,12 @@ platform :android do
 
   desc "Push store listing text (no bundle, no images)"
   lane :metadata do
+    # The listing is changed through a release Play already holds: the
+    # newest closed-testing one (without it the upload looks for a release
+    # on production, where there is none yet).
     upload_to_play_store(
+      track: "alpha",
+      version_code: google_play_track_version_codes(track: "alpha").max,
       skip_upload_apk: true,
       skip_upload_aab: true,
       skip_upload_changelogs: true,
@@ -122,7 +127,12 @@ platform :android do
 
   desc "Replace the store graphics with fastlane/metadata/android/<lang>/images (icon, featureGraphic, phoneScreenshots, ...)"
   lane :images do
+    # The listing is changed through a release Play already holds: the
+    # newest closed-testing one (without it the upload looks for a release
+    # on production, where there is none yet).
     upload_to_play_store(
+      track: "alpha",
+      version_code: google_play_track_version_codes(track: "alpha").max,
       skip_upload_apk: true,
       skip_upload_aab: true,
       skip_upload_changelogs: true,
