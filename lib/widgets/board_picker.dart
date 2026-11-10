@@ -26,6 +26,20 @@ Future<void> showBoardPicker(
   );
 }
 
+/// Every board, pinned ones first, then the most recently edited; boards with
+/// nothing on them go last. The picker lists them in this order, and the tab
+/// strip takes its few boards from the front of it.
+List<Board> boardsByUse(NotesController notes) =>
+    List.of(notes.boards)..sort((a, b) {
+      if (a.favorite != b.favorite) return a.favorite ? -1 : 1;
+      final ta = notes.lastEdited(a.id);
+      final tb = notes.lastEdited(b.id);
+      if (ta == null || tb == null) {
+        return (tb == null ? 0 : 1) - (ta == null ? 0 : 1);
+      }
+      return tb.compareTo(ta);
+    });
+
 class _BoardPicker extends StatelessWidget {
   const _BoardPicker({required this.notes, required this.onDelete});
 
@@ -36,18 +50,7 @@ class _BoardPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final height = MediaQuery.sizeOf(context).height;
-    // Pinned boards first, then the most recently edited.
-    final ordered = List.of(notes.boards)
-      ..sort((a, b) {
-        if (a.favorite != b.favorite) return a.favorite ? -1 : 1;
-        final ta = notes.lastEdited(a.id);
-        final tb = notes.lastEdited(b.id);
-        // Boards with nothing on them go last.
-        if (ta == null || tb == null) {
-          return (tb == null ? 0 : 1) - (ta == null ? 0 : 1);
-        }
-        return tb.compareTo(ta);
-      });
+    final ordered = boardsByUse(notes);
     return SafeArea(
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: height * 0.88),

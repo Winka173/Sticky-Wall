@@ -116,7 +116,8 @@ void main() {
     final (app, notes) = await _app();
     // Short names: the test font is wide, and a chip has to be narrower than
     // the strip before it can be fully in view at all.
-    for (final name in ['Việc', 'Học', 'Nhà', 'Đi']) {
+    // Four boards: from five the strip collapses (see board_strip_test).
+    for (final name in ['Việc nhà', 'Học bài', 'Đi chơi']) {
       notes.addBoard(name);
     }
     notes
@@ -134,18 +135,18 @@ void main() {
       return rect.left >= strip().left && rect.right <= strip().right;
     }
 
-    expect(inStrip('Đi'), isFalse);
+    expect(inStrip('Đi chơi'), isFalse);
 
     // Selecting it brings it fully into view without scrolling by hand…
     notes.selectBoard(notes.boards.last.id);
     await tester.pumpAndSettle();
-    expect(inStrip('Đi'), isTrue);
+    expect(inStrip('Đi chơi'), isTrue);
 
     // …and it stays in view when the toolbar grows a sort button (grid)
     // and narrows the strip.
     notes.viewMode = ViewMode.grid;
     await tester.pumpAndSettle();
-    expect(inStrip('Đi'), isTrue);
+    expect(inStrip('Đi chơi'), isTrue);
   });
 
   testWidgets('editing a board pre-fills the dialog and keeps changes', (

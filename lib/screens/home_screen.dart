@@ -122,6 +122,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _chipKeys = <String, GlobalKey>{};
   final _dropTarget = ValueNotifier<String?>(null);
 
+  /// A note is being dragged: a collapsed board strip opens its drop tray.
+  final _noteDragging = ValueNotifier<bool>(false);
+
   // The wall's Undo pill: shown for a few seconds after each remembered
   // wall edit (see NotesController.wallEdits), and after each undo while
   // more remain.
@@ -279,6 +282,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _searchController.dispose();
     _camera.dispose();
     _dropTarget.dispose();
+    _noteDragging.dispose();
     _undoTimer?.cancel();
     super.dispose();
   }
@@ -396,6 +400,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _dragOver(Note note, Offset? global) {
+    _noteDragging.value = global != null;
     final id = global == null ? null : _boardAt(global);
     if (id == _dropTarget.value) return;
     if (id != null) HapticFeedback.selectionClick();
@@ -405,6 +410,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// A note (or selection) let go somewhere on screen: moves it to the board
   /// whose tab it landed on. Returns whether it did.
   bool _dropOnTab(List<Note> notes, Offset global) {
+    _noteDragging.value = false;
     _dropTarget.value = null;
     final id = _boardAt(global);
     if (id == null) return false;

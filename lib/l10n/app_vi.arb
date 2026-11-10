@@ -570,6 +570,8 @@
   "memoryTitle": "Kỷ niệm",
   "memoryMade": "Đã dán {count} ảnh lên tường kỷ niệm. Chạm vào ảnh để thêm chú thích.",
   "allBoards": "Tất cả bảng",
+  "allBoardsCount": "Tất cả {count}",
+  "dropOnBoardHint": "Thả vào một bảng",
   "boardNoteCount": "{count, plural, =0{Chưa có ghi chú} other{{count} ghi chú}}",
   "duplicateBoard": "Nhân bản bảng",
   "boardCopyName": "{name} (bản sao)",

@@ -1930,6 +1930,14 @@ class AppLocalizationsVi extends AppLocalizations {
   String get allBoards => 'Tất cả bảng';
 
   @override
+  String allBoardsCount(int count) {
+    return 'Tất cả $count';
+  }
+
+  @override
+  String get dropOnBoardHint => 'Thả vào một bảng';
+
+  @override
   String boardNoteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

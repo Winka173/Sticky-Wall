@@ -499,12 +499,12 @@ extension _Chrome on _HomeScreenState {
         height: 48,
         child: BoardBar(
           notes: _notes,
-          textColor: wall.wallText,
           chipKeys: {
             for (final b in _notes.boards)
               b.id: _chipKeys.putIfAbsent(b.id, GlobalKey.new),
           },
           dropTarget: _dropTarget,
+          dragging: _noteDragging,
           onMemoryWall: _newMemoryWall,
         ),
       ),

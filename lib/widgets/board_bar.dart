@@ -20,6 +20,13 @@ import 'pro_sheet.dart';
 
 /// Horizontal strip of board "tabs" with add / edit / delete.
 ///
+/// Up to four boards sit in the strip as tabs. From [collapseFrom] boards on
+/// it keeps only the open board and the ones used most (pinned first, then
+/// latest edited, as in the picker) with an "All 12" tab that opens the
+/// picker; reordering is then done from the manage sheet or the picker. While
+/// a note is dragged ([dragging]) a tray under the strip lists every board
+/// as a drop target.
+///
 /// Tapping a chip switches boards; tapping the *selected* chip opens the
 /// manage sheet — the little chevron on it is the hint that it does more.
 /// Long-press and drag a chip to reorder boards. A note dragged up from the
@@ -30,14 +37,19 @@ class BoardBar extends StatefulWidget {
   const BoardBar({
     super.key,
     required this.notes,
-    required this.textColor,
     this.chipKeys,
     this.dropTarget,
+    this.dragging,
     this.onMemoryWall,
   });
 
+  /// The most boards shown as plain tabs; one more and the strip collapses.
+  static const collapseFrom = 5;
+
+  /// Tabs kept when collapsed, the open board included.
+  static const collapsedTabs = 3;
+
   final NotesController notes;
-  final Color textColor;
 
   /// A key per board id, placed on that board's chip.
   final Map<String, GlobalKey>? chipKeys;
@@ -45,10 +57,14 @@ class BoardBar extends StatefulWidget {
   /// The board id a dragged note is hovering over, if any.
   final ValueListenable<String?>? dropTarget;
 
+  /// Whether a note is being dragged: a collapsed strip then opens its tray.
+  final ValueListenable<bool>? dragging;
+
   /// Offered on the "+" tab: a new board of photos.
   final VoidCallback? onMemoryWall;
 
   static final _noTarget = ValueNotifier<String?>(null);
+  static final _notDragging = ValueNotifier<bool>(false);
 
   @override
   State<BoardBar> createState() => _BoardBarState();
@@ -129,111 +145,208 @@ class _BoardBarState extends State<BoardBar> {
     );
   }
 
+  /// The boards that get a tab: all of them while there are few, otherwise
+  /// the open board and the most used, kept in the boards' own order so the
+  /// tabs do not shuffle when one is picked.
+  List<Board> _tabBoards() {
+    final boards = widget.notes.boards;
+    if (boards.length < BoardBar.collapseFrom) return boards;
+    final keep = <String>{widget.notes.currentBoardId};
+    for (final b in boardsByUse(widget.notes)) {
+      if (keep.length >= BoardBar.collapsedTabs) break;
+      keep.add(b.id);
+    }
+    return [
+      for (final b in boards)
+        if (keep.contains(b.id)) b,
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final notes = widget.notes;
-    final textColor = widget.textColor;
-    final boards = notes.boards;
+    final collapsed = notes.boards.length >= BoardBar.collapseFrom;
+    final tabs = _tabBoards();
 
-    return SizedBox(
-      height: 44,
-      child: Row(
-        children: [
-          // Every board at once, with a picture of each, once there are a
-          // few: the tab strip alone means scrolling sideways to find one.
-          if (boards.length > 1)
-            Padding(
-              padding: const EdgeInsets.only(left: 12),
-              child: Tooltip(
-                message: l10n.allBoards,
-                child: KeyboardTappable(
-                  onActivate: () => _pick(context),
-                  circle: true,
-                  child: Semantics(
-                    button: true,
-                    label: l10n.allBoards,
-                    excludeSemantics: true,
-                    child: InkResponse(
-                      onTap: () => _pick(context),
-                      child: SizedBox(
-                        width: 40,
-                        height: 44,
-                        child: Icon(Icons.apps, color: textColor),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          // Shrink-wrapped so the "+" follows the last tab directly while
-          // they fit, and only becomes a fixed trailing button once the
-          // strip has to scroll.
-          Flexible(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                _revealSelected(constraints.maxWidth);
-                return ReorderableListView.builder(
-                  scrollController: _scroll,
-                  scrollDirection: Axis.horizontal,
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.only(left: 16),
-                  buildDefaultDragHandles: false,
-                  onReorderItem: notes.reorderBoards,
-                  proxyDecorator: (child, _, animation) => AnimatedBuilder(
-                    animation: animation,
-                    child: child,
-                    builder: (context, child) => Transform.scale(
-                      scale:
-                          1 +
-                          0.08 * Curves.easeInOut.transform(animation.value),
-                      child: Material(color: Colors.transparent, child: child),
-                    ),
-                  ),
-                  itemCount: boards.length,
-                  itemBuilder: (context, index) {
-                    final board = boards[index];
-                    final selected = board.id == notes.currentBoardId;
-                    return Padding(
-                      key: ValueKey('board-${board.id}'),
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ReorderableDelayedDragStartListener(
-                        key: selected ? _selectedKey : null,
-                        index: index,
-                        child: ValueListenableBuilder<String?>(
-                          valueListenable:
-                              widget.dropTarget ?? BoardBar._noTarget,
-                          builder: (context, hovered, _) => _BoardChip(
-                            key: widget.chipKeys?[board.id],
-                            board: board,
-                            label: _displayName(l10n, board),
-                            selected: selected,
-                            highlighted: hovered == board.id,
-                            textColor: textColor,
-                            onTap: () => selected
-                                ? _manage(context, l10n, board)
-                                : notes.selectBoard(board.id),
+    return ValueListenableBuilder<bool>(
+      valueListenable: widget.dragging ?? BoardBar._notDragging,
+      builder: (context, dragging, _) {
+        // While the tray lists every board, its chips carry the drop keys.
+        final trayOpen = collapsed && dragging;
+        // Passthrough: the strip keeps the parent's tight height, as the bare
+        // row did.
+        return Stack(
+          fit: StackFit.passthrough,
+          clipBehavior: Clip.none,
+          children: [
+            SizedBox(
+              height: 44,
+              child: Row(
+                children: [
+                  // Every board at once, with a picture of each, once there
+                  // are a few: the tab strip alone means scrolling sideways
+                  // to find one. A collapsed strip has its own "All" tab.
+                  if (notes.boards.length > 1 && !collapsed)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: Tooltip(
+                        message: l10n.allBoards,
+                        child: KeyboardTappable(
+                          onActivate: () => _pick(context),
+                          circle: true,
+                          child: Semantics(
+                            button: true,
+                            label: l10n.allBoards,
+                            excludeSemantics: true,
+                            child: InkResponse(
+                              onTap: () => _pick(context),
+                              child: SizedBox(
+                                width: 40,
+                                height: 44,
+                                child: Center(
+                                  child: _ChipFace.circle(
+                                    size: 34,
+                                    child: const Icon(
+                                      Icons.apps,
+                                      color: AppColors.chalk,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    );
-                  },
-                );
-              },
+                    ),
+                  // Shrink-wrapped so the "+" follows the last tab directly
+                  // while they fit, and only becomes a fixed trailing button
+                  // once the strip has to scroll.
+                  Flexible(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        _revealSelected(constraints.maxWidth);
+                        Widget tab(Board board) {
+                          final selected = board.id == notes.currentBoardId;
+                          return ValueListenableBuilder<String?>(
+                            valueListenable:
+                                widget.dropTarget ?? BoardBar._noTarget,
+                            builder: (context, hovered, _) => _BoardChip(
+                              key: trayOpen ? null : widget.chipKeys?[board.id],
+                              board: board,
+                              label: _displayName(l10n, board),
+                              selected: selected,
+                              highlighted: hovered == board.id,
+                              onTap: () => selected
+                                  ? _manage(context, l10n, board)
+                                  : notes.selectBoard(board.id),
+                            ),
+                          );
+                        }
+
+                        if (collapsed) {
+                          // Not reorderable: only some boards are in it.
+                          return ListView.builder(
+                            controller: _scroll,
+                            scrollDirection: Axis.horizontal,
+                            shrinkWrap: true,
+                            padding: const EdgeInsets.only(left: 16),
+                            itemCount: tabs.length,
+                            itemBuilder: (context, index) {
+                              final board = tabs[index];
+                              final selected = board.id == notes.currentBoardId;
+                              return Padding(
+                                key: ValueKey('board-${board.id}'),
+                                padding: const EdgeInsets.only(right: 8),
+                                child: KeyedSubtree(
+                                  key: selected ? _selectedKey : null,
+                                  child: tab(board),
+                                ),
+                              );
+                            },
+                          );
+                        }
+                        return ReorderableListView.builder(
+                          scrollController: _scroll,
+                          scrollDirection: Axis.horizontal,
+                          shrinkWrap: true,
+                          padding: const EdgeInsets.only(left: 16),
+                          buildDefaultDragHandles: false,
+                          onReorderItem: notes.reorderBoards,
+                          proxyDecorator: (child, _, animation) =>
+                              AnimatedBuilder(
+                                animation: animation,
+                                child: child,
+                                builder: (context, child) => Transform.scale(
+                                  scale:
+                                      1 +
+                                      0.08 *
+                                          Curves.easeInOut.transform(
+                                            animation.value,
+                                          ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: child,
+                                  ),
+                                ),
+                              ),
+                          itemCount: tabs.length,
+                          itemBuilder: (context, index) {
+                            final board = tabs[index];
+                            final selected = board.id == notes.currentBoardId;
+                            return Padding(
+                              key: ValueKey('board-${board.id}'),
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ReorderableDelayedDragStartListener(
+                                key: selected ? _selectedKey : null,
+                                index: index,
+                                child: tab(board),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  if (collapsed)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _AllChip(
+                        label: l10n.allBoardsCount(notes.boards.length),
+                        onTap: () => _pick(context),
+                      ),
+                    ),
+                  // Outside the scrolling strip, so it never hides behind the
+                  // tabs when their names are long or there are many of them.
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: _AddChip(
+                      tooltip: l10n.newBoard,
+                      onTap: () => _newBoard(context),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          // Outside the scrolling strip, so it never hides behind the tabs
-          // when their names are long or there are many of them.
-          Padding(
-            padding: const EdgeInsets.only(right: 4),
-            child: _AddChip(
-              tooltip: l10n.newBoard,
-              textColor: textColor,
-              onTap: () => _newBoard(context),
-            ),
-          ),
-        ],
-      ),
+            if (trayOpen)
+              Positioned(
+                top: 48,
+                left: 12,
+                right: 4,
+                child: _DropTray(
+                  boards: [
+                    for (final b in notes.boards)
+                      if (b.id != notes.currentBoardId) b,
+                  ],
+                  labelOf: (b) => _displayName(l10n, b),
+                  chipKeys: widget.chipKeys,
+                  dropTarget: widget.dropTarget ?? BoardBar._noTarget,
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -558,16 +671,82 @@ class _BoardBarState extends State<BoardBar> {
   }
 }
 
-/// A board tab: icon + name, filled when it is
-/// the current board. Tap to switch; tap the current one to edit, move or
-/// delete it; long-press and drag to reorder.
+/// How the strip's controls look on any wall: the open board is solid chalk
+/// with ink words, the others a dark, mostly opaque scrim with chalk words and
+/// a pale rim. Words keep 4.5:1 on bright, dark and patterned walls alike,
+/// which a bare outline on the wall itself did not. No blur: a backdrop
+/// filter over the moving wall costs a repaint every frame. With the system's
+/// high-contrast setting the scrim is fully solid.
+class _ChipFace extends StatelessWidget {
+  const _ChipFace({
+    required this.child,
+    this.selected = false,
+    this.highlighted = false,
+    this.padding = EdgeInsets.zero,
+  }) : size = null;
+
+  /// A round control, [size] across (the grid and "+" buttons).
+  const _ChipFace.circle({required this.child, required double this.size})
+    : selected = false,
+      highlighted = false,
+      padding = EdgeInsets.zero;
+
+  final Widget child;
+  final bool selected;
+
+  /// A dragged note is hovering over it: drawn as a drop target.
+  final bool highlighted;
+  final EdgeInsetsGeometry padding;
+  final double? size;
+
+  /// Words on the chip: ink on chalk when open, chalk on the scrim otherwise.
+  static Color ink({required bool selected, bool highlighted = false}) =>
+      selected || highlighted ? AppColors.ink : AppColors.chalk;
+
+  @override
+  Widget build(BuildContext context) {
+    final solid = MediaQuery.highContrastOf(context);
+    final Color fill;
+    final Color rim;
+    if (highlighted) {
+      fill = AppColors.accent;
+      rim = AppColors.accent;
+    } else if (selected) {
+      fill = AppColors.chalk;
+      rim = AppColors.chalk;
+    } else {
+      fill = solid ? AppColors.ink : const Color(0x991E160E);
+      rim = AppColors.chalk.withValues(alpha: solid ? 1 : 0.3);
+    }
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      width: size,
+      height: size,
+      padding: padding,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: fill,
+        shape: size == null ? BoxShape.rectangle : BoxShape.circle,
+        borderRadius: size == null ? BorderRadius.circular(20) : null,
+        border: Border.all(
+          color: rim,
+          width: highlighted || selected ? 1.5 : 1,
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// A board tab: icon + name, solid when it is the current board. Tap to
+/// switch; tap the current one to edit, move or delete it; long-press and drag
+/// to reorder.
 class _BoardChip extends StatelessWidget {
   const _BoardChip({
     super.key,
     required this.board,
     required this.label,
     required this.selected,
-    required this.textColor,
     required this.onTap,
     this.highlighted = false,
   });
@@ -578,12 +757,12 @@ class _BoardChip extends StatelessWidget {
 
   /// A dragged note is hovering over the chip: drawn as a drop target.
   final bool highlighted;
-  final Color textColor;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final icon = board.icon;
+    final ink = _ChipFace.ink(selected: selected, highlighted: highlighted);
     return KeyboardTappable(
       onActivate: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -598,28 +777,14 @@ class _BoardChip extends StatelessWidget {
             scale: highlighted ? 1.08 : 1,
             duration: const Duration(milliseconds: 150),
             curve: Curves.easeOutBack,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
+            child: _ChipFace(
+              selected: selected,
+              highlighted: highlighted,
               padding: EdgeInsets.fromLTRB(
                 icon.isEmpty ? 16 : 12,
                 6,
                 selected ? 10 : 16,
                 6,
-              ),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: highlighted
-                    ? AppColors.accent.withValues(alpha: 0.45)
-                    : selected
-                    ? textColor.withValues(alpha: 0.18)
-                    : null,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: highlighted
-                      ? AppColors.accent
-                      : textColor.withValues(alpha: selected ? 0.9 : 0.35),
-                  width: highlighted || selected ? 1.5 : 1,
-                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -630,7 +795,7 @@ class _BoardChip extends StatelessWidget {
                       child: Icon(
                         Icons.lock_outline,
                         size: 15,
-                        color: textColor,
+                        color: ink,
                         semanticLabel: AppLocalizations.of(
                           context,
                         )?.boardPrivate,
@@ -648,7 +813,7 @@ class _BoardChip extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: textColor,
+                        color: ink,
                         fontSize: 16,
                         fontWeight: selected
                             ? FontWeight.bold
@@ -659,11 +824,7 @@ class _BoardChip extends StatelessWidget {
                   if (selected)
                     Padding(
                       padding: const EdgeInsets.only(left: 2),
-                      child: Icon(
-                        Icons.expand_more,
-                        size: 18,
-                        color: textColor,
-                      ),
+                      child: Icon(Icons.expand_more, size: 18, color: ink),
                     ),
                 ],
               ),
@@ -675,16 +836,116 @@ class _BoardChip extends StatelessWidget {
   }
 }
 
-/// The trailing "+" tab that creates a new board.
-class _AddChip extends StatelessWidget {
-  const _AddChip({
-    required this.tooltip,
-    required this.textColor,
-    required this.onTap,
+/// "All 12": the last tab of a collapsed strip, opening the board picker.
+class _AllChip extends StatelessWidget {
+  const _AllChip({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return KeyboardTappable(
+      onActivate: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Semantics(
+        button: true,
+        label: label,
+        excludeSemantics: true,
+        child: GestureDetector(
+          onTap: onTap,
+          child: _ChipFace(
+            padding: const EdgeInsets.fromLTRB(10, 6, 14, 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.apps, size: 17, color: AppColors.chalk),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  maxLines: 1,
+                  style: const TextStyle(color: AppColors.chalk, fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Every other board as a drop target, hanging under a collapsed strip while
+/// a note is dragged. The screen above finds the chips by [chipKeys] (it only
+/// measures them), so the tray takes no touches itself.
+class _DropTray extends StatelessWidget {
+  const _DropTray({
+    required this.boards,
+    required this.labelOf,
+    required this.chipKeys,
+    required this.dropTarget,
   });
 
+  final List<Board> boards;
+  final String Function(Board board) labelOf;
+  final Map<String, GlobalKey>? chipKeys;
+  final ValueListenable<String?> dropTarget;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return IgnorePointer(
+      child: ExcludeSemantics(
+        child: Container(
+          key: const Key('board-drop-tray'),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xE61E160E),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.chalk.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 8),
+                child: Text(
+                  l10n.dropOnBoardHint,
+                  style: const TextStyle(color: AppColors.chalk, fontSize: 14),
+                ),
+              ),
+              ValueListenableBuilder<String?>(
+                valueListenable: dropTarget,
+                builder: (context, hovered, _) => Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final b in boards)
+                      _BoardChip(
+                        key: chipKeys?[b.id],
+                        board: b,
+                        label: labelOf(b),
+                        selected: false,
+                        highlighted: hovered == b.id,
+                        onTap: () {},
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The trailing "+" tab that creates a new board.
+class _AddChip extends StatelessWidget {
+  const _AddChip({required this.tooltip, required this.onTap});
+
   final String tooltip;
-  final Color textColor;
   final VoidCallback onTap;
 
   @override
@@ -701,18 +962,9 @@ class _AddChip extends StatelessWidget {
           child: SizedBox(
             width: 48,
             child: Center(
-              child: Container(
-                width: 44,
-                height: 44,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: textColor.withValues(alpha: 0.6),
-                    width: 1.5,
-                  ),
-                ),
-                child: Icon(Icons.add, color: textColor, size: 20),
+              child: _ChipFace.circle(
+                size: 44,
+                child: const Icon(Icons.add, color: AppColors.chalk, size: 20),
               ),
             ),
           ),

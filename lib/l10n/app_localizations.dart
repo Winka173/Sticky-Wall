@@ -3518,6 +3518,18 @@ abstract class AppLocalizations {
   /// **'All boards'**
   String get allBoards;
 
+  /// No description provided for @allBoardsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count}'**
+  String allBoardsCount(int count);
+
+  /// No description provided for @dropOnBoardHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop on a board'**
+  String get dropOnBoardHint;
+
   /// No description provided for @boardNoteCount.
   ///
   /// In en, this message translates to:
