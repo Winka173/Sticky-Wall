@@ -493,10 +493,6 @@ extension _Chrome on _HomeScreenState {
   /// The second header row is the board strip alone, full width; the tools
   /// are in [_toolPill] at the bottom.
   Widget _buildToolRow(WallStyle wall) {
-    // A wide window lists the boards down the left instead (see
-    // [_withSidebar]); the row keeps its height so the wall's layout, which
-    // is measured under both header rows, does not move.
-    if (BoardSidebar.fits(context)) return const SizedBox(height: 52);
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 4, 8, 0),
       child: SizedBox(
@@ -510,40 +506,63 @@ extension _Chrome on _HomeScreenState {
           dropTarget: _dropTarget,
           dragging: _noteDragging,
           onMemoryWall: _newMemoryWall,
+          // A wide window can open the board list over the wall.
+          onTogglePanel: BoardSidebar.fits(context)
+              ? () => widget.settings.setBoardPanel(!widget.settings.boardPanel)
+              : null,
+          panelOpen: _boardPanelOpen,
         ),
       ),
     );
   }
 
-  /// [child] beside the board list when the window is wide enough for it
-  /// ([BoardSidebar.fits]); the wall, grid or list then fill what is left.
-  Widget _withSidebar({
-    required WallStyle wall,
-    required bool sidebar,
-    required bool bottomInset,
-    required Widget child,
-  }) {
-    if (!sidebar) return child;
-    return SafeArea(
-      // The status bar and left edge are cleared here, once; the wall still
-      // runs under the system bar at the bottom, as it does without a list.
-      right: false,
-      bottom: bottomInset,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          BoardSidebar(
-            notes: _notes,
-            dark: wall.dark,
-            chipKeys: {
-              for (final b in _notes.boards)
-                b.id: _chipKeys.putIfAbsent(b.id, GlobalKey.new),
-            },
-            dropTarget: _dropTarget,
-            onMemoryWall: _newMemoryWall,
-          ),
-          Expanded(child: child),
-        ],
+  /// The board list is open: asked for, and the window is wide enough.
+  bool get _boardPanelOpen =>
+      widget.settings.boardPanel && BoardSidebar.fits(context);
+
+  /// The board list floating over the left of the wall, under the header and
+  /// above the tool pill; it slides in and out without moving a note.
+  Widget _boardPanel(WallStyle wall, {required bool onWall}) {
+    final reduce = MediaQuery.disableAnimationsOf(context);
+    return Positioned(
+      top: HomeScreen.wallHeaderHeight - 4,
+      left: 12,
+      width: BoardSidebar.width,
+      bottom:
+          HomeScreen.wallFooterHeight +
+          12 +
+          (onWall ? MediaQuery.viewPaddingOf(context).bottom : 0),
+      child: Align(
+        alignment: Alignment.topLeft,
+        // It slides in; it leaves at once, so its rows hand the drop keys
+        // back to the tabs in the same frame (a key lives in one place).
+        child: _boardPanelOpen
+            ? TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: 1),
+                duration: reduce
+                    ? Duration.zero
+                    : const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                builder: (context, t, child) => Opacity(
+                  opacity: t,
+                  child: Transform.translate(
+                    offset: Offset(-16 * (1 - t), 0),
+                    child: child,
+                  ),
+                ),
+                child: BoardSidebar(
+                  notes: _notes,
+                  dark: wall.dark,
+                  onClose: () => widget.settings.setBoardPanel(false),
+                  chipKeys: {
+                    for (final b in _notes.boards)
+                      b.id: _chipKeys.putIfAbsent(b.id, GlobalKey.new),
+                  },
+                  dropTarget: _dropTarget,
+                  onMemoryWall: _newMemoryWall,
+                ),
+              )
+            : const SizedBox.shrink(),
       ),
     );
   }

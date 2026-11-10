@@ -79,11 +79,7 @@ class HomeScreen extends StatefulWidget {
   static Size? wallSizeFor(FlutterView view) {
     final dpr = view.devicePixelRatio;
     if (dpr <= 0 || view.physicalSize.isEmpty) return null;
-    final window = view.physicalSize.width / dpr;
-    // A wide window gives the board list its share of the width.
-    final width =
-        window -
-        (window >= BoardSidebar.minWindowWidth ? BoardSidebar.width : 0);
+    final width = view.physicalSize.width / dpr;
     // The body starts below the status bar; the wall keeps its resting view
     // clear of the two header rows, the tool pill and the system bar.
     final height =
@@ -1156,10 +1152,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           final onWall = _notes.viewMode == ViewMode.wall;
           // The tool pill sits bottom-left; on narrow phones an extended FAB
           // next to it would not fit, so the label only shows on wide screens.
-          final sidebar = BoardSidebar.fits(context);
           final availableForFab =
               MediaQuery.sizeOf(context).width -
-              (sidebar ? BoardSidebar.width : 0) -
               32 - // screen margins
               (4 * 54 + 8) - // the four tools and the pill's padding
               12; // gap between the two controls
@@ -1220,162 +1214,157 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         onLongPress: _quickAdd,
                         extended: showFabLabel,
                       ),
-                body: _withSidebar(
-                  wall: wall,
-                  sidebar: sidebar,
-                  bottomInset: !onWall,
-                  child: SafeArea(
-                    // On the wall the body runs under the system bar too (the
-                    // wall keeps its resting view clear of it); grid and list
-                    // stop above it.
-                    bottom: !onWall,
-                    // While the keyboard is up the system reports no bottom
-                    // padding (the keyboard covers the navigation bar), which
-                    // would let the wall grow by that strip and every note below
-                    // the top row slide down with it. Keep the bar's height.
-                    maintainBottomViewPadding: true,
-                    child: Stack(
-                      children: [
-                        // The content fills the body; each layout keeps its own
-                        // place under the header (see _buildContent).
-                        Positioned.fill(
-                          child: AnimatedSwitcher(
-                            duration: MediaQuery.disableAnimationsOf(context)
-                                ? Duration.zero
-                                : const Duration(milliseconds: 260),
-                            switchInCurve: Curves.easeOutCubic,
-                            switchOutCurve: Curves.easeInCubic,
-                            transitionBuilder: _contentTransition,
-                            child: KeyedSubtree(
-                              key: ValueKey(
-                                '${_notes.currentBoardId}:${_notes.viewMode.name}',
-                              ),
-                              child: _buildContent(wall),
+                body: SafeArea(
+                  // On the wall the body runs under the system bar too (the
+                  // wall keeps its resting view clear of it); grid and list
+                  // stop above it.
+                  bottom: !onWall,
+                  // While the keyboard is up the system reports no bottom
+                  // padding (the keyboard covers the navigation bar), which
+                  // would let the wall grow by that strip and every note below
+                  // the top row slide down with it. Keep the bar's height.
+                  maintainBottomViewPadding: true,
+                  child: Stack(
+                    children: [
+                      // The content fills the body; each layout keeps its own
+                      // place under the header (see _buildContent).
+                      Positioned.fill(
+                        child: AnimatedSwitcher(
+                          duration: MediaQuery.disableAnimationsOf(context)
+                              ? Duration.zero
+                              : const Duration(milliseconds: 260),
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          transitionBuilder: _contentTransition,
+                          child: KeyedSubtree(
+                            key: ValueKey(
+                              '${_notes.currentBoardId}:${_notes.viewMode.name}',
                             ),
+                            child: _buildContent(wall),
                           ),
                         ),
-                        // A breath of shade behind the rows, so they stay legible
-                        // over a note passing underneath.
-                        if (onWall)
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: HomeScreen.wallHeaderHeight + 16,
-                            child: IgnorePointer(
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      (wall.dark ? Colors.black : Colors.white)
-                                          .withValues(alpha: 0.32),
-                                      (wall.dark ? Colors.black : Colors.white)
-                                          .withValues(alpha: 0),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        // Positioned like everything else here, so the Stack
-                        // fills the body rather than shrinking to the rows.
+                      ),
+                      // A breath of shade behind the rows, so they stay legible
+                      // over a note passing underneath.
+                      if (onWall)
                         Positioned(
                           top: 0,
                           left: 0,
                           right: 0,
-                          // The rows have fixed heights the wall is laid out
-                          // under; large system text grows them only so far.
-                          // Notes and sheets scale freely.
-                          child: MediaQuery.withClampedTextScaling(
-                            maxScaleFactor: 1.3,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildTitleRow(wall),
-                                _buildToolRow(wall),
-                              ],
+                          height: HomeScreen.wallHeaderHeight + 16,
+                          child: IgnorePointer(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    (wall.dark ? Colors.black : Colors.white)
+                                        .withValues(alpha: 0.32),
+                                    (wall.dark ? Colors.black : Colors.white)
+                                        .withValues(alpha: 0),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                        Positioned(
-                          top: HomeScreen.wallHeaderHeight + 6,
-                          left: 0,
-                          right: 0,
+                      // Positioned like everything else here, so the Stack
+                      // fills the body rather than shrinking to the rows.
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        // The rows have fixed heights the wall is laid out
+                        // under; large system text grows them only so far.
+                        // Notes and sheets scale freely.
+                        child: MediaQuery.withClampedTextScaling(
+                          maxScaleFactor: 1.3,
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                child: _filterPill(),
-                              ),
-                              if (_searching) _otherBoardsPill(),
-                              _undoPill(),
+                              _buildTitleRow(wall),
+                              _buildToolRow(wall),
                             ],
                           ),
                         ),
-                        // The same breath of shade along the bottom, behind the
-                        // tool pill and the add button.
-                        if (onWall)
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            height:
-                                HomeScreen.wallFooterHeight +
-                                MediaQuery.viewPaddingOf(context).bottom +
-                                28,
-                            child: IgnorePointer(
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.bottomCenter,
-                                    end: Alignment.topCenter,
-                                    colors: [
-                                      (wall.dark ? Colors.black : Colors.white)
-                                          .withValues(alpha: 0.32),
-                                      (wall.dark ? Colors.black : Colors.white)
-                                          .withValues(alpha: 0),
-                                    ],
-                                  ),
+                      ),
+                      Positioned(
+                        top: HomeScreen.wallHeaderHeight + 6,
+                        left: 0,
+                        right: 0,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: _filterPill(),
+                            ),
+                            if (_searching) _otherBoardsPill(),
+                            _undoPill(),
+                          ],
+                        ),
+                      ),
+                      if (BoardSidebar.fits(context))
+                        _boardPanel(wall, onWall: onWall),
+                      // The same breath of shade along the bottom, behind the
+                      // tool pill and the add button.
+                      if (onWall)
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          height:
+                              HomeScreen.wallFooterHeight +
+                              MediaQuery.viewPaddingOf(context).bottom +
+                              28,
+                          child: IgnorePointer(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [
+                                    (wall.dark ? Colors.black : Colors.white)
+                                        .withValues(alpha: 0.32),
+                                    (wall.dark ? Colors.black : Colors.white)
+                                        .withValues(alpha: 0),
+                                  ],
                                 ),
                               ),
                             ),
                           ),
-                        // The selection and marker bars float over the body too
-                        // (not docked): docking would shrink the body, and with
-                        // it the wall, nudging every note up the moment either
-                        // bar appears. Each bar carries its own SafeArea.
-                        if (_selecting || _marking)
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            child: _selecting
-                                ? _selectionBar(wall)
-                                : _markerBar(wall),
-                          ),
-                        // Tools live in a pill at the bottom, thumb-side, so the
-                        // top row is all board tabs. The selection and marker
-                        // bars take its place (the selection bar carries the ⋮
-                        // menu, which exports the selection).
-                        if (!_selecting &&
-                            !_marking &&
-                            !_notes.currentBoardShut)
-                          Positioned(
-                            // The same 16dp margin as the board tabs above.
-                            left: 16,
-                            bottom:
-                                12 +
-                                (onWall
-                                    ? MediaQuery.viewPaddingOf(context).bottom
-                                    : 0),
-                            child: _toolPill(wall),
-                          ),
-                      ],
-                    ),
+                        ),
+                      // The selection and marker bars float over the body too
+                      // (not docked): docking would shrink the body, and with
+                      // it the wall, nudging every note up the moment either
+                      // bar appears. Each bar carries its own SafeArea.
+                      if (_selecting || _marking)
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: _selecting
+                              ? _selectionBar(wall)
+                              : _markerBar(wall),
+                        ),
+                      // Tools live in a pill at the bottom, thumb-side, so the
+                      // top row is all board tabs. The selection and marker
+                      // bars take its place (the selection bar carries the ⋮
+                      // menu, which exports the selection).
+                      if (!_selecting && !_marking && !_notes.currentBoardShut)
+                        Positioned(
+                          // The same 16dp margin as the board tabs above.
+                          left: 16,
+                          bottom:
+                              12 +
+                              (onWall
+                                  ? MediaQuery.viewPaddingOf(context).bottom
+                                  : 0),
+                          child: _toolPill(wall),
+                        ),
+                    ],
                   ),
                 ),
               ),

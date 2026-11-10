@@ -15,6 +15,7 @@ class SettingsController extends ChangeNotifier {
     : _fontId = _storage.fontId,
       _languageCode = _storage.languageCode,
       _wallDecor = _storage.wallDecor,
+      _boardPanel = _storage.boardPanel,
       _nightMode = _storage.nightMode,
       _nightStart = _storage.nightStart,
       _nightEnd = _storage.nightEnd,
@@ -39,6 +40,7 @@ class SettingsController extends ChangeNotifier {
   String _fontId;
   String _languageCode;
   bool _wallDecor;
+  bool _boardPanel;
   NightMode _nightMode;
   int _nightStart;
   int _nightEnd;
@@ -162,6 +164,10 @@ class SettingsController extends ChangeNotifier {
 
   bool get wallDecor => _wallDecor;
 
+  /// The board list floats open over the wall (wide windows only; see
+  /// BoardSidebar). Closed until the user opens it.
+  bool get boardPanel => _boardPanel;
+
   NightMode get nightMode => _nightMode;
   int get nightStart => _nightStart;
   int get nightEnd => _nightEnd;
@@ -260,6 +266,13 @@ class SettingsController extends ChangeNotifier {
   void setLanguageCode(String code) {
     _languageCode = code;
     _storage.setLanguageCode(code);
+    notifyListeners();
+  }
+
+  void setBoardPanel(bool value) {
+    if (value == _boardPanel) return;
+    _boardPanel = value;
+    _storage.setBoardPanel(value);
     notifyListeners();
   }
 

@@ -1974,6 +1974,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get boardsTitle => 'Boards';
 
   @override
+  String get boardPanelShow => 'Show board list';
+
+  @override
+  String get boardPanelHide => 'Hide board list';
+
+  @override
   String boardNoteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

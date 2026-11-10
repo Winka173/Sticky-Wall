@@ -38,6 +38,7 @@ class NoteStorage {
   static const _fontKey = 'font';
   static const _languageKey = 'language';
   static const _decorKey = 'decor';
+  static const _boardPanelKey = 'board_panel';
   static const _nightKey = 'night';
   static const _nightStartKey = 'nightStart';
   static const _nightEndKey = 'nightEnd';
@@ -191,6 +192,11 @@ class NoteStorage {
 
   bool get wallDecor => _prefs.getBool(_decorKey) ?? true;
   Future<void> setWallDecor(bool value) => _prefs.setBool(_decorKey, value);
+
+  /// Whether the board list is open over the wall on a wide window.
+  bool get boardPanel => _prefs.getBool(_boardPanelKey) ?? false;
+  Future<void> setBoardPanel(bool value) =>
+      _prefs.setBool(_boardPanelKey, value);
 
   // --- Lights --------------------------------------------------------------
 

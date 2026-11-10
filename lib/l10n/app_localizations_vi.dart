@@ -1941,6 +1941,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get boardsTitle => 'Bảng';
 
   @override
+  String get boardPanelShow => 'Hiện danh sách bảng';
+
+  @override
+  String get boardPanelHide => 'Ẩn danh sách bảng';
+
+  @override
   String boardNoteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

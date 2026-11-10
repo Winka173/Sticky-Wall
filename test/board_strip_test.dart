@@ -104,6 +104,19 @@ void main() {
       // One "All 6" tab opens the picker; the separate button is gone.
       expect(find.text('All 6'), findsOneWidget);
       expect(find.byIcon(Icons.apps), findsOneWidget);
+      // Every tab is the same height, the "All" tab included.
+      double heightOf(String label) => tester
+          .getSize(
+            find
+                .ancestor(
+                  of: find.text(label),
+                  matching: find.byType(AnimatedContainer),
+                )
+                .first,
+          )
+          .height;
+      expect(heightOf('All 6'), heightOf('B4'));
+      expect(heightOf('B4'), heightOf('B5'));
       await tester.tap(find.text('All 6'));
       await tester.pumpAndSettle();
       expect(find.text('All boards'), findsOneWidget);

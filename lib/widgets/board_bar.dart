@@ -35,6 +35,8 @@ class BoardBar extends StatefulWidget {
     this.dropTarget,
     this.dragging,
     this.onMemoryWall,
+    this.onTogglePanel,
+    this.panelOpen = false,
   });
 
   /// The most boards shown as plain tabs; one more and the strip collapses.
@@ -56,6 +58,14 @@ class BoardBar extends StatefulWidget {
 
   /// Offered on the "+" tab: a new board of photos.
   final VoidCallback? onMemoryWall;
+
+  /// On a wide window, opens or closes the board list (BoardSidebar); its
+  /// button then leads the strip in place of the picker's.
+  final VoidCallback? onTogglePanel;
+
+  /// The board list is open: its rows are the drop targets, so the tabs give
+  /// up their keys and a drag opens no tray.
+  final bool panelOpen;
 
   static final _noTarget = ValueNotifier<String?>(null);
   static final _notDragging = ValueNotifier<bool>(false);
@@ -168,8 +178,10 @@ class _BoardBarState extends State<BoardBar> {
     return ValueListenableBuilder<bool>(
       valueListenable: widget.dragging ?? BoardBar._notDragging,
       builder: (context, dragging, _) {
-        // While the tray lists every board, its chips carry the drop keys.
-        final trayOpen = collapsed && dragging;
+        // While the tray lists every board, its chips carry the drop keys;
+        // with the board list open, its rows do.
+        final trayOpen = collapsed && dragging && !widget.panelOpen;
+        final tabKeys = trayOpen || widget.panelOpen ? null : widget.chipKeys;
         // Passthrough: the strip keeps the parent's tight height, as the bare
         // row did.
         return Stack(
@@ -180,40 +192,32 @@ class _BoardBarState extends State<BoardBar> {
               height: 44,
               child: Row(
                 children: [
+                  if (widget.onTogglePanel case final toggle?)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: _CircleButton(
+                        key: const Key('board-panel-toggle'),
+                        icon: widget.panelOpen
+                            ? Icons.view_sidebar
+                            : Icons.view_sidebar_outlined,
+                        label: widget.panelOpen
+                            ? l10n.boardPanelHide
+                            : l10n.boardPanelShow,
+                        selected: widget.panelOpen,
+                        mirror: true,
+                        onTap: toggle,
+                      ),
+                    )
                   // Every board at once, with a picture of each, once there
                   // are a few: the tab strip alone means scrolling sideways
                   // to find one. A collapsed strip has its own "All" tab.
-                  if (notes.boards.length > 1 && !collapsed)
+                  else if (notes.boards.length > 1 && !collapsed)
                     Padding(
                       padding: const EdgeInsets.only(left: 12),
-                      child: Tooltip(
-                        message: l10n.allBoards,
-                        child: KeyboardTappable(
-                          onActivate: () => _actions.pick(context),
-                          circle: true,
-                          child: Semantics(
-                            button: true,
-                            label: l10n.allBoards,
-                            excludeSemantics: true,
-                            child: InkResponse(
-                              onTap: () => _actions.pick(context),
-                              child: SizedBox(
-                                width: 40,
-                                height: 44,
-                                child: Center(
-                                  child: _ChipFace.circle(
-                                    size: 34,
-                                    child: const Icon(
-                                      Icons.apps,
-                                      color: AppColors.chalk,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                      child: _CircleButton(
+                        icon: Icons.apps,
+                        label: l10n.allBoards,
+                        onTap: () => _actions.pick(context),
                       ),
                     ),
                   // Shrink-wrapped so the "+" follows the last tab directly
@@ -229,7 +233,7 @@ class _BoardBarState extends State<BoardBar> {
                             valueListenable:
                                 widget.dropTarget ?? BoardBar._noTarget,
                             builder: (context, hovered, _) => _BoardChip(
-                              key: trayOpen ? null : widget.chipKeys?[board.id],
+                              key: tabKeys?[board.id],
                               board: board,
                               label: _actions.displayName(l10n, board),
                               selected: selected,
@@ -257,7 +261,7 @@ class _BoardBarState extends State<BoardBar> {
                                 padding: const EdgeInsets.only(right: 8),
                                 child: KeyedSubtree(
                                   key: selected ? _selectedKey : null,
-                                  child: tab(board),
+                                  child: Center(child: tab(board)),
                                 ),
                               );
                             },
@@ -297,7 +301,7 @@ class _BoardBarState extends State<BoardBar> {
                               child: ReorderableDelayedDragStartListener(
                                 key: selected ? _selectedKey : null,
                                 index: index,
-                                child: tab(board),
+                                child: Center(child: tab(board)),
                               ),
                             );
                           },
@@ -362,10 +366,12 @@ class _ChipFace extends StatelessWidget {
   }) : size = null;
 
   /// A round control, [size] across (the grid and "+" buttons).
-  const _ChipFace.circle({required this.child, required double this.size})
-    : selected = false,
-      highlighted = false,
-      padding = EdgeInsets.zero;
+  const _ChipFace.circle({
+    required this.child,
+    required double this.size,
+    this.selected = false,
+  }) : highlighted = false,
+       padding = EdgeInsets.zero;
 
   final Widget child;
   final bool selected;
@@ -374,6 +380,9 @@ class _ChipFace extends StatelessWidget {
   final bool highlighted;
   final EdgeInsetsGeometry padding;
   final double? size;
+
+  /// Height of a tab; round buttons are [size] across.
+  static const height = 40.0;
 
   /// Words on the chip: ink on chalk when open, chalk on the scrim otherwise.
   static Color ink({required bool selected, bool highlighted = false}) =>
@@ -397,7 +406,8 @@ class _ChipFace extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       width: size,
-      height: size,
+      // Every tab the same height, whatever its row offers it.
+      height: size ?? height,
       padding: padding,
       // Only a fixed-size circle centres its child: an aligned container
       // would otherwise grow to the widest width it is offered (a tray row).
@@ -619,6 +629,69 @@ class _DropTray extends StatelessWidget {
   }
 }
 
+/// A round control at the start of the strip: the board picker, or on a wide
+/// window the board list's show / hide (solid while the list is open).
+class _CircleButton extends StatelessWidget {
+  const _CircleButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.selected = false,
+    this.mirror = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool selected;
+
+  /// Draws [icon] mirrored left to right.
+  final bool mirror;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: label,
+      child: KeyboardTappable(
+        onActivate: onTap,
+        circle: true,
+        child: Semantics(
+          button: true,
+          selected: selected,
+          label: label,
+          excludeSemantics: true,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            // A 40 dp circle inside a 48 dp target.
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: Center(
+                child: _ChipFace.circle(
+                  size: _ChipFace.height,
+                  selected: selected,
+                  child: Transform.flip(
+                    // The list opens on the left; Material draws this
+                    // icon's panel on the right.
+                    flipX: mirror,
+                    child: Icon(
+                      icon,
+                      size: 20,
+                      color: _ChipFace.ink(selected: selected),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// The trailing "+" tab that creates a new board.
 class _AddChip extends StatelessWidget {
   const _AddChip({required this.tooltip, required this.onTap});
@@ -641,7 +714,7 @@ class _AddChip extends StatelessWidget {
             width: 48,
             child: Center(
               child: _ChipFace.circle(
-                size: 44,
+                size: _ChipFace.height,
                 child: const Icon(Icons.add, color: AppColors.chalk, size: 20),
               ),
             ),

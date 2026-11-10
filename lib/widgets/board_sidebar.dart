@@ -8,31 +8,33 @@ import '../theme.dart';
 import 'board_actions.dart';
 import 'keyboard_tappable.dart';
 
-/// Every board as a list down the left of a wide window (a tablet, a desktop
-/// window) in place of the tab strip. Tap a board to open it, tap the open one
-/// to edit, move or delete it, long-press and drag a row to reorder. A note
-/// dragged from the wall can be dropped on any row: the screen finds the rows
-/// through [chipKeys] and names the hovered one in [dropTarget].
+/// The board list a wide window (a tablet, a desktop window) can open beside
+/// the tab strip: every board with its note count, New board and All boards.
+/// It floats over the wall, the way a canvas app's panels do, so opening or
+/// closing it never moves a note; the tab strip stays where it was. Tap a
+/// board to open it, tap the open one to edit, move or delete it, long-press
+/// and drag a row to reorder. A note dragged from the wall can be dropped on
+/// any row: the screen finds the rows through [chipKeys] and names the
+/// hovered one in [dropTarget].
 class BoardSidebar extends StatelessWidget {
   const BoardSidebar({
     super.key,
     required this.notes,
     required this.dark,
+    required this.onClose,
     this.chipKeys,
     this.dropTarget,
     this.onMemoryWall,
   });
 
-  /// Windows at least this wide (dp) get the list instead of the strip. Below
-  /// it the wall would be left too narrow for the sample notes and for
-  /// working in a row of cards (a 960 dp window has room for five across; with
-  /// the list only three).
-  static const minWindowWidth = 1000.0;
+  /// Windows at least this wide (dp) offer the list; a phone has the strip
+  /// and its drop tray.
+  static const minWindowWidth = 600.0;
 
-  /// Width of the list, margins included.
-  static const width = 244.0;
+  /// Width of the panel.
+  static const width = 260.0;
 
-  /// Whether a window [context] lives in is wide enough for the list.
+  /// Whether a window [context] lives in is wide enough to offer the list.
   static bool fits(BuildContext context) =>
       MediaQuery.sizeOf(context).width >= minWindowWidth;
 
@@ -41,13 +43,16 @@ class BoardSidebar extends StatelessWidget {
   /// The wall is dark: the panel is dark with chalk words, as its tool pill.
   final bool dark;
 
+  /// Closes the panel (its own ✕).
+  final VoidCallback onClose;
+
   /// A key per board id, placed on that board's row.
   final Map<String, GlobalKey>? chipKeys;
 
   /// The board id a dragged note is hovering over, if any.
   final ValueListenable<String?>? dropTarget;
 
-  /// Offered on the "+": a new board of photos.
+  /// Offered on "New board": a new board of photos.
   final VoidCallback? onMemoryWall;
 
   static final _noTarget = ValueNotifier<String?>(null);
@@ -57,109 +62,135 @@ class BoardSidebar extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final actions = BoardActions(notes, onMemoryWall: onMemoryWall);
     final ink = dark ? AppColors.chalk : AppColors.ink;
-    return SizedBox(
-      width: width,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 0, 12),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            // Near-opaque like the tool pill: no blur over a moving wall.
-            color: dark ? const Color(0xE62A2520) : const Color(0xEBFDFBF3),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: ink.withValues(alpha: 0.25)),
-          ),
-          child: ListenableBuilder(
-            listenable: notes,
-            builder: (context, _) {
-              final boards = notes.boards;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 16, 18, 6),
-                    child: Semantics(
-                      header: true,
-                      child: Text(
-                        l10n.boardsTitle,
-                        style: TextStyle(
-                          color: ink,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: ReorderableListView.builder(
-                      padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
-                      buildDefaultDragHandles: false,
-                      onReorderItem: notes.reorderBoards,
-                      itemCount: boards.length,
-                      itemBuilder: (context, index) {
-                        final board = boards[index];
-                        final selected = board.id == notes.currentBoardId;
-                        return Padding(
-                          key: ValueKey('board-row-${board.id}'),
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: ReorderableDelayedDragStartListener(
-                            index: index,
-                            child: ValueListenableBuilder<String?>(
-                              valueListenable: dropTarget ?? _noTarget,
-                              builder: (context, hovered, _) => _BoardRow(
-                                key: chipKeys?[board.id],
-                                board: board,
-                                label: actions.displayName(l10n, board),
-                                count: notes.isOpen(board)
-                                    ? notes.allNotes
-                                          .where(
-                                            (n) =>
-                                                n.boardId == board.id &&
-                                                !n.isTrashed,
-                                          )
-                                          .length
-                                    : null,
-                                selected: selected,
-                                highlighted: hovered == board.id,
-                                dark: dark,
-                                onTap: () => selected
-                                    ? actions.manage(context, l10n, board)
-                                    : notes.selectBoard(board.id),
-                              ),
+    return Material(
+      key: const Key('board-panel'),
+      type: MaterialType.transparency,
+      child: Container(
+        width: width,
+        decoration: BoxDecoration(
+          // Solid: notes and their words passing underneath must not show
+          // through a list you read (and no blur over a moving wall).
+          color: dark ? const Color(0xFF2A2520) : AppColors.chalk,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: ink.withValues(alpha: 0.2)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x40302318),
+              blurRadius: 18,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: ListenableBuilder(
+          listenable: notes,
+          builder: (context, _) {
+            final boards = notes.boards;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 8, 4, 0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Semantics(
+                          header: true,
+                          child: Text(
+                            l10n.boardsTitle,
+                            style: TextStyle(
+                              color: ink,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: l10n.boardPanelHide,
+                        icon: Icon(Icons.close, color: ink, size: 20),
+                        onPressed: onClose,
+                      ),
+                    ],
                   ),
-                  Divider(height: 1, color: ink.withValues(alpha: 0.2)),
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      children: [
-                        _FooterButton(
+                ),
+                // As tall as its boards, scrolling only past the space left.
+                Flexible(
+                  child: ReorderableListView.builder(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+                    buildDefaultDragHandles: false,
+                    onReorderItem: notes.reorderBoards,
+                    proxyDecorator: (child, _, _) =>
+                        Material(type: MaterialType.transparency, child: child),
+                    itemCount: boards.length,
+                    itemBuilder: (context, index) {
+                      final board = boards[index];
+                      final selected = board.id == notes.currentBoardId;
+                      return Padding(
+                        key: ValueKey('board-row-${board.id}'),
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: ReorderableDelayedDragStartListener(
+                          index: index,
+                          child: ValueListenableBuilder<String?>(
+                            valueListenable: dropTarget ?? _noTarget,
+                            builder: (context, hovered, _) => _BoardRow(
+                              key: chipKeys?[board.id],
+                              board: board,
+                              label: actions.displayName(l10n, board),
+                              count: notes.isOpen(board)
+                                  ? _count(notes, board.id)
+                                  : null,
+                              selected: selected,
+                              highlighted: hovered == board.id,
+                              dark: dark,
+                              onTap: () => selected
+                                  ? actions.manage(context, l10n, board)
+                                  : notes.selectBoard(board.id),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Divider(
+                  height: 1,
+                  indent: 16,
+                  endIndent: 16,
+                  color: ink.withValues(alpha: 0.15),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _FooterButton(
                           icon: Icons.add,
                           label: l10n.newBoard,
                           ink: ink,
                           onTap: () => actions.newBoard(context),
                         ),
-                        if (boards.length > 1)
-                          _FooterButton(
-                            icon: Icons.apps,
-                            label: l10n.allBoards,
-                            ink: ink,
-                            onTap: () => actions.pick(context),
-                          ),
-                      ],
-                    ),
+                      ),
+                      if (boards.length > 1)
+                        IconButton(
+                          tooltip: l10n.allBoards,
+                          icon: Icon(Icons.apps, color: ink, size: 20),
+                          onPressed: () => actions.pick(context),
+                        ),
+                    ],
                   ),
-                ],
-              );
-            },
-          ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
+
+  static int _count(NotesController notes, String boardId) =>
+      notes.allNotes.where((n) => n.boardId == boardId && !n.isTrashed).length;
 }
 
 class _BoardRow extends StatelessWidget {
@@ -189,46 +220,49 @@ class _BoardRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final solid = MediaQuery.highContrastOf(context);
     final panelInk = dark ? AppColors.chalk : AppColors.ink;
-    // The open board is the panel's ink turned over; a drop target is gold.
+    // The open board is a soft tint of the panel's ink with a bar at its
+    // start, not a slab of solid colour; a drop target is gold.
     final Color fill;
-    final Color ink;
+    final ink = highlighted ? AppColors.ink : panelInk;
     if (highlighted) {
       fill = AppColors.accent;
-      ink = AppColors.ink;
     } else if (selected) {
-      fill = panelInk;
-      ink = dark ? AppColors.ink : AppColors.chalk;
+      fill = panelInk.withValues(alpha: dark ? 0.16 : 0.09);
     } else {
       fill = Colors.transparent;
-      ink = panelInk;
     }
     return KeyboardTappable(
       onActivate: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(12),
       child: Semantics(
         button: true,
         selected: selected,
         hint: selected ? l10n.editBoard : null,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
           onTap: onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
             height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.only(right: 12),
             decoration: BoxDecoration(
               color: fill,
-              borderRadius: BorderRadius.circular(14),
-              border: highlighted
-                  ? Border.all(color: AppColors.accent, width: 2)
-                  : solid && !selected
-                  ? Border.all(color: panelInk.withValues(alpha: 0.5))
-                  : null,
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
+                // The open board's marker: a short bar in the panel's ink.
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  width: 4,
+                  height: selected && !highlighted ? 22 : 0,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: panelInk,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
                 SizedBox(
                   width: 26,
                   child: board.icon.isEmpty
@@ -249,30 +283,25 @@ class _BoardRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (count == null)
-                  Icon(
-                    Icons.lock_outline,
-                    size: 17,
-                    color: ink,
-                    semanticLabel: l10n.boardPrivate,
-                  )
-                else
+                if (board.isPrivate)
+                  Padding(
+                    padding: EdgeInsets.only(right: count == null ? 0 : 6),
+                    child: Icon(
+                      Icons.lock_outline,
+                      size: 16,
+                      color: ink,
+                      semanticLabel: l10n.boardPrivate,
+                    ),
+                  ),
+                if (count != null)
                   Text(
                     '$count',
                     style: TextStyle(
-                      color: ink.withValues(alpha: 0.85),
+                      color: ink.withValues(alpha: 0.8),
                       fontSize: 14,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
-                if (board.isPrivate && count != null) ...[
-                  const SizedBox(width: 6),
-                  Icon(
-                    Icons.lock_outline,
-                    size: 15,
-                    color: ink,
-                    semanticLabel: l10n.boardPrivate,
-                  ),
-                ],
               ],
             ),
           ),
@@ -299,16 +328,16 @@ class _FooterButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return KeyboardTappable(
       onActivate: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(12),
       child: Semantics(
         button: true,
         label: label,
         excludeSemantics: true,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
           onTap: onTap,
           child: SizedBox(
-            height: 44,
+            height: 48,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(

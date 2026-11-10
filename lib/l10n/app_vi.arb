@@ -573,6 +573,8 @@
   "allBoardsCount": "Tất cả {count}",
   "dropOnBoardHint": "Thả vào một bảng",
   "boardsTitle": "Bảng",
+  "boardPanelShow": "Hiện danh sách bảng",
+  "boardPanelHide": "Ẩn danh sách bảng",
   "boardNoteCount": "{count, plural, =0{Chưa có ghi chú} other{{count} ghi chú}}",
   "duplicateBoard": "Nhân bản bảng",
   "boardCopyName": "{name} (bản sao)",

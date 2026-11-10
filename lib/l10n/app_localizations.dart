@@ -3536,6 +3536,18 @@ abstract class AppLocalizations {
   /// **'Boards'**
   String get boardsTitle;
 
+  /// No description provided for @boardPanelShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show board list'**
+  String get boardPanelShow;
+
+  /// No description provided for @boardPanelHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide board list'**
+  String get boardPanelHide;
+
   /// No description provided for @boardNoteCount.
   ///
   /// In en, this message translates to:
