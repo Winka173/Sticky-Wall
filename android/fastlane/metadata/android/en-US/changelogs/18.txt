@@ -1,0 +1,4 @@
+• Long-press the app icon for a new note, a to-do list or a voice note
+• Back twice to leave the wall, so a stray swipe never closes the app (switch in Settings)
+• Keyboard: Ctrl+N, Ctrl+F, Ctrl+Z, Ctrl+A, Delete, Esc; right-click a note for its menu
+• Board tabs fade at the edges instead of being cut off

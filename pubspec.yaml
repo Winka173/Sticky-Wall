@@ -6,7 +6,7 @@ publish_to: 'none'
 # Version name + build number. Android: versionName / versionCode.
 # iOS: CFBundleShortVersionString / CFBundleVersion. Bump the build number on
 # every store upload; bump the version name for user-visible releases.
-version: 1.6.3+17
+version: 1.6.4+18
 
 environment:
   sdk: ^3.12.2
@@ -164,7 +164,7 @@ msix_config:
   publisher_display_name: Winka Studio
   # identity_name: <Package/Identity/Name>
   # publisher: <Package/Identity/Publisher>
-  msix_version: 1.6.3.0
+  msix_version: 1.6.4.0
   logo_path: assets/icon/app_icon.png
   capabilities: internetClient, microphone
   languages: en-us, vi-vn

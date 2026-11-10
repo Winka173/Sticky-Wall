@@ -1,0 +1,4 @@
+• Nhấn giữ biểu tượng app để tạo nhanh ghi chú, danh sách việc hoặc ghi âm
+• Bấm Back hai lần mới thoát, để vuốt nhầm không đóng app (tắt được trong Cài đặt)
+• Bàn phím: Ctrl+N, Ctrl+F, Ctrl+Z, Ctrl+A, Delete, Esc; nhấp chuột phải vào ghi chú để mở menu
+• Thẻ bảng mờ dần ở hai mép thay vì bị cắt cụt
