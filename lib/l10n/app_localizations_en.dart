@@ -1980,6 +1980,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get boardPanelHide => 'Hide board list';
 
   @override
+  String get backTwiceToExit => 'Press Back twice to leave';
+
+  @override
+  String get backTwiceToExitHint =>
+      'A single Back on the wall asks first, so a stray swipe does not close the app. Your notes are always saved.';
+
+  @override
+  String get pressBackAgainToExit => 'Press Back again to leave';
+
+  @override
+  String get shortcutNewNote => 'New note';
+
+  @override
+  String get shortcutNewList => 'New to-do list';
+
+  @override
+  String get shortcutVoiceNote => 'Voice note';
+
+  @override
   String boardNoteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

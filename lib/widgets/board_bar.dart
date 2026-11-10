@@ -75,6 +75,10 @@ class BoardBar extends StatefulWidget {
 }
 
 class _BoardBarState extends State<BoardBar> {
+  /// Width over which a tab fades out at either end of the strip; inside
+  /// the strip's own 16 dp start padding, so a tab at rest is never dimmed.
+  static const _edgeFade = 12.0;
+
   final _scroll = ScrollController();
 
   /// On the selected chip, so it can be scrolled into view.
@@ -224,34 +228,95 @@ class _BoardBarState extends State<BoardBar> {
                   // while they fit, and only becomes a fixed trailing button
                   // once the strip has to scroll.
                   Flexible(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        _revealSelected(constraints.maxWidth);
-                        Widget tab(Board board) {
-                          final selected = board.id == notes.currentBoardId;
-                          return ValueListenableBuilder<String?>(
-                            valueListenable:
-                                widget.dropTarget ?? BoardBar._noTarget,
-                            builder: (context, hovered, _) => _BoardChip(
-                              key: tabKeys?[board.id],
-                              board: board,
-                              label: _actions.displayName(l10n, board),
-                              selected: selected,
-                              highlighted: hovered == board.id,
-                              onTap: () => selected
-                                  ? _actions.manage(context, l10n, board)
-                                  : notes.selectBoard(board.id),
-                            ),
-                          );
-                        }
+                    // A tab scrolled half out of the strip fades away at the
+                    // edge instead of being cut off hard against a button.
+                    child: ShaderMask(
+                      blendMode: BlendMode.dstIn,
+                      shaderCallback: (bounds) {
+                        final fade = bounds.width <= 0
+                            ? 0.0
+                            : (_edgeFade / bounds.width).clamp(0.0, 0.5);
+                        return LinearGradient(
+                          colors: const [
+                            Color(0x00000000),
+                            Color(0xFF000000),
+                            Color(0xFF000000),
+                            Color(0x00000000),
+                          ],
+                          stops: [0, fade, 1 - fade, 1],
+                        ).createShader(bounds);
+                      },
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          _revealSelected(constraints.maxWidth);
+                          Widget tab(Board board) {
+                            final selected = board.id == notes.currentBoardId;
+                            return ValueListenableBuilder<String?>(
+                              valueListenable:
+                                  widget.dropTarget ?? BoardBar._noTarget,
+                              builder: (context, hovered, _) => _BoardChip(
+                                key: tabKeys?[board.id],
+                                board: board,
+                                label: _actions.displayName(l10n, board),
+                                selected: selected,
+                                highlighted: hovered == board.id,
+                                onTap: () => selected
+                                    ? _actions.manage(context, l10n, board)
+                                    : notes.selectBoard(board.id),
+                              ),
+                            );
+                          }
 
-                        if (collapsed) {
-                          // Not reorderable: only some boards are in it.
-                          return ListView.builder(
-                            controller: _scroll,
+                          if (collapsed) {
+                            // Not reorderable: only some boards are in it.
+                            return ListView.builder(
+                              controller: _scroll,
+                              scrollDirection: Axis.horizontal,
+                              shrinkWrap: true,
+                              padding: const EdgeInsets.only(
+                                left: 16,
+                                right: 4,
+                              ),
+                              itemCount: tabs.length,
+                              itemBuilder: (context, index) {
+                                final board = tabs[index];
+                                final selected =
+                                    board.id == notes.currentBoardId;
+                                return Padding(
+                                  key: ValueKey('board-${board.id}'),
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: KeyedSubtree(
+                                    key: selected ? _selectedKey : null,
+                                    child: Center(child: tab(board)),
+                                  ),
+                                );
+                              },
+                            );
+                          }
+                          return ReorderableListView.builder(
+                            scrollController: _scroll,
                             scrollDirection: Axis.horizontal,
                             shrinkWrap: true,
-                            padding: const EdgeInsets.only(left: 16),
+                            padding: const EdgeInsets.only(left: 16, right: 4),
+                            buildDefaultDragHandles: false,
+                            onReorderItem: notes.reorderBoards,
+                            proxyDecorator: (child, _, animation) =>
+                                AnimatedBuilder(
+                                  animation: animation,
+                                  child: child,
+                                  builder: (context, child) => Transform.scale(
+                                    scale:
+                                        1 +
+                                        0.08 *
+                                            Curves.easeInOut.transform(
+                                              animation.value,
+                                            ),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: child,
+                                    ),
+                                  ),
+                                ),
                             itemCount: tabs.length,
                             itemBuilder: (context, index) {
                               final board = tabs[index];
@@ -259,54 +324,16 @@ class _BoardBarState extends State<BoardBar> {
                               return Padding(
                                 key: ValueKey('board-${board.id}'),
                                 padding: const EdgeInsets.only(right: 8),
-                                child: KeyedSubtree(
+                                child: ReorderableDelayedDragStartListener(
                                   key: selected ? _selectedKey : null,
+                                  index: index,
                                   child: Center(child: tab(board)),
                                 ),
                               );
                             },
                           );
-                        }
-                        return ReorderableListView.builder(
-                          scrollController: _scroll,
-                          scrollDirection: Axis.horizontal,
-                          shrinkWrap: true,
-                          padding: const EdgeInsets.only(left: 16),
-                          buildDefaultDragHandles: false,
-                          onReorderItem: notes.reorderBoards,
-                          proxyDecorator: (child, _, animation) =>
-                              AnimatedBuilder(
-                                animation: animation,
-                                child: child,
-                                builder: (context, child) => Transform.scale(
-                                  scale:
-                                      1 +
-                                      0.08 *
-                                          Curves.easeInOut.transform(
-                                            animation.value,
-                                          ),
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: child,
-                                  ),
-                                ),
-                              ),
-                          itemCount: tabs.length,
-                          itemBuilder: (context, index) {
-                            final board = tabs[index];
-                            final selected = board.id == notes.currentBoardId;
-                            return Padding(
-                              key: ValueKey('board-${board.id}'),
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ReorderableDelayedDragStartListener(
-                                key: selected ? _selectedKey : null,
-                                index: index,
-                                child: Center(child: tab(board)),
-                              ),
-                            );
-                          },
-                        );
-                      },
+                        },
+                      ),
                     ),
                   ),
                   if (collapsed)

@@ -17,6 +17,7 @@ import '../models/note.dart';
 import '../models/view_mode.dart';
 import '../services/audio_service.dart';
 import '../services/image_service.dart';
+import '../services/launcher_shortcuts.dart';
 import '../services/memory_wall.dart';
 import '../services/notes_controller.dart';
 import '../services/pro_controller.dart';
@@ -57,6 +58,9 @@ part 'home_screen_chrome.dart';
 part 'home_screen_widgets.dart';
 
 const _kToast = Duration(seconds: 3);
+
+/// How long a first Back keeps the way out open.
+const _kExitWindow = Duration(seconds: 2);
 
 /// The main screen: title row, board tabs and tools, then the notes in the
 /// current layout (free wall, grid or list) over the wall texture. Also hosts
@@ -132,6 +136,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _seenWallEdits = 0;
   bool _undoShown = false;
   Timer? _undoTimer;
+
+  /// A first Back on the wall arms leaving for a moment (see
+  /// [SettingsController.backTwiceToExit]); a second one within it leaves.
+  bool _exitArmed = false;
+  Timer? _exitTimer;
 
   // The gesture tips are offered once, the first time the wall shows.
   bool _tipsOffered = false;
@@ -218,12 +227,39 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         (_) => _openFromWidget(tap),
       ),
     );
+    // A long press on the app icon: a new note of one kind, straight away.
+    _shortcuts.listen(
+      (kind) => WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _newFromShortcut(kind),
+      ),
+    );
     final launched = ReminderService.takeLaunchNote();
     if (launched != null) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => _openFromReminder(launched),
       );
     }
+  }
+
+  final _shortcuts = LauncherShortcuts();
+  String? _shortcutsLabelledIn;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Name the icon's shortcuts in the app's language, again if it changes.
+    final l10n = AppLocalizations.of(context);
+    if (l10n != null && l10n.localeName != _shortcutsLabelledIn) {
+      _shortcutsLabelledIn = l10n.localeName;
+      unawaited(_shortcuts.label(l10n));
+    }
+  }
+
+  /// A launcher shortcut: the editor for a new note of [kind] on the open
+  /// board (a shut private board shows its cover instead).
+  Future<void> _newFromShortcut(NoteType kind) async {
+    if (!mounted || _notes.currentBoardShut) return;
+    await _openEditor(_draftHere()..type = kind, isNew: true);
   }
 
   StreamSubscription<String>? _reminderTaps;
@@ -285,6 +321,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _dropTarget.dispose();
     _noteDragging.dispose();
     _undoTimer?.cancel();
+    _exitTimer?.cancel();
     super.dispose();
   }
 
@@ -616,10 +653,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       );
   }
 
-  void _toast(String message) {
+  void _toast(String message, {Duration duration = _kToast}) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message), duration: _kToast));
+      ..showSnackBar(SnackBar(content: Text(message), duration: duration));
   }
 
   void _undoToast(String message, VoidCallback undo) {
@@ -1114,9 +1151,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     // Back leaves a mode before it leaves the app: marker, then selection,
-    // then search.
+    // then search. Then, unless turned off, it asks for a second press.
+    final inMode = _marking || _selecting || _searching;
+    final askTwice = widget.settings.backTwiceToExit && !_exitArmed;
     return PopScope(
-      canPop: !(_marking || _selecting || _searching),
+      canPop: !inMode && !askTwice,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (_marking) {
@@ -1125,6 +1164,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           _exitSelecting();
         } else if (_searching) {
           _setSearching(false);
+        } else if (askTwice) {
+          setState(() => _exitArmed = true);
+          _toast(_l10n.pressBackAgainToExit, duration: _kExitWindow);
+          _exitTimer?.cancel();
+          _exitTimer = Timer(_kExitWindow, () {
+            if (mounted) setState(() => _exitArmed = false);
+          });
         }
       },
       child: ListenableBuilder(

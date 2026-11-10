@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 import 'note_storage.dart';
+import 'review_prompt.dart';
 
 export 'note_storage.dart'
     show NightMode, WidgetContent, WidgetLook, WidgetTextSize;
@@ -16,6 +17,7 @@ class SettingsController extends ChangeNotifier {
       _languageCode = _storage.languageCode,
       _wallDecor = _storage.wallDecor,
       _boardPanel = _storage.boardPanel,
+      _backTwiceToExit = _storage.backTwiceToExit,
       _nightMode = _storage.nightMode,
       _nightStart = _storage.nightStart,
       _nightEnd = _storage.nightEnd,
@@ -41,6 +43,7 @@ class SettingsController extends ChangeNotifier {
   String _languageCode;
   bool _wallDecor;
   bool _boardPanel;
+  bool _backTwiceToExit;
   NightMode _nightMode;
   int _nightStart;
   int _nightEnd;
@@ -135,6 +138,13 @@ class SettingsController extends ChangeNotifier {
 
   void markProOffered() => unawaited(_storage.setProOffered(true));
 
+  late final _review = ReviewPrompt(_storage);
+
+  /// After something worked out (a finished list, a saved board), maybe ask
+  /// for a rating; see [ReviewPrompt] for when.
+  void maybeAskForReview({required int noteCount}) =>
+      unawaited(_review.maybeAsk(installedAt: _installedAt, notes: noteCount));
+
   /// Whether opening the app asks for the phone's lock (off by default).
   bool get appLock => _appLock;
 
@@ -167,6 +177,17 @@ class SettingsController extends ChangeNotifier {
   /// The board list floats open over the wall (wide windows only; see
   /// BoardSidebar). Closed until the user opens it.
   bool get boardPanel => _boardPanel;
+
+  /// Back on the main screen asks for a second press before leaving the app,
+  /// so a stray swipe does not close it. On by default.
+  bool get backTwiceToExit => _backTwiceToExit;
+
+  void setBackTwiceToExit(bool value) {
+    if (value == _backTwiceToExit) return;
+    _backTwiceToExit = value;
+    _storage.setBackTwiceToExit(value);
+    notifyListeners();
+  }
 
   NightMode get nightMode => _nightMode;
   int get nightStart => _nightStart;

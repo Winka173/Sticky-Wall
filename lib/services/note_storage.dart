@@ -39,6 +39,7 @@ class NoteStorage {
   static const _languageKey = 'language';
   static const _decorKey = 'decor';
   static const _boardPanelKey = 'board_panel';
+  static const _backTwiceKey = 'back_twice';
   static const _nightKey = 'night';
   static const _nightStartKey = 'nightStart';
   static const _nightEndKey = 'nightEnd';
@@ -57,6 +58,7 @@ class NoteStorage {
   static const _widgetTextSizeKey = 'widgetTextSize';
   static const _widgetPictureKey = 'widgetPicture';
   static const _installedAtKey = 'installedAt';
+  static const _reviewAskKey = 'reviewAskedAt';
   static const _widgetPictureBoardKey = 'widgetPictureBoard';
   static const _proOfferedKey = 'proOffered';
 
@@ -198,6 +200,11 @@ class NoteStorage {
   Future<void> setBoardPanel(bool value) =>
       _prefs.setBool(_boardPanelKey, value);
 
+  /// Back on the main screen leaves only when pressed twice in a row.
+  bool get backTwiceToExit => _prefs.getBool(_backTwiceKey) ?? true;
+  Future<void> setBackTwiceToExit(bool value) =>
+      _prefs.setBool(_backTwiceKey, value);
+
   // --- Lights --------------------------------------------------------------
 
   NightMode get nightMode {
@@ -321,6 +328,15 @@ class NoteStorage {
 
   Future<void> setInstalledAt(DateTime at) =>
       _prefs.setString(_installedAtKey, at.toIso8601String());
+
+  /// When the store's rating sheet was last asked for; null if never.
+  DateTime? get lastReviewAsk {
+    final raw = _prefs.getString(_reviewAskKey);
+    return raw == null ? null : DateTime.tryParse(raw);
+  }
+
+  Future<void> setLastReviewAsk(DateTime at) =>
+      _prefs.setString(_reviewAskKey, at.toIso8601String());
 
   /// Whether the one quiet line about Pro has been shown.
   bool get proOffered => _prefs.getBool(_proOfferedKey) ?? false;

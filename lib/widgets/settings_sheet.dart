@@ -562,6 +562,23 @@ class _SettingsSheet extends StatelessWidget {
               notes: notes,
             ),
           ),
+        // A stray back swipe should not close the app (everything is saved
+        // anyway; this only spares the reopen). Phones only.
+        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS))
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            secondary: const Icon(Icons.keyboard_return, color: AppColors.ink),
+            title: Text(
+              l10n.backTwiceToExit,
+              style: const TextStyle(fontSize: 16, color: AppColors.ink),
+            ),
+            subtitle: Text(
+              l10n.backTwiceToExitHint,
+              style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+            ),
+            value: settings.backTwiceToExit,
+            onChanged: settings.setBackTwiceToExit,
+          ),
         const SizedBox(height: 8),
         _SectionTitle(l10n.privacySection),
         SwitchListTile(

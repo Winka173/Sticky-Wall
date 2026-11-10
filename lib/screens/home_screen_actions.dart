@@ -20,7 +20,11 @@ extension _NoteActions on _HomeScreenState {
       HapticFeedback.selectionClick();
       _notes.togglePin(note);
     },
-    onToggleItem: (i) => _notes.toggleChecklistItem(note, i),
+    onToggleItem: (i) {
+      _notes.toggleChecklistItem(note, i);
+      // A list just finished is a good moment to ask for a rating.
+      if (note.checklistDone) _maybeAskForReview();
+    },
     onLongPress: () {
       HapticFeedback.mediumImpact();
       if (_selecting) {
@@ -526,6 +530,10 @@ extension _NoteActions on _HomeScreenState {
 
   /// Shows the board as a picture — wall, notes and threads, nothing else —
   /// to share or save. Always the wall layout, whichever view is showing.
+  void _maybeAskForReview() => widget.settings.maybeAskForReview(
+    noteCount: _notes.allNotes.where((n) => !n.isTrashed).length,
+  );
+
   Future<void> _exportBoard() {
     final wall = wallFor(_notes.currentBoard, night: isNight(context));
     final hasWidget = !kIsWeb && Platform.isAndroid;
@@ -584,6 +592,7 @@ extension _NoteActions on _HomeScreenState {
       if (bytes == null || !mounted) return;
       await _imageService.saveToGallery(bytes);
       _toast(_l10n.imageSaved);
+      _maybeAskForReview();
     } catch (_) {
       if (mounted) _toast(_l10n.imageSaveFailed);
     }

@@ -1947,6 +1947,25 @@ class AppLocalizationsVi extends AppLocalizations {
   String get boardPanelHide => 'Ẩn danh sách bảng';
 
   @override
+  String get backTwiceToExit => 'Bấm Back hai lần để thoát';
+
+  @override
+  String get backTwiceToExitHint =>
+      'Bấm Back một lần trên tường sẽ hỏi trước, để vuốt nhầm không đóng app. Ghi chú luôn được lưu sẵn.';
+
+  @override
+  String get pressBackAgainToExit => 'Bấm Back lần nữa để thoát';
+
+  @override
+  String get shortcutNewNote => 'Ghi chú mới';
+
+  @override
+  String get shortcutNewList => 'Danh sách việc mới';
+
+  @override
+  String get shortcutVoiceNote => 'Ghi âm';
+
+  @override
   String boardNoteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

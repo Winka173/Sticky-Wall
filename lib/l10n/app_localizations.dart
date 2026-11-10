@@ -3548,6 +3548,42 @@ abstract class AppLocalizations {
   /// **'Hide board list'**
   String get boardPanelHide;
 
+  /// No description provided for @backTwiceToExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Press Back twice to leave'**
+  String get backTwiceToExit;
+
+  /// No description provided for @backTwiceToExitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A single Back on the wall asks first, so a stray swipe does not close the app. Your notes are always saved.'**
+  String get backTwiceToExitHint;
+
+  /// No description provided for @pressBackAgainToExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Press Back again to leave'**
+  String get pressBackAgainToExit;
+
+  /// No description provided for @shortcutNewNote.
+  ///
+  /// In en, this message translates to:
+  /// **'New note'**
+  String get shortcutNewNote;
+
+  /// No description provided for @shortcutNewList.
+  ///
+  /// In en, this message translates to:
+  /// **'New to-do list'**
+  String get shortcutNewList;
+
+  /// No description provided for @shortcutVoiceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get shortcutVoiceNote;
+
   /// No description provided for @boardNoteCount.
   ///
   /// In en, this message translates to:
