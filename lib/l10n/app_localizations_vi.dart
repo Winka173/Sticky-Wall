@@ -1938,6 +1938,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get dropOnBoardHint => 'Thả vào một bảng';
 
   @override
+  String get boardsTitle => 'Bảng';
+
+  @override
   String boardNoteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

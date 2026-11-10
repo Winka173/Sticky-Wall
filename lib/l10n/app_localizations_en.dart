@@ -1971,6 +1971,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dropOnBoardHint => 'Drop on a board';
 
   @override
+  String get boardsTitle => 'Boards';
+
+  @override
   String boardNoteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

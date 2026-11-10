@@ -493,6 +493,10 @@ extension _Chrome on _HomeScreenState {
   /// The second header row is the board strip alone, full width; the tools
   /// are in [_toolPill] at the bottom.
   Widget _buildToolRow(WallStyle wall) {
+    // A wide window lists the boards down the left instead (see
+    // [_withSidebar]); the row keeps its height so the wall's layout, which
+    // is measured under both header rows, does not move.
+    if (BoardSidebar.fits(context)) return const SizedBox(height: 52);
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 4, 8, 0),
       child: SizedBox(
@@ -507,6 +511,39 @@ extension _Chrome on _HomeScreenState {
           dragging: _noteDragging,
           onMemoryWall: _newMemoryWall,
         ),
+      ),
+    );
+  }
+
+  /// [child] beside the board list when the window is wide enough for it
+  /// ([BoardSidebar.fits]); the wall, grid or list then fill what is left.
+  Widget _withSidebar({
+    required WallStyle wall,
+    required bool sidebar,
+    required bool bottomInset,
+    required Widget child,
+  }) {
+    if (!sidebar) return child;
+    return SafeArea(
+      // The status bar and left edge are cleared here, once; the wall still
+      // runs under the system bar at the bottom, as it does without a list.
+      right: false,
+      bottom: bottomInset,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          BoardSidebar(
+            notes: _notes,
+            dark: wall.dark,
+            chipKeys: {
+              for (final b in _notes.boards)
+                b.id: _chipKeys.putIfAbsent(b.id, GlobalKey.new),
+            },
+            dropTarget: _dropTarget,
+            onMemoryWall: _newMemoryWall,
+          ),
+          Expanded(child: child),
+        ],
       ),
     );
   }

@@ -3530,6 +3530,12 @@ abstract class AppLocalizations {
   /// **'Drop on a board'**
   String get dropOnBoardHint;
 
+  /// No description provided for @boardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Boards'**
+  String get boardsTitle;
+
   /// No description provided for @boardNoteCount.
   ///
   /// In en, this message translates to:

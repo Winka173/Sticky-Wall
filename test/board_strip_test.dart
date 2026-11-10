@@ -145,6 +145,12 @@ void main() {
       expect(attached, b.id != notes.currentBoardId, reason: b.name);
     }
 
+    // Chips in the tray are as wide as their words, not stretched across it.
+    for (final b in notes.boards.where((b) => b.id != notes.currentBoardId)) {
+      final size = keys[b.id]!.currentContext!.size!;
+      expect(size.width, lessThan(120), reason: b.name);
+    }
+
     dragging.value = false;
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('board-drop-tray')), findsNothing);
