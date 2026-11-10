@@ -1,0 +1,4 @@
+• Thẻ bảng dễ đọc hơn trên mọi tường: bảng đang mở nổi bật, các bảng khác nằm trên nền tối
+• Từ 5 bảng trở lên, hàng thẻ giữ các bảng hay dùng, kèm nút "Tất cả" để xem mọi bảng
+• Kéo một ghi chú, khay hiện mọi bảng để thả vào
+• Trên tablet, có nút mở danh sách bảng cạnh tường

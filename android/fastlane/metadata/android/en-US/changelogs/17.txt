@@ -1,0 +1,4 @@
+• Board tabs are easier to read on any wall: the open board stands out, the rest sit on a dark pill
+• With five or more boards the strip keeps your most used ones, plus "All" to see every board
+• Drag a note and a tray lists every board to drop it on
+• On tablets, a button opens a board list beside the wall
