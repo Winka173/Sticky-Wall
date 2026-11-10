@@ -1045,6 +1045,8 @@ class StickyNoteCard extends StatelessWidget {
       onTap: cb.onEdit,
       onDoubleTap: cb.onDoubleTap,
       onLongPress: cb.onLongPress,
+      // A mouse's right button opens the same menu as a long press.
+      onSecondaryTap: cb.onLongPress,
       child: Stack(
         alignment: Alignment.topCenter,
         clipBehavior: Clip.none,
@@ -1776,6 +1778,7 @@ class NoteListTile extends StatelessWidget {
         child: GestureDetector(
           onTap: cb.onEdit,
           onLongPress: cb.onLongPress,
+          onSecondaryTap: cb.onLongPress,
           child: row,
         ),
       ),

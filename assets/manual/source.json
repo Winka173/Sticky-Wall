@@ -1,12 +1,12 @@
 {
-  "sourceCommit": "222cd3b1e509c3526e2d6786561346dcacc63bd0",
+  "sourceCommit": "cbf8535ac15bc23f5921bd561fc16392610f1d53",
   "build": "1.6.3+17 / STICKY_SYNC=true",
   "method": "Actual StickyWallApp widgets rendered by Flutter; cropped at measured target bounds; highlight drawn over original UI pixels. Fixture data only.",
   "files": {
     "lib/l10n/app_en.arb": "03531477661cbbd228afc3605b295abf94c26f7be1772336bfb8d33fada1ea23",
     "lib/l10n/app_vi.arb": "20c88a84ea132fbeb30dd36825a255fd07637cf8a59dc39f80b81206d9f2a158",
     "lib/screens/gallery_screen.dart": "e822b7bbab3681ca80f112c65e0f171adbe1221c10ced6ca01e594ff20715f36",
-    "lib/screens/home_screen.dart": "057f381b8450df6b27e5ef1ba94912928fe51efae6777f28fc872339de2b4510",
+    "lib/screens/home_screen.dart": "3dca30461b295406d984327649fa93f0dc46cfd38ba5ade2bd690cbc95a10069",
     "lib/screens/home_screen_actions.dart": "2d9651de97ec8414c0af61599a74a5a32b5def3716ae777c5481373a3e7f4f91",
     "lib/screens/home_screen_chrome.dart": "a0453026cd14f7db3d01263fe866935cad0fc83ee8859f161ab2e95f1c4b923c",
     "lib/screens/home_screen_widgets.dart": "a79a95e778958326be5fbe15ce6d9d7d36b5265a645bf0a33ddf6a43a65bef90",
@@ -31,7 +31,7 @@
     "lib/widgets/lock_gate.dart": "20127b792f75577bfa516023f24be31ccca2da63385427fe56dd731601da6ba9",
     "lib/widgets/note_dialog.dart": "c17b49f9b00e7cee17cae70037557a711d9d65aa512fd7ee5575eeddf50b3f8e",
     "lib/widgets/note_dialog_pieces.dart": "2ecde1b08de9a488287fe251b6c119a5ab80443a83332c0d279b04178703f629",
-    "lib/widgets/note_views.dart": "b937e89a780c7f31f63618f91826dfd52a70f38c44b2ca30d49c186567a6e5e9",
+    "lib/widgets/note_views.dart": "a6be4dc05e398e7ad6989d1490a87b810f264ed7da446556b649933375d51daf",
     "lib/widgets/paper_choice_chip.dart": "0442bc94a545a4030037715de0ca4272902c04c15ebf70a46a95cbaad5280309",
     "lib/widgets/paper_color_dialog.dart": "9c6d7bb68a0bcf2d826ca60c1071814900ebec6235c4e97aee2e284a5746f7f0",
     "lib/widgets/peel_away.dart": "c2e1ae4254831863a4afa53a8b6a7d1a1c07a4d8f991143d437a33ff56f189b0",

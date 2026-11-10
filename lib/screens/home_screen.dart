@@ -1148,6 +1148,48 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   // --- Layout --------------------------------------------------------------
 
+  /// Keys for the main screen. Typing in a field keeps its own keys (undo,
+  /// delete, select all); these only see what the field leaves alone.
+  Map<ShortcutActivator, VoidCallback> _keyboardShortcuts() {
+    final map = <ShortcutActivator, VoidCallback>{};
+    void both(LogicalKeyboardKey key, VoidCallback run) {
+      map[SingleActivator(key, control: true)] = run;
+      map[SingleActivator(key, meta: true)] = run;
+    }
+
+    both(LogicalKeyboardKey.keyN, () {
+      if (_marking || _notes.currentBoardShut) return;
+      unawaited(_openEditor(_draftHere(), isNew: true));
+    });
+    both(LogicalKeyboardKey.keyF, () => _setSearching(true));
+    both(LogicalKeyboardKey.keyZ, () {
+      if (_notes.canUndoWall) _undoWall();
+    });
+    both(LogicalKeyboardKey.keyA, () {
+      if (_notes.boardNotes.isEmpty || _marking) return;
+      setState(() => _selecting = true);
+      _selectAll();
+    });
+    void deleteSelected() {
+      if (_selecting && _selected.isNotEmpty) {
+        unawaited(_deleteMany(_selectedNotes));
+      }
+    }
+
+    map[const SingleActivator(LogicalKeyboardKey.delete)] = deleteSelected;
+    map[const SingleActivator(LogicalKeyboardKey.backspace)] = deleteSelected;
+    map[const SingleActivator(LogicalKeyboardKey.escape)] = () {
+      if (_marking) {
+        _stopMarking();
+      } else if (_selecting) {
+        _exitSelecting();
+      } else if (_searching) {
+        _setSearching(false);
+      }
+    };
+    return map;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Back leaves a mode before it leaves the app: marker, then selection,
@@ -1173,250 +1215,271 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           });
         }
       },
-      child: ListenableBuilder(
-        listenable: Listenable.merge([widget.notes, widget.settings]),
-        builder: (context, _) {
-          final night = isNight(context);
-          final wall = wallFor(
-            _notes.currentBoard,
-            night: night,
-            tryWall: widget.settings.tryWall,
-          );
-          // Only a board or layout change may retarget the slide; unrelated
-          // rebuilds (typing in search) must not yank a running transition.
-          final boardIndex = _notes.currentBoardIndex;
-          if (boardIndex != _lastBoardIndex) {
-            _slideDir = boardIndex > _lastBoardIndex ? 1 : -1;
-            _lastBoardIndex = boardIndex;
-            // A selection belongs to one board.
-            _selected.clear();
-            _selecting = false;
-          } else if (_notes.viewMode != _lastViewMode) {
-            _slideDir = 0;
-          }
-          _lastViewMode = _notes.viewMode;
-          final onWall = _notes.viewMode == ViewMode.wall;
-          // The tool pill sits bottom-left; on narrow phones an extended FAB
-          // next to it would not fit, so the label only shows on wide screens.
-          final availableForFab =
-              MediaQuery.sizeOf(context).width -
-              32 - // screen margins
-              (4 * 54 + 8) - // the four tools and the pill's padding
-              12; // gap between the two controls
-          final showFabLabel =
-              (_notes.boardNotes.isEmpty || !onWall) &&
-              AddNoteButton.widthWithLabel(context, _l10n.addToWall) <=
-                  availableForFab;
-          if (_notes.wallEdits != _seenWallEdits) {
-            _seenWallEdits = _notes.wallEdits;
-            _armUndo();
-          }
-          // Marker mode belongs to the wall; leaving it ends the session.
-          if (_notes.viewMode != ViewMode.wall) _marking = false;
-          if (!_tipsOffered && widget.settings.welcomePending) {
-            _tipsOffered = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _welcome();
-            });
-          } else if (onWall && !_tipsOffered && widget.settings.tipsPending) {
-            _tipsOffered = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _showTips();
-            });
-          }
+      // A keyboard (tablet, Chromebook, desktop): the everyday moves.
+      child: CallbackShortcuts(
+        bindings: _keyboardShortcuts(),
+        child: Focus(
+          autofocus: true,
+          child: ListenableBuilder(
+            listenable: Listenable.merge([widget.notes, widget.settings]),
+            builder: (context, _) {
+              final night = isNight(context);
+              final wall = wallFor(
+                _notes.currentBoard,
+                night: night,
+                tryWall: widget.settings.tryWall,
+              );
+              // Only a board or layout change may retarget the slide; unrelated
+              // rebuilds (typing in search) must not yank a running transition.
+              final boardIndex = _notes.currentBoardIndex;
+              if (boardIndex != _lastBoardIndex) {
+                _slideDir = boardIndex > _lastBoardIndex ? 1 : -1;
+                _lastBoardIndex = boardIndex;
+                // A selection belongs to one board.
+                _selected.clear();
+                _selecting = false;
+              } else if (_notes.viewMode != _lastViewMode) {
+                _slideDir = 0;
+              }
+              _lastViewMode = _notes.viewMode;
+              final onWall = _notes.viewMode == ViewMode.wall;
+              // The tool pill sits bottom-left; on narrow phones an extended FAB
+              // next to it would not fit, so the label only shows on wide screens.
+              final availableForFab =
+                  MediaQuery.sizeOf(context).width -
+                  32 - // screen margins
+                  (4 * 54 + 8) - // the four tools and the pill's padding
+                  12; // gap between the two controls
+              final showFabLabel =
+                  (_notes.boardNotes.isEmpty || !onWall) &&
+                  AddNoteButton.widthWithLabel(context, _l10n.addToWall) <=
+                      availableForFab;
+              if (_notes.wallEdits != _seenWallEdits) {
+                _seenWallEdits = _notes.wallEdits;
+                _armUndo();
+              }
+              // Marker mode belongs to the wall; leaving it ends the session.
+              if (_notes.viewMode != ViewMode.wall) _marking = false;
+              if (!_tipsOffered && widget.settings.welcomePending) {
+                _tipsOffered = true;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) _welcome();
+                });
+              } else if (onWall &&
+                  !_tipsOffered &&
+                  widget.settings.tipsPending) {
+                _tipsOffered = true;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) _showTips();
+                });
+              }
 
-          return Stack(
-            children: [
-              // Background layers live outside the Scaffold so switching walls
-              // crossfades the texture without rebuilding the app content.
-              Positioned.fill(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 450),
-                  child: WallBackground(
-                    key: ValueKey(
-                      '${wall.id}-${wall.imageFile}-${widget.settings.wallDecor}',
+              return Stack(
+                children: [
+                  // Background layers live outside the Scaffold so switching walls
+                  // crossfades the texture without rebuilding the app content.
+                  Positioned.fill(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 450),
+                      child: WallBackground(
+                        key: ValueKey(
+                          '${wall.id}-${wall.imageFile}-${widget.settings.wallDecor}',
+                        ),
+                        wall: wall,
+                        decor: widget.settings.wallDecor,
+                        soften: widget.settings.wallSoften,
+                        // Only the wall pans; grid and list scroll over a still
+                        // background.
+                        camera: _notes.viewMode == ViewMode.wall
+                            ? _camera
+                            : null,
+                      ),
                     ),
-                    wall: wall,
-                    decor: widget.settings.wallDecor,
-                    soften: widget.settings.wallSoften,
-                    // Only the wall pans; grid and list scroll over a still
-                    // background.
-                    camera: _notes.viewMode == ViewMode.wall ? _camera : null,
                   ),
-                ),
-              ),
-              Scaffold(
-                backgroundColor: Colors.transparent,
-                // The editor is a dialog above this screen; letting the keyboard
-                // squash the wall underneath would make every note slide about
-                // behind the barrier while you type.
-                resizeToAvoidBottomInset: false,
-                floatingActionButton:
-                    _selecting || _marking || _notes.currentBoardShut
-                    ? null
-                    : AddNoteButton(
-                        label: _l10n.addToWall,
-                        onPressed: _quickAdd,
-                        onLongPress: _quickAdd,
-                        extended: showFabLabel,
-                      ),
-                body: SafeArea(
-                  // On the wall the body runs under the system bar too (the
-                  // wall keeps its resting view clear of it); grid and list
-                  // stop above it.
-                  bottom: !onWall,
-                  // While the keyboard is up the system reports no bottom
-                  // padding (the keyboard covers the navigation bar), which
-                  // would let the wall grow by that strip and every note below
-                  // the top row slide down with it. Keep the bar's height.
-                  maintainBottomViewPadding: true,
-                  child: Stack(
-                    children: [
-                      // The content fills the body; each layout keeps its own
-                      // place under the header (see _buildContent).
-                      Positioned.fill(
-                        child: AnimatedSwitcher(
-                          duration: MediaQuery.disableAnimationsOf(context)
-                              ? Duration.zero
-                              : const Duration(milliseconds: 260),
-                          switchInCurve: Curves.easeOutCubic,
-                          switchOutCurve: Curves.easeInCubic,
-                          transitionBuilder: _contentTransition,
-                          child: KeyedSubtree(
-                            key: ValueKey(
-                              '${_notes.currentBoardId}:${_notes.viewMode.name}',
-                            ),
-                            child: _buildContent(wall),
+                  Scaffold(
+                    backgroundColor: Colors.transparent,
+                    // The editor is a dialog above this screen; letting the keyboard
+                    // squash the wall underneath would make every note slide about
+                    // behind the barrier while you type.
+                    resizeToAvoidBottomInset: false,
+                    floatingActionButton:
+                        _selecting || _marking || _notes.currentBoardShut
+                        ? null
+                        : AddNoteButton(
+                            label: _l10n.addToWall,
+                            onPressed: _quickAdd,
+                            onLongPress: _quickAdd,
+                            extended: showFabLabel,
                           ),
-                        ),
-                      ),
-                      // A breath of shade behind the rows, so they stay legible
-                      // over a note passing underneath.
-                      if (onWall)
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: HomeScreen.wallHeaderHeight + 16,
-                          child: IgnorePointer(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    (wall.dark ? Colors.black : Colors.white)
-                                        .withValues(alpha: 0.32),
-                                    (wall.dark ? Colors.black : Colors.white)
-                                        .withValues(alpha: 0),
-                                  ],
+                    body: SafeArea(
+                      // On the wall the body runs under the system bar too (the
+                      // wall keeps its resting view clear of it); grid and list
+                      // stop above it.
+                      bottom: !onWall,
+                      // While the keyboard is up the system reports no bottom
+                      // padding (the keyboard covers the navigation bar), which
+                      // would let the wall grow by that strip and every note below
+                      // the top row slide down with it. Keep the bar's height.
+                      maintainBottomViewPadding: true,
+                      child: Stack(
+                        children: [
+                          // The content fills the body; each layout keeps its own
+                          // place under the header (see _buildContent).
+                          Positioned.fill(
+                            child: AnimatedSwitcher(
+                              duration: MediaQuery.disableAnimationsOf(context)
+                                  ? Duration.zero
+                                  : const Duration(milliseconds: 260),
+                              switchInCurve: Curves.easeOutCubic,
+                              switchOutCurve: Curves.easeInCubic,
+                              transitionBuilder: _contentTransition,
+                              child: KeyedSubtree(
+                                key: ValueKey(
+                                  '${_notes.currentBoardId}:${_notes.viewMode.name}',
+                                ),
+                                child: _buildContent(wall),
+                              ),
+                            ),
+                          ),
+                          // A breath of shade behind the rows, so they stay legible
+                          // over a note passing underneath.
+                          if (onWall)
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              height: HomeScreen.wallHeaderHeight + 16,
+                              child: IgnorePointer(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        (wall.dark
+                                                ? Colors.black
+                                                : Colors.white)
+                                            .withValues(alpha: 0.32),
+                                        (wall.dark
+                                                ? Colors.black
+                                                : Colors.white)
+                                            .withValues(alpha: 0),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                      // Positioned like everything else here, so the Stack
-                      // fills the body rather than shrinking to the rows.
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        // The rows have fixed heights the wall is laid out
-                        // under; large system text grows them only so far.
-                        // Notes and sheets scale freely.
-                        child: MediaQuery.withClampedTextScaling(
-                          maxScaleFactor: 1.3,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildTitleRow(wall),
-                              _buildToolRow(wall),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: HomeScreen.wallHeaderHeight + 6,
-                        left: 0,
-                        right: 0,
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
+                          // Positioned like everything else here, so the Stack
+                          // fills the body rather than shrinking to the rows.
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            // The rows have fixed heights the wall is laid out
+                            // under; large system text grows them only so far.
+                            // Notes and sheets scale freely.
+                            child: MediaQuery.withClampedTextScaling(
+                              maxScaleFactor: 1.3,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildTitleRow(wall),
+                                  _buildToolRow(wall),
+                                ],
                               ),
-                              child: _filterPill(),
                             ),
-                            if (_searching) _otherBoardsPill(),
-                            _undoPill(),
-                          ],
-                        ),
-                      ),
-                      if (BoardSidebar.fits(context))
-                        _boardPanel(wall, onWall: onWall),
-                      // The same breath of shade along the bottom, behind the
-                      // tool pill and the add button.
-                      if (onWall)
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          height:
-                              HomeScreen.wallFooterHeight +
-                              MediaQuery.viewPaddingOf(context).bottom +
-                              28,
-                          child: IgnorePointer(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [
-                                    (wall.dark ? Colors.black : Colors.white)
-                                        .withValues(alpha: 0.32),
-                                    (wall.dark ? Colors.black : Colors.white)
-                                        .withValues(alpha: 0),
-                                  ],
+                          ),
+                          Positioned(
+                            top: HomeScreen.wallHeaderHeight + 6,
+                            left: 0,
+                            right: 0,
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: _filterPill(),
+                                ),
+                                if (_searching) _otherBoardsPill(),
+                                _undoPill(),
+                              ],
+                            ),
+                          ),
+                          if (BoardSidebar.fits(context))
+                            _boardPanel(wall, onWall: onWall),
+                          // The same breath of shade along the bottom, behind the
+                          // tool pill and the add button.
+                          if (onWall)
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              height:
+                                  HomeScreen.wallFooterHeight +
+                                  MediaQuery.viewPaddingOf(context).bottom +
+                                  28,
+                              child: IgnorePointer(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.bottomCenter,
+                                      end: Alignment.topCenter,
+                                      colors: [
+                                        (wall.dark
+                                                ? Colors.black
+                                                : Colors.white)
+                                            .withValues(alpha: 0.32),
+                                        (wall.dark
+                                                ? Colors.black
+                                                : Colors.white)
+                                            .withValues(alpha: 0),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                      // The selection and marker bars float over the body too
-                      // (not docked): docking would shrink the body, and with
-                      // it the wall, nudging every note up the moment either
-                      // bar appears. Each bar carries its own SafeArea.
-                      if (_selecting || _marking)
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          child: _selecting
-                              ? _selectionBar(wall)
-                              : _markerBar(wall),
-                        ),
-                      // Tools live in a pill at the bottom, thumb-side, so the
-                      // top row is all board tabs. The selection and marker
-                      // bars take its place (the selection bar carries the ⋮
-                      // menu, which exports the selection).
-                      if (!_selecting && !_marking && !_notes.currentBoardShut)
-                        Positioned(
-                          // The same 16dp margin as the board tabs above.
-                          left: 16,
-                          bottom:
-                              12 +
-                              (onWall
-                                  ? MediaQuery.viewPaddingOf(context).bottom
-                                  : 0),
-                          child: _toolPill(wall),
-                        ),
-                    ],
+                          // The selection and marker bars float over the body too
+                          // (not docked): docking would shrink the body, and with
+                          // it the wall, nudging every note up the moment either
+                          // bar appears. Each bar carries its own SafeArea.
+                          if (_selecting || _marking)
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: _selecting
+                                  ? _selectionBar(wall)
+                                  : _markerBar(wall),
+                            ),
+                          // Tools live in a pill at the bottom, thumb-side, so the
+                          // top row is all board tabs. The selection and marker
+                          // bars take its place (the selection bar carries the ⋮
+                          // menu, which exports the selection).
+                          if (!_selecting &&
+                              !_marking &&
+                              !_notes.currentBoardShut)
+                            Positioned(
+                              // The same 16dp margin as the board tabs above.
+                              left: 16,
+                              bottom:
+                                  12 +
+                                  (onWall
+                                      ? MediaQuery.viewPaddingOf(context).bottom
+                                      : 0),
+                              child: _toolPill(wall),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ],
-          );
-        },
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }
