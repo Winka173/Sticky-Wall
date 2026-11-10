@@ -48,7 +48,9 @@ except `07`: the phone has `07_editor_text`, the desktop has
 - `../media/previews/` — contact sheets of all templates and theme packs.
 - `/screenshots/preview_*.png` in the app repo — each wall rendered with
   notes (Vietnamese content, 1170 × 2280), made by the golden tests.
-- `/store/screenshots/` — the current Google Play phone screenshots.
+- `/store/screenshots/<lang>/` — the current Google Play phone and tablet
+  screenshots and feature graphic, built from these captures by
+  `tool/store_slides.py`.
 
 ## Not captured (ask if needed)
 

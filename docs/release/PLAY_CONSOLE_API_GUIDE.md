@@ -233,8 +233,25 @@ stack traces Play shows.
 - icon 512×512, 32-bit PNG (`store/icon_512.png`);
 - feature graphic 1024×500 (`store/feature_graphic_1024x500.png`);
 - 2–8 phone screenshots, 9:16, each side ≥ 1080 px to qualify for promotion
-  (current set: `store/screenshots/01…08`, 1080×1920);
-- optional 7" / 10" tablet screenshots.
+  (current set: `store/screenshots/<lang>/phone/1…8.png`, 1080×1920);
+- 7" / 10" tablet screenshots: at least 4 of their own for featuring
+  (current set: `store/screenshots/<lang>/tablet/1…4.png`, 1920×1080).
+
+Play's rules for the pictures: no device frame, no hands, no "best / #1 /
+free / new" claims, captions within a fifth of the picture, and the real app
+in the first three. The feature graphic shows the product, not the icon,
+on a ground that is not white, black or dark grey.
+
+### The current set: `tool/store_slides.py`
+
+`python tool/store_slides.py` builds every picture from the website kit's
+real captures (`docs/website/screenshots/`): the app's screen, large, under
+a headline written on a pinned sticky note, in English and Vietnamese, plus
+`store/screenshots/<lang>/feature_graphic.png`. It renders with headless
+Edge or Chrome. Headlines live at the top of the script. Then copy each
+language into `metadata/android/<lang>/images/` (`phoneScreenshots/`,
+`sevenInchScreenshots/`, `tenInchScreenshots/`, `featureGraphic.png`) and run
+`fastlane android images`.
 
 They are uploaded from `metadata/android/<lang>/images/`. That folder is
 gitignored, so it is a staging copy:
